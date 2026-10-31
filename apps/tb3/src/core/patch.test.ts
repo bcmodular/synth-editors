@@ -119,6 +119,29 @@ describe("get/set", () => {
   });
 });
 
+describe("assign slots", () => {
+  it("store IDs above 255 as msb*16 + lsb", () => {
+    const slot = p("assign_pad_x");
+    const patch = setRaw(synthetic(), slot, 264);
+    expect(patch.blocks[slot.block]!.slice(slot.offset, slot.offset + 2)).toEqual([0x10, 0x08]);
+    expect(getRaw(patch, slot)).toBe(264);
+    expect(slot.display(264)).toBe("ACCENT");
+    expect(slot.display(257)).toBe("BENDER RANGE");
+    expect(parseDt1(encodeParam(slot, 264))!.data).toEqual([0x10, 0x08]);
+    expect(setRaw(patch, slot, 99999).blocks[slot.block]!.slice(slot.offset, slot.offset + 2)).toEqual([0x7f, 0x0f]);
+  });
+
+  it("survive a sysex round-trip", () => {
+    const slot = p("assign_effect_knob");
+    const patch = setRaw(synthetic(), slot, 264);
+    expect(getRaw(patchFromSysex(patchToSysex(patch)), slot)).toBe(264);
+  });
+
+  it("leave ordinary u16 encoding unchanged", () => {
+    expect(parseDt1(encodeParam(p("vcf_cutoff"), 300))!.data).toEqual([0x0f, 0x0f]);
+  });
+});
+
 describe("diff", () => {
   it("changing one param touches exactly one block", () => {
     const base = synthetic();
@@ -189,15 +212,27 @@ describe("morph", () => {
   });
 
   it("snaps bytes no table describes", () => {
-    // The CV-offset block has bytes (the odd offsets of the u16 pairs excluded) no param uses.
-    const key = PATCH_BLOCKS[1]!.addr;
-    const k = addrKey(key);
-    const mapped = new Set(PARAMS.filter((q) => q.block === k).flatMap((q) => [q.offset, q.offset + 1]));
-    const unmapped = Array.from({ length: PATCH_BLOCKS[1]!.size }, (_, i) => i).find((i) => !mapped.has(i));
-    if (unmapped === undefined) return;
-    const lo = { blocks: { ...a.blocks, [k]: a.blocks[k]!.map((_, i) => (i === unmapped ? 2 : 0)) } };
-    const hi = { blocks: { ...b.blocks, [k]: b.blocks[k]!.map((_, i) => (i === unmapped ? 12 : 0)) } };
-    expect(morph(lo, hi, 0.4).blocks[k]![unmapped]).toBe(2);
-    expect(morph(lo, hi, 0.6).blocks[k]![unmapped]).toBe(12);
+    // Cross Modulation (10 00 04 00) has no param at offsets 0x01 and 0x06.
+    const k = addrKey(PATCH_BLOCKS[2]!.addr);
+    const setByte = (patch: Patch, v: number): Patch => {
+      const data = [...patch.blocks[k]!];
+      data[0x01] = v;
+      data[0x06] = v;
+      return { blocks: { ...patch.blocks, [k]: data } };
+    };
+    const lo = setByte(a, 2);
+    const hi = setByte(b, 12);
+    for (const o of [0x01, 0x06]) {
+      expect(morph(lo, hi, 0.4).blocks[k]![o]).toBe(2);
+      expect(morph(lo, hi, 0.6).blocks[k]![o]).toBe(12);
+    }
+  });
+
+  it("snaps assign slots", () => {
+    const slot = p("assign_xy_mod");
+    const lo = setRaw(a, slot, 54);
+    const hi = setRaw(b, slot, 264);
+    expect(getRaw(morph(lo, hi, 0.4), slot)).toBe(54);
+    expect(getRaw(morph(lo, hi, 0.5), slot)).toBe(264);
   });
 });

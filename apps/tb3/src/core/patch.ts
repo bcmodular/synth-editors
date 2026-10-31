@@ -3,7 +3,7 @@ import { EFX_BLOCK, efxTypes } from "./efx";
 import type { EfxNum } from "./efx";
 import { PARAMS, paramAddr } from "./params";
 import type { BlockKey, ParamDef } from "./params";
-import { PATCH_BLOCKS, addrKey, dt1, dt1Nibble16, parseDt1 } from "./sysex";
+import { PATCH_BLOCKS, addrKey, dt1, parseDt1 } from "./sysex";
 
 export interface Patch {
   blocks: Record<BlockKey, number[]>;
@@ -72,7 +72,7 @@ export function setRaw(p: Patch, def: ParamDef, raw: number): Patch {
 export function encodeParam(def: ParamDef, raw: number): number[] {
   const v = clampRaw(def, raw);
   const addr = paramAddr(def);
-  return def.encoding === "u16" ? dt1Nibble16(addr, v) : dt1(addr, [v]);
+  return dt1(addr, bytesFor(def, v)); // u16: msb = v>>4 may exceed 15 for assign slots
 }
 
 export const getEfxType = (p: Patch, efx: EfxNum): number => p.blocks[EFX_BLOCK[efx]]![0]!;

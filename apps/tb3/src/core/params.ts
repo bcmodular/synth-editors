@@ -175,8 +175,11 @@ const ASSIGN_NAMES = new Map(
   SYNTH.flatMap((p) => (p.assignId === undefined ? [] : [[p.assignId, p.name] as const])),
 );
 const assignDisplay = (raw: number): string => ASSIGN_NAMES.get(raw) ?? `#${raw}`;
+// Max is the 14-bit hard limit (msb 0..0x7F, lsb 0..15): the Lua IDs reach 264, so the msb
+// exceeds 0x0F (264 → bytes 10 08). Inferred from the Lua ID range; still to be confirmed on
+// hardware (assign Accent on the TB-3, then dump).
 const assignSlot = (offset: number, id: string, name: string): ParamDef =>
-  special(0x14, offset, id, name, { encoding: "u16", max: 255, display: assignDisplay });
+  special(0x14, offset, id, name, { encoding: "u16", max: 0x7f * 16 + 15, display: assignDisplay });
 
 export const PARAMS: readonly ParamDef[] = [
   ...SYNTH,

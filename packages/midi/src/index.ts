@@ -38,3 +38,20 @@ export function toHex(bytes: ArrayLike<number>): string {
 export function isSysex(bytes: ArrayLike<number>): boolean {
   return bytes.length >= 2 && bytes[0] === 0xf0 && bytes[bytes.length - 1] === 0xf7;
 }
+
+// Split a .syx file's bytes into individual F0…F7 messages. Bytes outside a message are dropped.
+export function splitSysex(bytes: ArrayLike<number>): number[][] {
+  const messages: number[][] = [];
+  let current: number[] | null = null;
+  for (const b of Array.from(bytes)) {
+    if (b === 0xf0) current = [b];
+    else if (current) {
+      current.push(b);
+      if (b === 0xf7) {
+        messages.push(current);
+        current = null;
+      }
+    }
+  }
+  return messages;
+}

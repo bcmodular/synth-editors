@@ -2,3 +2,6 @@ node_modules/
 dist/
 out/
 .DS_Store
+
+# Third-party patches used as local-only test fixtures
+fixtures/local/

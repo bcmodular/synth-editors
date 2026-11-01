@@ -11,7 +11,7 @@ export interface FaderProps {
   defaultValue?: number; // double-click target; defaults to center ?? 0
   off?: boolean; // source switched off: dim fill, keep level
   disabled?: boolean;
-  signColors?: boolean; // negative fill in cyan (cross mod)
+  signColors?: boolean; // negative fill in the alt colour (cross mod)
   className?: string;
 }
 
@@ -21,6 +21,8 @@ function fill(value: number, max: number, center: number | undefined) {
   const c = (center / max) * 100;
   return { start: Math.min(p, c), size: Math.abs(p - c) };
 }
+
+const centerPct = (p: FaderProps) => (p.center === undefined ? undefined : `${(p.center / p.max) * 100}%`);
 
 function fillClass(p: FaderProps) {
   if (p.off) return "off";
@@ -44,7 +46,7 @@ export function HFader(p: FaderProps & { width?: number }) {
     <div
       ref={drag.ref}
       className={`hf ${p.center !== undefined ? "bi" : ""} ${p.disabled ? "disabled" : ""} ${p.className ?? ""}`}
-      style={{ width }}
+      style={{ width, ["--c" as string]: centerPct(p) }}
       onPointerDown={drag.onPointerDown}
       onDoubleClick={drag.onDoubleClick}
     >
@@ -56,7 +58,7 @@ export function HFader(p: FaderProps & { width?: number }) {
 
 export interface VFaderProps extends FaderProps {
   height?: number;
-  color?: "led" | "cyan";
+  color?: "led" | "alt";
   label?: ReactNode;
   led?: { on: boolean; onToggle: () => void }; // LED cap = on/off switch
 }
@@ -85,8 +87,8 @@ export function VFader(p: VFaderProps) {
       )}
       <div
         ref={drag.ref}
-        className={`vf ${p.center !== undefined ? "bi" : ""} ${p.color === "cyan" ? "cyan" : ""} ${p.disabled ? "disabled" : ""}`}
-        style={{ height }}
+        className={`vf ${p.center !== undefined ? "bi" : ""} ${p.color === "alt" ? "alt" : ""} ${p.disabled ? "disabled" : ""}`}
+        style={{ height, ["--c" as string]: centerPct(p) }}
         onPointerDown={drag.onPointerDown}
         onDoubleClick={drag.onDoubleClick}
       >

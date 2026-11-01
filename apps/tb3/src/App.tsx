@@ -29,10 +29,14 @@ export function App() {
   );
   const [armed, setArmed] = useState<AssignSlotId | null>(null);
   const [tuning, setTuning] = useState(64);
-  const midi = useTb3Midi(setPatch);
-  const queue = useMemo(() => createEditQueue(midi.sendTb3), [midi.sendTb3]);
   const patchRef = useRef(patch);
   patchRef.current = patch;
+  // Synced patches update the ref at once, so an edit landing before the next render builds on them.
+  const midi = useTb3Midi((p) => {
+    patchRef.current = p;
+    setPatch(p);
+  });
+  const queue = useMemo(() => createEditQueue(midi.sendTb3), [midi.sendTb3]);
 
   useEffect(() => {
     if (!armed) return;

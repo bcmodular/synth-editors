@@ -123,7 +123,7 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
     return () => {
       input.onmidimessage = null;
     };
-  }, [access, ports.tb3In, addLog, finishSync]);
+  }, [access, inputs, ports.tb3In, addLog, finishSync]); // `inputs` changes on (re)connect
 
   const syncFromTb3 = () => {
     if (!tb3Out || !(access && findInputByName(access, ports.tb3In))) {

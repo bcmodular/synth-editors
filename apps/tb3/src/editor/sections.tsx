@@ -9,7 +9,7 @@ import { LfoView } from "../ui/LfoView";
 import { Section, Segmented, Stepper } from "../ui/controls";
 import { XmodMatrix } from "../ui/XmodMatrix";
 import { useEditor } from "./EditorContext";
-import { Assignable, ParamH, ParamLed, ParamV, useParam } from "./Param";
+import { Assignable, AssignTags, ParamH, ParamLed, ParamV, useParam } from "./Param";
 
 export function VcoSection() {
   const src: [string, string, string][] = [
@@ -105,6 +105,16 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string; width?: number }) {
       label={p.label}
       width={p.width}
       disabled={!ed.patch}
+      readOnly={ed.armed !== null}
+      wrapValue={(k, node) => {
+        const def = paramById(ids[k]);
+        return (
+          <Assignable def={def} className="inline">
+            {node}
+            <AssignTags def={def} />
+          </Assignable>
+        );
+      }}
       onChange={(k, raw) => ed.setParam(ids[k], raw)}
     />
   );
@@ -194,11 +204,11 @@ export function LfoSection() {
       <div className="row top">
         <LfoView input={input} />
         <div className="row tight">
-          <ParamV id="lfo_saw" label="SAW" color="cyan" height={110} />
-          <ParamV id="lfo_sqr" label="SQR" color="cyan" height={110} />
-          <ParamV id="lfo_tri" label="TRI" color="cyan" height={110} />
-          <ParamV id="lfo_sin" label="SIN" color="cyan" height={110} />
-          <ParamV id="lfo_sh" label="S&H" color="cyan" height={110} />
+          <ParamV id="lfo_saw" label="SAW" color="alt" height={110} />
+          <ParamV id="lfo_sqr" label="SQR" color="alt" height={110} />
+          <ParamV id="lfo_tri" label="TRI" color="alt" height={110} />
+          <ParamV id="lfo_sin" label="SIN" color="alt" height={110} />
+          <ParamV id="lfo_sh" label="S&H" color="alt" height={110} />
         </div>
       </div>
       <div className="grid2">

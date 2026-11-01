@@ -1,6 +1,7 @@
 // Draggable ADSR graph. Attack handle → A (x); decay/sustain handle → D (x) and S (y);
 // release handle → R (x). Each stage gets a quarter of the width at full value.
 import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 export type Stage = "a" | "d" | "s" | "r";
@@ -18,7 +19,9 @@ export interface EnvelopeProps {
   width?: number;
   height?: number;
   disabled?: boolean;
+  readOnly?: boolean; // shape shown, handles inert (e.g. while assigning)
   label?: string;
+  wrapValue?: (stage: Stage, node: ReactNode) => ReactNode; // e.g. assign targets + tags
 }
 
 const clamp = (v: number) => Math.max(0, Math.min(MAX, Math.round(v)));
@@ -38,7 +41,7 @@ export function EnvelopeEditor(p: EnvelopeProps) {
   props.current = p;
 
   const startDrag = (stage: "a" | "d" | "r") => (e: ReactPointerEvent<SVGRectElement>) => {
-    if (props.current.disabled || e.button !== 0) return;
+    if (props.current.disabled || props.current.readOnly || e.button !== 0) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
     const x0 = e.clientX;
@@ -76,7 +79,7 @@ export function EnvelopeEditor(p: EnvelopeProps) {
       width={12}
       height={12}
       onPointerDown={startDrag(stage)}
-      onDoubleClick={() => !p.disabled && p.onChange(stage, 0)}
+      onDoubleClick={() => !p.disabled && !p.readOnly && p.onChange(stage, 0)}
     />
   );
 
@@ -100,9 +103,10 @@ export function EnvelopeEditor(p: EnvelopeProps) {
         )}
       </svg>
       <div className="envvals" style={{ width: W }}>
-        {STAGES.map((k) => (
-          <StageValue key={k} stage={k} value={p[k]} disabled={p.disabled} onChange={(v) => p.onChange(k, v)} />
-        ))}
+        {STAGES.map((k) => {
+          const node = <StageValue stage={k} value={p[k]} disabled={p.disabled} onChange={(v) => p.onChange(k, v)} />;
+          return <span key={k}>{p.wrapValue ? p.wrapValue(k, node) : node}</span>;
+        })}
       </div>
     </div>
   );

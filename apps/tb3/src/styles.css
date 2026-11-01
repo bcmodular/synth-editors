@@ -3,14 +3,14 @@
   --rule: #4a4b52;
   --text: #d4d5da;
   --dim: #8a8d96;
-  --led: #ff4a1c;
-  --led-off: #5a2416;
-  --val: #ff7a4d;
-  --cyan: #2ccbe0;
+  --led: #3ddc5a;
+  --led-off: #1c4224;
+  --val: #7be890;
+  --alt: #ffb020;
   --well: #222327;
   --well-dark: #1a1b1e;
   --edge: #34353a;
-  --sel-bg: #2a1712;
+  --sel-bg: #10261a;
   color-scheme: dark;
   font-family: "DIN Condensed", "DIN Alternate", "Avenir Next Condensed", "Helvetica Neue", sans-serif;
   font-size: 14px;
@@ -226,12 +226,13 @@ select {
   font-style: normal;
   font-size: 14px;
   color: #fff;
+  text-shadow: 0 0 2px #000, 0 0 1px #000;
   pointer-events: none;
 }
 .hf.bi::after {
   content: "";
   position: absolute;
-  left: 50%;
+  left: var(--c, 50%);
   top: -3px;
   bottom: -3px;
   width: 1px;
@@ -249,13 +250,13 @@ select {
   left: 0;
   right: 0;
 }
-.vf.cyan > i {
-  background: var(--cyan);
+.vf.alt > i {
+  background: var(--alt);
 }
 .vf.bi::after {
   content: "";
   position: absolute;
-  top: 50%;
+  bottom: var(--c, 50%);
   left: -3px;
   right: -3px;
   height: 1px;
@@ -266,7 +267,7 @@ select {
   background: var(--led-off);
 }
 .hf > i.neg {
-  background: var(--cyan);
+  background: var(--alt);
 }
 .hf.disabled,
 .vf.disabled {
@@ -336,7 +337,7 @@ svg .cord.pos {
   stroke: var(--led);
 }
 svg .cord.neg {
-  stroke: var(--cyan);
+  stroke: var(--alt);
 }
 
 /* Graphs */
@@ -352,7 +353,7 @@ svg .glabel {
   letter-spacing: 0.06em;
 }
 svg .shape {
-  fill: rgba(255, 74, 28, 0.14);
+  fill: rgba(61, 220, 90, 0.14);
   stroke: var(--led);
   stroke-width: 2;
 }
@@ -364,7 +365,7 @@ svg .handle {
 }
 svg .trace {
   fill: none;
-  stroke: var(--cyan);
+  stroke: var(--alt);
   stroke-width: 2.2;
 }
 .envvals {
@@ -385,7 +386,7 @@ svg .trace {
 }
 .stepname {
   height: 30px;
-  background: #1a0d0a;
+  background: #0c1a10;
   border: 1px solid var(--edge);
   border-left: 0;
   border-right: 0;

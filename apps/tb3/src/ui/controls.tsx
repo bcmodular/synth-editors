@@ -79,13 +79,18 @@ export function Stepper(p: {
   useEffect(() => {
     const el = name.current;
     if (!el) return;
+    let acc = 0;
     const onWheel = (e: WheelEvent) => {
       const { disabled, index, items, onChange } = opts.current;
       if (disabled) return;
       e.preventDefault();
-      if (Math.abs(e.deltaY) < 4) return;
+      // Mouse notches step once; trackpad deltas accumulate (~24 px per type).
+      acc += Math.abs(e.deltaY) >= 40 ? Math.sign(e.deltaY) * 24 : e.deltaY;
+      const steps = Math.trunc(acc / 24);
+      if (!steps) return;
+      acc -= steps * 24;
       const len = items.length;
-      const next = (index + (e.deltaY > 0 ? 1 : -1) + len) % len;
+      const next = (((index + steps) % len) + len) % len;
       opts.current = { ...opts.current, index: next };
       onChange(next);
     };

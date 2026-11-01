@@ -16,9 +16,12 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
     rather than rounded cards.
   - Condensed face (`DIN Condensed`, falling back to `Avenir Next Condensed`).
   - Square rubber-style buttons with a small rectangular LED.
-- Colour: LED orange `#ff4a1c` for values and fills, a dark orange `#5a2416` for "off but
-  remembered", and cyan `#2ccbe0` for the LFO (and negative cross-mod amounts). Values read in a
-  light orange. No gradients, glows or drop shadows.
+- Colour: the TB-3's green `#3ddc5a` for values and fills, a dark green `#1c4224` for "off but
+  remembered", and amber `#ffb020` for the LFO (and negative cross-mod amounts). Values read in a
+  light green. No gradients, glows or drop shadows. (The first round of mockups used LED orange;
+  switched to green after the first hardware test to match the device.)
+- Bipolar faders draw their zero line at the param's real centre (`center / max`), not the
+  middle: tuning's zero sits at 127/151.
 - Fader sizes:
   - Horizontal: 22 px tall × 140 px long (120 px in EFX slots).
   - Vertical: 26 px wide × 100 px tall.
@@ -205,6 +208,10 @@ Sync to TB-3:    patchToSysex(patch) ─▶ send all 11 DT1s
 - The edit queue is keyed by param id (or `efx:<n>:<offset>`), so a fast drag sends at most
   about 60 messages per second per param, and the final value is always sent.
 - Incoming DT1s outside a sync request are ignored in Phase 2.
+- Hardware note (first test): Sync from TB-3 works when the TB-3 input is its USB port, even
+  with RQ1 sent over DIN. With the input on DIN (H12MIDI-Pro Port 4), a MIDI monitor showed the
+  RQ1s going out but no reply coming back. The TB-3 receives over DIN but apparently doesn't
+  answer SysEx on its DIN out (or that path isn't routed). Still to be confirmed.
 - Phase 3 recall/morph will reuse the same path: `diffBlocks` + `blocksToSysex`.
 
 ## Out of scope for Phase 2

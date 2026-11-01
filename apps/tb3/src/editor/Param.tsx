@@ -24,24 +24,51 @@ function useAssignTags(def: ParamDef): string {
     .join("");
 }
 
+// After an assigning press, the rest of that click (click, dblclick, a second press) must not
+// reach the control: assign mode has already been switched off by then.
+const SWALLOW_MS = 400;
+let swallowUntil = 0;
+const swallowing = () => performance.now() < swallowUntil;
+
 // In assign mode, clicks on an assignable param pick it instead of editing it.
 export function Assignable(p: { def: ParamDef; className?: string; children: ReactNode }) {
   const ed = useEditor();
-  const active = ed.armed !== null && p.def.assignId !== undefined;
+  const armed = ed.armed !== null;
+  const active = armed && p.def.assignId !== undefined;
+  const block = (e: { stopPropagation(): void; preventDefault(): void }) => {
+    e.stopPropagation();
+    e.preventDefault();
+  };
   return (
     <div
       className={`${p.className ?? ""} ${active ? "assignable" : ""}`}
       onPointerDownCapture={(e) => {
-        if (!active) return;
-        e.stopPropagation();
-        e.preventDefault();
-        ed.assignTo(p.def);
+        if (active) {
+          block(e);
+          swallowUntil = performance.now() + SWALLOW_MS;
+          ed.assignTo(p.def);
+        } else if (armed || swallowing()) block(e);
       }}
-      onClickCapture={(e) => active && e.stopPropagation()}
+      onClickCapture={(e) => (armed || swallowing()) && block(e)}
+      onDoubleClickCapture={(e) => (armed || swallowing()) && block(e)}
+      onWheelCapture={(e) => armed && e.stopPropagation()}
       title={active ? `Assign ${p.def.name}` : undefined}
     >
       {p.children}
     </div>
+  );
+}
+
+export function AssignTags(p: { def: ParamDef }) {
+  const tags = useAssignTags(p.def);
+  return (
+    <>
+      {[...tags].map((t) => (
+        <span key={t} className="tag">
+          {t}
+        </span>
+      ))}
+    </>
   );
 }
 
@@ -79,7 +106,7 @@ export function ParamH(p: { id: string; label: string; width?: number; labelWidt
 }
 
 // Vertical fader with optional LED-cap switch (another param id).
-export function ParamV(p: { id: string; label: string; swId?: string; color?: "led" | "cyan"; height?: number }) {
+export function ParamV(p: { id: string; label: string; swId?: string; color?: "led" | "alt"; height?: number }) {
   const { def, value, disabled, set } = useParam(p.id);
   const sw = useParam(p.swId ?? p.id);
   const on = p.swId ? sw.value !== 0 : true;

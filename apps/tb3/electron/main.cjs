@@ -7,10 +7,12 @@ const MIDI_PERMISSIONS = new Set(["midi", "midiSysex"]);
 function createWindow() {
   const win = new BrowserWindow({
     width: 1640,
-    height: 940,
-    minWidth: 1280,
+    height: 860,
+    minWidth: 640,
+    minHeight: 360,
     title: "TB-3 Editor",
     backgroundColor: "#121214",
+    webPreferences: { preload: path.join(__dirname, "preload.cjs") },
   });
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   if (devUrl) {

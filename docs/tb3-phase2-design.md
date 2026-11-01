@@ -9,8 +9,11 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
 
 ## Target and style
 
-- One large window (external monitor). The design canvas is 1600×940 CSS px and the layout
-  stretches to fill larger windows. There are no tabs and nothing hidden.
+- One window, everything always visible: no tabs, nothing hidden. The layout has a fixed design
+  size (1608 × ~750 CSS px) and Electron's page zoom scales it to fit the window
+  (`editor/useFitZoom.ts`, zoom exposed by `electron/preload.cjs`). Page zoom scales pointer
+  coordinates too, so drag distances and fine adjust behave the same at any size. Extra width or
+  height becomes margin. In a plain browser (`dev:browser`) there is no zoom and the page scrolls.
 - Panel look:
   - Near-black body, with sections marked by a thin "silkscreen" rule and an uppercase label
     rather than rounded cards.

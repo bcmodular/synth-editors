@@ -34,8 +34,14 @@ select {
   color: inherit;
 }
 
+/* Fixed design size; in Electron the whole page is zoomed to fit (editor/useFitZoom.ts). */
+.fit body {
+  overflow: hidden;
+}
+
 .app {
-  min-width: 1580px;
+  width: 1608px;
+  margin: 0 auto;
   padding: 10px 14px;
   display: flex;
   flex-direction: column;

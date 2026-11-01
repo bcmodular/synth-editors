@@ -21,6 +21,7 @@ import {
 import { AssignBlock, MorphPlaceholder, PatchGridPlaceholder, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
 import { createEditQueue } from "./editor/editQueue";
+import { useFitZoom } from "./editor/useFitZoom";
 import { useTb3Midi } from "./editor/useTb3Midi";
 
 export function App() {
@@ -31,6 +32,8 @@ export function App() {
   const [tuning, setTuning] = useState(64);
   const patchRef = useRef(patch);
   patchRef.current = patch;
+  const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
+  useFitZoom(mainEl);
   // Synced patches update the ref at once, so an edit landing before the next render builds on them.
   const midi = useTb3Midi((p) => {
     patchRef.current = p;
@@ -92,7 +95,7 @@ export function App() {
 
   return (
     <EditorContext.Provider value={editor}>
-      <main className={`app ${armed ? "assigning" : ""}`}>
+      <main ref={setMainEl} className={`app ${armed ? "assigning" : ""}`}>
         <div className="strip">
           <Tb3Block midi={midi} hasPatch={Boolean(patch)} onSyncTo={() => patch && midi.sendAllToTb3(patchToSysex(patch))} />
           <PatchGridPlaceholder />

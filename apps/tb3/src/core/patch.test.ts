@@ -8,6 +8,7 @@ import type { ParamDef } from "./params";
 import {
   blocksToSysex,
   diffBlocks,
+  encodeEfxByte,
   encodeParam,
   getEfxRaw,
   getEfxType,
@@ -234,5 +235,16 @@ describe("morph", () => {
     const hi = setRaw(b, slot, 264);
     expect(getRaw(morph(lo, hi, 0.4), slot)).toBe(54);
     expect(getRaw(morph(lo, hi, 0.5), slot)).toBe(264);
+  });
+});
+
+describe("encodeEfxByte", () => {
+  it("addresses the EFX block byte with a valid checksum", () => {
+    const msg = encodeEfxByte(2, 0x48, 3);
+    const m = parseDt1(msg)!;
+    expect(addrKey(m.addr)).toBe("10001248");
+    expect(m.data).toEqual([3]);
+    expect(m.checksumOk).toBe(true);
+    expect(addrKey(parseDt1(encodeEfxByte(1, 0, 4))!.addr)).toBe("10001000");
   });
 });

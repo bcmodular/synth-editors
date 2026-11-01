@@ -89,6 +89,12 @@ export function setEfxRaw(p: Patch, efx: EfxNum, offset: number, raw: number): P
   return withByte(p, key, offset, [clamp(Math.round(raw), 0, 127)]);
 }
 
+// DT1 for one EFX byte (type at offset 0, switch, button or slot).
+export function encodeEfxByte(efx: EfxNum, offset: number, raw: number): number[] {
+  const [a0, a1, a2] = blockDef(EFX_BLOCK[efx]).addr;
+  return dt1([a0, a1, a2, offset], [clamp(Math.round(raw), 0, 127)]);
+}
+
 // Blocks whose bytes differ, in PATCH_BLOCKS order.
 export function diffBlocks(a: Patch, b: Patch): BlockKey[] {
   return PATCH_BLOCKS.map((blk) => addrKey(blk.addr)).filter((k) => {

@@ -6,10 +6,11 @@ const MIDI_PERMISSIONS = new Set(["midi", "midiSysex"]);
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1640,
+    height: 940,
+    minWidth: 1280,
     title: "TB-3 Editor",
-    backgroundColor: "#16181d",
+    backgroundColor: "#121214",
   });
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   if (devUrl) {

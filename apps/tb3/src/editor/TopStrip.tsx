@@ -1,0 +1,167 @@
+// Top strip: TB-3 sync + MIDI settings, patch grid and morph placeholders (Phase 3), perform
+// controls (accent, global tuning) and parameter assign.
+import { useState } from "react";
+import { GLOBAL_TUNING_DISPLAY } from "../core/display";
+import { getRaw } from "../core/patch";
+import { paramById } from "../core/params";
+import { HFader } from "../ui/Fader";
+import { Section } from "../ui/controls";
+import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
+import { ParamH } from "./Param";
+import type { PortRole, Tb3Midi } from "./useTb3Midi";
+
+const PHASE3 = "Patch grid and morph arrive in Phase 3";
+
+export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boolean }) {
+  const [open, setOpen] = useState(false);
+  const { sync } = p.midi;
+  const status = p.midi.error
+    ? `MIDI unavailable: ${p.midi.error}`
+    : sync.kind === "waiting"
+      ? `Receiving ${sync.got}/11…`
+      : sync.kind === "error"
+        ? sync.message
+        : p.hasPatch
+          ? `${p.midi.ports.tb3Out ?? "no output"} · ch ${p.midi.channel}`
+          : "Sync from TB-3 to start";
+  return (
+    <Section title="TB-3" className="tb3" extra={<button className="btn" onClick={() => setOpen((o) => !o)}>MIDI</button>}>
+      <button className={`btn wide ${p.hasPatch ? "" : "pulse"}`} onClick={p.midi.syncFromTb3}>
+        SYNC FROM TB-3
+      </button>
+      <button className="btn wide" disabled={!p.hasPatch} onClick={p.onSyncTo}>
+        SYNC TO TB-3
+      </button>
+      <span className={`status ${sync.kind === "error" || p.midi.error ? "err" : ""}`}>{status}</span>
+      {open && <MidiSettings midi={p.midi} onClose={() => setOpen(false)} />}
+    </Section>
+  );
+}
+
+function MidiSettings(p: { midi: Tb3Midi; onClose: () => void }) {
+  const m = p.midi;
+  const [showLog, setShowLog] = useState(false);
+  const select = (role: PortRole, label: string, list: { id: string; name: string }[]) => (
+    <label className="port">
+      <span className="lbl">{label}</span>
+      <select value={m.ports[role] ?? ""} onChange={(e) => m.choosePort(role, e.target.value)}>
+        <option value="">— none —</option>
+        {list.map((port) => (
+          <option key={port.id} value={port.name}>
+            {port.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  return (
+    <div className="popover settings">
+      {select("tb3In", "TB-3 IN", m.inputs)}
+      {select("tb3Out", "TB-3 OUT", m.outputs)}
+      {select("lpIn", "LAUNCHPAD IN", m.inputs)}
+      {select("lpOut", "LAUNCHPAD OUT", m.outputs)}
+      <label className="port">
+        <span className="lbl">TB-3 CHANNEL</span>
+        <select value={m.channel} onChange={(e) => m.setChannel(Number(e.target.value))}>
+          {Array.from({ length: 16 }, (_, i) => (
+            <option key={i} value={i + 1}>
+              {i + 1}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="row">
+        <button className="btn" onClick={() => setShowLog((s) => !s)}>
+          {showLog ? "HIDE LOG" : "SHOW LOG"}
+        </button>
+        <button className="btn" onClick={p.onClose}>
+          CLOSE
+        </button>
+      </div>
+      {showLog && <pre className="log">{m.log.join("\n")}</pre>}
+    </div>
+  );
+}
+
+export function PatchGridPlaceholder() {
+  return (
+    <Section title="PATCHES" className="patches placeholder" extra={<span className="lbl">PHASE 3</span>}>
+      <div className="slots16" title={PHASE3}>
+        {Array.from({ length: 16 }, (_, i) => (
+          <div key={i} className="slot">
+            {i + 1}
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+export function MorphPlaceholder() {
+  return (
+    <Section title="MORPH" className="morph placeholder" extra={<span className="lbl">PHASE 3</span>}>
+      <div className="hrow" title={PHASE3}>
+        <span className="lbl" style={{ width: 60 }}>
+          TARGET
+        </span>
+        <span className="v">–</span>
+      </div>
+      <div className="hrow" title={PHASE3}>
+        <span className="lbl" style={{ width: 60 }}>
+          AMOUNT
+        </span>
+        <HFader value={0} max={127} onChange={() => {}} disabled width={150} />
+      </div>
+    </Section>
+  );
+}
+
+// Global tuning is CC 104, not part of the patch: local state, sent only.
+export function PerformBlock(p: { tuning: number; onTuning: (v: number) => void; connected: boolean }) {
+  return (
+    <Section title="PERFORM" className="perform">
+      <ParamH id="accent" label="ACCENT" width={170} labelWidth={84} />
+      <div className="hrow">
+        <span className="lbl" style={{ width: 84 }}>
+          GLOBAL TUNE
+        </span>
+        <HFader
+          value={p.tuning}
+          max={127}
+          center={64}
+          format={(v) => GLOBAL_TUNING_DISPLAY[v] ?? String(v)}
+          onChange={p.onTuning}
+          disabled={!p.connected}
+          width={170}
+        />
+      </div>
+    </Section>
+  );
+}
+
+export function AssignBlock() {
+  const ed = useEditor();
+  return (
+    <Section title="ASSIGN" className="assign">
+      <div className="assigns">
+        {ASSIGN_SLOTS.map((s) => {
+          const def = paramById(s.id);
+          const target = ed.patch ? def.display(getRaw(ed.patch, def)) : "–";
+          return (
+            <button
+              key={s.id}
+              className={`btn assignbtn ${ed.armed === s.id ? "sel" : ""}`}
+              disabled={!ed.patch}
+              onClick={() => ed.arm(ed.armed === s.id ? null : s.id)}
+            >
+              <span className="tag">{s.tag}</span>
+              <span className="an">{s.label}</span>
+              <span className="v">{target}</span>
+            </button>
+          );
+        })}
+      </div>
+      {ed.armed && <span className="status">Click a parameter to assign it. Esc cancels.</span>}
+    </Section>
+  );
+}

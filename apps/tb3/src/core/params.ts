@@ -16,6 +16,7 @@ export interface ParamDef {
   kind: "continuous" | "switch" | "enum";
   display: (raw: number) => string;
   assignId?: number; // TB-3 param-assign ID
+  center?: number; // zero point of signed / bipolar params (raw)
 }
 
 const key = (a3: number): BlockKey => addrKey([0x10, 0x00, a3, 0x00]);
@@ -42,12 +43,16 @@ const onOff = (raw: number): string => (raw === 0 ? "OFF" : "ON");
 function param(a3: number, offset: number, name: string, encoding: "u7" | "u16", o: Opts = {}): ParamDef {
   const max = o.sw ? 1 : (o.max ?? (encoding === "u16" ? 255 : 127));
   let display: (raw: number) => string = String;
+  let center: number | undefined;
   if (o.sw) display = onOff;
   else if (o.semitoneRange) display = fmtSemitoneRange;
-  else if (o.signed) display = fmtSigned;
-  else if (o.bipolar) {
+  else if (o.signed) {
+    display = fmtSigned;
+    center = 64;
+  } else if (o.bipolar) {
     const c = o.center ?? Math.floor(max / 2);
     display = (raw) => fmtBipolar(raw, c);
+    center = c;
   }
   return {
     id: snake(name),
@@ -59,6 +64,7 @@ function param(a3: number, offset: number, name: string, encoding: "u7" | "u16",
     kind: o.sw ? "switch" : "continuous",
     display,
     assignId: o.id,
+    center,
   };
 }
 

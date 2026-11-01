@@ -1,0 +1,193 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TB-3 Section Variants</title>
+<style>
+:root{--bg:#0e0e10;--body:#141416;--rule:#4a4b52;--txt:#d4d5da;--dim:#8a8d96;--led:#ff4a1c;--ledlo:#5a2416;--val:#ff7a4d;--cyan:#2ccbe0;--well:#222327;--edge:#34353a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px "DIN Condensed","DIN Alternate","Avenir Next Condensed","Helvetica Neue",sans-serif;padding:20px 24px;user-select:none}
+.prose{font:13px -apple-system,BlinkMacSystemFont,sans-serif;color:var(--dim);line-height:1.5;max-width:900px}
+h1{font:500 18px -apple-system,sans-serif;margin:0 0 4px}
+h2{font:500 15px -apple-system,sans-serif;margin:34px 0 4px;color:#fff}
+h2 b{color:var(--led);font-weight:500;margin-right:6px}
+.vars{display:flex;flex-wrap:wrap;gap:22px;margin-top:10px}
+.var{background:var(--body);padding:10px 12px 12px;border-top:1px solid var(--rule);min-width:260px}
+.var>.vt{font-size:15px;letter-spacing:.05em;color:#fff;margin-bottom:2px}
+.var>.vn{font:12px -apple-system,sans-serif;color:var(--dim);margin-bottom:10px;max-width:380px;line-height:1.4}
+.lbl{font-size:13px;letter-spacing:.04em;color:var(--dim);text-transform:uppercase}
+.row{display:flex;gap:10px;align-items:center}
+.col{display:flex;flex-direction:column;gap:6px}
+.hf{position:relative;height:22px;width:140px;background:var(--well);border:1px solid var(--edge);cursor:ew-resize;flex:0 0 auto}
+.hf>i{position:absolute;top:0;bottom:0;background:var(--led)}
+.hf>em{position:absolute;right:5px;top:3px;font-style:normal;font-size:14px;color:#fff}
+.hf.bi::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#9a9ca3}
+.hf.off>i{background:var(--ledlo)}
+.hrow{display:grid;grid-template-columns:22px 70px 140px;justify-content:start;gap:6px;align-items:center}
+.vf{position:relative;width:26px;height:100px;background:var(--well);border:1px solid var(--edge);cursor:ns-resize}
+.vf>i{position:absolute;left:0;right:0;background:var(--led)}
+.vf.bi::after{content:"";position:absolute;top:50%;left:-3px;right:-3px;height:1px;background:#9a9ca3}
+.vf.cy>i{background:var(--cyan)}
+.vf.off>i{background:var(--ledlo)}
+.vcell{display:flex;flex-direction:column;align-items:center;gap:3px;width:34px}
+.v{font-size:14px;color:var(--val)}
+.ledb{width:22px;height:9px;background:var(--ledlo);border:1px solid #000;cursor:pointer}
+.ledb.on{background:var(--led)}
+.btn{border:1px solid var(--edge);background:#1e1f22;color:var(--txt);padding:4px 9px 2px;font-size:13px;letter-spacing:.03em;cursor:pointer;display:inline-flex;gap:6px;align-items:center;white-space:nowrap}
+.btn .l{width:9px;height:4px;background:var(--ledlo)}.btn.on .l{background:var(--led)}
+.btn.sel{border-color:var(--led);color:#fff;background:#2a1712}
+.seg{display:inline-flex}.seg .btn+.btn{border-left:0}
+svg{display:block}
+.cell{position:relative;width:96px;height:24px;background:var(--well);border:1px solid var(--edge);cursor:ew-resize}
+.cell>i{position:absolute;top:3px;bottom:3px}
+.cell::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:#55575e}
+.cell>em{position:absolute;right:4px;top:4px;font-style:normal;font-size:13px;color:var(--dim)}
+.dgrid{display:grid;grid-template-columns:repeat(5,auto);gap:10px 14px}
+.dgrid .gt{font-size:12px;color:var(--dim);letter-spacing:.06em;margin-bottom:3px}
+.dgrid .btn{display:flex;margin-bottom:3px;width:96px}
+.tag{font-size:11px;background:#2a1712;color:var(--val);border:1px solid var(--led);padding:0 3px;margin-left:4px}
+.dis{opacity:.35}
+.note{font:12px -apple-system,sans-serif;color:var(--dim)}
+</style></head><body>
+<h1>Layout A: section-by-section variants</h1>
+<p class="prose">Each section offers 2–3 control variants. Everything orange is live: drag to change, Shift-drag for fine control, double-click to reset, and the scroll wheel steps by one. The LFO and envelope graphs redraw as you edit. Pick one variant per section, or mix them. Faders follow your note: short and fat, about 22px tall and 140px long horizontally, about 26px wide and 100px tall vertically.</p>
+
+<h2><b>1</b>VCO mixer</h2>
+<div class="vars">
+ <div class="var"><div class="vt">1a · vertical, LED cap</div><div class="vn">Each source has one fat vertical fader. Click the LED above it to switch the source on or off. While it's off, the fader dims but keeps its level.</div><div class="row" id="vco-a"></div></div>
+ <div class="var"><div class="vt">1b · horizontal rows</div><div class="vn">Each source is a row: LED switch, name, then the level bar. More compact, and it lines up with the tuning rows below.</div><div class="col" id="vco-b"></div></div>
+</div>
+
+<h2><b>2</b>Tuning</h2>
+<div class="vars">
+ <div class="var"><div class="vt">2a · three bipolar bars</div><div class="vn">Each bar fills from the centre line.</div><div class="col" id="tune-a"></div></div>
+ <div class="var"><div class="vt">2b · shared ruler</div><div class="vn">One axis, with a draggable marker per oscillator, so you can see the detune between SAW, SQR and RING+SIN at a glance. The range is −127 to +24 because the parameter is asymmetric (max 151, centre 127).</div><div id="tune-b"></div></div>
+</div>
+
+<h2><b>3</b>Cross mod and ring mod</h2>
+<div class="vars">
+ <div class="var"><div class="vt">3a · matrix</div><div class="vn">Rows are sources and columns are destinations. Each cell is a bipolar bar: drag left or right, double-click to zero.</div><div id="xm-a"></div></div>
+ <div class="var"><div class="vt">3b · matrix + patch view</div><div class="vn">The same cells, plus a small patch diagram. Line thickness shows the amount, orange is positive and cyan is negative. You read it at a glance and edit in the cells.</div><div class="row" style="align-items:flex-start"><div id="xm-b"></div><svg id="xm-svg" width="170" height="130"></svg></div></div>
+ <div class="var"><div class="vt">3c · ring mod rows</div><div class="vn">The ring mod gets the same row style as mixer 1b: five source depths plus the master depth.</div><div class="col" id="rm"></div></div>
+</div>
+
+<h2><b>4</b>Envelopes (VCF and VCA)</h2>
+<div class="vars">
+ <div class="var"><div class="vt">4a · drag the graph</div><div class="vn">Drag the corner points: the attack peak moves horizontally only, the decay/sustain point moves both ways (decay time and sustain level), and the release end moves horizontally. Values sit underneath, and you can scroll over a value to step it.</div><div id="env-a"></div></div>
+ <div class="var"><div class="vt">4b · graph + 4 faders</div><div class="vn">A read-only graph with four fat vertical faders beneath, aligned to the stages. Less direct, but every value has a big target.</div><div id="env-b"></div></div>
+</div>
+
+<h2><b>5</b>LFO</h2>
+<div class="vars">
+ <div class="var"><div class="vt">5a · sum + wave faders</div><div class="vn">The summed output waveform, with the five wave levels as short vertical faders right beside it. Delay shows as a fade-in ramp at the start.</div><div class="row" style="align-items:flex-start"><svg id="lfo-a" width="300" height="130"></svg><div class="row" id="lfo-a-f"></div></div><div class="col" id="lfo-a-r" style="margin-top:10px"></div></div>
+ <div class="var"><div class="vt">5b · layered</div><div class="vn">Each component wave is drawn faintly at its level with the sum on top, and each wave's fader sits beside its own small trace. Shows where the shape comes from, but it's busier.</div><div id="lfo-b"></div></div>
+</div>
+
+<h2><b>6</b>Distortion type</h2>
+<div class="vars">
+ <div class="var"><div class="vt">6a · grouped picker</div><div class="vn">All 25 types are visible, grouped by family (this grouping is my reading of the names). One click to switch.</div><div class="dgrid" id="dist-a"></div></div>
+ <div class="var"><div class="vt">6b · stepper</div><div class="vn">A name display with ‹ › to step through the types, scroll to step, and click to open the grouped list as a popover. Saves space in the main row.</div><div id="dist-b"></div></div>
+</div>
+
+<h2><b>7</b>EFX panel</h2>
+<div class="vars">
+ <div class="var"><div class="vt">7a · type buttons + slots</div><div class="vn">The type row is always visible. Mode buttons become a segmented control. Slots follow the efx.ts positions as a 2-column grid, with holes kept as gaps. Slots greyed out by BPM sync (disabledBy) dim.</div><div id="efx-a"></div></div>
+ <div class="var"><div class="vt">7b · stepper type</div><div class="vn">The type uses the same stepper as distortion 6b, which frees the vertical space for the slots.</div><div id="efx-b"></div></div>
+</div>
+
+<h2><b>8</b>Parameter assign</h2>
+<div class="vars">
+ <div class="var"><div class="vt">8a · learn-by-click</div><div class="vn">Click a target (XY MOD, PAD X, PAD Y, EFFECT), then click any parameter label in the editor to assign it. Assigned parameters carry a small tag. Esc cancels.</div><div id="as-a"></div></div>
+ <div class="var"><div class="vt">8b · dropdowns</div><div class="vn">Four searchable dropdowns listing every assignable parameter. Plain, but works without hunting around the screen.</div><div id="as-b"></div></div>
+</div>
+
+<script>
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const listeners=new Map();
+function bind(el,get,set,o){el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);const sx=e.clientX,sy=e.clientY,v0=get();const mv=ev=>{const k=ev.shiftKey?0.15:1;const d=o.vertical?(sy-ev.clientY)/o.len:(ev.clientX-sx)/o.len;set(clamp(Math.round(v0+d*o.max*k),0,o.max))};const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up)};el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up)});
+el.addEventListener('dblclick',()=>set(o.def??0));el.addEventListener('wheel',e=>{e.preventDefault();set(clamp(get()+(e.deltaY<0?1:-1),0,o.max))},{passive:false})}
+function hfader(max,val,o={}){const el=document.createElement('div');el.className='hf'+(o.bi?' bi':'');if(o.w)el.style.width=o.w+'px';el.innerHTML='<i></i><em></em>';let v=val;const c=o.center??max/2;
+const draw=()=>{const p=v/max*100,cp=c/max*100;const i=el.firstChild;if(o.bi){i.style.left=Math.min(p,cp)+'%';i.style.width=Math.abs(p-cp)+'%'}else{i.style.left=0;i.style.width=p+'%'}el.lastChild.textContent=o.fmt?o.fmt(v):(o.bi?((v-c>=0?'+':'')+(v-c)):v);o.on&&o.on(v)};
+bind(el,()=>v,n=>{v=n;draw()},{max,len:el.style.width?parseInt(el.style.width):140,def:o.bi?c:(o.def??0)});draw();el.get=()=>v;el.redraw=draw;return el}
+function vfader(max,val,o={}){const wrap=document.createElement('div');wrap.className='vcell';if(o.led!==undefined){const l=document.createElement('div');l.className='ledb'+(o.led?' on':'');l.onclick=()=>{l.classList.toggle('on');f.classList.toggle('off',!l.classList.contains('on'))};wrap.appendChild(l)}
+const f=document.createElement('div');f.className='vf'+(o.bi?' bi':'')+(o.cy?' cy':'')+(o.led===false?' off':'');if(o.h)f.style.height=o.h+'px';f.innerHTML='<i></i>';const vv=document.createElement('div');vv.className='v';const lb=document.createElement('div');lb.className='lbl';lb.textContent=o.name||'';
+let v=val;const c=o.center??max/2;const draw=()=>{const p=v/max*100,cp=c/max*100;const i=f.firstChild;if(o.bi){i.style.bottom=Math.min(p,cp)+'%';i.style.height=Math.abs(p-cp)+'%'}else{i.style.bottom=0;i.style.height=p+'%'}vv.textContent=o.fmt?o.fmt(v):(o.bi?((v-c>=0?'+':'')+(v-c)):v);o.on&&o.on(v)};
+bind(f,()=>v,n=>{v=n;draw()},{max,len:o.h||100,vertical:true,def:o.bi?c:0});wrap.append(f,vv,lb);draw();wrap.get=()=>v;return wrap}
+const $=id=>document.getElementById(id);
+const lblEl=(t,w)=>{const s=document.createElement('span');s.className='lbl';s.textContent=t;if(w)s.style.width=w+'px';return s};
+const hrow=(name,f,led)=>{const r=document.createElement('div');r.className='hrow';if(led!==undefined){const l=document.createElement('div');l.className='ledb'+(led?' on':'');l.onclick=()=>{l.classList.toggle('on');f.classList.toggle('off',!l.classList.contains('on'))};if(!led)f.classList.add('off');r.append(l)}else r.append(document.createElement('span'));r.append(lblEl(name),f);return r};
+
+const SRC=[['SAW',127,1],['SQR',95,1],['SIN',3,1],['WHITE',127,0],['PINK',127,0],['RING',127,0]];
+SRC.forEach(([n,v,on])=>$('vco-a').append(vfader(127,v,{name:n,led:!!on})));
+SRC.forEach(([n,v,on])=>$('vco-b').append(hrow(n,hfader(127,v),!!on)));
+
+[['SAW',127],['SQR',115],['RING+SIN',127]].forEach(([n,v])=>$('tune-a').append(hrow(n,hfader(151,v,{bi:true,center:127}))));
+(()=>{const W=380,H=80,svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width',W);svg.setAttribute('height',H);$('tune-b').append(svg);
+const m=[{n:'SAW',v:127,y:18},{n:'SQR',v:115,y:38},{n:'R+S',v:131,y:58}];const x=v=>70+(v/151)*(W-82);
+const draw=()=>{let s=`<rect width="${W}" height="${H}" fill="#1a1b1e"/>`;for(let t=-120;t<=24;t+=12){const xx=x(t+127);s+=`<line x1="${xx}" x2="${xx}" y1="8" y2="${H-8}" stroke="${t===0?'#9a9ca3':'#2e2f34'}"/>`;s+=`<text x="${xx}" y="${H-1}" font-size="10" fill="#6c6f77" text-anchor="middle">${t>0?'+':''}${t}</text>`}
+m.forEach((k,i)=>{const xx=x(k.v);s+=`<line x1="${x(127)}" x2="${xx}" y1="${k.y}" y2="${k.y}" stroke="#ff4a1c" stroke-width="6"/><rect data-i="${i}" x="${xx-9}" y="${k.y-8}" width="18" height="16" fill="#ff4a1c" style="cursor:ew-resize"/><text x="${xx}" y="${k.y+4}" font-size="11" fill="#000" text-anchor="middle" pointer-events="none">${k.n[0]}</text><text x="4" y="${k.y+4}" font-size="12" fill="#ff7a4d">${k.n} ${k.v-127>=0?'+':''}${k.v-127}</text>`});svg.innerHTML=s};
+svg.addEventListener('pointerdown',e=>{const i=e.target.dataset?.i;if(i===undefined)return;svg.setPointerCapture(e.pointerId);const sx=e.clientX,v0=m[i].v;const mv=ev=>{m[i].v=clamp(Math.round(v0+(ev.clientX-sx)/(W-24)*151*(ev.shiftKey?.15:1)),0,151);draw()};svg.onpointermove=mv;svg.onpointerup=()=>svg.onpointermove=null});
+svg.addEventListener('dblclick',e=>{const i=e.target.dataset?.i;if(i!==undefined){m[i].v=127;draw()}});draw()})();
+
+const XS=['SQR','SAW','WHITE','PINK'],XD=['SAW','SQR'];const xv=[[74,64],[64,64],[64,40],[64,64]];
+function xcell(r,c,onch){const el=document.createElement('div');el.className='cell';el.innerHTML='<i></i><em></em>';const draw=()=>{const v=xv[r][c]-64,p=50+v/64*50,i=el.firstChild;i.style.left=Math.min(50,p)+'%';i.style.width=Math.abs(p-50)+'%';i.style.background=v>=0?'#ff4a1c':'#2ccbe0';el.lastChild.textContent=(v>=0?'+':'')+v;onch&&onch()};
+bind(el,()=>xv[r][c],n=>{xv[r][c]=n;draw()},{max:127,len:96,def:64});draw();return el}
+function matrix(target,onch){const g=document.createElement('div');g.style.cssText='display:grid;grid-template-columns:52px 96px 96px;gap:4px;align-items:center';g.append(document.createElement('span'));XD.forEach(d=>{const s=lblEl('→ '+d);s.style.textAlign='center';g.append(s)});XS.forEach((s,r)=>{g.append(lblEl(s));XD.forEach((d,c)=>g.append(xcell(r,c,onch)))});target.append(g)}
+const drawPatch=()=>{const svg=$('xm-svg');let s='';XS.forEach((n,r)=>{s+=`<text x="2" y="${20+r*30}" font-size="12" fill="#8a8d96">${n}</text>`});XD.forEach((n,c)=>{s+=`<text x="168" y="${35+c*50}" font-size="12" fill="#8a8d96" text-anchor="end">${n}</text>`});
+XS.forEach((_,r)=>XD.forEach((_,c)=>{const v=xv[r][c]-64;if(!v)return;s+=`<path d="M46 ${16+r*30} C 90 ${16+r*30}, 90 ${31+c*50}, 132 ${31+c*50}" fill="none" stroke="${v>0?'#ff4a1c':'#2ccbe0'}" stroke-width="${1+Math.abs(v)/8}" stroke-opacity=".85"/>`}));svg.innerHTML=s};
+matrix($('xm-a'),()=>{drawPatch()});matrix($('xm-b'),drawPatch);drawPatch();
+[['SAW',127],['SQR',0],['RING',0],['WHITE',0],['PINK',0],['DEPTH',127]].forEach(([n,v])=>$('rm').append(hrow(n,hfader(127,v))));
+
+function envGraph(W,H,st,editable,onch){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width',W);svg.setAttribute('height',H);
+const seg=(W-16)/4,sus=seg*.6;const pts=()=>{const ax=8+st.a/127*seg,dx=ax+st.d/127*seg,sy=H-10-(H-20)*st.s/127,sx=dx+sus,rx=sx+st.r/127*seg;return{ax,dx,sy,sx,rx}};
+const draw=()=>{const p=pts();svg.innerHTML=`<rect width="${W}" height="${H}" fill="#1a1b1e"/><line x1="0" x2="${W}" y1="${H-10}" y2="${H-10}" stroke="#2e2f34"/><path d="M8 ${H-10} L${p.ax} 10 L${p.dx} ${p.sy} L${p.sx} ${p.sy} L${p.rx} ${H-10}" fill="#ff4a1c" fill-opacity=".14" stroke="#ff4a1c" stroke-width="2"/>`+(editable?[['a',p.ax,10],['d',p.dx,p.sy],['r',p.rx,H-10]].map(([k,x,y])=>`<rect data-k="${k}" x="${x-6}" y="${y-6}" width="12" height="12" fill="#141416" stroke="#ff4a1c" stroke-width="2" style="cursor:move"/>`).join(''):'');onch&&onch()};
+if(editable){svg.addEventListener('pointerdown',e=>{const k=e.target.dataset?.k;if(!k)return;svg.setPointerCapture(e.pointerId);const sx=e.clientX,sy=e.clientY,a0={...st};svg.onpointermove=ev=>{const f=ev.shiftKey?.15:1,dx=(ev.clientX-sx)/seg*127*f,dy=-(ev.clientY-sy)/(H-20)*127*f;if(k==='a')st.a=clamp(Math.round(a0.a+dx),0,127);if(k==='d'){st.d=clamp(Math.round(a0.d+dx),0,127);st.s=clamp(Math.round(a0.s+dy),0,127)}if(k==='r')st.r=clamp(Math.round(a0.r+dx),0,127);draw()};svg.onpointerup=()=>svg.onpointermove=null})}
+draw();svg.redraw=draw;return svg}
+function envA(name,st){const box=document.createElement('div');box.className='col';box.style.marginBottom='12px';const vals=document.createElement('div');vals.className='row';vals.style.justifyContent='space-between';
+const keys=['a','d','s','r'];const spans=keys.map(k=>{const s=document.createElement('span');s.className='lbl';s.style.cursor='ns-resize';s.addEventListener('wheel',e=>{e.preventDefault();st[k]=clamp(st[k]+(e.deltaY<0?1:-1),0,127);g.redraw()},{passive:false});vals.append(s);return s});
+const g=envGraph(320,110,st,true,()=>spans.forEach((s,i)=>s.innerHTML=`${'ADSR'[i]} <span class="v">${st[keys[i]]}</span>`));box.append(lblEl(name),g,vals);return box}
+$('env-a').append(envA('VCF ENV',{a:13,d:80,s:25,r:6}),envA('VCA ENV',{a:0,d:0,s:127,r:0}));
+(()=>{const st={a:13,d:80,s:25,r:6};const g=envGraph(320,90,st,false);const r=document.createElement('div');r.className='row';r.style.justifyContent='space-around';['a','d','s','r'].forEach((k,i)=>r.append(vfader(127,st[k],{name:'ADSR'[i],h:80,on:v=>{st[k]=v;g.redraw&&g.redraw()}})));$('env-b').append(lblEl('VCF ENV'),g,r)})();
+
+const lfo={saw:0,sqr:0,tri:38,sin:127,sh:0,rate:40,delay:20};const SH=[.6,-.3,.9,-.8,.2,-.6];
+const wave=(k,p,i)=>k==='saw'?2*p-1:k==='sqr'?(p<.5?1:-1):k==='tri'?(p<.5?4*p-1:3-4*p):k==='sin'?Math.sin(2*Math.PI*p):SH[i%6];
+function lfoPath(W,H,keys,cycles,amp){const n=240,pts=[];for(let j=0;j<=n;j++){const ph=j/n*cycles,p=ph%1,ci=Math.floor(ph);let y=0;keys.forEach(k=>y+=lfo[k]/127*wave(k,p,ci));const t=j/n,dl=lfo.delay/127*.5;const env=dl?clamp(t/dl,0,1):1;pts.push([t*W,y*env])}const m=amp??Math.max(1,...pts.map(q=>Math.abs(q[1])));return pts.map(([x,y])=>`${x.toFixed(1)},${(H/2-y/m*(H/2-8)).toFixed(1)}`).join(' ')}
+const cyc=()=>1+lfo.rate/127*5;
+function drawLfoA(){const W=300,H=130;$('lfo-a').innerHTML=`<rect width="${W}" height="${H}" fill="#1a1b1e"/><line x1="0" x2="${W}" y1="${H/2}" y2="${H/2}" stroke="#2e2f34"/><polyline fill="none" stroke="#2ccbe0" stroke-width="2.2" points="${lfoPath(W,H,['saw','sqr','tri','sin','sh'],cyc())}"/>`}
+['saw','sqr','tri','sin','sh'].forEach(k=>$('lfo-a-f').append(vfader(127,lfo[k],{name:k==='sh'?'S&H':k.toUpperCase(),cy:true,h:110,on:v=>{lfo[k]=v;drawLfoA();drawLfoB&&drawLfoB()}})));
+[['RATE','rate',lfo.rate],['DELAY','delay',lfo.delay],['CV OFFSET','cv',0]].forEach(([n,k,v])=>$('lfo-a-r').append(hrow(n,hfader(127,v,{on:x=>{lfo[k]=x;drawLfoA();typeof drawLfoB!=='undefined'&&drawLfoB()}}))));
+const btnRow=document.createElement('div');btnRow.className='row';btnRow.innerHTML='<span class="btn on"><span class="l"></span>BPM SYNC</span><span class="btn"><span class="l"></span>RETRIG</span>';$('lfo-a-r').append(btnRow);
+[['→ VCO',64],['→ VCF',64],['→ VCA',64]].forEach(([n,v])=>$('lfo-a-r').append(hrow(n,hfader(127,v,{bi:true,center:64}))));
+var drawLfoB;(()=>{const box=$('lfo-b');const W=300,H=130;const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width',W);svg.setAttribute('height',H);box.append(svg);
+const rows=document.createElement('div');rows.className='col';rows.style.marginTop='8px';box.append(rows);const minis={};
+['saw','sqr','tri','sin','sh'].forEach(k=>{const r=document.createElement('div');r.className='row';const m=document.createElementNS('http://www.w3.org/2000/svg','svg');m.setAttribute('width',60);m.setAttribute('height',22);minis[k]=m;r.append(lblEl(k==='sh'?'S&H':k.toUpperCase(),40),m,hfader(127,lfo[k],{w:180,on:v=>{lfo[k]=v;drawLfoA();drawLfoB&&drawLfoB()}}));rows.append(r)});
+drawLfoB=()=>{let s=`<rect width="${W}" height="${H}" fill="#1a1b1e"/><line x1="0" x2="${W}" y1="${H/2}" y2="${H/2}" stroke="#2e2f34"/>`;['saw','sqr','tri','sin','sh'].forEach(k=>{if(lfo[k])s+=`<polyline fill="none" stroke="#2ccbe0" stroke-opacity=".25" stroke-width="1.5" points="${lfoPath(W,H,[k],cyc(),2.5)}"/>`});s+=`<polyline fill="none" stroke="#2ccbe0" stroke-width="2.2" points="${lfoPath(W,H,['saw','sqr','tri','sin','sh'],cyc(),2.5)}"/>`;svg.innerHTML=s;
+Object.entries(minis).forEach(([k,m])=>{const save=lfo.delay;lfo.delay=0;const full=lfo[k];lfo[k]=127;m.innerHTML=`<rect width="60" height="22" fill="#1a1b1e"/><polyline fill="none" stroke="${full?'#2ccbe0':'#3d4448'}" stroke-width="1.5" points="${lfoPath(60,22,[k],2,1)}"/>`;lfo[k]=full;lfo.delay=save})};drawLfoB()})();
+drawLfoA();
+
+const DG=[['BOOST',['Mid Boost','Clean Boost','Treble Bst']],['OVERDRIVE',['Blues OD','Crunch','Natural OD','OD-1','T-Scream','Turbo OD','Warm OD']],['DISTORTION',['Distortion','Mild DS','Mid DS','RAT','GUV DS','DST+','Modern DS','Solid DS']],['AMP / HIGH GAIN',['Stack','Loud','Metal Zone','Lead']],['FUZZ',["'60s FUZZ",'Oct FUZZ','MUFF FUZZ']]];
+DG.forEach(([g,ts])=>{const c=document.createElement('div');c.innerHTML=`<div class="gt">${g}</div>`+ts.map(t=>`<span class="btn ${t==='Crunch'?'sel':''}">${t}</span>`).join('');$('dist-a').append(c)});
+$('dist-a').addEventListener('click',e=>{const b=e.target.closest('.btn');if(!b)return;$('dist-a').querySelectorAll('.btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+const ALL=DG.flatMap(g=>g[1]);
+function stepper(list,i0,w){const r=document.createElement('div');r.className='row';r.style.gap='0';let i=i0;const nm=document.createElement('div');nm.style.cssText=`width:${w||170}px;height:28px;background:#1a0d0a;border:1px solid var(--edge);color:#ff6a3d;font-size:17px;letter-spacing:.06em;display:flex;align-items:center;justify-content:center;cursor:pointer`;const p=document.createElement('span');p.className='btn';p.textContent='‹';const n=document.createElement('span');n.className='btn';n.textContent='›';[p,n].forEach(b=>b.style.height='28px');
+const draw=()=>nm.textContent=list[i].toUpperCase();p.onclick=()=>{i=(i+list.length-1)%list.length;draw()};n.onclick=()=>{i=(i+1)%list.length;draw()};nm.addEventListener('wheel',e=>{e.preventDefault();e.deltaY<0?n.onclick():p.onclick()},{passive:false});r.append(p,nm,n);draw();return r}
+$('dist-b').append(stepper(ALL,4));const dr=document.createElement('div');dr.className='col';dr.style.marginTop='10px';$('dist-b').append(dr);
+const onrow=document.createElement('div');onrow.className='row';onrow.innerHTML='<span class="btn on"><span class="l"></span>ON</span><span class="btn"><span class="l"></span>COLOR</span>';dr.append(onrow);
+[['DRIVE',99,120],['BOTTOM',50,100,1],['TONE',50,100,1],['EFX LVL',66,100],['DRY LVL',50,100]].forEach(([n,v,m,bi])=>dr.append(hrow(n,hfader(m,v,bi?{bi:true,center:50}:{}))));
+
+const BPM=["OFF","2","3/2","4/3","1","3/4","2/3","1/2","3/8","1/3","1/4","3/16","1/6","1/8","3/32","1/12","1/16","3/64","1/24","1/32","3/128"];
+const TR=["TRI","UP SAW","DN SAW","SIN","SQR","RND"];
+function efxSlots(target){const g=document.createElement('div');g.style.cssText='display:grid;grid-template-columns:auto auto;gap:6px 16px;margin-top:8px';
+const slots=[['BPM SYNC',20,13,v=>BPM[v]],['RATE',100,30,v=>Math.floor((1-v/100)*7980+20)+' ms','dis'],null,null,['DEPTH',100,42],['TYPE',5,4,v=>TR[v]],['LEVEL',100,100],['PHASE',100,0,v=>Math.floor(v*3.6+.5)+'°'],['SHAPE',100,100]];
+let rateEl;slots.forEach(s=>{if(!s){const e=document.createElement('div');e.style.height='22px';g.append(e);return}const f=hfader(s[1],s[2],{fmt:s[3],w:120,on:v=>{if(s[0]==='BPM SYNC'&&rateEl)rateEl.classList.toggle('dis',v>0)}});const r=document.createElement('div');r.className='row';r.append(lblEl(s[0],70),f);if(s[0]==='RATE'){rateEl=r;r.classList.add('dis')}g.append(r)});target.append(g)}
+(()=>{const b=$('efx-a');const head=document.createElement('div');head.className='row';head.innerHTML='<span class="lbl" style="color:#fff">EFX1</span><span class="btn on"><span class="l"></span>ON</span>';b.append(head);
+const types=document.createElement('div');types.className='row';types.style.cssText='flex-wrap:wrap;gap:3px;margin-top:6px;max-width:420px';['BYPASS','COMP','RING MOD','BIT CRUSH','TREMOLO','CHORUS','FLANGER','PHASER','DELAY','PITCH SHIFT','EQ'].forEach(t=>{const s=document.createElement('span');s.className='btn'+(t==='TREMOLO'?' sel':'');s.textContent=t;types.append(s)});b.append(types);
+const seg=document.createElement('div');seg.className='seg';seg.style.marginTop='8px';seg.innerHTML='<span class="btn">TREMOLO</span><span class="btn sel">PAN</span>';b.append(seg);efxSlots(b)})();
+(()=>{const b=$('efx-b');const head=document.createElement('div');head.className='row';head.innerHTML='<span class="lbl" style="color:#fff">EFX1</span><span class="btn on"><span class="l"></span>ON</span>';b.append(head);const st=stepper(['BYPASS','COMP','RING MOD','BIT CRUSH','TREMOLO','CHORUS','FLANGER','PHASER','DELAY','PITCH SHIFT','EQ'],4,150);st.style.marginTop='6px';b.append(st);
+const seg=document.createElement('div');seg.className='seg';seg.style.marginTop='8px';seg.innerHTML='<span class="btn">TREMOLO</span><span class="btn sel">PAN</span>';b.append(seg);efxSlots(b)})();
+
+(()=>{const b=$('as-a');b.innerHTML=`<div class="row" style="gap:4px"><span class="btn sel">XY MOD</span><span class="btn">PAD X</span><span class="btn">PAD Y</span><span class="btn">EFFECT</span></div>
+<p class="note" style="margin:8px 0">XY MOD is armed: click a parameter label…</p>
+<div class="col"><div class="row"><span class="lbl" style="width:90px;outline:1px dashed #ff4a1c;outline-offset:2px">CUTOFF<span class="tag">M</span></span><div class="hf" style="width:120px"><i style="width:46%;left:0"></i><em>117</em></div></div>
+<div class="row"><span class="lbl" style="width:90px">DIST DRIVE<span class="tag">X</span></span><div class="hf" style="width:120px"><i style="width:82%;left:0"></i><em>99</em></div></div>
+<div class="row"><span class="lbl" style="width:90px">RM DEPTH<span class="tag">Y</span></span><div class="hf" style="width:120px"><i style="width:100%;left:0"></i><em>127</em></div></div></div>`})();
+(()=>{const b=$('as-b');b.innerHTML=['XY MOD|VCF CUTOFF','PAD X|DIST DRIVE','PAD Y|RM DEPTH','EFFECT|EFX2 EFX LVL'].map(s=>{const[a,c]=s.split('|');return `<div class="row" style="margin-bottom:5px"><span class="lbl" style="width:60px">${a}</span><select style="background:#1e1f22;color:#ff7a4d;border:1px solid #34353a;font:14px inherit;padding:3px;width:170px"><option>${c}</option></select></div>`}).join('')})();
+</script></body></html>

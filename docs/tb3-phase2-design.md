@@ -211,10 +211,9 @@ Sync to TB-3:    patchToSysex(patch) ─▶ send all 11 DT1s
 - The edit queue is keyed by param id (or `efx:<n>:<offset>`), so a fast drag sends at most
   about 60 messages per second per param, and the final value is always sent.
 - Incoming DT1s outside a sync request are ignored in Phase 2.
-- Hardware note (first test): Sync from TB-3 works when the TB-3 input is its USB port, even
-  with RQ1 sent over DIN. With the input on DIN (H12MIDI-Pro Port 4), a MIDI monitor showed the
-  RQ1s going out but no reply coming back. The TB-3 receives over DIN but apparently doesn't
-  answer SysEx on its DIN out (or that path isn't routed). Still to be confirmed.
+- Hardware note: Sync from TB-3 works over DIN in both directions. A failed first test (RQ1s
+  went out, no reply came back) was a TRS type A/B mismatch on the interface's input. Moving
+  the TB-3's MIDI out to a full DIN input fixed it.
 - Phase 3 recall/morph will reuse the same path: `diffBlocks` + `blocksToSysex`.
 
 ## Out of scope for Phase 2

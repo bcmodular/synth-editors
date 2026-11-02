@@ -1,9 +1,11 @@
 // EFX1 / EFX2 panel: type buttons, ON switch, mode segmented control(s), slots in a 2-column
-// grid that keeps the efx.ts null holes as empty cells. EQ is laid out by band instead.
+// grid that keeps the efx.ts null holes as empty cells. EQ adds a response curve beside the slots.
+import { eqResponse } from "../core/eqResponse";
 import { efxTypes } from "../core/efx";
 import type { EfxButton, EfxNum, EfxSlot, EfxType } from "../core/efx";
 import { getEfxRaw, getEfxType } from "../core/patch";
-import { HFader, VFader } from "../ui/Fader";
+import { EqView } from "../ui/EqView";
+import { HFader } from "../ui/Fader";
 import { LedButton, Section, Segmented } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 
@@ -20,70 +22,58 @@ function buttonGroups(buttons: (EfxButton | null)[]): EfxButton[][] {
 // Slots whose default is the middle are bipolar (gain in dB): fill and zero line from there.
 const slotCenter = (s: EfxSlot) => (s.default === 0.5 ? s.max / 2 : undefined);
 
-const EQ_BANDS: { name: string; slots: [number, string][] }[] = [
-  {
-    name: "LOW",
-    slots: [
-      [0x54, "CUT"],
-      [0x55, "GAIN"],
-    ],
-  },
-  {
-    name: "LOW MID",
-    slots: [
-      [0x56, "FREQ"],
-      [0x57, "Q"],
-      [0x58, "GAIN"],
-    ],
-  },
-  {
-    name: "HIGH MID",
-    slots: [
-      [0x59, "FREQ"],
-      [0x5a, "Q"],
-      [0x5b, "GAIN"],
-    ],
-  },
-  {
-    name: "HIGH",
-    slots: [
-      [0x5c, "CUT"],
-      [0x5d, "GAIN"],
-    ],
-  },
-  { name: "OUT", slots: [[0x5e, "LEVEL"]] },
-];
-
-function EqBands(p: { efx: EfxNum; type: EfxType }) {
+function Slots(p: { efx: EfxNum; type: EfxType; faderWidth: number; labelWidth: number }) {
   const ed = useEditor();
-  const disabled = !ed.patch;
+  const byte = (offset: number) => (ed.patch ? getEfxRaw(ed.patch, p.efx, offset) : 0);
   return (
-    <div className="eq">
-      {EQ_BANDS.map((band) => (
-        <div key={band.name} className="band">
-          <h3>{band.name}</h3>
-          <div className="row tight">
-            {band.slots.map(([offset, label]) => {
-              const s = p.type.slots.find((x) => x?.offset === offset);
-              if (!s) return null;
-              return (
-                <VFader
-                  key={offset}
-                  height={110}
-                  value={ed.patch ? getEfxRaw(ed.patch, p.efx, offset) : 0}
-                  max={s.max}
-                  center={slotCenter(s)}
-                  format={s.display}
-                  defaultValue={Math.round(s.default * s.max)}
-                  onChange={(v) => ed.setEfxByte(p.efx, offset, v)}
-                  disabled={disabled}
-                  label={<span className="lbl">{label}</span>}
-                />
-              );
-            })}
+    <div className="slots">
+      {p.type.slots.map((s, i) =>
+        s ? (
+          <div key={s.offset} className={`hrow ${s.disabledBy.some((o) => byte(o) !== 0) ? "dim" : ""}`}>
+            <span className="lbl" style={{ width: p.labelWidth }}>
+              {s.name}
+            </span>
+            <HFader
+              width={p.faderWidth}
+              value={byte(s.offset)}
+              max={s.max}
+              center={slotCenter(s)}
+              format={s.display}
+              defaultValue={Math.round(s.default * s.max)}
+              onChange={(v) => ed.setEfxByte(p.efx, s.offset, v)}
+              disabled={!ed.patch}
+            />
           </div>
-        </div>
-      ))}
+        ) : (
+          <div key={`hole-${i}`} className="hole" />
+        ),
+      )}
+    </div>
+  );
+}
+
+function EqPanel(p: { efx: EfxNum; type: EfxType }) {
+  const { patch } = useEditor();
+  const b = (offset: number) => (patch ? getEfxRaw(patch, p.efx, offset) : 0);
+  const ys = patch
+    ? eqResponse({
+        lowCut: b(0x54),
+        lowGain: b(0x55),
+        lmFreq: b(0x56),
+        lmQ: b(0x57),
+        lmGain: b(0x58),
+        hmFreq: b(0x59),
+        hmQ: b(0x5a),
+        hmGain: b(0x5b),
+        hiCut: b(0x5c),
+        hiGain: b(0x5d),
+        level: b(0x5e),
+      })
+    : null;
+  return (
+    <div className="row top eq">
+      <EqView ys={ys} width={240} height={167} />
+      <Slots efx={p.efx} type={p.type} faderWidth={118} labelWidth={62} />
     </div>
   );
 }
@@ -134,31 +124,9 @@ export function EfxSection(p: { efx: EfxNum }) {
         />
       ))}
       {type.name === "EQ" ? (
-        <EqBands efx={p.efx} type={type} />
+        <EqPanel efx={p.efx} type={type} />
       ) : (
-        <div className="slots">
-          {type.slots.map((s, i) =>
-            s ? (
-              <div key={s.offset} className={`hrow ${s.disabledBy.some((o) => byte(o) !== 0) ? "dim" : ""}`}>
-                <span className="lbl" style={{ width: 74 }}>
-                  {s.name}
-                </span>
-                <HFader
-                  width={170}
-                  value={byte(s.offset)}
-                  max={s.max}
-                  center={slotCenter(s)}
-                  format={s.display}
-                  defaultValue={Math.round(s.default * s.max)}
-                  onChange={(v) => ed.setEfxByte(p.efx, s.offset, v)}
-                  disabled={disabled}
-                />
-              </div>
-            ) : (
-              <div key={`hole-${i}`} className="hole" />
-            ),
-          )}
-        </div>
+        <Slots efx={p.efx} type={type} faderWidth={170} labelWidth={74} />
       )}
     </Section>
   );

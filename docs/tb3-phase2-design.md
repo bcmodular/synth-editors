@@ -30,7 +30,7 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
   lilac, VCF sky, VCA mint, LFO red, distortion peach, EFX periwinkle) so sections are easy to
   tell apart. The top strip stays neutral. Section titles are centred (header buttons stay on the
   right) and ruled above and below;
-  sub-headings (TUNING, EQ bands) get thinner rules above and below in the same tint, and are
+  sub-headings (TUNING) get thinner rules above and below in the same tint, and are
   centred too.
 - Bipolar faders draw their zero line at the param's real centre (`center / max`), not the
   middle: tuning's zero sits at 127/151.
@@ -137,8 +137,12 @@ The panel stacks, top to bottom:
      the middle (gains in dB) are bipolar, with the zero line at the middle.
    - Double-click resets the slot to `round(default × max)`.
    - A slot dims (still editable) while any of its `disabledBy` offsets holds a non-zero value.
-5. EQ (EFX1 only) replaces the slot grid with bands of small vertical faders: LOW (CUT, GAIN),
-   LOW MID (FREQ, Q, GAIN), HIGH MID (FREQ, Q, GAIN), HIGH (CUT, GAIN) and OUT (LEVEL).
+5. EQ (EFX1 only) puts a frequency-response curve (240 px wide, 20 Hz–20 kHz log axis, ±24 dB)
+   beside the standard slot grid, whose faders are shorter (118 px) and a little more tightly
+   spaced so the effects row keeps its height. The curve is display-only and approximate
+   (`core/eqResponse.ts`): the mid bands use their real frequency, Q and gain, but the shelf
+   turnover frequencies (assumed 100 Hz and 8 kHz) and the cut slopes (assumed 12 dB/octave) are
+   unknown.
 
 In segmented controls, neighbouring buttons share one border and the selected button draws on
 top, so its outline is whole; hovering a selected button keeps its outline.
@@ -168,6 +172,7 @@ Shared controls go in `apps/tb3/src/ui/`. They're kept generic so they can move 
 | `Stepper` | `items: string[], groups?: {name, items}[], index, onChange`. The ‹ › buttons and scroll step through the items; clicking the name opens a grouped popover. |
 | `EnvelopeEditor` | `a, d, s, r, onChange(stage, raw)` |
 | `WaveView` | `ys` (samples in −1..1, display only), used by the LFO and VCO mix |
+| `EqView` | `ys` (dB across a log frequency axis, display only) |
 | `XmodMatrix` | `sources, dests[2], amounts, renderCell(row, col)`, mirrored, with the patch view between the columns |
 | `Popover` | anchor + panel that closes on an outside press |
 | `Section` | Titled, silkscreen-ruled container |

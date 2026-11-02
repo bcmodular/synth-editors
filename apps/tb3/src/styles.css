@@ -135,7 +135,7 @@ select {
   --val: #ff8a7e;
   --sel-bg: #2a1210;
 }
-/* Sub-headings (TUNING, RING MOD, EQ bands): a thinner ruled band in the section's tint. */
+/* Sub-headings (e.g. TUNING): a thinner ruled band in the section's tint. */
 .sec h3 {
   font-size: 13px;
   color: color-mix(in srgb, var(--tint, var(--dim)) 75%, var(--dim));
@@ -507,8 +507,8 @@ svg .trace {
 .fx .sec {
   gap: 8px;
 }
-.efx .slots,
-.efx .eq,
+.efx > .slots,
+.efx > .eq,
 .dist > .col {
   margin-top: 14px;
 }
@@ -517,19 +517,21 @@ svg .trace {
   row-gap: 10px;
 }
 .eq {
-  display: flex;
-  gap: 22px;
+  gap: 16px;
 }
-.eq .band {
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* clear of the band heading */
+/* EQ has six slot rows: spaced a little tighter so it fits the row's usual height. */
+.efx > .eq {
+  margin-top: 10px;
 }
-.eq .vcell {
-  width: 46px;
+.eq .slots {
+  column-gap: 12px;
+  row-gap: 7px;
 }
-.eq .v {
-  font-size: 13px;
+svg .grid {
+  stroke: #26272b;
+}
+svg .eqfill {
+  fill: color-mix(in srgb, var(--led) 14%, transparent);
 }
 .anchor {
   position: relative;

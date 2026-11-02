@@ -60,7 +60,7 @@ select {
   grid-template-columns: 230px 330px 250px 300px 1fr;
 }
 .osc {
-  grid-template-columns: 230px 470px 1fr;
+  grid-template-columns: 300px 280px 1fr;
 }
 .shape {
   grid-template-columns: 530px 530px 1fr;
@@ -71,7 +71,8 @@ select {
 
 /* Section: silkscreen rule + label, no card */
 .sec {
-  border-top: 1px solid color-mix(in srgb, var(--tint, var(--rule)) 60%, var(--rule));
+  --sec-rule: color-mix(in srgb, var(--tint, var(--rule)) 60%, var(--rule));
+  border-top: 1px solid var(--sec-rule);
   padding: 5px 0 0;
   display: flex;
   flex-direction: column;
@@ -84,6 +85,8 @@ select {
   justify-content: space-between;
   align-items: center;
   min-height: 24px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--sec-rule);
 }
 .sec h2,
 .sec h3 {
@@ -124,10 +127,17 @@ select {
   --val: #ff8a7e;
   --sel-bg: #2a1210;
 }
+/* Sub-headings (TUNING, RING MOD, EQ bands): a thinner ruled band in the section's tint. */
 .sec h3 {
   font-size: 13px;
-  color: var(--dim);
+  color: color-mix(in srgb, var(--tint, var(--dim)) 75%, var(--dim));
   margin-top: 4px;
+  padding: 3px 0 1px;
+  border-top: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
+}
+.vco > .row.tight {
+  justify-content: space-between;
 }
 .sec .extra {
   display: flex;
@@ -581,4 +591,8 @@ svg .trace {
 .dist .popover {
   left: auto;
   right: 0;
+}
+svg .glabel.dest {
+  fill: var(--text);
+  font-size: 13px;
 }

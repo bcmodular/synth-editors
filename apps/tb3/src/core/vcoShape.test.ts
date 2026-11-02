@@ -19,9 +19,19 @@ describe("vcoShape", () => {
     expect(ys[0]).toBeCloseTo(64 / 127);
   });
 
-  it("raises the pitch by an octave per 24 tuning steps", () => {
-    const ys = vcoShape({ ...base, sqr: 127, sqrTune: 24 }, 8); // 4 cycles over 8 steps
-    expect(ys.slice(0, 4)).toEqual([1, -1, 1, -1]);
+  it("draws a wave an octave up per 24 tuning steps, relative to the lowest one playing", () => {
+    const ys = vcoShape({ ...base, saw: 1, sqr: 127, sqrTune: 24 }, 8); // sqr: 4 cycles over 8 steps
+    expect(ys.slice(0, 4).map(Math.sign)).toEqual([1, -1, 1, -1]);
+  });
+
+  it("keeps a single detuned wave visible", () => {
+    expect(vcoShape({ ...base, saw: 127, sawTune: -127 }, 8)).toEqual(vcoShape({ ...base, saw: 127 }, 8));
+  });
+
+  it("caps the spread between waves at three octaves", () => {
+    const far = vcoShape({ ...base, saw: 127, sqr: 127, sawTune: -127 }, 64);
+    const capped = vcoShape({ ...base, saw: 127, sqr: 127, sawTune: -72 }, 64);
+    expect(far).toEqual(capped);
   });
 
   it("normalises a loud mix to ±1 and repeats its noise", () => {

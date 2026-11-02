@@ -1,7 +1,8 @@
 // Cross-mod matrix for two destinations, mirrored: the first destination's column of cells on the
-// left, the second's on the right, and a patch view between them. Sources sit in the middle of the
-// patch view; each non-zero cell draws a cord out to its destination's side (thickness = amount,
-// colour = sign), so cords never cross.
+// left, the second's on the right, and a patch view between them. The patch view labels each row's
+// source beside its cells and the two destinations in the middle; each non-zero cell draws a cord
+// from its source inwards to its destination (thickness = amount, colour = sign), so cords from the
+// two columns never cross.
 import type { ReactNode } from "react";
 
 export interface XmodMatrixProps {
@@ -14,7 +15,7 @@ export interface XmodMatrixProps {
 
 const ROW = 24;
 const GAP = 4;
-const VIEW_W = 190;
+const VIEW_W = 280;
 
 export function XmodMatrix(p: XmodMatrixProps) {
   return (
@@ -44,27 +45,37 @@ function PatchView(p: XmodMatrixProps) {
   const mid = VIEW_W / 2;
   const rowY = (r: number) => ROW / 2 + r * (ROW + GAP);
   const destY = H / 2;
-  const LABEL = 26; // half the width kept clear for the source label
-  const edge = [6, VIEW_W - 6]; // destination jacks
+  const src = [40, VIEW_W - 40]; // source jacks beside each column of cells
+  const dest = [mid - 38, mid + 38]; // destination jacks either side of the centre labels
   return (
     <svg className="patch" width={VIEW_W} height={H}>
-      {edge.map((x) => (
-        <circle key={x} className="jack" cx={x} cy={destY} r={3.5} />
-      ))}
       {p.sources.map((s, r) => (
         <g key={s}>
-          <text className="glabel" x={mid} y={rowY(r) + 4} textAnchor="middle">
+          <text className="glabel" x={2} y={rowY(r) + 4}>
             {s}
           </text>
-          <circle className="jack" cx={mid - LABEL} cy={rowY(r)} r={2.5} />
-          <circle className="jack" cx={mid + LABEL} cy={rowY(r)} r={2.5} />
+          <text className="glabel" x={VIEW_W - 2} y={rowY(r) + 4} textAnchor="end">
+            {s}
+          </text>
+          {src.map((x) => (
+            <circle key={x} className="jack" cx={x} cy={rowY(r)} r={2.5} />
+          ))}
         </g>
+      ))}
+      <text className="glabel dest" x={mid - 6} y={destY + 4} textAnchor="end">
+        {p.dests[0]}
+      </text>
+      <text className="glabel dest" x={mid + 6} y={destY + 4}>
+        {p.dests[1]}
+      </text>
+      {dest.map((x) => (
+        <circle key={x} className="jack" cx={x} cy={destY} r={3.5} />
       ))}
       {p.amounts?.flatMap((row, r) =>
         row.map((v, c) => {
           if (v === 0) return null;
-          const x0 = c === 0 ? mid - LABEL : mid + LABEL;
-          const x1 = edge[c]!;
+          const x0 = src[c]!;
+          const x1 = dest[c]!;
           const xm = (x0 + x1) / 2;
           return (
             <path

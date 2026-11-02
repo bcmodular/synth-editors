@@ -32,9 +32,9 @@ export function VcoSection() {
       </div>
       <h3>TUNING</h3>
       <div className="col">
-        <ParamH id="saw_tuning" label="SAW" />
-        <ParamH id="sqr_tuning" label="SQR" />
-        <ParamH id="ring_sin_tuning" label="RING+SIN" />
+        <ParamH id="saw_tuning" label="SAW" width={220} />
+        <ParamH id="sqr_tuning" label="SQR" width={220} />
+        <ParamH id="ring_sin_tuning" label="RING+SIN" width={220} />
       </div>
     </Section>
   );
@@ -61,7 +61,7 @@ export function VcoSumSection() {
     : null;
   return (
     <Section title="VCO MIX" className="vcosum">
-      <WaveView ys={ys} width={470} height={236} />
+      <WaveView ys={ys} width={280} height={236} />
     </Section>
   );
 }

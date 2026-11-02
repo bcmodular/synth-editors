@@ -96,25 +96,27 @@ export function ModSection() {
     : null;
   return (
     <Section title="CROSS MOD" className="mod">
-      <div className="row top wide">
-        <XmodMatrix
-          sources={XM_SOURCES}
-          dests={XM_DESTS}
-          amounts={amounts}
-          range={64}
-          renderCell={(r, c) => <XmodCell row={r} col={c} />}
-        />
-        <div className="col">
-          <h3>RING MOD</h3>
-          <div className="grid2">
-            <ParamH id="rm_saw_depth" label="SAW" width={110} labelWidth={48} />
-            <ParamH id="rm_white_depth" label="WHITE" width={110} labelWidth={48} />
-            <ParamH id="rm_sqr_depth" label="SQR" width={110} labelWidth={48} />
-            <ParamH id="rm_pink_depth" label="PINK" width={110} labelWidth={48} />
-            <ParamH id="rm_ring_depth" label="RING" width={110} labelWidth={48} />
-            <ParamH id="rm_depth" label="DEPTH" width={110} labelWidth={48} />
-          </div>
-        </div>
+      <XmodMatrix
+        sources={XM_SOURCES}
+        dests={XM_DESTS}
+        amounts={amounts}
+        range={64}
+        renderCell={(r, c) => <XmodCell row={r} col={c} />}
+      />
+    </Section>
+  );
+}
+
+export function RingModSection() {
+  return (
+    <Section title="RING MOD" className="ring">
+      <div className="grid2">
+        <ParamH id="rm_saw_depth" label="SAW" width={110} labelWidth={48} />
+        <ParamH id="rm_white_depth" label="WHITE" width={110} labelWidth={48} />
+        <ParamH id="rm_sqr_depth" label="SQR" width={110} labelWidth={48} />
+        <ParamH id="rm_pink_depth" label="PINK" width={110} labelWidth={48} />
+        <ParamH id="rm_ring_depth" label="RING" width={110} labelWidth={48} />
+        <ParamH id="rm_depth" label="DEPTH" width={110} labelWidth={48} />
       </div>
     </Section>
   );

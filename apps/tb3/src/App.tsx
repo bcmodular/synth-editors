@@ -13,6 +13,7 @@ import {
   DistSection,
   LfoSection,
   ModSection,
+  RingModSection,
   VcaSection,
   VcfSection,
   VcoSection,
@@ -107,6 +108,7 @@ export function App() {
           <VcoSection />
           <VcoSumSection />
           <ModSection />
+          <RingModSection />
         </div>
         <div className="shape">
           <VcfSection />

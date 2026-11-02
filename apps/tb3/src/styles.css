@@ -60,7 +60,7 @@ select {
   grid-template-columns: 230px 330px 250px 300px 1fr;
 }
 .osc {
-  grid-template-columns: 300px 280px 1fr;
+  grid-template-columns: 300px 280px 520px 1fr;
 }
 .shape {
   grid-template-columns: 530px 530px 1fr;
@@ -99,6 +99,10 @@ select {
 .sec h2 {
   color: var(--tint, #e8e9ec);
 }
+/* Heading names sit indented from the section's left edge, like panel silkscreen. */
+.sec h2 {
+  padding-left: 50px;
+}
 /* Section tints: one soft hue per section so they're easy to tell apart. */
 .vco,
 .vcosum {
@@ -106,6 +110,9 @@ select {
 }
 .mod {
   --tint: #c9a3e6;
+}
+.ring {
+  --tint: #e6a3c4;
 }
 .vcf {
   --tint: #7fc4ea;
@@ -132,7 +139,7 @@ select {
   font-size: 13px;
   color: color-mix(in srgb, var(--tint, var(--dim)) 75%, var(--dim));
   margin-top: 4px;
-  padding: 3px 0 1px;
+  padding: 3px 0 1px 50px;
   border-top: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
 }
@@ -157,9 +164,6 @@ select {
 }
 .row.top {
   align-items: flex-start;
-}
-.row.wide {
-  gap: 28px;
 }
 .col {
   display: flex;
@@ -503,6 +507,9 @@ svg .trace {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+.eq h3 {
+  padding-left: 0; /* bands are too narrow to indent */
 }
 .eq .vcell {
   width: 46px;

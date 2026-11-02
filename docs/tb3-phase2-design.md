@@ -28,8 +28,10 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
   TB-3's red LFO LED.
 - Each synthesis section has its own soft tint on its title and rule (VCO sand, cross mod
   lilac, VCF sky, VCA mint, LFO red, distortion peach, EFX periwinkle) so sections are easy to
-  tell apart. The top strip stays neutral. Section titles are ruled above and below;
-  sub-headings (TUNING, RING MOD, EQ bands) get thinner rules above and below in the same tint.
+  tell apart. The top strip stays neutral. Section titles are indented 50 px and ruled above
+  and below;
+  sub-headings (TUNING, EQ bands) get thinner rules above and below in the same tint, and are
+  indented too, except the narrow EQ bands.
 - Bipolar faders draw their zero line at the param's real centre (`center / max`), not the
   middle: tuning's zero sits at 127/151.
 - Fader sizes:
@@ -44,7 +46,7 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
 │ Sync from  │ 1  2  3  4  5  6  7  8  │ target  amount  │ ACCENT  ████          │ PAD X   PAD Y  │
 │ Sync to    │ 9 10 11 12 13 14 15 16  │                 │ GLOBAL TUNE ─┼─       │ EFFECT  XY MOD │
 ├ VCO ───────┼ VCO MIX ───────────────┬┴ CROSS MOD ──────┴───────────────────────┴────────────────┤
-│ ▮▮▮▮▮▮ LED │ summed waveform        │ →SAW cells │ patch view │ →SQR cells    RING MOD ×6       │
+│ ▮▮▮▮▮▮ LED │ summed waveform        │ →SAW cells │ patch view │ →SQR cells │ RING MOD ×6        │
 │ TUNING ×3  │                        │            │            │                                 │
 ├ VCF ───────┴────────────┬ VCA ──────┴────────────┬ LFO ───────────────────────────────────────────┤
 │ ADSR graph  cutoff res  │ ADSR graph   volume     │ sum waveform │ SAW SQR TRI SIN S&H           │
@@ -58,7 +60,7 @@ Column widths (CSS px, 1580 inside the margins):
 
 | Row | Columns |
 |-----|---------|
-| Oscillator row | VCO 300, VCO MIX 280, Cross mod rest |
+| Oscillator row | VCO 300, VCO MIX 280, Cross mod 520, Ring mod rest |
 | Shape row | VCF 530, VCA 530, LFO rest |
 | FX row | Distortion 240, EFX1 and EFX2 split the rest |
 | Top strip | ~140 px tall |
@@ -88,7 +90,7 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 | Tuning | **2a**: three bipolar horizontal bars filling from the centre line (centre 127, max 151, display `def.display`). | `saw_tuning`, `sqr_tuning`, `ring_sin_tuning` |
 | VCO mix | Display-only waveform: the summed oscillator mix over two cycles (sources that are switched off are left out; tuning offsets shift each wave's pitch, 24 steps drawn as an octave; cross/ring mod depths are not modelled). The window is two cycles of the lowest-pitched wave that's playing, so a single detuned wave never goes flat, and other waves are drawn at most three octaves above it. Maths in `core/vcoShape.ts`. | `vco_*`, `*_tuning` |
 | Cross mod | **3b**, mirrored: the → SAW cells on the left, the → SQR cells on the right, and the patch view between them. The patch view labels the sources at its left and right edges, beside their cells, with SAW and SQR in the middle; each **non-zero** cell draws a cord inwards from its source to its destination, so cords from the two columns never cross. Thickness shows the amount and colour the sign (green positive, amber negative). Zero cells draw nothing. The patch view is read-only. | `cm_*` (8) |
-| Ring mod | Six horizontal rows in two columns, to the right of the cross mod. | `rm_*` |
+| Ring mod | Its own section next to CROSS MOD: six horizontal rows in two columns. | `rm_*` |
 | VCF | **4a** envelope editor (see below), with horizontal bars to its right for CUTOFF, RESONANCE, ENV DEPTH and KEY FOLLOW. Cutoff and resonance are u16 (0–255). | `vcf_*` |
 | VCA | **4a** envelope editor, with VOLUME to its right. | `vca_*`, `master_volume` |
 | Distortion | **6b**: type stepper, then ON and COLOR LED buttons, then DRIVE (0–120), BOTTOM and TONE (bipolar, centre 50), EFX LVL and DRY LVL. | `dist_*` |
@@ -178,7 +180,7 @@ Patch-bound wrappers live in `apps/tb3/src/editor/`:
   with `def.display`, write through `setParam`, and handle the assign-mode click.
 - **Section components:** `TopStrip` (`Tb3Block`, `PatchGridPlaceholder`,
   `MorphPlaceholder`, `PerformBlock`, `AssignBlock`), `VcoSection`, `ModSection`, `VcfSection`,
-  `VcaSection`, `DistSection`, `LfoSection`, `EfxSection(efx)`, `VcoSumSection`, and
+  `VcaSection`, `DistSection`, `LfoSection`, `EfxSection(efx)`, `VcoSumSection`, `RingModSection`, and
   `PortaBendPanel` (in the PERFORM popover).
 - **`MidiSettings`:** a popover opened from the TB-3 block. It holds the existing four port
   pickers (TB-3 in/out, Launchpad in/out, remembered by name) plus the TB-3 MIDI channel

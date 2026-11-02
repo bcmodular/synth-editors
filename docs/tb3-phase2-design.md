@@ -28,10 +28,10 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
   TB-3's red LFO LED.
 - Each synthesis section has its own soft tint on its title and rule (VCO sand, cross mod
   lilac, VCF sky, VCA mint, LFO red, distortion peach, EFX periwinkle) so sections are easy to
-  tell apart. The top strip stays neutral. Section titles are indented 50 px and ruled above
-  and below;
+  tell apart. The top strip stays neutral. Section titles are centred (header buttons stay on the
+  right) and ruled above and below;
   sub-headings (TUNING, EQ bands) get thinner rules above and below in the same tint, and are
-  indented too, except the narrow EQ bands.
+  centred too.
 - Bipolar faders draw their zero line at the param's real centre (`center / max`), not the
   middle: tuning's zero sits at 127/151.
 - Fader sizes:

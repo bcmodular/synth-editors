@@ -523,7 +523,7 @@ svg .trace {
 .eq .band {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 14px; /* clear of the band heading */
 }
 .eq .vcell {
   width: 46px;

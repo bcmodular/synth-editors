@@ -60,7 +60,7 @@ select {
   grid-template-columns: 230px 330px 250px 300px 1fr;
 }
 .osc {
-  grid-template-columns: 300px 280px 520px 1fr;
+  grid-template-columns: 300px 370px 520px 1fr;
 }
 .shape {
   grid-template-columns: 530px 530px 1fr;

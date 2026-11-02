@@ -60,7 +60,7 @@ Column widths (CSS px, 1580 inside the margins):
 
 | Row | Columns |
 |-----|---------|
-| Oscillator row | VCO 300, VCO MIX 280, Cross mod 520, Ring mod rest |
+| Oscillator row | VCO 300, VCO MIX 370, Cross mod 520, Ring mod rest (~350) |
 | Shape row | VCF 530, VCA 530, LFO rest |
 | FX row | Distortion 240, EFX1 and EFX2 split the rest |
 | Top strip | ~140 px tall |

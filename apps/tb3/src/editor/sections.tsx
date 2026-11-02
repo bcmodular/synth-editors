@@ -61,7 +61,7 @@ export function VcoSumSection() {
     : null;
   return (
     <Section title="VCO MIX" className="vcosum">
-      <WaveView ys={ys} width={280} height={236} />
+      <WaveView ys={ys} width={370} height={236} />
     </Section>
   );
 }

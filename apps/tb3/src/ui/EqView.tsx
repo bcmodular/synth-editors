@@ -79,7 +79,7 @@ export function EqView(p: { ys: number[] | null; handles?: EqHandle[]; width?: n
 }
 
 function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => number; dbPerPx: number }) {
-  const ref = useRef<SVGRectElement>(null);
+  const ref = useRef<SVGCircleElement>(null);
   const props = useRef(p);
   props.current = p;
 
@@ -104,7 +104,7 @@ function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => num
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  const onPointerDown = (e: ReactPointerEvent<SVGRectElement>) => {
+  const onPointerDown = (e: ReactPointerEvent<SVGCircleElement>) => {
     if (e.button !== 0) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
@@ -147,17 +147,18 @@ function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => num
   const cursor = h.freq && h.gain ? "move" : h.freq ? "ew-resize" : "ns-resize";
   return (
     <g>
-      <text className="glabel hlabel" x={x} y={h.below ? y + 17 : y - 10} textAnchor="middle">
+      <text className="glabel hlabel" x={x} y={h.below ? y + 15 : y - 8} textAnchor="middle">
         {h.label}
       </text>
-      <rect
+      <circle className="eqdot" cx={x} cy={y} r={4} />
+      {/* Larger invisible hit area, so the small dot is still easy to grab. */}
+      <circle
         ref={ref}
-        className="handle"
+        className="hit"
         style={{ cursor }}
-        x={x - 6}
-        y={y - 6}
-        width={12}
-        height={12}
+        cx={x}
+        cy={y}
+        r={9}
         onPointerDown={onPointerDown}
         onDoubleClick={() => h.onReset?.()}
       />

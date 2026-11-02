@@ -18,7 +18,7 @@ export interface EqSettings {
 }
 
 export const SHELF_HZ = { low: 100, high: 8000 } as const;
-export const EQ_MIN_HZ = 20;
+export const EQ_MIN_HZ = 15; // a little below 20 Hz, so the low cut's "Flat" sits apart from 20 Hz
 export const EQ_MAX_HZ = 20000;
 const GAIN_CENTRE = 20; // gains and level: raw 20 = 0 dB, 1 dB per step
 const SHELF_Q = Math.SQRT1_2;

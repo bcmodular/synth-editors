@@ -139,8 +139,15 @@ The panel stacks, top to bottom:
    - A slot dims (still editable) while any of its `disabledBy` offsets holds a non-zero value.
 5. EQ (EFX1 only) puts a frequency-response curve (240 px wide, 20 Hz–20 kHz log axis, ±24 dB)
    beside the standard slot grid, whose faders are shorter (118 px) and a little more tightly
-   spaced so the effects row keeps its height. The curve is display-only and approximate
-   (`core/eqResponse.ts`): the mid bands use their real frequency, Q and gain, but the shelf
+   spaced so the effects row keeps its height. The curve is editable like the envelopes:
+   - **LM / HM** handles: drag horizontally to step through the 28 frequencies, vertically for
+     gain; scroll for Q; double-click resets the gain to 0 dB.
+   - **LOW / HIGH** shelf handles: vertical drag (or scroll) for gain; double-click resets.
+   - **CUT** handles at the edges: horizontal drag (or scroll) for the low/high cut frequency;
+     double-click returns them to Flat.
+   - Drags are relative, Shift is fine adjust, and each handle sits on the curve.
+
+   The response is approximate (`core/eqResponse.ts`): the mid bands use their real frequency, Q and gain, but the shelf
    turnover frequencies (assumed 100 Hz and 8 kHz) and the cut slopes (assumed 12 dB/octave) are
    unknown.
 
@@ -172,7 +179,7 @@ Shared controls go in `apps/tb3/src/ui/`. They're kept generic so they can move 
 | `Stepper` | `items: string[], groups?: {name, items}[], index, onChange`. The ‹ › buttons and scroll step through the items; clicking the name opens a grouped popover. |
 | `EnvelopeEditor` | `a, d, s, r, onChange(stage, raw)` |
 | `WaveView` | `ys` (samples in −1..1, display only), used by the LFO and VCO mix |
-| `EqView` | `ys` (dB across a log frequency axis, display only) |
+| `EqView` | `ys` (dB across a log frequency axis) and `handles` (frequency table / gain / wheel per handle) |
 | `XmodMatrix` | `sources, dests[2], amounts, renderCell(row, col)`, mirrored, with the patch view between the columns |
 | `Popover` | anchor + panel that closes on an outside press |
 | `Section` | Titled, silkscreen-ruled container |

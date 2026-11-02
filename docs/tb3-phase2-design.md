@@ -28,7 +28,8 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
   TB-3's red LFO LED.
 - Each synthesis section has its own soft tint on its title and rule (VCO sand, cross mod
   lilac, VCF sky, VCA mint, LFO red, distortion peach, EFX periwinkle) so sections are easy to
-  tell apart. The top strip stays neutral. Section titles are centred (header buttons stay on the
+  tell apart; each section header is a pale band of its tint. The top strip stays neutral (grey
+  band). Section titles are centred (header buttons stay on the
   right) and ruled above and below;
   sub-headings (TUNING) get thinner rules above and below in the same tint, and are
   centred too.

@@ -69,7 +69,7 @@ function EqBands(p: { efx: EfxNum; type: EfxType }) {
               return (
                 <VFader
                   key={offset}
-                  height={80}
+                  height={110}
                   value={ed.patch ? getEfxRaw(ed.patch, p.efx, offset) : 0}
                   max={s.max}
                   center={slotCenter(s)}

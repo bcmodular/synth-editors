@@ -14,6 +14,27 @@ export function Section(p: { title: ReactNode; extra?: ReactNode; className?: st
   );
 }
 
+// Anchor + panel that closes on a press outside both.
+export function Popover(p: { open: boolean; onClose: () => void; panel: ReactNode; children: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null);
+  const onClose = useRef(p.onClose);
+  onClose.current = p.onClose;
+  useEffect(() => {
+    if (!p.open) return;
+    const close = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) onClose.current();
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [p.open]);
+  return (
+    <div className="anchor" ref={box}>
+      {p.children}
+      {p.open && <div className="popover">{p.panel}</div>}
+    </div>
+  );
+}
+
 export function LedButton(p: { label: ReactNode; on: boolean; onToggle: () => void; disabled?: boolean }) {
   return (
     <button className={`btn ${p.on ? "on" : ""}`} disabled={p.disabled} onClick={p.onToggle}>

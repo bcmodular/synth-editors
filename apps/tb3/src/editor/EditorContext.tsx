@@ -5,11 +5,12 @@ import type { EfxNum } from "../core/efx";
 import type { Patch } from "../core/patch";
 import type { ParamDef } from "../core/params";
 
+// In display order: the pads on the first row, effect knob and XY mod on the second.
 export const ASSIGN_SLOTS = [
-  { id: "assign_xy_mod", label: "XY MOD", tag: "M" },
-  { id: "assign_pad_x", label: "PAD X", tag: "X" },
-  { id: "assign_pad_y", label: "PAD Y", tag: "Y" },
-  { id: "assign_effect_knob", label: "EFFECT", tag: "E" },
+  { id: "assign_pad_x", label: "PAD X" },
+  { id: "assign_pad_y", label: "PAD Y" },
+  { id: "assign_effect_knob", label: "EFFECT" },
+  { id: "assign_xy_mod", label: "XY MOD" },
 ] as const;
 
 export type AssignSlotId = (typeof ASSIGN_SLOTS)[number]["id"];

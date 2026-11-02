@@ -13,10 +13,10 @@ import {
   DistSection,
   LfoSection,
   ModSection,
-  PortaBendSection,
   VcaSection,
   VcfSection,
   VcoSection,
+  VcoSumSection,
 } from "./editor/sections";
 import { AssignBlock, MorphPlaceholder, PatchGridPlaceholder, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
@@ -103,18 +103,20 @@ export function App() {
           <PerformBlock tuning={tuning} onTuning={changeTuning} connected={midi.connected} />
           <AssignBlock />
         </div>
-        <div className="voice">
+        <div className="osc">
           <VcoSection />
+          <VcoSumSection />
           <ModSection />
+        </div>
+        <div className="shape">
           <VcfSection />
           <VcaSection />
-          <DistSection />
-        </div>
-        <div className="modfx">
           <LfoSection />
+        </div>
+        <div className="fx">
+          <DistSection />
           <EfxSection efx={1} />
           <EfxSection efx={2} />
-          <PortaBendSection />
         </div>
       </main>
     </EditorContext.Provider>

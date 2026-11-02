@@ -1,13 +1,14 @@
 // Top strip: TB-3 sync + MIDI settings, patch grid and morph placeholders (Phase 3), perform
-// controls (accent, global tuning) and parameter assign.
+// controls (accent, global tuning, porta/bend popover) and parameter assign.
 import { useState } from "react";
 import { GLOBAL_TUNING_DISPLAY } from "../core/display";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
 import { HFader } from "../ui/Fader";
-import { Section } from "../ui/controls";
+import { Popover, Section } from "../ui/controls";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
+import { PortaBendPanel } from "./sections";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
 
 const PHASE3 = "Patch grid and morph arrive in Phase 3";
@@ -25,7 +26,15 @@ export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boo
           ? `${p.midi.ports.tb3Out ?? "no output"} · ch ${p.midi.channel}`
           : "Sync from TB-3 to start";
   return (
-    <Section title="TB-3" className="tb3" extra={<button className="btn" onClick={() => setOpen((o) => !o)}>MIDI</button>}>
+    <Section
+      title="TB-3"
+      className="tb3"
+      extra={
+        <button className="btn" onClick={() => setOpen((o) => !o)}>
+          MIDI
+        </button>
+      }
+    >
       <button className={`btn wide ${p.hasPatch ? "" : "pulse"}`} onClick={p.midi.syncFromTb3}>
         SYNC FROM TB-3
       </button>
@@ -118,8 +127,19 @@ export function MorphPlaceholder() {
 
 // Global tuning is CC 104, not part of the patch: local state, sent only.
 export function PerformBlock(p: { tuning: number; onTuning: (v: number) => void; connected: boolean }) {
+  const [open, setOpen] = useState(false);
   return (
-    <Section title="PERFORM" className="perform">
+    <Section
+      title="PERFORM"
+      className="perform"
+      extra={
+        <Popover open={open} onClose={() => setOpen(false)} panel={<PortaBendPanel />}>
+          <button className={`btn ${open ? "sel" : ""}`} onClick={() => setOpen((o) => !o)}>
+            PORTA · BEND ▾
+          </button>
+        </Popover>
+      }
+    >
       <ParamH id="accent" label="ACCENT" width={170} labelWidth={84} />
       <div className="hrow">
         <span className="lbl" style={{ width: 84 }}>
@@ -154,7 +174,6 @@ export function AssignBlock() {
               disabled={!ed.patch}
               onClick={() => ed.arm(ed.armed === s.id ? null : s.id)}
             >
-              <span className="tag">{s.tag}</span>
               <span className="an">{s.label}</span>
               <span className="v">{target}</span>
             </button>

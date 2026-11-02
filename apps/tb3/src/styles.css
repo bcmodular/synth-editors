@@ -4,7 +4,7 @@
   --text: #d4d5da;
   --dim: #8a8d96;
   --led: #3ddc5a;
-  --led-off: #1c4224;
+  --led-off: #2f6a3a;
   --val: #7be890;
   --alt: #ffb020;
   --well: #222327;
@@ -49,8 +49,9 @@ select {
 }
 
 .strip,
-.voice,
-.modfx {
+.osc,
+.shape,
+.fx {
   display: grid;
   gap: 14px;
   align-items: start;
@@ -58,16 +59,19 @@ select {
 .strip {
   grid-template-columns: 230px 330px 250px 300px 1fr;
 }
-.voice {
-  grid-template-columns: 230px 420px 320px 290px 1fr;
+.osc {
+  grid-template-columns: 230px 470px 1fr;
 }
-.modfx {
-  grid-template-columns: 500px 1fr 1fr 200px;
+.shape {
+  grid-template-columns: 530px 530px 1fr;
+}
+.fx {
+  grid-template-columns: 240px 1fr 1fr;
 }
 
 /* Section: silkscreen rule + label, no card */
 .sec {
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid color-mix(in srgb, var(--tint, var(--rule)) 60%, var(--rule));
   padding: 5px 0 0;
   display: flex;
   flex-direction: column;
@@ -88,6 +92,37 @@ select {
   font-size: 15px;
   letter-spacing: 0.05em;
   color: #e8e9ec;
+}
+.sec h2 {
+  color: var(--tint, #e8e9ec);
+}
+/* Section tints: one soft hue per section so they're easy to tell apart. */
+.vco,
+.vcosum {
+  --tint: #e6c27a;
+}
+.mod {
+  --tint: #c9a3e6;
+}
+.vcf {
+  --tint: #7fc4ea;
+}
+.vca {
+  --tint: #8fdcc4;
+}
+.dist {
+  --tint: #f0a070;
+}
+.efx {
+  --tint: #a8b8ff;
+}
+/* LFO accents follow the TB-3's red LFO LED. */
+.lfo {
+  --tint: #ff5a4a;
+  --led: #ff3b30;
+  --led-off: #6e2a24;
+  --val: #ff8a7e;
+  --sel-bg: #2a1210;
 }
 .sec h3 {
   font-size: 13px;
@@ -112,6 +147,9 @@ select {
 }
 .row.top {
   align-items: flex-start;
+}
+.row.wide {
+  gap: 28px;
 }
 .col {
   display: flex;
@@ -158,7 +196,7 @@ select {
   white-space: nowrap;
   border-radius: 1px;
 }
-.btn:hover:not(:disabled) {
+.btn:not(.sel):hover:not(:disabled) {
   border-color: #55575e;
 }
 .btn:disabled {
@@ -194,8 +232,13 @@ select {
   display: inline-flex;
   flex-wrap: wrap;
 }
+/* Neighbours share a border; the selected one sits on top so its outline is whole. */
 .seg .btn + .btn {
-  border-left: 0;
+  margin-left: -1px;
+}
+.seg .btn.sel {
+  position: relative;
+  z-index: 1;
 }
 
 /* Faders */
@@ -303,11 +346,6 @@ select {
 }
 
 /* Cross mod */
-.xmod {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
 .xgrid {
   display: grid;
   gap: 4px;
@@ -371,15 +409,19 @@ svg .handle {
 }
 svg .trace {
   fill: none;
-  stroke: var(--alt);
+  stroke: var(--led);
   stroke-width: 2.2;
 }
 .envvals {
   display: flex;
   justify-content: space-between;
+  margin-top: 6px;
 }
-.stagev {
-  cursor: ns-resize;
+.envvals .hrow {
+  gap: 4px;
+}
+.envvals .lbl {
+  width: 10px;
 }
 
 /* Stepper */
@@ -443,6 +485,28 @@ svg .trace {
 .slots .hole {
   height: 22px;
 }
+.eq {
+  display: flex;
+  gap: 22px;
+}
+.eq .band {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.eq .vcell {
+  width: 46px;
+}
+.eq .v {
+  font-size: 13px;
+}
+.anchor {
+  position: relative;
+}
+.perform .popover {
+  left: auto;
+  right: 0;
+}
 
 /* Top strip */
 .tb3 .btn.wide {
@@ -502,18 +566,6 @@ svg .trace {
 .assignbtn .an {
   color: var(--dim);
 }
-.tag {
-  font-size: 11px;
-  background: var(--sel-bg);
-  color: var(--val);
-  border: 1px solid var(--led);
-  padding: 1px 3px 0;
-  margin-left: 4px;
-}
-.assignbtn .tag {
-  margin-left: 0;
-}
-
 /* Assign mode: assignable params get a dashed outline and take clicks */
 .assigning .assignable {
   outline: 1px dashed var(--led);

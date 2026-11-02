@@ -1,75 +1,80 @@
-// Cross-mod matrix: rows = sources, columns = destinations, cells rendered by the caller.
-// The patch view beside it draws one curve per non-zero cell (thickness = amount, colour = sign).
+// Cross-mod matrix for two destinations, mirrored: the first destination's column of cells on the
+// left, the second's on the right, and a patch view between them. Sources sit in the middle of the
+// patch view; each non-zero cell draws a cord out to its destination's side (thickness = amount,
+// colour = sign), so cords never cross.
 import type { ReactNode } from "react";
 
 export interface XmodMatrixProps {
   sources: readonly string[];
-  dests: readonly string[];
+  dests: readonly [string, string];
   amounts: number[][] | null; // signed amounts (raw − centre), [source][dest]
   range: number; // largest |amount|
   renderCell: (row: number, col: number) => ReactNode;
 }
 
+const ROW = 24;
+const GAP = 4;
+const VIEW_W = 190;
+
 export function XmodMatrix(p: XmodMatrixProps) {
   return (
-    <div className="xmod">
-      <div className="xgrid" style={{ gridTemplateColumns: `52px repeat(${p.dests.length}, 96px)` }}>
-        <span />
-        {p.dests.map((d) => (
-          <span key={d} className="lbl xd">
-            → {d}
-          </span>
-        ))}
-        {p.sources.map((s, r) => (
-          <Row key={s} label={s}>
-            {p.dests.map((_, c) => (
-              <div key={c}>{p.renderCell(r, c)}</div>
-            ))}
-          </Row>
-        ))}
+    <div className="xgrid" style={{ gridTemplateColumns: `auto ${VIEW_W}px auto` }}>
+      <span className="lbl xd">→ {p.dests[0]}</span>
+      <span />
+      <span className="lbl xd">→ {p.dests[1]}</span>
+      {p.sources.map((s, r) => (
+        <div key={`l${s}`} style={{ gridColumn: 1, gridRow: r + 2 }}>
+          {p.renderCell(r, 0)}
+        </div>
+      ))}
+      <div style={{ gridColumn: 2, gridRow: `2 / span ${p.sources.length}` }}>
+        <PatchView {...p} />
       </div>
-      <PatchView {...p} />
+      {p.sources.map((s, r) => (
+        <div key={`r${s}`} style={{ gridColumn: 3, gridRow: r + 2 }}>
+          {p.renderCell(r, 1)}
+        </div>
+      ))}
     </div>
   );
 }
 
-function Row(p: { label: string; children: ReactNode }) {
-  return (
-    <>
-      <span className="lbl">{p.label}</span>
-      {p.children}
-    </>
-  );
-}
-
 function PatchView(p: XmodMatrixProps) {
-  const W = 130;
-  const rowY = (r: number) => 34 + r * 28;
-  const destY = (c: number) => 34 + ((p.sources.length - 1) * 28 * (c + 0.5)) / p.dests.length;
+  const H = p.sources.length * (ROW + GAP) - GAP;
+  const mid = VIEW_W / 2;
+  const rowY = (r: number) => ROW / 2 + r * (ROW + GAP);
+  const destY = H / 2;
+  const LABEL = 26; // half the width kept clear for the source label
+  const edge = [6, VIEW_W - 6]; // destination jacks
   return (
-    <svg className="patch" width={W} height={rowY(p.sources.length - 1) + 14}>
-      {p.sources.map((s, r) => (
-        <circle key={s} className="jack" cx={6} cy={rowY(r)} r={3.5} />
+    <svg className="patch" width={VIEW_W} height={H}>
+      {edge.map((x) => (
+        <circle key={x} className="jack" cx={x} cy={destY} r={3.5} />
       ))}
-      {p.dests.map((d, c) => (
-        <g key={d}>
-          <circle className="jack" cx={W - 30} cy={destY(c)} r={3.5} />
-          <text className="glabel" x={W - 22} y={destY(c) + 4}>
-            {d}
+      {p.sources.map((s, r) => (
+        <g key={s}>
+          <text className="glabel" x={mid} y={rowY(r) + 4} textAnchor="middle">
+            {s}
           </text>
+          <circle className="jack" cx={mid - LABEL} cy={rowY(r)} r={2.5} />
+          <circle className="jack" cx={mid + LABEL} cy={rowY(r)} r={2.5} />
         </g>
       ))}
       {p.amounts?.flatMap((row, r) =>
-        row.map((v, c) =>
-          v === 0 ? null : (
+        row.map((v, c) => {
+          if (v === 0) return null;
+          const x0 = c === 0 ? mid - LABEL : mid + LABEL;
+          const x1 = edge[c]!;
+          const xm = (x0 + x1) / 2;
+          return (
             <path
               key={`${r}-${c}`}
               className={v > 0 ? "cord pos" : "cord neg"}
-              strokeWidth={1.5 + (Math.abs(v) / p.range) * 6}
-              d={`M6 ${rowY(r)} C ${W / 2} ${rowY(r)}, ${W / 2 - 10} ${destY(c)}, ${W - 30} ${destY(c)}`}
+              strokeWidth={1.5 + (Math.abs(v) / p.range) * 5}
+              d={`M${x0} ${rowY(r)} C ${xm} ${rowY(r)}, ${xm} ${destY}, ${x1} ${destY}`}
             />
-          ),
-        ),
+          );
+        }),
       )}
     </svg>
   );

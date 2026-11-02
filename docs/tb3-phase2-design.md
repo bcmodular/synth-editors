@@ -10,7 +10,7 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
 ## Target and style
 
 - One window, everything always visible: no tabs, nothing hidden. The layout has a fixed design
-  size (1608 × ~750 CSS px) and Electron's page zoom scales it to fit the window
+  size (1608 × ~1000 CSS px) and Electron's page zoom scales it to fit the window
   (`editor/useFitZoom.ts`, zoom exposed by `electron/preload.cjs`). Page zoom scales pointer
   coordinates too, so drag distances and fine adjust behave the same at any size. Extra width or
   height becomes margin. In a plain browser (`dev:browser`) there is no zoom and the page scrolls.
@@ -19,10 +19,16 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
     rather than rounded cards.
   - Condensed face (`DIN Condensed`, falling back to `Avenir Next Condensed`).
   - Square rubber-style buttons with a small rectangular LED.
-- Colour: the TB-3's green `#3ddc5a` for values and fills, a dark green `#1c4224` for "off but
-  remembered", and amber `#ffb020` for the LFO (and negative cross-mod amounts). Values read in a
-  light green. No gradients, glows or drop shadows. (The first round of mockups used LED orange;
-  switched to green after the first hardware test to match the device.)
+- Colour: the TB-3's green `#3ddc5a` for values and fills, a mid green `#2f6a3a` for "off but
+  remembered" (light enough that the level still shows), and amber `#ffb020` for negative
+  cross-mod amounts. Values read in a light green. No gradients, glows or drop shadows. (The first
+  round of mockups used LED orange; switched to green after the first hardware test to match the
+  device.)
+- The LFO section uses red for all its accents (trace, faders, LEDs, values), matching the
+  TB-3's red LFO LED.
+- Each synthesis section has its own soft tint on its title and rule (VCO sand, cross mod
+  lilac, VCF sky, VCA mint, LFO red, distortion peach, EFX periwinkle) so sections are easy to
+  tell apart. The top strip stays neutral.
 - Bipolar faders draw their zero line at the param's real centre (`center / max`), not the
   middle: tuning's zero sits at 127/151.
 - Fader sizes:
@@ -33,28 +39,31 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
 ## Layout (A · Signal flow)
 
 ```
-┌ TB-3 ──────┬ PATCHES (Phase 3) ──────┬ MORPH (Phase 3) ┬ PERFORM ─────────┬ ASSIGN ────────────┐
-│ Sync from  │ 1  2  3  4  5  6  7  8  │ target  amount  │ ACCENT  ████     │ XY MOD  PAD X      │
-│ Sync to    │ 9 10 11 12 13 14 15 16  │                 │ GLOBAL TUNE ─┼─  │ PAD Y   EFFECT     │
-│ ports ⚙    │ grab  del               │                 │                  │ (learn-by-click)   │
-├ VCO ───────┼ CROSS MOD ──────────────┼ VCF ────────────┴──┬ VCA ──────────┴──┬ DISTORTION ────────┤
-│ ▮▮▮▮▮▮ LED │ matrix 4×2  + patch view│ ADSR graph (drag)  │ ADSR graph (drag) │ ‹ CRUNCH ›  on col │
-│ caps       │ RING MOD rows ×6        │ cutoff res envdep  │ volume            │ drive bottom tone  │
-│ TUNING ×3  │                         │ keyfollow          │                   │ efx lvl  dry lvl   │
-├ LFO ───────┴─────────────────────────┼ EFX1 ──────────────┴┬ EFX2 ────────────┴┬ PORTA · BEND ──────┤
-│ sum waveform │ SAW SQR TRI SIN S&H   │ type buttons (11)   │ type buttons (10) │ porta on, legato/  │
-│ rate delay cv-offset  bpm-sync retrig│ mode segmented      │ mode segmented    │ always, time       │
-│ → VCO  → VCF  → VCA  (bipolar)       │ slots 2-col grid    │ slots 2-col grid  │ bend range         │
-└──────────────────────────────────────┴─────────────────────┴───────────────────┴────────────────────┘
+┌ TB-3 ──────┬ PATCHES (Phase 3) ──────┬ MORPH (Phase 3) ┬ PERFORM ─[PORTA·BEND▾]┬ ASSIGN ────────┐
+│ Sync from  │ 1  2  3  4  5  6  7  8  │ target  amount  │ ACCENT  ████          │ PAD X   PAD Y  │
+│ Sync to    │ 9 10 11 12 13 14 15 16  │                 │ GLOBAL TUNE ─┼─       │ EFFECT  XY MOD │
+├ VCO ───────┼ VCO MIX ───────────────┬┴ CROSS MOD ──────┴───────────────────────┴────────────────┤
+│ ▮▮▮▮▮▮ LED │ summed waveform        │ →SAW cells │ patch view │ →SQR cells    RING MOD ×6       │
+│ TUNING ×3  │                        │            │            │                                 │
+├ VCF ───────┴────────────┬ VCA ──────┴────────────┬ LFO ───────────────────────────────────────────┤
+│ ADSR graph  cutoff res  │ ADSR graph   volume     │ sum waveform │ SAW SQR TRI SIN S&H           │
+│ A D S R faders envdep kf│ A D S R faders          │ rate delay cv-offset  → VCO → VCF → VCA       │
+├ DISTORTION ┬ EFX1 ───────┴───────────────────────┬┴ EFX2 ────────────────────────────────────────┤
+│ ‹ CRUNCH ›  │ type buttons · mode · slots / EQ   │ type buttons · mode · slots                    │
+└────────────┴────────────────────────────────────┴───────────────────────────────────────────────┘
 ```
 
-Rough column widths at 1600 px:
+Column widths (CSS px, 1580 inside the margins):
 
 | Row | Columns |
 |-----|---------|
-| Voice row | VCO 260, Mod 300, VCF 330, VCA 260, Dist rest |
-| Mod/FX row | LFO 560, EFX1 and EFX2 split the rest, Porta/Bend 200 |
-| Top strip | ~110 px tall |
+| Oscillator row | VCO 230, VCO MIX 470, Cross mod rest |
+| Shape row | VCF 530, VCA 530, LFO rest |
+| FX row | Distortion 240, EFX1 and EFX2 split the rest |
+| Top strip | ~140 px tall |
+
+PORTA · BEND opens as a popover from a button in the PERFORM header, so the three section rows
+each hold three sections.
 
 The LFO depths (→ VCO, → VCF, → VCA) live only in the LFO section, so the LFO is self-contained
 and nothing is duplicated.
@@ -74,32 +83,33 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 
 | Section | Control | Params |
 |---------|---------|--------|
-| VCO mixer | **1a**: six vertical faders. The LED cap above each is its on/off switch. When off, the fill turns dark orange but keeps its level. | `vco_*_level`, `vco_*_sw` |
+| VCO mixer | **1a**: six vertical faders. The LED cap above each is its on/off switch. When off, the fill turns mid green but keeps its level. | `vco_*_level`, `vco_*_sw` |
 | Tuning | **2a**: three bipolar horizontal bars filling from the centre line (centre 127, max 151, display `def.display`). | `saw_tuning`, `sqr_tuning`, `ring_sin_tuning` |
-| Cross mod | **3b**: a matrix with rows SQR/SAW/WHITE/PINK and columns → SAW/→ SQR. Each cell is a bipolar bar: orange for positive, cyan for negative. Beside it, a patch view draws one curve per **non-zero** cell; thickness shows the amount and colour the sign. Zero cells draw nothing. The patch view is read-only. | `cm_*` (8) |
-| Ring mod | Six horizontal rows (SAW, SQR, RING, WHITE, PINK, DEPTH). | `rm_*` |
-| VCF | **4a** envelope editor (see below), then horizontal bars for CUTOFF, RESONANCE, ENV DEPTH and KEY FOLLOW. Cutoff and resonance are u16 (0–255). | `vcf_*` |
-| VCA | **4a** envelope editor, then VOLUME. | `vca_*`, `master_volume` |
+| VCO mix | Display-only waveform: the summed oscillator mix over two cycles (sources that are switched off are left out; tuning offsets shift each wave's pitch, 24 steps drawn as an octave; cross/ring mod depths are not modelled). Maths in `core/vcoShape.ts`. | `vco_*`, `*_tuning` |
+| Cross mod | **3b**, mirrored: the → SAW cells on the left, the → SQR cells on the right, and the patch view between them. Sources are listed down the middle of the patch view; each **non-zero** cell draws a cord out to its destination's side, so cords never cross. Thickness shows the amount and colour the sign (green positive, amber negative). Zero cells draw nothing. The patch view is read-only. | `cm_*` (8) |
+| Ring mod | Six horizontal rows in two columns, to the right of the cross mod. | `rm_*` |
+| VCF | **4a** envelope editor (see below), with horizontal bars to its right for CUTOFF, RESONANCE, ENV DEPTH and KEY FOLLOW. Cutoff and resonance are u16 (0–255). | `vcf_*` |
+| VCA | **4a** envelope editor, with VOLUME to its right. | `vca_*`, `master_volume` |
 | Distortion | **6b**: type stepper, then ON and COLOR LED buttons, then DRIVE (0–120), BOTTOM and TONE (bipolar, centre 50), EFX LVL and DRY LVL. | `dist_*` |
 | LFO | **5a** (see below), then RATE, DELAY and CV OFFSET bars, BPM SYNC and RETRIG LED buttons, and bipolar → VCO/→ VCF/→ VCA. | `lfo_*`, `*_lfo_depth` |
 | EFX1 / EFX2 | **7a** (see below). | EFX blocks |
-| Porta · Bend | PORTA LED button, a LEGATO/ALWAYS segmented control, TIME bar, and BEND RANGE bar (display `±n st`). | `porta_*`, `bender_range` |
+| Porta · Bend | Popover from PERFORM: PORTA LED button, a LEGATO/ALWAYS segmented control, TIME bar, and BEND RANGE bar (display `±n st`). | `porta_*`, `bender_range` |
 | Assign | **8a** learn-by-click (see below). | `assign_*` |
 
 ### Envelope editor (4a)
 
-- An SVG graph about 310 × 110 px, with a filled shape and square handles.
+- An SVG graph about 290 × 130 px, with a filled shape and square handles.
 - Each stage gets a quarter of the width at its maximum value, and the sustain plateau is drawn
   at a fixed width.
 - **Attack** handle: drags horizontally only, and sets A.
 - **Decay/sustain** handle: horizontal drag sets D and vertical drag sets S, both in one gesture.
 - **Release** handle: drags horizontally and sets R.
-- An `A n  D n  S n  R n` value row sits under the graph. Scrolling over a value steps it by 1,
-  and double-clicking a value resets that stage to 0.
+- A row of four small A / D / S / R faders sits under the graph and edits the same values, with
+  the usual fader rules (drag, scroll, double-click resets to 0).
 
 ### LFO view (5a)
 
-- A 300 × 130 px waveform showing about two cycles, plus five cyan vertical faders (SAW, SQR,
+- A 270 × 130 px waveform, plus five vertical faders (SAW, SQR,
   TRI, SIN, S&H) beside it.
 - The trace is the **sum** of the five waves weighted by level and normalised to fit the box.
 - S&H draws as a fixed pseudo-random step sequence.
@@ -120,20 +130,24 @@ The panel stacks, top to bottom:
    for buttons.
 4. Slots as a two-column grid in `slots` order. A `null` hole is an empty cell, so the layouts
    match `efx.ts`.
-   - Each slot is a 120 px horizontal fader using the slot's `display`.
+   - Each slot is a 170 px horizontal fader using the slot's `display`. Slots whose default is
+     the middle (gains in dB) are bipolar, with the zero line at the middle.
    - Double-click resets the slot to `round(default × max)`.
    - A slot dims (still editable) while any of its `disabledBy` offsets holds a non-zero value.
+5. EQ (EFX1 only) replaces the slot grid with bands of small vertical faders: LOW (CUT, GAIN),
+   LOW MID (FREQ, Q, GAIN), HIGH MID (FREQ, Q, GAIN), HIGH (CUT, GAIN) and OUT (LEVEL).
+
+In segmented controls, neighbouring buttons share one border and the selected button draws on
+top, so its outline is whole; hovering a selected button keeps its outline.
 
 ### Parameter assign (8a)
 
 - Four target buttons in the ASSIGN block, each showing its current assignment, e.g.
-  `XY MOD · VCF CUTOFF`.
+  `XY MOD · VCF CUTOFF`. PAD X and PAD Y are on the first row, EFFECT and XY MOD on the second.
 - Clicking a target arms it, so the button lights and the editor shows a hint line.
 - While armed, every parameter label that has an `assignId` gets a dashed outline. Clicking one
   writes that `assignId` into the slot param (`assign_xy_mod`, etc.) and disarms the target.
 - Esc or clicking the target again cancels.
-- Parameters that are currently assigned carry a small tag after their label: **M**, **X**,
-  **Y** or **E**.
 - EFX parameters have no known assign IDs yet, so they aren't clickable. An existing EFX
   assignment shows as `#<id>`.
 
@@ -145,13 +159,14 @@ Shared controls go in `apps/tb3/src/ui/`. They're kept generic so they can move 
 | Component | Props (summary) |
 |-----------|-----------------|
 | `HFader` | `value, max, onChange(raw), format(raw), bipolar?, center?, defaultValue, width?, off?, disabled?` |
-| `VFader` | Same as `HFader`, plus `height?`, `color?: "led" \| "cyan"` and `led?: { on, onToggle }`, which renders the LED cap |
+| `VFader` | Same as `HFader`, plus `height?`, `color?: "led" \| "alt"` and `led?: { on, onToggle }`, which renders the LED cap |
 | `LedButton` | `label, on, onToggle` |
 | `Segmented` | `options: {label, value}[], value, onChange` |
 | `Stepper` | `items: string[], groups?: {name, items}[], index, onChange`. The ‹ › buttons and scroll step through the items; clicking the name opens a grouped popover. |
 | `EnvelopeEditor` | `a, d, s, r, onChange(stage, raw)` |
-| `LfoView` | `levels, rate, delay, cvOffset` (display only) |
-| `XmodMatrix` | `values[4][2], onChange(row, col, raw)`, with the patch view built in |
+| `WaveView` | `ys` (samples in −1..1, display only), used by the LFO and VCO mix |
+| `XmodMatrix` | `sources, dests[2], amounts, renderCell(row, col)`, mirrored, with the patch view between the columns |
+| `Popover` | anchor + panel that closes on an outside press |
 | `Section` | Titled, silkscreen-ruled container |
 
 Patch-bound wrappers live in `apps/tb3/src/editor/`:
@@ -159,10 +174,11 @@ Patch-bound wrappers live in `apps/tb3/src/editor/`:
 - **`EditorContext`:** provides `patch`, `setParam(id, raw)`, `setEfxType`, `setEfxByte` and
   the assign-mode state.
 - **`ParamH`, `ParamV`, `ParamLed`:** look up the `ParamDef` by id, read the value, format it
-  with `def.display`, write through `setParam`, and handle the assign-mode label click and tag.
+  with `def.display`, write through `setParam`, and handle the assign-mode click.
 - **Section components:** `TopStrip` (`Tb3Block`, `PatchGridPlaceholder`,
   `MorphPlaceholder`, `PerformBlock`, `AssignBlock`), `VcoSection`, `ModSection`, `VcfSection`,
-  `VcaSection`, `DistSection`, `LfoSection`, `EfxSection(efx)`, `PortaBendSection`.
+  `VcaSection`, `DistSection`, `LfoSection`, `EfxSection(efx)`, `VcoSumSection`, and
+  `PortaBendPanel` (in the PERFORM popover).
 - **`MidiSettings`:** a popover opened from the TB-3 block. It holds the existing four port
   pickers (TB-3 in/out, Launchpad in/out, remembered by name) plus the TB-3 MIDI channel
   (default 2). A collapsible MIDI log from the spike stays here for debugging.

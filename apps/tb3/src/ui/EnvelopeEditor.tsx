@@ -1,14 +1,17 @@
 // Draggable ADSR graph. Attack handle → A (x); decay/sustain handle → D (x) and S (y);
-// release handle → R (x). Each stage gets a quarter of the width at full value.
-import { useEffect, useRef } from "react";
+// release handle → R (x). Each stage gets a quarter of the width at full value. A row of small
+// faders under the graph edits the same four values.
+import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { HFader } from "./Fader";
 
 export type Stage = "a" | "d" | "s" | "r";
 const STAGES: Stage[] = ["a", "d", "s", "r"];
 const MAX = 127;
 const FINE = 0.15;
 const PAD = 10;
+const ENV_GAP = 8; // between the A/D/S/R faders
 
 export interface EnvelopeProps {
   a: number;
@@ -21,7 +24,7 @@ export interface EnvelopeProps {
   disabled?: boolean;
   readOnly?: boolean; // shape shown, handles inert (e.g. while assigning)
   label?: string;
-  wrapValue?: (stage: Stage, node: ReactNode) => ReactNode; // e.g. assign targets + tags
+  wrapValue?: (stage: Stage, node: ReactNode) => ReactNode; // e.g. assign targets
 }
 
 const clamp = (v: number) => Math.max(0, Math.min(MAX, Math.round(v)));
@@ -104,41 +107,21 @@ export function EnvelopeEditor(p: EnvelopeProps) {
       </svg>
       <div className="envvals" style={{ width: W }}>
         {STAGES.map((k) => {
-          const node = <StageValue stage={k} value={p[k]} disabled={p.disabled} onChange={(v) => p.onChange(k, v)} />;
+          const node = (
+            <span className="hrow">
+              <span className="lbl">{k.toUpperCase()}</span>
+              <HFader
+                width={(W - 3 * ENV_GAP) / 4 - 14}
+                value={p[k]}
+                max={MAX}
+                disabled={p.disabled}
+                onChange={(v) => p.onChange(k, v)}
+              />
+            </span>
+          );
           return <span key={k}>{p.wrapValue ? p.wrapValue(k, node) : node}</span>;
         })}
       </div>
     </div>
-  );
-}
-
-function StageValue(p: { stage: Stage; value: number; disabled?: boolean; onChange: (v: number) => void }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const props = useRef(p);
-  props.current = p;
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let acc = 0;
-    const onWheel = (e: WheelEvent) => {
-      const { disabled, value, onChange } = props.current;
-      if (disabled) return;
-      e.preventDefault();
-      acc += Math.abs(e.deltaY) >= 40 ? Math.sign(e.deltaY) * 8 : e.deltaY;
-      const steps = Math.trunc(acc / 8);
-      if (!steps) return;
-      acc -= steps * 8;
-      const next = clamp(value - steps);
-      if (next === value) return;
-      props.current = { ...props.current, value: next };
-      onChange(next);
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, []);
-  return (
-    <span ref={ref} className="lbl stagev" onDoubleClick={() => !p.disabled && p.onChange(0)}>
-      {p.stage.toUpperCase()} <span className="v">{p.disabled ? "–" : p.value}</span>
-    </span>
   );
 }

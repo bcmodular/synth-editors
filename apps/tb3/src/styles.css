@@ -85,7 +85,7 @@ select {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  min-height: 24px;
+  height: 29px; /* same with or without header buttons */
   padding-bottom: 4px;
   border-bottom: 1px solid var(--sec-rule);
 }
@@ -147,6 +147,9 @@ select {
 }
 .vco > .row.tight {
   justify-content: space-between;
+}
+.sec .extra .btn {
+  height: 23px;
 }
 .sec .extra {
   grid-column: 3;

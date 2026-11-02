@@ -2,7 +2,7 @@
 // Like the envelope editor, drags are relative (Shift = fine): horizontal moves step through a
 // handle's frequency table, vertical moves change its gain. Scrolling over a handle steps its
 // `wheel` value (Q for the mid bands); double-click resets it.
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { EQ_MAX_HZ, EQ_MIN_HZ } from "../core/eqResponse";
 
@@ -31,6 +31,7 @@ export function EqView(p: { ys: number[] | null; handles?: EqHandle[]; width?: n
   const W = p.width ?? 240;
   const H = p.height ?? 190;
   const mid = H / 2;
+  const clip = `eq${useId().replace(/[^\w-]/g, "")}`; // useId has characters url(#…) dislikes
   const dbPerPx = RANGE_DB / (mid - 6);
   const yOf = (dbv: number) => mid - Math.max(-RANGE_DB, Math.min(RANGE_DB, dbv)) / dbPerPx;
   const xOf = (hz: number) => (Math.log(hz / EQ_MIN_HZ) / Math.log(EQ_MAX_HZ / EQ_MIN_HZ)) * W;
@@ -38,6 +39,15 @@ export function EqView(p: { ys: number[] | null; handles?: EqHandle[]; width?: n
   const pts = p.ys?.map((y, i) => `${((i / last) * W).toFixed(1)},${yOf(y).toFixed(1)}`);
   return (
     <svg className="eqview" width={W} height={H}>
+      {/* The fill is split at 0 dB: boost above in green, cut below in amber. */}
+      <defs>
+        <clipPath id={`${clip}-boost`}>
+          <rect width={W} height={mid} />
+        </clipPath>
+        <clipPath id={`${clip}-cut`}>
+          <rect y={mid} width={W} height={H - mid} />
+        </clipPath>
+      </defs>
       <rect className="well" width={W} height={H} />
       {[-12, 12].map((d) => (
         <line key={d} className="grid" x1={0} x2={W} y1={yOf(d)} y2={yOf(d)} />
@@ -59,7 +69,14 @@ export function EqView(p: { ys: number[] | null; handles?: EqHandle[]; width?: n
       </text>
       {pts && (
         <>
-          <polygon className="eqfill" points={`0,${mid} ${pts.join(" ")} ${W},${mid}`} />
+          {(["boost", "cut"] as const).map((k) => (
+            <polygon
+              key={k}
+              className={`eqfill ${k}`}
+              clipPath={`url(#${clip}-${k})`}
+              points={`0,${mid} ${pts.join(" ")} ${W},${mid}`}
+            />
+          ))}
           <polyline className="trace" points={pts.join(" ")} />
         </>
       )}

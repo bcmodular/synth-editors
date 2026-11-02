@@ -146,6 +146,8 @@ The panel stacks, top to bottom:
    - **CUT** handles at the edges: horizontal drag (or scroll) for the low/high cut frequency;
      double-click returns them to Flat.
    - Drags are relative, Shift is fine adjust, and each handle sits on the curve.
+   - The fill under the curve is green where it boosts and amber where it cuts (the cross-mod
+     sign colours).
 
    The response is approximate (`core/eqResponse.ts`): the mid bands use their real frequency, Q and gain, but the shelf
    turnover frequencies (assumed 100 Hz and 8 kHz) and the cut slopes (assumed 12 dB/octave) are

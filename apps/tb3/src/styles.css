@@ -530,8 +530,11 @@ svg .trace {
 svg .grid {
   stroke: #26272b;
 }
-svg .eqfill {
-  fill: color-mix(in srgb, var(--led) 14%, transparent);
+svg .eqfill.boost {
+  fill: color-mix(in srgb, var(--led) 18%, transparent);
+}
+svg .eqfill.cut {
+  fill: color-mix(in srgb, var(--alt) 22%, transparent);
 }
 .anchor {
   position: relative;

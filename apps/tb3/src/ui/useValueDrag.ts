@@ -13,7 +13,7 @@ export interface ValueDragOptions {
   onChange: (raw: number) => void;
   defaultValue: number;
   axis: "x" | "y";
-  length: number; // px of travel for the full range
+  length?: number; // px of travel for the full range; default: the element's own size
   disabled?: boolean;
 }
 
@@ -54,8 +54,10 @@ export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOpt
     el.setPointerCapture(e.pointerId);
     let last = opts.current.axis === "x" ? e.clientX : e.clientY;
     let acc = opts.current.value;
+    const size = el instanceof HTMLElement ? (opts.current.axis === "x" ? el.offsetWidth : el.offsetHeight) : 100;
     const move = (ev: PointerEvent) => {
-      const { axis, length, max, onChange } = opts.current;
+      const { axis, max, onChange } = opts.current;
+      const length = opts.current.length ?? size;
       const pos = axis === "x" ? ev.clientX : ev.clientY;
       const delta = (axis === "x" ? pos - last : last - pos) / length;
       last = pos;

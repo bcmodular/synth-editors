@@ -59,7 +59,7 @@ export function ParamLabel(p: { text: string; width?: number }) {
 }
 
 // Label + horizontal fader row.
-export function ParamH(p: { id: string; label: string; width?: number; labelWidth?: number }) {
+export function ParamH(p: { id: string; label: string; width?: number | "fill"; labelWidth?: number }) {
   const { def, value, disabled, set } = useParam(p.id);
   return (
     <Assignable def={def} className="hrow">

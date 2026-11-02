@@ -207,11 +207,11 @@ export function DistSection() {
         <ParamLed id="dist_color" label="COLOR" />
       </div>
       <div className="col">
-        <ParamH id="dist_drive" label="DRIVE" />
-        <ParamH id="dist_bottom" label="BOTTOM" />
-        <ParamH id="dist_tone" label="TONE" />
-        <ParamH id="dist_efx_level" label="EFX LVL" />
-        <ParamH id="dist_dry_level" label="DRY LVL" />
+        <ParamH id="dist_drive" label="DRIVE" width="fill" />
+        <ParamH id="dist_bottom" label="BOTTOM" width="fill" />
+        <ParamH id="dist_tone" label="TONE" width="fill" />
+        <ParamH id="dist_efx_level" label="EFX LVL" width="fill" />
+        <ParamH id="dist_dry_level" label="DRY LVL" width="fill" />
       </div>
     </Section>
   );
@@ -243,7 +243,7 @@ export function LfoSection() {
       }
     >
       <div className="row top">
-        <WaveView ys={ys} width={270} height={130} />
+        <WaveView ys={ys} width={296} height={130} />
         <div className="row tight">
           <ParamV id="lfo_saw" label="SAW" height={110} />
           <ParamV id="lfo_sqr" label="SQR" height={110} />
@@ -252,13 +252,13 @@ export function LfoSection() {
           <ParamV id="lfo_sh" label="S&H" height={110} />
         </div>
       </div>
-      <div className="grid2">
-        <ParamH id="lfo_rate" label="RATE" width={130} />
-        <ParamH id="vco_lfo_depth" label="→ VCO" width={130} labelWidth={50} />
-        <ParamH id="lfo_delay" label="DELAY" width={130} />
-        <ParamH id="vcf_lfo_depth" label="→ VCF" width={130} labelWidth={50} />
-        <ParamH id="lfo_cv_offset" label="CV OFFSET" width={130} />
-        <ParamH id="vca_lfo_depth" label="→ VCA" width={130} labelWidth={50} />
+      <div className="grid2 fill">
+        <ParamH id="lfo_rate" label="RATE" width="fill" />
+        <ParamH id="vco_lfo_depth" label="→ VCO" width="fill" labelWidth={50} />
+        <ParamH id="lfo_delay" label="DELAY" width="fill" />
+        <ParamH id="vcf_lfo_depth" label="→ VCF" width="fill" labelWidth={50} />
+        <ParamH id="lfo_cv_offset" label="CV OFFSET" width="fill" />
+        <ParamH id="vca_lfo_depth" label="→ VCA" width="fill" labelWidth={50} />
       </div>
     </Section>
   );

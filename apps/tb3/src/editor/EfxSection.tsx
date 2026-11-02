@@ -26,7 +26,8 @@ function buttonGroups(buttons: (EfxButton | null)[]): EfxButton[][] {
 // Slots whose default is the middle are bipolar (gain in dB): fill and zero line from there.
 const slotCenter = (s: EfxSlot) => (s.default === 0.5 ? s.max / 2 : undefined);
 
-function Slots(p: { efx: EfxNum; type: EfxType; faderWidth: number; labelWidth: number }) {
+// Slot faders stretch to fill their half of the section.
+function Slots(p: { efx: EfxNum; type: EfxType; labelWidth: number }) {
   const ed = useEditor();
   const byte = (offset: number) => (ed.patch ? getEfxRaw(ed.patch, p.efx, offset) : 0);
   return (
@@ -38,7 +39,7 @@ function Slots(p: { efx: EfxNum; type: EfxType; faderWidth: number; labelWidth: 
               {s.name}
             </span>
             <HFader
-              width={p.faderWidth}
+              width="fill"
               value={byte(s.offset)}
               max={s.max}
               center={slotCenter(s)}
@@ -145,7 +146,7 @@ function EqPanel(p: { efx: EfxNum; type: EfxType }) {
   return (
     <div className="row top eq">
       <EqView ys={patch ? eqResponse(e) : null} handles={handles} width={240} height={167} />
-      <Slots efx={p.efx} type={p.type} faderWidth={118} labelWidth={62} />
+      <Slots efx={p.efx} type={p.type} labelWidth={62} />
     </div>
   );
 }
@@ -198,7 +199,7 @@ export function EfxSection(p: { efx: EfxNum }) {
       {type.name === "EQ" ? (
         <EqPanel efx={p.efx} type={type} />
       ) : (
-        <Slots efx={p.efx} type={type} faderWidth={170} labelWidth={74} />
+        <Slots efx={p.efx} type={type} labelWidth={74} />
       )}
     </Section>
   );

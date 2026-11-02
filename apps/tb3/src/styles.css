@@ -187,6 +187,9 @@ select {
   justify-content: start;
   gap: 6px 18px;
 }
+.grid2.fill {
+  grid-template-columns: 1fr 1fr;
+}
 
 .lbl {
   font-size: 13px;
@@ -283,6 +286,10 @@ select {
   cursor: ew-resize;
   flex: 0 0 auto;
   touch-action: none;
+}
+.hf.fill {
+  flex: 1 1 0;
+  min-width: 0;
 }
 .hf > i,
 .vf > i {
@@ -458,6 +465,7 @@ svg .trace {
   height: 30px;
 }
 .stepname {
+  flex: 1 1 0;
   height: 30px;
   background: #0c1a10;
   border: 1px solid var(--edge);
@@ -501,10 +509,13 @@ svg .trace {
   flex-wrap: wrap;
   gap: 3px;
 }
+.types .btn {
+  flex: 1 0 auto; /* type buttons share out the full row */
+  justify-content: center;
+}
 .slots {
   display: grid;
-  grid-template-columns: auto auto;
-  justify-content: start;
+  grid-template-columns: 1fr 1fr;
   gap: 6px 16px;
 }
 .slots .hole {
@@ -525,6 +536,9 @@ svg .trace {
 }
 .eq {
   gap: 16px;
+}
+.eq > .slots {
+  flex: 1;
 }
 /* EQ has six slot rows: spaced a little tighter so it fits the row's usual height. */
 .efx > .eq {

@@ -72,6 +72,7 @@ export interface StepperGroup {
 }
 
 // Name display with ‹ ›; scroll or arrow keys step, clicking the name opens the grouped list.
+// Without `width` the name stretches to fill the row.
 export function Stepper(p: {
   items: readonly string[];
   groups?: StepperGroup[];
@@ -128,7 +129,7 @@ export function Stepper(p: {
       <button
         ref={name}
         className="stepname"
-        style={{ width: p.width ?? 170 }}
+        style={p.width ? { width: p.width } : undefined}
         disabled={p.disabled}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => {

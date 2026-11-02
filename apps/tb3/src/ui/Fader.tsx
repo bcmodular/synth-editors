@@ -30,8 +30,10 @@ function fillClass(p: FaderProps) {
   return "";
 }
 
-export function HFader(p: FaderProps & { width?: number }) {
-  const width = p.width ?? 140;
+// `width: "fill"` stretches the fader across the space its row leaves for it.
+export function HFader(p: FaderProps & { width?: number | "fill" }) {
+  const stretch = p.width === "fill";
+  const width = p.width === "fill" ? undefined : (p.width ?? 140);
   const drag = useValueDrag<HTMLDivElement>({
     value: p.value,
     max: p.max,
@@ -45,7 +47,7 @@ export function HFader(p: FaderProps & { width?: number }) {
   return (
     <div
       ref={drag.ref}
-      className={`hf ${p.center !== undefined ? "bi" : ""} ${p.disabled ? "disabled" : ""} ${p.className ?? ""}`}
+      className={`hf ${stretch ? "fill" : ""} ${p.center !== undefined ? "bi" : ""} ${p.disabled ? "disabled" : ""} ${p.className ?? ""}`}
       style={{ width, ["--c" as string]: centerPct(p) }}
       onPointerDown={drag.onPointerDown}
       onDoubleClick={drag.onDoubleClick}

@@ -503,6 +503,19 @@ svg .trace {
 .slots .hole {
   height: 22px;
 }
+/* Effects row: give the faders some air below the type/mode buttons and the header. */
+.fx .sec {
+  gap: 8px;
+}
+.efx .slots,
+.efx .eq,
+.dist > .col {
+  margin-top: 14px;
+}
+.efx .slots,
+.dist > .col {
+  row-gap: 10px;
+}
 .eq {
   display: flex;
   gap: 22px;

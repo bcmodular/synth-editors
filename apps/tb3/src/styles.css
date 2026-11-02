@@ -433,12 +433,6 @@ svg .shape {
   stroke: var(--led);
   stroke-width: 2;
 }
-svg .handle {
-  fill: var(--body);
-  stroke: var(--led);
-  stroke-width: 2;
-  cursor: move;
-}
 svg .trace {
   fill: none;
   stroke: var(--led);
@@ -647,15 +641,17 @@ svg .hlabel {
   font-size: 10px;
   pointer-events: none;
 }
-svg .eqdot {
+/* Graph handles (envelopes, EQ): a small ring with a larger invisible hit circle. */
+svg .handle .dot {
   fill: var(--body);
   stroke: var(--led);
   stroke-width: 1.8;
   pointer-events: none;
 }
-svg .hit {
+svg .handle .hit {
   fill: transparent;
+  cursor: move;
 }
-svg g:hover > .eqdot {
+svg .handle:hover > .dot {
   fill: var(--led);
 }

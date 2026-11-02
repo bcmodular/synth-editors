@@ -163,12 +163,12 @@ function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => num
   const { h, x, y } = p;
   const cursor = h.freq && h.gain ? "move" : h.freq ? "ew-resize" : "ns-resize";
   return (
-    <g>
+    <g className="handle">
       <text className="glabel hlabel" x={x} y={h.below ? y + 15 : y - 8} textAnchor="middle">
         {h.label}
       </text>
-      <circle className="eqdot" cx={x} cy={y} r={4} />
-      {/* Larger invisible hit area, so the small dot is still easy to grab. */}
+      <circle className="dot" cx={x} cy={y} r={4} />
+      {/* Larger invisible hit area, so the small dot is still easy to grab (also in EnvelopeEditor). */}
       <circle
         ref={ref}
         className="hit"

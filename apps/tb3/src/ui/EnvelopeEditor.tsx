@@ -43,7 +43,7 @@ export function EnvelopeEditor(p: EnvelopeProps) {
   const props = useRef(p);
   props.current = p;
 
-  const startDrag = (stage: "a" | "d" | "r") => (e: ReactPointerEvent<SVGRectElement>) => {
+  const startDrag = (stage: "a" | "d" | "r") => (e: ReactPointerEvent<SVGCircleElement>) => {
     if (props.current.disabled || props.current.readOnly || e.button !== 0) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
@@ -75,15 +75,17 @@ export function EnvelopeEditor(p: EnvelopeProps) {
   };
 
   const handle = (stage: "a" | "d" | "r", x: number, y: number) => (
-    <rect
-      className="handle"
-      x={x - 6}
-      y={y - 6}
-      width={12}
-      height={12}
-      onPointerDown={startDrag(stage)}
-      onDoubleClick={() => !p.disabled && !p.readOnly && p.onChange(stage, 0)}
-    />
+    <g className="handle">
+      <circle className="dot" cx={x} cy={y} r={4} />
+      <circle
+        className="hit"
+        cx={x}
+        cy={y}
+        r={9}
+        onPointerDown={startDrag(stage)}
+        onDoubleClick={() => !p.disabled && !p.readOnly && p.onChange(stage, 0)}
+      />
+    </g>
   );
 
   return (

@@ -102,7 +102,8 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 
 ### Envelope editor (4a)
 
-- An SVG graph about 290 × 130 px, with a filled shape and square handles.
+- An SVG graph about 290 × 130 px, with a filled shape and small round handles (the same as the
+  EQ curve's, with a larger invisible hit area).
 - Each stage gets a quarter of the width at its maximum value, and the sustain plateau is drawn
   at a fixed width.
 - **Attack** handle: drags horizontally only, and sets A.

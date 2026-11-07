@@ -1,5 +1,5 @@
-// Top strip: TB-3 sync + MIDI settings, patch grid and morph placeholders (Phase 3), perform
-// controls (accent, global tuning, porta/bend popover) and parameter assign.
+// Top strip: TB-3 sync + MIDI settings, perform controls (accent, global tuning, porta/bend
+// popover) and parameter assign. PATCHES and MORPH are in PatchesBlock.tsx.
 import { useState } from "react";
 import { GLOBAL_TUNING_DISPLAY } from "../core/display";
 import { getRaw } from "../core/patch";
@@ -10,8 +10,6 @@ import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
 import { PortaBendPanel } from "./sections";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
-
-const PHASE3 = "Patch grid and morph arrive in Phase 3";
 
 export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boolean }) {
   const [open, setOpen] = useState(false);
@@ -89,39 +87,6 @@ function MidiSettings(p: { midi: Tb3Midi; onClose: () => void }) {
       </div>
       {showLog && <pre className="log">{m.log.join("\n")}</pre>}
     </div>
-  );
-}
-
-export function PatchGridPlaceholder() {
-  return (
-    <Section title="PATCHES" className="patches placeholder" extra={<span className="lbl">PHASE 3</span>}>
-      <div className="slots16" title={PHASE3}>
-        {Array.from({ length: 16 }, (_, i) => (
-          <div key={i} className="slot">
-            {i + 1}
-          </div>
-        ))}
-      </div>
-    </Section>
-  );
-}
-
-export function MorphPlaceholder() {
-  return (
-    <Section title="MORPH" className="morph placeholder" extra={<span className="lbl">PHASE 3</span>}>
-      <div className="hrow" title={PHASE3}>
-        <span className="lbl" style={{ width: 60 }}>
-          TARGET
-        </span>
-        <span className="v">–</span>
-      </div>
-      <div className="hrow" title={PHASE3}>
-        <span className="lbl" style={{ width: 60 }}>
-          AMOUNT
-        </span>
-        <HFader value={0} max={127} onChange={() => {}} disabled width={150} />
-      </div>
-    </Section>
   );
 }
 

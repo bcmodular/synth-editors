@@ -40,6 +40,7 @@ select {
 }
 
 .app {
+  position: relative; /* the library overlay is placed against it */
   width: 1608px;
   margin: 0 auto;
   padding: 10px 14px;
@@ -57,7 +58,7 @@ select {
   align-items: start;
 }
 .strip {
-  grid-template-columns: 230px 330px 250px 300px 1fr;
+  grid-template-columns: 230px 380px 250px 300px 1fr;
 }
 .osc {
   grid-template-columns: 300px 370px 520px 1fr;
@@ -604,14 +605,304 @@ svg .eqfill.cut {
   gap: 3px;
 }
 .slot {
+  position: relative;
   height: 26px;
   background: var(--well);
   border: 1px solid var(--edge);
-  color: var(--dim);
+  color: #55575e;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 2px;
+  padding: 2px 0 0;
+  font-size: 14px;
+  cursor: default;
+}
+.slot.filled {
+  color: var(--text);
+  background: #26282c;
+  cursor: pointer;
+}
+.slot.filled:hover {
+  border-color: #55575e;
+}
+.slot.active {
+  background: var(--sel-bg);
+  border-color: var(--led);
+  color: var(--val);
+}
+/* Unsaved edits: amber corner. Not sent since opening: dim dot. */
+.slot.modified::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  background: var(--alt);
+}
+.slot.unsent::before {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  margin-left: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dim);
+}
+.slot.preview {
+  border-color: #fff;
+  color: #fff;
+}
+.slot.target {
+  outline: 1px dashed var(--alt);
+  outline-offset: 1px;
+}
+.slot.drop {
+  border-color: var(--alt);
+  background: #3a2d10;
+}
+.slots16.armed .slot {
+  cursor: pointer;
+  border-style: dashed;
+}
+.btn.blink {
+  animation: pulse 0.8s ease-in-out infinite;
+}
+.btn.mini {
+  height: 21px;
+  padding: 3px 7px 1px;
+  font-size: 12px;
+}
+.setline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 21px;
+}
+.setline .status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.morphname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* Patch library: slides down over the editor, below the top strip */
+.library {
+  position: absolute;
+  z-index: 20;
+  top: 150px;
+  left: 258px;
+  width: 820px;
+  height: 640px;
+  display: flex;
+  flex-direction: column;
+  background: #161719;
+  border: 1px solid var(--rule);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  animation: slidedown 0.16s ease-out;
+  transform-origin: top;
+}
+@keyframes slidedown {
+  from {
+    transform: scaleY(0.6);
+    opacity: 0;
+  }
+}
+.libbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--edge);
+}
+.libbar.sets {
+  background: #1b1c1f;
+}
+.libroot {
+  font-size: 16px;
+  color: #e8e9ec;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.libbar .search {
+  flex: 1;
+  min-width: 0;
+  background: var(--well);
+  border: 1px solid var(--edge);
+  color: var(--text);
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 3px 7px;
+}
+.libbar .setname {
+  min-width: 120px;
+  color: var(--val);
+}
+.libbar .gap {
+  margin-left: 14px;
+}
+.libbar .into {
+  margin-left: auto;
+}
+.libtree {
+  flex: 1;
+  overflow: auto;
+  padding: 4px 0;
+}
+.libtree.drop {
+  background: #1d1a12;
+}
+.libtree > .status {
+  padding: 16px;
+}
+.librow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding-right: 10px;
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: default;
+}
+.librow:hover {
+  background: #202125;
+}
+.librow.current {
+  background: #1e2a22;
+}
+.librow.drop {
+  background: #3a2d10;
+}
+.librow.preview {
+  background: var(--sel-bg);
+}
+.librow .twist {
+  width: 10px;
+  color: var(--dim);
+}
+.librow .icon {
+  width: 14px;
+  color: var(--dim);
+}
+.librow.dir .icon {
+  color: #e6c27a;
+}
+.librow.set .icon {
+  color: #a8b8ff;
+}
+.librow .name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.librow.bad .name {
+  color: var(--dim);
+}
+.librow .tag {
+  font: 11px "DIN Condensed", sans-serif;
+  letter-spacing: 0.05em;
+  color: #a8b8ff;
+  border: 1px solid currentColor;
+  padding: 1px 4px 0;
+}
+.librow .tag.bad {
+  color: #ff8a6a;
+}
+.librow .play {
+  color: var(--led);
+}
+
+/* Context menu and dialogs (fixed, positioned in zoomed px) */
+.ctxmenu {
+  position: fixed;
+  z-index: 50;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  background: #202125;
+  border: 1px solid var(--rule);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: 4px 0;
+}
+.ctxitem {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 5px 12px;
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
+}
+.ctxitem:hover:not(:disabled) {
+  background: var(--sel-bg);
+  color: var(--val);
+}
+.ctxitem:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.dialog-back {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+.dialog {
+  min-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #1b1c1f;
+  border: 1px solid var(--rule);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+}
+.dialog h3 {
+  margin: 0;
+  font-weight: normal;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
+.dialog p {
+  margin: 0;
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--dim);
+}
+.dialog input {
+  background: var(--well);
+  border: 1px solid var(--edge);
+  color: var(--text);
+  font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 5px 8px;
+}
+.dialog .row {
+  justify-content: flex-end;
+}
+.toast {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  max-width: 700px;
+  padding: 8px 14px;
+  background: #3a1d16;
+  border: 1px solid #ff8a6a;
+  color: #ffd2c4;
+  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  cursor: pointer;
 }
 .perform {
   gap: 8px;

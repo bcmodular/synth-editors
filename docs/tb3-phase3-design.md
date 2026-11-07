@@ -1,7 +1,11 @@
 # TB-3 Phase 3 — Patch library, slots and sets (design draft)
 
-Status: **draft for review**. It replaces the PLAN.md Phase 3 outline, which followed the TouchOSC
+Status: **implemented**. It replaces the PLAN.md Phase 3 outline, which followed the TouchOSC
 model (16 slots + JSON banks). Here the file system is a first-class part of the editor.
+
+Code: `core/patchSet.ts` (file and set formats), `editor/useSession.ts` (slots, active patch, what
+the TB-3 holds, preview, STORE, morph, recovery), `editor/useLibrary.ts` + `electron/main.cjs`
+(file access over IPC), `editor/PatchesBlock.tsx` (PATCHES and MORPH), `editor/LibraryBrowser.tsx`.
 
 ## Concepts
 
@@ -73,8 +77,9 @@ model (16 slots + JSON banks). Here the file system is a first-class part of the
 - The app remembers the library root, the last set file, and the active slot.
 - **At launch**: the last set reopens, but **nothing is sent** to the TB-3. Every slot shows a
   "not sent since opening" mark until it's recalled. The editor shows the last active slot.
-- **Unsaved slot edits survive quitting**: they're written to a recovery file in the app's data
-  folder and restored on the next launch, still marked as modified.
+- **Unsaved slot edits survive quitting**: the whole session is kept in the app's local storage
+  (written shortly after each change and on quit) and restored on the next launch, still marked
+  as modified.
 
 ## Implementation notes
 
@@ -87,7 +92,8 @@ model (16 slots + JSON banks). Here the file system is a first-class part of the
 - `packages/bank-files` from PLAN.md is replaced by a TB-3-specific set format. A shared package
   can wait until the SP-404 needs one.
 
+- Morph sends at most every 40 ms: over DIN a whole patch takes about 140 ms to send.
+
 ## Open questions
 
-- The order to build in. Suggestion: library + browser → slots + sets → persistence → morph.
 - Whether the browser overlay should also show a patch's details (e.g. its EFX types) on hover.

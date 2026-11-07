@@ -77,10 +77,10 @@ those blocks through a typed parameter table. This replaces the TouchOSC split b
 - Sync from TB-3, sync to TB-3.
 - Parameter assign mode (XY pad MOD / X / Y, effect knob).
 
-### Phase 3 — Patch grid and bank files
-- 16 named slots: store, recall, delete, grab (preview while held).
-- Preset morph: pick target slot, amount fader.
-- Bank files: open, save, save as, recent, autosave.
+### Phase 3 — Patch library, slots and sets
+- See [docs/tb3-phase3-design.md](docs/tb3-phase3-design.md): a browsable folder of .syx patches,
+  16 slots per self-contained set file, STORE, hold-to-audition, preset morph to a slot,
+  unsaved edits kept across launches.
 
 ### Phase 4 — Controllers
 - Launchpad: top two rows → 16 slots with mode colours; side buttons for morph, delete (hold),

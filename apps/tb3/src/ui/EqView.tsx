@@ -5,6 +5,7 @@
 import { useEffect, useId, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { EQ_MAX_HZ, EQ_MIN_HZ } from "../core/eqResponse";
+import { getZoom } from "./zoom";
 
 const RANGE_DB = 24; // ± shown
 const FINE = 0.15;
@@ -132,7 +133,7 @@ function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => num
     let lastX = e.clientX;
     let lastY = e.clientY;
     const move = (ev: PointerEvent) => {
-      const k = ev.shiftKey ? FINE : 1;
+      const k = (ev.shiftKey ? FINE : 1) / getZoom();
       const cur = props.current.h;
       if (cur.freq && tableX) {
         fx += (ev.clientX - lastX) * k;

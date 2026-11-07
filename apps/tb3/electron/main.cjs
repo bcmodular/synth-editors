@@ -12,7 +12,6 @@ function createWindow() {
     minHeight: 360,
     title: "TB-3 Editor",
     backgroundColor: "#121214",
-    webPreferences: { preload: path.join(__dirname, "preload.cjs") },
   });
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   if (devUrl) {

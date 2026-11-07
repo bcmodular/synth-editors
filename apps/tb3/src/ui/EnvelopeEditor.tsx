@@ -5,6 +5,7 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { HFader } from "./Fader";
+import { getZoom } from "./zoom";
 
 export type Stage = "a" | "d" | "s" | "r";
 const STAGES: Stage[] = ["a", "d", "s", "r"];
@@ -55,7 +56,7 @@ export function EnvelopeEditor(p: EnvelopeProps) {
     let lastX = x0;
     let lastY = y0;
     const move = (ev: PointerEvent) => {
-      const k = ev.shiftKey ? FINE : 1;
+      const k = (ev.shiftKey ? FINE : 1) / getZoom();
       fx = Math.max(0, Math.min(MAX, fx + ((ev.clientX - lastX) / seg) * MAX * k));
       fy = Math.max(0, Math.min(MAX, fy - ((ev.clientY - lastY) / (floor - top)) * MAX * k));
       lastX = ev.clientX;

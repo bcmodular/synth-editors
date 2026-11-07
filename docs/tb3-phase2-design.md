@@ -10,10 +10,12 @@ Agreed with the user over three rounds of mockups (kept in [`docs/tb3-phase2-moc
 ## Target and style
 
 - One window, everything always visible: no tabs, nothing hidden. The layout has a fixed design
-  size (1608 × ~1000 CSS px) and Electron's page zoom scales it to fit the window
-  (`editor/useFitZoom.ts`, zoom exposed by `electron/preload.cjs`). Page zoom scales pointer
-  coordinates too, so drag distances and fine adjust behave the same at any size. Extra width or
-  height becomes margin. In a plain browser (`dev:browser`) there is no zoom and the page scrolls.
+  size (1608 × ~1000 CSS px) and CSS `zoom` on the root scales it to fit the window
+  (`editor/useFitZoom.ts`), in Electron and plain browsers alike. Drags divide pointer movement by
+  the zoom (`ui/zoom.ts`), so drag distances and fine adjust behave the same at any size. Extra
+  width or height becomes margin. (Electron's page zoom was tried first, but changing it during a
+  live window resize could leave Chromium's viewport out of step with the window: offset layout
+  and mouse moves going missing over parts of the editor.)
 - Panel look:
   - Near-black body, with sections marked by a thin "silkscreen" rule and an uppercase label
     rather than rounded cards.

@@ -1,6 +1,7 @@
 // Shared value interaction: relative drag (Shift = fine), double-click reset, wheel steps.
 import { useEffect, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { getZoom } from "./zoom";
 
 const FINE = 0.15;
 const WHEEL_PX_PER_STEP = 8;
@@ -59,7 +60,7 @@ export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOpt
       const { axis, max, onChange } = opts.current;
       const length = opts.current.length ?? size;
       const pos = axis === "x" ? ev.clientX : ev.clientY;
-      const delta = (axis === "x" ? pos - last : last - pos) / length;
+      const delta = (axis === "x" ? pos - last : last - pos) / getZoom() / length;
       last = pos;
       acc = clamp(acc + delta * max * (ev.shiftKey ? FINE : 1), 0, max);
       const next = Math.round(acc);

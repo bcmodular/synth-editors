@@ -34,7 +34,7 @@ select {
   color: inherit;
 }
 
-/* Fixed design size; in Electron the whole page is zoomed to fit (editor/useFitZoom.ts). */
+/* Fixed design size, zoomed to fit the window (editor/useFitZoom.ts). */
 .fit body {
   overflow: hidden;
 }

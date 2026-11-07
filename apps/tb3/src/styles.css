@@ -331,6 +331,16 @@ select {
   left: 0;
   right: 0;
 }
+/* Invisible hit margins: the fit zoom can shrink these small controls to a few screen points. */
+.vf::before,
+.ledcap::before {
+  content: "";
+  position: absolute;
+  inset: 0 -8px;
+}
+.ledcap::before {
+  inset: -7px -8px -3px; /* stops short of the fader below */
+}
 .vf.alt > i {
   background: var(--alt);
 }
@@ -362,6 +372,7 @@ select {
   width: 34px;
 }
 .ledcap {
+  position: relative;
   width: 22px;
   height: 9px;
   background: var(--led-off);

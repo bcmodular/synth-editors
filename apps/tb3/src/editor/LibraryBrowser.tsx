@@ -8,6 +8,7 @@ import type { DragEvent, MouseEvent as ReactMouseEvent } from "react";
 import { nameFromPath } from "../core/patchSet";
 import { Section } from "../ui/controls";
 import { ContextMenu } from "../ui/Dialog";
+import { REVEAL_LABEL } from "../ui/platform";
 import { askName, confirmed, menuAt, useDialog } from "../ui/dialogs";
 import type { MenuItem, MenuState } from "../ui/dialogs";
 import { MOVE_DRAG_TYPE, PATCH_DRAG_TYPE } from "./dragTypes";
@@ -267,7 +268,7 @@ export function LibraryBrowser(p: {
     kindItem[e.kind](e),
     { label: "Rename…", onClick: () => ops.rename(e) },
     { label: "Move to Trash", onClick: () => ops.trash(e) },
-    { label: "Reveal in Finder", onClick: () => ops.reveal(e.path) },
+    { label: REVEAL_LABEL, onClick: () => ops.reveal(e.path) },
   ];
   const activations: Record<LibEntry["kind"], (e: LibEntry) => void> = {
     dir: (e) => toggle(e.path),
@@ -291,7 +292,7 @@ export function LibraryBrowser(p: {
     setMenu(
       menuAt(ev, [
         { label: "New folder…", onClick: () => ops.newFolder(ROOT) },
-        { label: "Reveal in Finder", onClick: () => ops.reveal(ROOT) },
+        { label: REVEAL_LABEL, onClick: () => ops.reveal(ROOT) },
       ]),
     );
   const status = libraryStatus(lib);

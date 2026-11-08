@@ -18,6 +18,7 @@ function createWindow() {
     minHeight: 360,
     title: "TB-3 Editor",
     backgroundColor: "#121214",
+    autoHideMenuBar: process.platform !== "darwin", // Windows: no menu bar over the editor (Alt shows it)
     webPreferences: { preload: path.join(__dirname, "preload.cjs") },
   });
   const devUrl = process.env.VITE_DEV_SERVER_URL;

@@ -12,6 +12,7 @@ import { ContextMenu } from "../ui/Dialog";
 import { askName, confirmed, menuAt, useDialog } from "../ui/dialogs";
 import type { MenuState } from "../ui/dialogs";
 import { Section } from "../ui/controls";
+import { KEYS } from "../ui/platform";
 import { PATCH_DRAG_TYPE } from "./dragTypes";
 import { MORPH_RATES } from "./useSession";
 import type { Session } from "./useSession";
@@ -240,7 +241,7 @@ export function SetBlock(p: {
             session={s}
             mode="grab"
             label="GRAB"
-            title="Then hold a slot to audition it (or Option-hold a slot)"
+            title={`Then hold a slot to audition it (or ${KEYS.alt}-hold a slot)`}
           />
         </span>
       }

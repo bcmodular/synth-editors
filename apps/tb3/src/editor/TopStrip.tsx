@@ -6,6 +6,7 @@ import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
 import { HFader } from "../ui/Fader";
 import { Section } from "../ui/controls";
+import { KEYS } from "../ui/platform";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
@@ -25,7 +26,7 @@ function UndoButtons(p: { history: UndoControls }) {
       <button
         className="btn mini"
         disabled={!h.undoLabel}
-        title={h.undoLabel ? `Undo ${h.undoLabel} (⌘Z)` : "Nothing to undo"}
+        title={h.undoLabel ? `Undo ${h.undoLabel} (${KEYS.undo})` : "Nothing to undo"}
         onClick={h.undo}
       >
         UNDO
@@ -33,7 +34,7 @@ function UndoButtons(p: { history: UndoControls }) {
       <button
         className="btn mini"
         disabled={!h.redoLabel}
-        title={h.redoLabel ? `Redo ${h.redoLabel} (⇧⌘Z)` : "Nothing to redo"}
+        title={h.redoLabel ? `Redo ${h.redoLabel} (${KEYS.redo})` : "Nothing to redo"}
         onClick={h.redo}
       >
         REDO

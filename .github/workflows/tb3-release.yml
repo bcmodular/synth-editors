@@ -1,0 +1,53 @@
+# Builds the TB-3 Editor for macOS (Apple Silicon and Intel .dmg) and Windows (x64 installer).
+# Push a tag like tb3-v0.1.0 to build and attach both to a GitHub Release (a draft, to check
+# before publishing), or run it by hand from the Actions tab to just get the build artifacts.
+# The apps are unsigned: see apps/tb3/README.md for what that means for people installing them.
+name: TB-3 release
+
+on:
+  push:
+    tags: ["tb3-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run package:tb3
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false" # no signing certificate: build unsigned
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tb3-${{ matrix.os }}
+          path: |
+            apps/tb3/release/*.dmg
+            apps/tb3/release/*.exe
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/tb3-v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: TB-3 Editor ${{ github.ref_name }}
+          draft: true
+          files: artifacts/*

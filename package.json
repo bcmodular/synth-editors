@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:e2e": "npm run e2e -w @synth-editors/tb3",
     "test:tb3": "npm run e2e:hw -w @synth-editors/tb3",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "package:tb3": "npm run package -w @synth-editors/tb3"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

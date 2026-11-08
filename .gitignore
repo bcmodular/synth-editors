@@ -9,3 +9,6 @@ fixtures/local/
 # Playwright output
 test-results/
 playwright-report/
+
+# Packaged apps (npm run package:tb3)
+release/

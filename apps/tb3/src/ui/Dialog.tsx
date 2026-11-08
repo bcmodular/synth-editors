@@ -1,27 +1,10 @@
 // In-app dialogs (Electron has no window.prompt) and a context menu. Both render inside the
-// zoomed editor, so pointer coordinates are divided by the fit zoom.
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+// zoomed editor. The helpers that open them (useDialog, askName, confirmed, menuAt) are in
+// dialogs.ts, so this file exports only components and Fast Refresh works on it.
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { getZoom } from "./zoom";
-
-export interface DialogSpec {
-  title: string;
-  message?: string;
-  input?: string; // initial text: shows a text field
-  choice?: { label: string; options: { value: string; label: string }[]; value: string }; // shows a menu
-  buttons: string[]; // first is the default (Enter); Esc cancels
-}
-
-export type DialogResult = { button: string; value: string; choice: string } | null;
-type Ask = (d: DialogSpec) => Promise<DialogResult>;
-
-const DialogContext = createContext<Ask | null>(null);
-
-export function useDialog(): Ask {
-  const ask = useContext(DialogContext);
-  if (!ask) throw new Error("useDialog outside DialogHost");
-  return ask;
-}
+import { DialogContext } from "./dialogs";
+import type { Ask, DialogResult, DialogSpec, MenuState } from "./dialogs";
 
 export function DialogHost(p: { children: ReactNode }) {
   const [open, setOpen] = useState<{ spec: DialogSpec; resolve: (r: DialogResult) => void } | null>(null);
@@ -103,35 +86,6 @@ function DialogBox(p: { spec: DialogSpec; onDone: (r: DialogResult) => void }) {
     </div>
   );
 }
-
-// Ask for a name; null when cancelled or left empty.
-export async function askName(ask: Ask, title: string, initial = ""): Promise<string | null> {
-  const r = await ask({ title, input: initial, buttons: ["OK"] });
-  return r?.value ? r.value : null;
-}
-
-export async function confirmed(ask: Ask, title: string, message: string, button = "REPLACE"): Promise<boolean> {
-  return (await ask({ title, message, buttons: [button] }))?.button === button;
-}
-
-export interface MenuItem {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}
-
-export interface MenuState {
-  x: number;
-  y: number;
-  items: MenuItem[];
-}
-
-// Opens at a contextmenu event's position.
-export const menuAt = (e: { clientX: number; clientY: number }, items: MenuItem[]): MenuState => ({
-  x: e.clientX / getZoom(),
-  y: e.clientY / getZoom(),
-  items,
-});
 
 export function ContextMenu(p: { menu: MenuState | null; onClose: () => void }) {
   useEffect(() => {

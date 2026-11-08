@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { PATCH_EXT, SET_EXT, emptySlots, nameFromPath, patchToBytes, setFromJson, setToJson } from "../core/patchSet";
 import type { Patch } from "../core/patch";
-import { confirmed, useDialog } from "../ui/Dialog";
+import { confirmed, useDialog } from "../ui/dialogs";
 import { joinPath } from "./useLibrary";
 import type { Session } from "./useSession";
 

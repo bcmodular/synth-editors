@@ -32,9 +32,10 @@ TB3_PORT="H12MIDI-Pro Port 4" npm run test:tb3    # the real TB-3; puts its soun
 
 ## Code
 
-- [ ] Code health check with CodeScene (MCP) over `apps/tb3`, fixing the worst hotspots first, and
-      again on each change from here on.
-- [ ] Unit tests for the session logic (store, delete, grab, morph base and CLEAR). The end-to-end
-      tests cover what reaches the TB-3; these would cover the state rules, and the pure parts
-      need pulling out of `useSession` first, which the undo history needs anyway.
-- [ ] Move `askName` / `confirmed` out of `ui/Dialog.tsx` so Fast Refresh works on it again.
+- [x] Code health check with CodeScene (MCP) over `apps/tb3`, fixing the worst hotspots first, and
+      again on each change from here on (`AGENTS.md`). `useSession.ts` 7.85, `LibraryBrowser.tsx`
+      8.08 and `PatchesBlock.tsx` 8.47 are now all 10; everything else was 9.07 or better.
+- [x] Unit tests for the session logic (store, delete, grab, morph base and CLEAR). The pure rules
+      are in `editor/sessionState.ts`; the morph pump's token bucket in `editor/morphPump.ts`.
+- [x] Move `askName` / `confirmed` out of `ui/Dialog.tsx` so Fast Refresh works on it again
+      (now `ui/dialogs.ts`; `PATCH_DRAG_TYPE` likewise moved out of `PatchesBlock.tsx`).

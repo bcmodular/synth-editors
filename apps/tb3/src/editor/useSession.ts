@@ -350,11 +350,22 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   }, []);
 
   // Morph: the base is the active patch when the fader first moves after choosing a target.
-  // Choosing another target, or none, keeps the blend in the editor as the active patch.
-  const chooseMorphTarget = useCallback((i: number | null) => {
+  // Choosing another target keeps the blend in the editor as the active patch.
+  const chooseMorphTarget = useCallback((i: number) => {
     setMorphTarget(i);
     resetMorph();
   }, []);
+
+  // CLEAR: drop the target and go back to the patch from before the morph. (To keep a blend,
+  // store or save it first; editing a control also makes it the active patch's edits.)
+  const clearMorph = useCallback(() => {
+    const base = morphBase.current;
+    setMorphTarget(null);
+    resetMorph();
+    if (!base) return;
+    commit(replaceCurrent(ref.current, base));
+    if (!previewing.current) sendPatch(base);
+  }, [commit, sendPatch]);
 
   const setMorph = useCallback(
     (amount: number) => {
@@ -422,6 +433,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     openSet,
     markSaved,
     chooseMorphTarget,
+    clearMorph,
     setMorph,
   };
 }

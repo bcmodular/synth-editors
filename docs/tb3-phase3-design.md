@@ -57,8 +57,8 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 
 ## Slots (the SET block)
 
-- An 8 × 2 grid as now. Hovering shows the slot name. States: empty, filled, active, modified
-  (unsaved edits).
+- An 8 × 2 grid as now. Hovering shows the slot name. States: empty (grey), filled (dotted green
+  outline, green number), active (solid green), modified (unsaved edits: amber corner).
 - **Click a filled slot**: recall it. The changed blocks go to the TB-3 and it becomes active.
 - **Click an empty slot**: store the patch in the editor there; it becomes the active slot. This is
   how the unslotted buffer gets into the set, as on the TouchOSC panel. A full slot is replaced
@@ -93,8 +93,9 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 
 - The target is one of the slots. The base is the active patch, including its unsaved edits, at
   the moment the target is chosen.
-- **CLEAR** drops the target and sets AMOUNT back to 0. Like picking another target, it keeps
-  whatever blend the editor shows as the active patch.
+- **CLEAR** drops the target, sets AMOUNT back to 0 and returns to the patch from before the
+  morph. To keep a blend, store it in a slot or SAVE AS… first (editing a control also keeps it,
+  as the active patch's edits). Picking another target keeps the blend as the new base.
 - The MORPH block has a target picker, an amount fader and a send RATE (Phase 1 morph rules:
   continuous params glide, while switches and EFX types snap at 0.5).
 - **Send rate**: patches that differ a lot can flood the TB-3 until it stops playing. The editor

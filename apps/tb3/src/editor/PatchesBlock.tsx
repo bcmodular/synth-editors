@@ -247,10 +247,10 @@ export function MorphBlock(p: { session: Session }) {
         <button
           className="btn mini"
           disabled={!target && s.mode !== "target"}
-          title="Stop morphing; the editor keeps the blend it shows"
+          title="Stop morphing and go back to the patch from before the morph"
           onClick={() => {
             if (s.mode === "target") s.setMode(null);
-            s.chooseMorphTarget(null);
+            s.clearMorph();
           }}
         >
           CLEAR

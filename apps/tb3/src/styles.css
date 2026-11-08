@@ -629,17 +629,18 @@ svg .eqfill.cut {
   cursor: default;
 }
 .slot.filled {
-  color: var(--text);
-  background: #26282c;
+  color: var(--val);
+  background: #1d2420;
+  border: 1px dotted var(--led);
   cursor: pointer;
 }
 .slot.filled:hover {
-  border-color: #55575e;
+  border-style: solid;
 }
 .slot.active {
-  background: var(--sel-bg);
-  border-color: var(--led);
-  color: var(--val);
+  background: #1f5a2c;
+  border: 1px solid var(--led);
+  color: #fff;
 }
 /* Unsaved edits: amber corner. */
 .slot.modified::after {

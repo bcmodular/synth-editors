@@ -802,15 +802,22 @@ svg .eqfill.cut {
   background: var(--sel-bg);
 }
 .librow .twist {
-  width: 10px;
+  width: 14px;
+  flex: none;
   color: var(--dim);
+}
+.librow .open-toggle {
+  cursor: pointer;
+  text-align: center;
+  margin: -6px 0 -6px -4px; /* a bigger hit area than the glyph */
+  padding: 6px 2px 6px 4px;
+}
+.librow .open-toggle:hover {
+  color: var(--text);
 }
 .librow .icon {
   width: 14px;
   color: var(--dim);
-}
-.librow.dir .icon {
-  color: #e6c27a;
 }
 .librow.set .icon {
   color: #a8b8ff;

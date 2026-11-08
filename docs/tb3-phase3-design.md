@@ -35,7 +35,8 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 ## Browser
 
 - It shows a tree of the library: folders, patches, and sets (with their own icon).
-- **Save folder**: clicking a folder makes it the folder saves go into. The library folder itself
+- **Save folder**: clicking a folder makes it the folder saves go into. Expanding and collapsing
+  is separate: the disclosure triangle, or double-click. The library folder itself
   is the tree's top node, so it can be picked (and dropped onto) like any other folder.
 - **Search box**: filters the tree by name as you type.
 - **Invalid files**: every `.syx` is listed, but files that don't parse as a full TB-3 patch get

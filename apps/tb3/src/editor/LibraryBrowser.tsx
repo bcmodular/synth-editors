@@ -114,6 +114,27 @@ export function LibraryBrowser(p: {
     { label: "Reveal in Finder", onClick: () => void files?.reveal(e.path) },
   ];
 
+  // Expanding is the disclosure triangle (or double-click); clicking the row picks the save folder.
+  const toggle = (path: string) =>
+    setCollapsed((c) => {
+      const n = new Set(c);
+      if (n.has(path)) n.delete(path);
+      else n.add(path);
+      return n;
+    });
+  const twist = (path: string, open: boolean) => (
+    <span
+      className="twist open-toggle"
+      onClick={(ev) => {
+        ev.stopPropagation();
+        toggle(path);
+      }}
+      onDoubleClick={(ev) => ev.stopPropagation()}
+    >
+      {open ? "▾" : "▸"}
+    </span>
+  );
+
   const row = (e: LibEntry, depth: number) => {
     const isDir = e.kind === "dir";
     const open = Boolean(q) || !collapsed.has(e.path);
@@ -137,23 +158,14 @@ export function LibraryBrowser(p: {
             if (valid) ev.dataTransfer.setData(PATCH_DRAG_TYPE, e.path);
             ev.dataTransfer.effectAllowed = "copyMove";
           }}
-          onClick={() => {
-            if (!isDir) return p.onFolder(parentOf(e.path));
-            p.onFolder(e.path);
-            setCollapsed((c) => {
-              const n = new Set(c);
-              if (n.has(e.path)) n.delete(e.path);
-              else n.add(e.path);
-              return n;
-            });
-          }}
-          onDoubleClick={() => (e.kind === "set" ? p.actions.openSet(e.path) : load(e))}
+          onClick={() => p.onFolder(isDir ? e.path : parentOf(e.path))}
+          onDoubleClick={() => (isDir ? toggle(e.path) : e.kind === "set" ? p.actions.openSet(e.path) : load(e))}
           onContextMenu={(ev) => setMenu(menuAt(ev, menuItems(e)))}
           {...(isDir ? dropTarget(e.path) : {})}
           title={e.error ? `Not a TB-3 patch: ${e.error}` : e.path}
         >
-          <span className="twist">{isDir ? (open ? "▾" : "▸") : ""}</span>
-          <span className="icon">{isDir ? "▣" : e.kind === "set" ? "▦" : "♪"}</span>
+          {isDir ? twist(e.path, open) : <span className="twist" />}
+          {!isDir && <span className="icon">{e.kind === "set" ? "▦" : "♪"}</span>}
           <span className="name">{isDir ? e.name : nameFromPath(e.name)}</span>
           {e.kind === "set" && <span className="tag">SET</span>}
           {e.error && <span className="tag bad">INVALID</span>}
@@ -185,15 +197,8 @@ export function LibraryBrowser(p: {
       className={`librow dir root ${p.folder === "" ? "current" : ""} ${dropOn === "" ? "drop" : ""}`}
       style={{ paddingLeft: 8 }}
       title={root}
-      onClick={() => {
-        p.onFolder("");
-        setCollapsed((c) => {
-          const n = new Set(c);
-          if (n.has("")) n.delete("");
-          else n.add("");
-          return n;
-        });
-      }}
+      onClick={() => p.onFolder("")}
+      onDoubleClick={() => toggle("")}
       onContextMenu={(ev) =>
         setMenu(
           menuAt(ev, [
@@ -204,8 +209,7 @@ export function LibraryBrowser(p: {
       }
       {...dropTarget("")}
     >
-      <span className="twist">{rootOpen ? "▾" : "▸"}</span>
-      <span className="icon">▣</span>
+      {twist("", rootOpen)}
       <span className="name">{root.split("/").pop()}</span>
     </div>
   );

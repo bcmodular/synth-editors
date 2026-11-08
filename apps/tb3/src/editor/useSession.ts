@@ -350,7 +350,8 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   }, []);
 
   // Morph: the base is the active patch when the fader first moves after choosing a target.
-  const chooseMorphTarget = useCallback((i: number) => {
+  // Choosing another target, or none, keeps the blend in the editor as the active patch.
+  const chooseMorphTarget = useCallback((i: number | null) => {
     setMorphTarget(i);
     resetMorph();
   }, []);

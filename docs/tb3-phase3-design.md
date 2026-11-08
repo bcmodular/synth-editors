@@ -93,6 +93,8 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 
 - The target is one of the slots. The base is the active patch, including its unsaved edits, at
   the moment the target is chosen.
+- **CLEAR** drops the target and sets AMOUNT back to 0. Like picking another target, it keeps
+  whatever blend the editor shows as the active patch.
 - The MORPH block has a target picker, an amount fader and a send RATE (Phase 1 morph rules:
   continuous params glide, while switches and EFX types snap at 0.5).
 - **Send rate**: patches that differ a lot can flood the TB-3 until it stops playing. The editor

@@ -244,6 +244,17 @@ export function MorphBlock(p: { session: Session }) {
         <span className="v morphname" title={target?.name}>
           {target ? `${s.morphTarget! + 1} · ${target.name}` : s.mode === "target" ? "click a slot" : "–"}
         </span>
+        <button
+          className="btn mini"
+          disabled={!target && s.mode !== "target"}
+          title="Stop morphing; the editor keeps the blend it shows"
+          onClick={() => {
+            if (s.mode === "target") s.setMode(null);
+            s.chooseMorphTarget(null);
+          }}
+        >
+          CLEAR
+        </button>
       </div>
       <div className="hrow">
         <span className="lbl" style={{ width: 60 }}>

@@ -6,6 +6,7 @@ import { diffBlocks } from "../src/core/patch";
 import {
   allBlocks,
   blockKeys,
+  editParam,
   HW,
   expectTb3,
   finish,
@@ -79,6 +80,30 @@ test("the library's ▶ plays a file while held, then returns", async () => {
   const play = page.locator(".librow.patch", { hasText: "Audition" }).locator(".play");
   await hold(page, play, () => expectTb3(page, p.file, "Audition.syx while held"));
   await expectTb3(page, p.a, "slot 1 again after release");
+});
+
+test("GRAB returns to the active slot's unsaved edits", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  const edited = await editParam(page, p.a, "master_volume", "VOLUME");
+  await expectTb3(page, edited, "slot 1 with the edit");
+  await expect(slot(page, 0)).toHaveClass(/modified/);
+  await sideButton(page, "patches", "GRAB").click();
+  await hold(page, slot(page, 2), () => expectTb3(page, p.c, "slot 3 while held"));
+  await expectTb3(page, edited, "slot 1 with the edit after release");
+  await expect(slot(page, 0)).toHaveClass(/modified/);
+});
+
+test("the library's ▶ returns to the active slot's unsaved edits", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  const edited = await editParam(page, p.a, "master_volume", "VOLUME");
+  await expectTb3(page, edited, "slot 1 with the edit");
+  const play = page.locator(".librow.patch", { hasText: "Audition" }).locator(".play");
+  await hold(page, play, () => expectTb3(page, p.file, "Audition.syx while held"));
+  await expectTb3(page, edited, "slot 1 with the edit after release");
 });
 
 test("morph CLEAR goes back to the patch from before the morph", async () => {

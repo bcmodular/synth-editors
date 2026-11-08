@@ -216,6 +216,18 @@ export async function openTestSet(page: Page) {
   await expect(page.locator(".slots16 .slot.filled")).toHaveCount(3);
 }
 
+// Edit a patch param from its fader (one wheel notch towards the middle of its range, so it always
+// changes) and return the edited patch the TB-3 should now hold.
+export async function editParam(page: Page, from: Patch, id: string, label: string): Promise<Patch> {
+  const def = paramById(id);
+  const raw = getRaw(from, def);
+  const up = raw < def.max / 2;
+  const row = page.locator(".hrow").filter({ has: page.locator(".lbl", { hasText: new RegExp(`^${label}$`) }) });
+  await row.locator(".hf").hover();
+  await page.mouse.wheel(0, up ? -100 : 100);
+  return setRaw(from, def, raw + (up ? 1 : -1));
+}
+
 // Press and hold on an element, run `during`, then release.
 export async function hold(page: Page, sel: ReturnType<Page["locator"]>, during: () => Promise<void>) {
   const box = (await sel.boundingBox())!;

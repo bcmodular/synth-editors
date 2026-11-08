@@ -1,10 +1,12 @@
-// Patch library browser: slides down from the PATCHES header over the editor.
+// Patch library: the sidebar under PATCHES and MORPH.
 //   folders: click to open as the save folder · drop patches/sets/folders on them to move
-//   patches: hold ▶ to audition · drag onto a slot · right-click for rename / trash
+//   patches: double-click to load into the editor (not the set) · hold ▶ to audition ·
+//            drag onto a slot · right-click for load / rename / trash
 //   sets: double-click to open
 import { useMemo, useState } from "react";
 import type { DragEvent } from "react";
 import { nameFromPath } from "../core/patchSet";
+import { Section } from "../ui/controls";
 import { ContextMenu, askName, confirmed, menuAt, useDialog } from "../ui/Dialog";
 import type { MenuItem, MenuState } from "../ui/Dialog";
 import { PATCH_DRAG_TYPE } from "./PatchesBlock";
@@ -31,7 +33,6 @@ export function LibraryBrowser(p: {
   actions: SetActions;
   folder: string;
   onFolder: (dir: string) => void;
-  onClose: () => void;
   onError: (msg: string) => void;
 }) {
   const { library: lib, session: s } = p;
@@ -80,6 +81,8 @@ export function LibraryBrowser(p: {
       await files.rename(from, joinPath(dir, from.split("/").pop()!));
     });
 
+  const load = (e: LibEntry) => e.patch && s.load(e.patch, nameFromPath(e.name));
+
   const dropTarget = (dir: string) => ({
     onDragOver: (e: DragEvent) => {
       if (!e.dataTransfer.types.includes(MOVE_DRAG_TYPE)) return;
@@ -101,6 +104,9 @@ export function LibraryBrowser(p: {
   const menuItems = (e: LibEntry): MenuItem[] => [
     ...(e.kind === "dir" ? [{ label: "New folder…", onClick: () => newFolder(e.path) }] : []),
     ...(e.kind === "set" ? [{ label: "Open set", onClick: () => p.actions.openSet(e.path) }] : []),
+    ...(e.kind === "patch"
+      ? [{ label: "Load into editor", onClick: () => load(e), disabled: !e.patch }]
+      : []),
     { label: "Rename…", onClick: () => rename(e) },
     { label: "Move to Trash", onClick: () => trash(e) },
     { label: "Reveal in Finder", onClick: () => void files?.reveal(e.path) },
@@ -139,7 +145,7 @@ export function LibraryBrowser(p: {
               return n;
             });
           }}
-          onDoubleClick={() => e.kind === "set" && p.actions.openSet(e.path)}
+          onDoubleClick={() => (e.kind === "set" ? p.actions.openSet(e.path) : load(e))}
           onContextMenu={(ev) => setMenu(menuAt(ev, menuItems(e)))}
           {...(isDir ? dropTarget(e.path) : {})}
           title={e.error ? `Not a TB-3 patch: ${e.error}` : e.path}
@@ -157,7 +163,7 @@ export function LibraryBrowser(p: {
               onPointerDown={(ev) => {
                 if (ev.button !== 0) return;
                 ev.stopPropagation();
-                s.preview(e.patch!, `file:${e.path}`);
+                s.preview(e.patch!, `file:${e.path}`, nameFromPath(e.name));
                 window.addEventListener("pointerup", () => s.endPreview(), { once: true });
               }}
             >
@@ -170,16 +176,20 @@ export function LibraryBrowser(p: {
     );
   };
 
-  const cur = s.state.active === null ? null : s.state.slots[s.state.active];
   return (
-    <div className="library">
+    <Section
+      title="LIBRARY"
+      className="library"
+      extra={
+        <button className="btn" disabled={!lib.available} onClick={() => void lib.choose()}>
+          {lib.root ? "CHANGE…" : "CHOOSE…"}
+        </button>
+      }
+    >
       <div className="libbar">
         <span className="libroot" title={lib.root ?? undefined}>
-          {lib.root ? lib.root.split("/").pop() : "No library folder"}
+          {lib.root ? lib.root.split("/").pop() : "No folder"}
         </span>
-        <button className="btn mini" disabled={!lib.available} onClick={() => void lib.choose()}>
-          {lib.root ? "CHANGE…" : "CHOOSE FOLDER…"}
-        </button>
         <input
           className="search"
           placeholder="Search"
@@ -187,38 +197,9 @@ export function LibraryBrowser(p: {
           onChange={(e) => setQuery(e.target.value)}
           spellCheck={false}
         />
-        <button className="btn mini" disabled={!lib.root} onClick={() => newFolder(p.folder)}>
-          NEW FOLDER
+        <button className="btn mini" disabled={!lib.root} title="New folder" onClick={() => newFolder(p.folder)}>
+          + FOLDER
         </button>
-        <button className="btn mini" onClick={p.onClose}>
-          CLOSE
-        </button>
-      </div>
-      <div className="libbar sets">
-        <span className="lbl">SET</span>
-        <span className="v setname">
-          {s.state.setPath ? nameFromPath(s.state.setPath) : "Unsaved set"}
-          {s.dirty ? " ●" : ""}
-        </span>
-        <button className="btn mini" onClick={p.actions.newSet}>
-          NEW
-        </button>
-        <button className="btn mini" disabled={!lib.root || !s.dirty} onClick={p.actions.saveSet}>
-          SAVE
-        </button>
-        <button className="btn mini" disabled={!lib.root} onClick={p.actions.saveSetAs}>
-          SAVE AS…
-        </button>
-        <span className="lbl gap">PATCH</span>
-        <button
-          className="btn mini"
-          disabled={!lib.root || !s.patch}
-          title="Save the patch in the editor as a .syx"
-          onClick={() => s.patch && p.actions.savePatchAs(s.patch, cur?.name ?? "Untitled")}
-        >
-          SAVE AS .SYX…
-        </button>
-        <span className="status into">into /{p.folder}</span>
       </div>
       <div className={`libtree ${dropOn === "" ? "drop" : ""}`} {...dropTarget("")}>
         {!lib.available ? (
@@ -233,7 +214,20 @@ export function LibraryBrowser(p: {
           <p className="status">{q ? "Nothing matches." : "This folder has no .syx patches or sets yet."}</p>
         )}
       </div>
+      <div className="libbar foot">
+        <button
+          className="btn mini"
+          disabled={!lib.root || !s.activePatch}
+          title="Save the patch in the editor as a .syx"
+          onClick={() => s.activePatch && p.actions.savePatchAs(s.activePatch, s.currentName ?? "Untitled")}
+        >
+          SAVE PATCH AS…
+        </button>
+        <span className="status into" title={`Saves go into /${p.folder}`}>
+          into /{p.folder}
+        </span>
+      </div>
       <ContextMenu menu={menu} onClose={() => setMenu(null)} />
-    </div>
+    </Section>
   );
 }

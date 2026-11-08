@@ -40,13 +40,28 @@ select {
 }
 
 .app {
-  position: relative; /* the library overlay is placed against it */
-  width: 1608px;
+  width: 1952px;
   margin: 0 auto;
   padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 14px;
+}
+.editor {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
+}
+/* Sidebar: PATCHES, MORPH, then the library filling the rest of the editor's height. Its own
+   content never sets the height (contain: size), the editor column does. */
+.side {
+  contain: size;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-right: 1px solid var(--edge);
+  padding-right: 14px;
 }
 
 .strip,
@@ -58,7 +73,7 @@ select {
   align-items: start;
 }
 .strip {
-  grid-template-columns: 230px 380px 250px 300px 1fr;
+  grid-template-columns: 230px 300px 1fr;
 }
 .osc {
   grid-template-columns: 300px 370px 520px 1fr;
@@ -675,17 +690,35 @@ svg .eqfill.cut {
   padding: 3px 7px 1px;
   font-size: 12px;
 }
-.setline {
+.setline,
+.nowline {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   min-height: 21px;
 }
-.setline .status {
+.setline .lbl,
+.nowline .lbl {
+  width: 62px;
+  flex: none;
+}
+.setline .v,
+.nowline .v {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.nowline.audition .v,
+.nowline.audition .lbl {
+  color: #fff;
+}
+/* Auditioning: the editor shows the held patch, read only. */
+.app.auditioning .editor {
+  pointer-events: none;
+  outline: 1px dashed #fff3;
+  outline-offset: 4px;
 }
 .morphname {
   overflow: hidden;
@@ -694,42 +727,29 @@ svg .eqfill.cut {
   max-width: 120px;
 }
 
-/* Patch library: slides down over the editor, below the top strip */
-.library {
-  position: absolute;
-  z-index: 20;
-  top: 150px;
-  left: 258px;
-  width: 820px;
-  height: 640px;
-  display: flex;
-  flex-direction: column;
-  background: #161719;
-  border: 1px solid var(--rule);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
-  animation: slidedown 0.16s ease-out;
-  transform-origin: top;
-}
-@keyframes slidedown {
-  from {
-    transform: scaleY(0.6);
-    opacity: 0;
-  }
+/* Patch library: the rest of the sidebar */
+.sec.library {
+  --tint: #a8d08a;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  gap: 0;
 }
 .libbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--edge);
+  gap: 6px;
+  padding: 6px 0;
 }
-.libbar.sets {
-  background: #1b1c1f;
+.libbar.foot {
+  border-top: 1px solid var(--edge);
+  padding-bottom: 0;
 }
 .libroot {
   font-size: 16px;
   color: #e8e9ec;
-  max-width: 220px;
+  max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -743,15 +763,10 @@ svg .eqfill.cut {
   font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
   padding: 3px 7px;
 }
-.libbar .setname {
-  min-width: 120px;
-  color: var(--val);
-}
-.libbar .gap {
-  margin-left: 14px;
-}
 .libbar .into {
-  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .libtree {
   flex: 1;

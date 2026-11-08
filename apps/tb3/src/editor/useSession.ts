@@ -17,6 +17,7 @@ export interface SessionState {
   savedKeys: readonly string[]; // slotKey of each slot as last opened or saved
   active: number | null; // null = the unslotted buffer
   buffer: Patch | null;
+  bufferName: string | null; // file the buffer was loaded from, if any
   unsent: readonly boolean[]; // not sent to the TB-3 since the set was opened
 }
 
@@ -31,6 +32,7 @@ const fresh = (): SessionState => ({
   savedKeys: Array<string>(SLOT_COUNT).fill(""),
   active: null,
   buffer: null,
+  bufferName: null,
   unsent: Array<boolean>(SLOT_COUNT).fill(true),
 });
 
@@ -48,6 +50,7 @@ interface Stored {
   savedKeys: string[];
   active: number | null;
   buffer: string | null;
+  bufferName?: string | null;
 }
 
 function restore(): SessionState {
@@ -62,6 +65,7 @@ function restore(): SessionState {
       savedKeys: s.savedKeys,
       active: s.active,
       buffer: s.buffer ? patchFromHex(s.buffer) : null,
+      bufferName: s.bufferName ?? null,
     };
   } catch {
     return fresh(); // unreadable recovery data: start clean rather than fail to open
@@ -75,6 +79,7 @@ function persist(s: SessionState) {
     savedKeys: [...s.savedKeys],
     active: s.active,
     buffer: s.buffer ? patchToHex(s.buffer) : null,
+    bufferName: s.bufferName,
   };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
@@ -96,7 +101,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   const queue = useMemo(() => createEditQueue(sendTb3), [sendTb3]);
   const sent = useRef<Patch | null>(null); // what the TB-3 holds; null = unknown
   const previewing = useRef(false);
-  const [previewKey, setPreviewKey] = useState<string | null>(null);
+  const [previewing_, setPreviewing] = useState<{ key: string; name: string; patch: Patch } | null>(null);
   const [mode, setMode] = useState<SlotMode>(null);
   const [morphTarget, setMorphTarget] = useState<number | null>(null);
   const [morphAmount, setMorphAmount] = useState(0);
@@ -132,12 +137,12 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     (fn: (p: Patch) => Patch, key: string, msg: number[]) => {
       const s = ref.current;
       const cur = currentPatch(s);
-      if (!cur) return;
-      if (sent.current !== cur && !previewing.current) sendPatch(cur);
+      if (!cur || previewing.current) return; // the editor shows the auditioned patch: read only
+      if (sent.current !== cur) sendPatch(cur);
       const next = fn(cur);
-      if (!previewing.current) sent.current = next;
+      sent.current = next;
       commit(markSent(replaceCurrent(s, next)));
-      if (!previewing.current) queue.push(key, msg);
+      queue.push(key, msg);
       if (morphBase.current) resetMorph(); // editing turns the blend into the active patch's edits
     },
     [commit, queue, sendPatch],
@@ -155,12 +160,22 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     [commit, sendPatch],
   );
 
-  // Hold-to-audition (browser preview button, Option + slot): the editor keeps showing the
-  // active patch; release sends it back.
+  // Load a patch file into the unslotted buffer (not into the set) and send it.
+  const load = useCallback(
+    (p: Patch, name: string) => {
+      commit({ ...ref.current, active: null, buffer: p, bufferName: name });
+      sendPatch(p);
+      resetMorph();
+    },
+    [commit, sendPatch],
+  );
+
+  // Hold-to-audition (browser preview button, Option + slot): the editor shows the auditioned
+  // patch, read only; release sends the active patch back.
   const preview = useCallback(
-    (p: Patch, key: string) => {
+    (p: Patch, key: string, name: string) => {
       previewing.current = true;
-      setPreviewKey(key);
+      setPreviewing({ key, name, patch: p });
       sendPatch(p);
     },
     [sendPatch],
@@ -169,7 +184,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   const endPreview = useCallback(() => {
     if (!previewing.current) return;
     previewing.current = false;
-    setPreviewKey(null);
+    setPreviewing(null);
     const cur = currentPatch(ref.current);
     if (!cur) return;
     sendPatch(cur);
@@ -180,7 +195,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   const fromTb3 = useCallback(
     (p: Patch) => {
       sent.current = p;
-      commit({ ...ref.current, active: null, buffer: p });
+      commit({ ...ref.current, active: null, buffer: p, bufferName: null });
       resetMorph();
     },
     [commit],
@@ -199,7 +214,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
       const s = ref.current;
       const cur = currentPatch(s);
       if (!cur) return;
-      const name = s.active !== null ? s.slots[s.active]!.name : "Untitled";
+      const name = s.active !== null ? s.slots[s.active]!.name : (s.bufferName ?? "Untitled");
       commit({
         ...s,
         slots: withSlot(s.slots, i, { name, patch: cur }),
@@ -214,7 +229,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     (i: number, slot: Slot) => {
       const s = ref.current;
       // Replacing the active slot leaves what it held in the buffer, so the editor keeps showing it.
-      const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch } : {};
+      const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch, bufferName: s.slots[i]!.name } : {};
       commit({ ...s, ...keep, slots: withSlot(s.slots, i, slot), unsent: withFlag(s.unsent, i, true) });
     },
     [commit],
@@ -223,7 +238,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   const clear = useCallback(
     (i: number) => {
       const s = ref.current;
-      const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch } : {};
+      const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch, bufferName: s.slots[i]!.name } : {};
       commit({ ...s, ...keep, slots: withSlot(s.slots, i, null) });
       if (morphTarget === i) setMorphTarget(null);
     },
@@ -249,6 +264,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
         slots,
         savedKeys: slots.map(slotKey),
         buffer: currentPatch(s),
+        bufferName: s.active === null ? s.bufferName : s.slots[s.active]!.name,
       });
       setMorphTarget(null);
       resetMorph();
@@ -308,10 +324,13 @@ export function useSession(sendTb3: (msg: number[]) => void) {
 
   return {
     state,
-    patch: currentPatch(state),
+    patch: previewing_?.patch ?? currentPatch(state), // what the editor shows
+    activePatch: currentPatch(state),
+    currentName: state.active === null ? state.bufferName : (state.slots[state.active]?.name ?? null),
+    previewKey: previewing_?.key ?? null,
+    previewName: previewing_?.name ?? null,
     modified,
     dirty,
-    previewKey,
     mode,
     setMode,
     morphTarget,
@@ -319,6 +338,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     push: queue.push, // sends outside the patch (global tuning), coalesced like edits
     edit,
     recall,
+    load,
     preview,
     endPreview,
     fromTb3,

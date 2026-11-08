@@ -41,7 +41,6 @@ export function App() {
 function EditorApp() {
   const [armed, setArmed] = useState<AssignSlotId | null>(null);
   const [tuning, setTuning] = useState(64);
-  const [browserOpen, setBrowserOpen] = useState(false);
   const [folder, setFolder] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [mainEl, setMainEl] = useState<HTMLElement | null>(null);
@@ -60,13 +59,12 @@ function EditorApp() {
     }
   }, []);
 
-  // Esc backs out of one thing at a time: slot modes, assign mode, then the browser.
+  // Esc backs out of one thing at a time: slot modes, then assign mode.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (session.mode) session.setMode(null);
       else if (armed) setArmed(null);
-      else setBrowserOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -117,52 +115,47 @@ function EditorApp() {
 
   return (
     <EditorContext.Provider value={editor}>
-      <main ref={setMainEl} className={`app ${armed ? "assigning" : ""}`}>
-        <div className="strip">
-          <Tb3Block midi={midi} hasPatch={Boolean(patch)} onSyncTo={session.sendAll} />
-          <PatchesBlock
-            session={session}
-            actions={actions}
-            findPatch={findPatch}
-            browserOpen={browserOpen}
-            onToggleBrowser={() => setBrowserOpen((o) => !o)}
-          />
+      <main ref={setMainEl} className={`app ${armed ? "assigning" : ""} ${session.previewKey ? "auditioning" : ""}`}>
+        <aside className="side">
+          <PatchesBlock session={session} actions={actions} findPatch={findPatch} />
           <MorphBlock session={session} />
-          <PerformBlock tuning={tuning} onTuning={changeTuning} connected={midi.connected} />
-          <AssignBlock />
-        </div>
-        <div className="osc">
-          <VcoSection />
-          <VcoSumSection />
-          <ModSection />
-          <RingModSection />
-        </div>
-        <div className="shape">
-          <VcfSection />
-          <VcaSection />
-          <LfoSection />
-        </div>
-        {browserOpen && (
           <LibraryBrowser
             library={library}
             session={session}
             actions={actions}
             folder={folder}
             onFolder={setFolder}
-            onClose={() => setBrowserOpen(false)}
             onError={setError}
           />
-        )}
+        </aside>
+        <div className="editor">
+          <div className="strip">
+            <Tb3Block midi={midi} hasPatch={Boolean(session.activePatch)} onSyncTo={session.sendAll} />
+            <PerformBlock tuning={tuning} onTuning={changeTuning} connected={midi.connected} />
+            <AssignBlock />
+          </div>
+          <div className="osc">
+            <VcoSection />
+            <VcoSumSection />
+            <ModSection />
+            <RingModSection />
+          </div>
+          <div className="shape">
+            <VcfSection />
+            <VcaSection />
+            <LfoSection />
+          </div>
+          <div className="fx">
+            <DistSection />
+            <EfxSection efx={1} />
+            <EfxSection efx={2} />
+          </div>
+        </div>
         {error && (
           <div className="toast" onClick={() => setError(null)}>
             {error}
           </div>
         )}
-        <div className="fx">
-          <DistSection />
-          <EfxSection efx={1} />
-          <EfxSection efx={2} />
-        </div>
       </main>
     </EditorContext.Provider>
   );

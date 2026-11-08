@@ -17,19 +17,26 @@ the TB-3 holds, preview, STORE, morph, recovery), `editor/useLibrary.ts` + `elec
   "mega-patch". Loading a file into a slot **copies** it, so the set never refers back to library
   files, and renaming, moving or deleting files can't break a set.
 - **Active patch**: what the editor shows and the TB-3 plays. It's either one of the slots or the
-  **unslotted buffer** (after Sync from TB-3, or before any slot has been used).
+  **unslotted buffer** (after Sync from TB-3, after loading a file without putting it in the set, or
+  before any slot has been used). The PATCHES block's EDITING line names it.
+
+## Layout
+
+A permanent sidebar on the left holds PATCHES, MORPH and the LIBRARY, which fills the rest of the
+sidebar's height. (The first build had the library as an overlay that slid down from the PATCHES
+header. After trying it, the library moved into the sidebar so it's always to hand.)
 
 ## Browser
 
-- Opened from a button in the PATCHES header. It slides down as an overlay over the editor and
-  closes with the button again, or with Esc.
 - It shows a tree of the library: folders, patches, and sets (with their own icon).
 - **Search box**: filters the tree by name as you type.
 - **Invalid files**: every `.syx` is listed, but files that don't parse as a full TB-3 patch get
   an error badge and can't be loaded or previewed.
+- **Double-click a patch** (or right-click → Load into editor): load it into the unslotted buffer
+  and send it, without touching the set. STORE then puts it into a slot under its file name.
 - **Preview button** on each patch row: while it's held, the TB-3 plays that file (changed blocks
-  only). On release it returns to the active patch, including any unsaved edits. The editor's
-  controls don't change while previewing.
+  only) and the editor shows it, read only (the EDITING line reads AUDITION). On release both
+  return to the active patch, including any unsaved edits.
 - **Drag** a patch onto a slot to copy it in, taking the filename as the slot name. Dropping on a
   full slot asks first.
 - **Double-click** a set to open it (see Sets).
@@ -56,11 +63,11 @@ the TB-3 holds, preview, STORE, morph, recovery), `editor/useLibrary.ts` + `elec
 - File format: one JSON file, `Name.tb3set`:
   `{ "format": "tb3set", "version": 1, "slots": [ { "name": "Acid 1", "blocks": "<hex of the 11 blocks>" } | null, … 16 ] }`.
   The hex is the same 11-block dump as a `.syx`, so a slot round-trips byte for byte.
-- **New set / Save set / Save set as…**: Save As writes into the browser's current folder, asking
+- **New set / Save set / Save set as…** (the SET line in PATCHES): Save As writes into the browser's current folder, asking
   only for a name. The set's title shows in the PATCHES header, marked when it has unsaved changes.
 - Opening a set while the current one has unsaved changes asks: Save / Discard / Cancel.
-- **Unslotted buffer**: Save As writes it as a `.syx` into the browser's current folder, or STORE
-  puts it into a slot.
+- **Unslotted buffer**: SAVE PATCH AS… (library footer) writes the patch in the editor as a `.syx`
+  into the browser's current folder, or STORE puts it into a slot.
 
 ## Morph
 

@@ -1,4 +1,5 @@
-// Top strip PATCHES (16 slots of the open set) and MORPH (target slot + amount).
+// Sidebar PATCHES (16 slots of the open set, what the editor shows, set file buttons) and
+// MORPH (target slot + amount).
 //   click: recall · Option + hold: audition · double-click: rename · right-click: menu
 //   STORE, then click: store the active patch · drop a patch from the browser: load into slot
 import { useState } from "react";
@@ -18,8 +19,6 @@ export function PatchesBlock(p: {
   session: Session;
   actions: SetActions;
   findPatch: (path: string) => Patch | undefined;
-  browserOpen: boolean;
-  onToggleBrowser: () => void;
 }) {
   const s = p.session;
   const { slots, active, unsent, setPath } = s.state;
@@ -47,7 +46,7 @@ export function PatchesBlock(p: {
     const slot = slots[i];
     if (!e.altKey || !slot || e.button !== 0) return;
     e.preventDefault();
-    s.preview(slot.patch, `slot:${i}`);
+    s.preview(slot.patch, `slot:${i}`, slot.name);
     window.addEventListener("pointerup", () => s.endPreview(), { once: true });
   };
 
@@ -66,23 +65,30 @@ export function PatchesBlock(p: {
   };
 
   const setName = setPath ? nameFromPath(setPath) : "Unsaved set";
+  const nowName =
+    s.mode === "store"
+      ? "Click a slot to store it. Esc cancels."
+      : s.mode === "target"
+        ? "Click a slot to morph towards. Esc cancels."
+        : (s.previewName ??
+          (active !== null
+            ? `${active + 1} · ${slots[active]!.name}${s.modified[active] ? " ●" : ""}`
+            : s.activePatch
+              ? `${s.currentName ?? "Synced from TB-3"} (not in set)`
+              : "–"));
   return (
     <Section
       title="PATCHES"
       className="patches"
       extra={
-        <>
-          <button
-            className={`btn ${s.mode === "store" ? "sel blink" : ""}`}
-            disabled={!s.patch}
-            onClick={() => s.setMode(s.mode === "store" ? null : "store")}
-          >
-            STORE
-          </button>
-          <button className={`btn ${p.browserOpen ? "sel" : ""}`} onClick={p.onToggleBrowser}>
-            LIBRARY {p.browserOpen ? "▴" : "▾"}
-          </button>
-        </>
+        <button
+          className={`btn ${s.mode === "store" ? "sel blink" : ""}`}
+          disabled={!s.activePatch}
+          title="Store the patch in the editor into a slot"
+          onClick={() => s.setMode(s.mode === "store" ? null : "store")}
+        >
+          STORE
+        </button>
       }
     >
       <div className={`slots16 ${s.mode ? "armed" : ""}`}>
@@ -137,14 +143,26 @@ export function PatchesBlock(p: {
           );
         })}
       </div>
-      <div className="setline">
-        <span className="status" title={setPath ?? undefined}>
-          {s.mode === "store"
-            ? "Click a slot to store the current patch. Esc cancels."
-            : `${setName}${s.dirty ? " ●" : ""}`}
+      <div className={`nowline ${s.previewName ? "audition" : ""}`}>
+        <span className="lbl">{s.previewName ? "AUDITION" : "EDITING"}</span>
+        <span className="v" title={nowName}>
+          {nowName}
         </span>
+      </div>
+      <div className="setline">
+        <span className="lbl">SET</span>
+        <span className="v" title={setPath ?? undefined}>
+          {setName}
+          {s.dirty ? " ●" : ""}
+        </span>
+        <button className="btn mini" onClick={p.actions.newSet}>
+          NEW
+        </button>
         <button className="btn mini" disabled={!s.dirty} onClick={p.actions.saveSet}>
-          SAVE SET
+          SAVE
+        </button>
+        <button className="btn mini" onClick={p.actions.saveSetAs}>
+          SAVE AS…
         </button>
       </div>
       <ContextMenu menu={menu} onClose={() => setMenu(null)} />
@@ -180,7 +198,7 @@ export function MorphBlock(p: { session: Session }) {
           max={127}
           onChange={s.setMorph}
           format={(v) => `${Math.round((v / 127) * 100)}%`}
-          disabled={!target || !s.patch}
+          disabled={!target || !s.activePatch}
           width={150}
         />
       </div>

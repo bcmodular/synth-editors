@@ -104,6 +104,40 @@ export function diffBlocks(a: Patch, b: Patch): BlockKey[] {
   });
 }
 
+// Runs of consecutive changed bytes: the smallest DT1s that turn `a` into `b`. A u16 param whose
+// nibbles both change stays in one run.
+export interface ByteRun {
+  key: BlockKey;
+  offset: number;
+  data: number[];
+}
+
+export function diffRuns(a: Patch, b: Patch): ByteRun[] {
+  const runs: ByteRun[] = [];
+  for (const blk of PATCH_BLOCKS) {
+    const key = addrKey(blk.addr);
+    const x = a.blocks[key]!;
+    const y = b.blocks[key]!;
+    let run: ByteRun | null = null;
+    for (let i = 0; i < y.length; i++) {
+      if (x[i] === y[i]) {
+        run = null;
+        continue;
+      }
+      if (!run) runs.push((run = { key, offset: i, data: [] }));
+      run.data.push(y[i]!);
+    }
+  }
+  return runs;
+}
+
+export function runToSysex(run: ByteRun): number[] {
+  const [a0, a1, a2, a3] = blockDef(run.key).addr;
+  return dt1([a0, a1, a2, a3 + run.offset], run.data); // blocks are < 0x80 bytes: no carry
+}
+
+export const applyRun = (p: Patch, run: ByteRun): Patch => withByte(p, run.key, run.offset, run.data);
+
 // Per-block plan: bytes that interpolate (single u7, u16 pair, EFX slot) vs. everything else
 // (switches, enums, assign slots, EFX type/switch/button bytes, unmapped bytes) which snap at 0.5.
 interface MorphPlan {

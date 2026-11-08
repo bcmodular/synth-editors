@@ -6,8 +6,10 @@ import { efxTypes } from "./efx";
 import { PARAMS, paramAddr, paramById } from "./params";
 import type { ParamDef } from "./params";
 import {
+  applyRun,
   blocksToSysex,
   diffBlocks,
+  diffRuns,
   encodeEfxByte,
   encodeParam,
   getEfxRaw,
@@ -16,6 +18,7 @@ import {
   morph,
   patchFromSysex,
   patchToSysex,
+  runToSysex,
   setEfxRaw,
   setEfxType,
   setRaw,
@@ -246,5 +249,28 @@ describe("encodeEfxByte", () => {
     expect(m.data).toEqual([3]);
     expect(m.checksumOk).toBe(true);
     expect(addrKey(parseDt1(encodeEfxByte(1, 0, 4))!.addr)).toBe("10001000");
+  });
+});
+
+describe("diffRuns", () => {
+  it("finds only the changed bytes, keeping u16 nibbles together, and rebuilds the target", () => {
+    const base = synthetic();
+    const cutoff = paramById("vcf_cutoff");
+    const target = setRaw(setRaw(base, cutoff, (getRaw(base, cutoff) + 37) % 256), paramById("accent"), 99);
+    const runs = diffRuns(base, target);
+    expect(runs.length).toBeGreaterThan(0);
+    expect(runs.reduce((n, r) => n + r.data.length, 0)).toBeLessThanOrEqual(4) // two u16 params;
+    expect(diffRuns(runs.reduce(applyRun, base), target)).toEqual([]);
+    expect(diffRuns(target, target)).toEqual([]);
+  });
+
+  it("addresses a run at its offset within the block", () => {
+    const base = synthetic();
+    const def = paramById("lfo_delay");
+    const runs = diffRuns(base, setRaw(base, def, (getRaw(base, def) + 1) % 128));
+    expect(runs).toHaveLength(1);
+    const msg = parseDt1(runToSysex(runs[0]!))!;
+    expect(msg.addr).toEqual(paramAddr(def));
+    expect(msg.checksumOk).toBe(true);
   });
 });

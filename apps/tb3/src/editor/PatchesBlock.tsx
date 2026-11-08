@@ -1,5 +1,5 @@
-// Sidebar PATCHES (16 slots of the open set, what the editor shows, set file buttons) and
-// MORPH (target slot + amount).
+// Sidebar PATCH (what the editor shows, save as .syx), SET (the open set's 16 slots and its
+// file buttons) and MORPH (target slot, amount, send rate).
 //   click: recall · Option + hold: audition · double-click: rename · right-click: menu
 //   STORE, then click: store the active patch · drop a patch from the browser: load into slot
 import { useState } from "react";
@@ -10,12 +10,58 @@ import { HFader } from "../ui/Fader";
 import { ContextMenu, askName, confirmed, menuAt, useDialog } from "../ui/Dialog";
 import type { MenuState } from "../ui/Dialog";
 import { Section } from "../ui/controls";
+import { MORPH_RATES } from "./useSession";
 import type { Session } from "./useSession";
 import type { SetActions } from "./useSetActions";
 
 export const PATCH_DRAG_TYPE = "application/x-tb3-patch";
 
-export function PatchesBlock(p: {
+export function PatchBlock(p: { session: Session; actions: SetActions; folder: string; hasLibrary: boolean }) {
+  const s = p.session;
+  const { slots, active } = s.state;
+  const name =
+    s.mode === "store"
+      ? "Click a slot to store it. Esc cancels."
+      : s.mode === "target"
+        ? "Click a slot to morph towards. Esc cancels."
+        : (s.previewName ??
+          (active !== null
+            ? `${active + 1} · ${slots[active]!.name}${s.modified[active] ? " ●" : ""}`
+            : s.activePatch
+              ? `${s.currentName ?? "Synced from TB-3"} (not in set)`
+              : "–"));
+  return (
+    <Section
+      title="PATCH"
+      className="patch"
+      extra={
+        <button
+          className="btn"
+          disabled={!p.hasLibrary || !s.activePatch}
+          title={`Save the patch in the editor as a .syx into /${p.folder}`}
+          onClick={() => s.activePatch && p.actions.savePatchAs(s.activePatch, s.currentName ?? "Untitled")}
+        >
+          SAVE AS…
+        </button>
+      }
+    >
+      <div className={`nowline ${s.previewName ? "audition" : ""}`}>
+        <span className="lbl">{s.previewName ? "AUDITION" : "EDITING"}</span>
+        <span className="v" title={name}>
+          {name}
+        </span>
+      </div>
+      <div className="nowline">
+        <span className="lbl">SAVE TO</span>
+        <span className="v folder" title="Click a folder in the library to change">
+          {p.hasLibrary ? `/${p.folder}` : "choose a library folder"}
+        </span>
+      </div>
+    </Section>
+  );
+}
+
+export function SetBlock(p: {
   session: Session;
   actions: SetActions;
   findPatch: (path: string) => Patch | undefined;
@@ -65,26 +111,15 @@ export function PatchesBlock(p: {
   };
 
   const setName = setPath ? nameFromPath(setPath) : "Unsaved set";
-  const nowName =
-    s.mode === "store"
-      ? "Click a slot to store it. Esc cancels."
-      : s.mode === "target"
-        ? "Click a slot to morph towards. Esc cancels."
-        : (s.previewName ??
-          (active !== null
-            ? `${active + 1} · ${slots[active]!.name}${s.modified[active] ? " ●" : ""}`
-            : s.activePatch
-              ? `${s.currentName ?? "Synced from TB-3"} (not in set)`
-              : "–"));
   return (
     <Section
-      title="PATCHES"
+      title="SET"
       className="patches"
       extra={
         <button
           className={`btn ${s.mode === "store" ? "sel blink" : ""}`}
           disabled={!s.activePatch}
-          title="Store the patch in the editor into a slot"
+          title="Store the patch in the editor into a slot of the set"
           onClick={() => s.setMode(s.mode === "store" ? null : "store")}
         >
           STORE
@@ -143,14 +178,8 @@ export function PatchesBlock(p: {
           );
         })}
       </div>
-      <div className={`nowline ${s.previewName ? "audition" : ""}`}>
-        <span className="lbl">{s.previewName ? "AUDITION" : "EDITING"}</span>
-        <span className="v" title={nowName}>
-          {nowName}
-        </span>
-      </div>
       <div className="setline">
-        <span className="lbl">SET</span>
+        <span className="lbl">FILE</span>
         <span className="v" title={setPath ?? undefined}>
           {setName}
           {s.dirty ? " ●" : ""}
@@ -199,6 +228,18 @@ export function MorphBlock(p: { session: Session }) {
           onChange={s.setMorph}
           format={(v) => `${Math.round((v / 127) * 100)}%`}
           disabled={!target || !s.activePatch}
+          width={150}
+        />
+      </div>
+      <div className="hrow" title="Most changes per second sent to the TB-3 while morphing">
+        <span className="lbl" style={{ width: 60 }}>
+          RATE
+        </span>
+        <HFader
+          value={Math.max(0, MORPH_RATES.indexOf(s.morphRate as (typeof MORPH_RATES)[number]))}
+          max={MORPH_RATES.length - 1}
+          onChange={(i) => s.setMorphRate(MORPH_RATES[i]!)}
+          format={(i) => `${MORPH_RATES[i]}/s`}
           width={150}
         />
       </div>

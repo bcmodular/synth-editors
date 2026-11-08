@@ -5,7 +5,7 @@
 // that differ from it. Edits send single params through the edit queue, but first bring the
 // TB-3 in line if it doesn't hold the edited patch yet (after startup or a preview).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { blocksToSysex, diffBlocks, morph, patchToSysex } from "../core/patch";
+import { applyRun, blocksToSysex, diffBlocks, diffRuns, morph, patchToSysex, runToSysex } from "../core/patch";
 import type { Patch } from "../core/patch";
 import { SLOT_COUNT, emptySlots, patchFromHex, patchToHex, slotKey } from "../core/patchSet";
 import type { Slot, Slots } from "../core/patchSet";
@@ -24,7 +24,20 @@ export interface SessionState {
 export type SlotMode = "store" | "target" | null;
 
 const STORAGE_KEY = "tb3.session";
-const MORPH_SEND_MS = 40; // DIN MIDI is ~3 KB/s: a whole patch is ~430 bytes
+const RATE_KEY = "tb3.morphRate";
+
+// Morph sends are capped in changed bytes per second: a fast move between patches that differ a
+// lot can otherwise flood the TB-3 until it stops playing. The editor follows the fader at once;
+// the TB-3 catches up at the capped rate, latest values only.
+export const MORPH_RATES = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500] as const;
+const DEFAULT_RATE = 100;
+const PUMP_MS = 20;
+const BURST_S = 0.2; // the bucket holds at most this many seconds of budget
+
+function restoreRate(): number {
+  const v = Number(localStorage.getItem(RATE_KEY));
+  return (MORPH_RATES as readonly number[]).includes(v) ? v : DEFAULT_RATE;
+}
 
 const fresh = (): SessionState => ({
   setPath: null,
@@ -106,12 +119,18 @@ export function useSession(sendTb3: (msg: number[]) => void) {
   const [morphTarget, setMorphTarget] = useState<number | null>(null);
   const [morphAmount, setMorphAmount] = useState(0);
   const morphBase = useRef<Patch | null>(null);
-  const morphTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [morphRate, setMorphRateState] = useState(restoreRate);
+  const rate = useRef(morphRate);
+  // Rate-limited morph sends: `pumpTarget` is the latest blend, sent in byte runs from a token
+  // bucket. Rotating `cursor` keeps one busy block from starving the others.
+  const pumpTarget = useRef<Patch | null>(null);
+  const pump = useRef({ timer: undefined as ReturnType<typeof setInterval> | undefined, tokens: 0, last: 0, cursor: 0 });
 
   // Bring the TB-3 in line with `target`, sending only the blocks that differ.
   const sendPatch = useCallback(
     (target: Patch) => {
       queue.flush();
+      pumpTarget.current = null; // a full send supersedes any morph catch-up
       const keys = sent.current ? diffBlocks(sent.current, target) : null;
       (keys ? blocksToSysex(target, keys) : patchToSysex(target)).forEach(sendTb3);
       sent.current = target;
@@ -277,6 +296,63 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     [commit],
   );
 
+  const stopPump = useCallback(() => {
+    clearInterval(pump.current.timer);
+    pump.current.timer = undefined;
+  }, []);
+
+  const tick = useCallback(() => {
+    const target = pumpTarget.current;
+    const from = sent.current;
+    if (!target || !from) {
+      if (target) sendPatch(target); // TB-3 state unknown: one full send
+      return stopPump();
+    }
+    const pm = pump.current;
+    const now = performance.now();
+    const cap = Math.max(1, rate.current * BURST_S);
+    pm.tokens = Math.min(cap, pm.tokens + ((now - pm.last) / 1000) * rate.current);
+    pm.last = now;
+    const runs = diffRuns(from, target);
+    if (!runs.length) {
+      sent.current = target; // caught up: keep identity so edits don't resend
+      pumpTarget.current = null;
+      return stopPump();
+    }
+    let p = from;
+    for (let n = 0; n < runs.length; n++) {
+      const run = runs[(pm.cursor + n) % runs.length]!;
+      // A run bigger than the whole bucket still goes once the bucket is full.
+      if (pm.tokens < Math.min(run.data.length, cap)) {
+        pm.cursor = (pm.cursor + n) % runs.length;
+        break;
+      }
+      sendTb3(runToSysex(run));
+      p = applyRun(p, run);
+      pm.tokens -= run.data.length;
+    }
+    sent.current = p;
+  }, [sendPatch, sendTb3, stopPump]);
+
+  const startPump = useCallback(() => {
+    const pm = pump.current;
+    if (pm.timer !== undefined) return;
+    queue.flush();
+    pm.last = performance.now();
+    tick(); // send what the bucket allows straight away
+    if (pumpTarget.current) pm.timer = setInterval(tick, PUMP_MS);
+  }, [queue, tick]);
+
+  const setMorphRate = useCallback((r: number) => {
+    rate.current = r;
+    setMorphRateState(r);
+    try {
+      localStorage.setItem(RATE_KEY, String(r));
+    } catch {
+      // best effort
+    }
+  }, []);
+
   // Morph: the base is the active patch when the fader first moves after choosing a target.
   const chooseMorphTarget = useCallback((i: number) => {
     setMorphTarget(i);
@@ -292,15 +368,12 @@ export function useSession(sendTb3: (msg: number[]) => void) {
       morphBase.current ??= cur;
       setMorphAmount(amount);
       commit(replaceCurrent(s, morph(morphBase.current, target.patch, amount / 127)));
-      if (morphTimer.current === undefined) {
-        morphTimer.current = setTimeout(() => {
-          morphTimer.current = undefined;
-          const now = currentPatch(ref.current);
-          if (now && !previewing.current) sendPatch(now);
-        }, MORPH_SEND_MS);
+      if (!previewing.current) {
+        pumpTarget.current = currentPatch(ref.current);
+        startPump();
       }
     },
-    [commit, morphTarget, sendPatch],
+    [commit, morphTarget, startPump],
   );
 
   useEffect(() => {
@@ -314,7 +387,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     window.addEventListener("beforeunload", flush);
     return () => {
       window.removeEventListener("beforeunload", flush);
-      clearTimeout(morphTimer.current);
+      clearInterval(pump.current.timer);
     };
   }, []);
 
@@ -335,6 +408,8 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     setMode,
     morphTarget,
     morphAmount,
+    morphRate,
+    setMorphRate,
     push: queue.push, // sends outside the patch (global tuning), coalesced like edits
     edit,
     recall,

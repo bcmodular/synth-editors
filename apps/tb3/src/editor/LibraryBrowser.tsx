@@ -187,9 +187,14 @@ export function LibraryBrowser(p: {
       }
     >
       <div className="libbar">
-        <span className="libroot" title={lib.root ?? undefined}>
+        <button
+          className={`libroot ${lib.root && p.folder === "" ? "current" : ""}`}
+          disabled={!lib.root}
+          title={lib.root ? `${lib.root}\nClick to save into the library's top folder` : undefined}
+          onClick={() => p.onFolder("")}
+        >
           {lib.root ? lib.root.split("/").pop() : "No folder"}
-        </span>
+        </button>
         <input
           className="search"
           placeholder="Search"
@@ -213,19 +218,6 @@ export function LibraryBrowser(p: {
         ) : (
           <p className="status">{q ? "Nothing matches." : "This folder has no .syx patches or sets yet."}</p>
         )}
-      </div>
-      <div className="libbar foot">
-        <button
-          className="btn mini"
-          disabled={!lib.root || !s.activePatch}
-          title="Save the patch in the editor as a .syx"
-          onClick={() => s.activePatch && p.actions.savePatchAs(s.activePatch, s.currentName ?? "Untitled")}
-        >
-          SAVE PATCH AS…
-        </button>
-        <span className="status into" title={`Saves go into /${p.folder}`}>
-          into /{p.folder}
-        </span>
       </div>
       <ContextMenu menu={menu} onClose={() => setMenu(null)} />
     </Section>

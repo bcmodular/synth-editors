@@ -19,7 +19,7 @@ import {
   VcoSumSection,
 } from "./editor/sections";
 import { LibraryBrowser } from "./editor/LibraryBrowser";
-import { MorphBlock, PatchesBlock } from "./editor/PatchesBlock";
+import { MorphBlock, PatchBlock, SetBlock } from "./editor/PatchesBlock";
 import { AssignBlock, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
 import { useFitZoom } from "./editor/useFitZoom";
@@ -117,7 +117,8 @@ function EditorApp() {
     <EditorContext.Provider value={editor}>
       <main ref={setMainEl} className={`app ${armed ? "assigning" : ""} ${session.previewKey ? "auditioning" : ""}`}>
         <aside className="side">
-          <PatchesBlock session={session} actions={actions} findPatch={findPatch} />
+          <PatchBlock session={session} actions={actions} folder={folder} hasLibrary={Boolean(library.root)} />
+          <SetBlock session={session} actions={actions} findPatch={findPatch} />
           <MorphBlock session={session} />
           <LibraryBrowser
             library={library}

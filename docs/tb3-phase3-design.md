@@ -18,17 +18,25 @@ the TB-3 holds, preview, STORE, morph, recovery), `editor/useLibrary.ts` + `elec
   files, and renaming, moving or deleting files can't break a set.
 - **Active patch**: what the editor shows and the TB-3 plays. It's either one of the slots or the
   **unslotted buffer** (after Sync from TB-3, after loading a file without putting it in the set, or
-  before any slot has been used). The PATCHES block's EDITING line names it.
+  before any slot has been used). The PATCH block's EDITING line names it.
 
 ## Layout
 
-A permanent sidebar on the left holds PATCHES, MORPH and the LIBRARY, which fills the rest of the
-sidebar's height. (The first build had the library as an overlay that slid down from the PATCHES
+A permanent sidebar on the left holds, top to bottom:
+
+- **PATCH**: what the editor shows (EDITING / AUDITION), the folder saves go into, and SAVE AS…
+  to write that patch as a `.syx`.
+- **SET**: STORE, the 16 slots, and the set file line (NEW / SAVE / SAVE AS…).
+- **MORPH**: target, amount and send rate.
+- **LIBRARY**: fills the rest of the sidebar's height.
+ (The first build had the library as an overlay that slid down from the PATCHES
 header. After trying it, the library moved into the sidebar so it's always to hand.)
 
 ## Browser
 
 - It shows a tree of the library: folders, patches, and sets (with their own icon).
+- **Save folder**: clicking a folder makes it the folder saves go into; clicking the library's
+  name (next to the search box) picks the top folder.
 - **Search box**: filters the tree by name as you type.
 - **Invalid files**: every `.syx` is listed, but files that don't parse as a full TB-3 patch get
   an error badge and can't be loaded or previewed.
@@ -43,7 +51,7 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - **File operations**: rename, move to Trash, new folder, and drag to move between folders.
   Anything else is done in Finder.
 
-## Slots (the PATCHES block)
+## Slots (the SET block)
 
 - An 8 × 2 grid as now. Hovering shows the slot name. States: empty, filled, active, modified
   (unsaved edits), and "not sent since opening" (see Startup).
@@ -53,7 +61,7 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - **Option + hold a slot**: grab, i.e. audition it. Releasing returns to the active patch. This
   matches the browser's preview button.
 - **Double-click a slot**: rename it. The name is stored in the set; library files aren't touched.
-- **STORE button** (PATCHES header): it blinks, then clicking a slot stores the active patch there
+- **STORE button** (SET header): it blinks, then clicking a slot stores the active patch there
   (asking before overwriting a full slot). Esc cancels. This is how the unslotted buffer gets into
   a slot, and it maps onto a Launchpad side button later.
 - **Right-click a slot**: Clear; Save slot as .syx… (into the browser's current folder).
@@ -63,19 +71,23 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - File format: one JSON file, `Name.tb3set`:
   `{ "format": "tb3set", "version": 1, "slots": [ { "name": "Acid 1", "blocks": "<hex of the 11 blocks>" } | null, … 16 ] }`.
   The hex is the same 11-block dump as a `.syx`, so a slot round-trips byte for byte.
-- **New set / Save set / Save set as…** (the SET line in PATCHES): Save As writes into the browser's current folder, asking
+- **New set / Save set / Save set as…** (the FILE line in SET): Save As writes into the browser's current folder, asking
   only for a name. The set's title shows in the PATCHES header, marked when it has unsaved changes.
 - Opening a set while the current one has unsaved changes asks: Save / Discard / Cancel.
-- **Unslotted buffer**: SAVE PATCH AS… (library footer) writes the patch in the editor as a `.syx`
+- **Unslotted buffer**: SAVE AS… in PATCH writes the patch in the editor as a `.syx`
   into the browser's current folder, or STORE puts it into a slot.
 
 ## Morph
 
 - The target is one of the slots. The base is the active patch, including its unsaved edits, at
   the moment the target is chosen.
-- The MORPH block becomes a target picker plus an amount fader. Each move sends only the changed
-  blocks through the existing per-frame edit queue (Phase 1 morph rules: continuous params glide,
-  while switches and EFX types snap at 0.5).
+- The MORPH block has a target picker, an amount fader and a send RATE (Phase 1 morph rules:
+  continuous params glide, while switches and EFX types snap at 0.5).
+- **Send rate**: patches that differ a lot can flood the TB-3 until it stops playing. The editor
+  follows the fader at once, but the TB-3 gets only the changed bytes (`diffRuns`), from a token
+  bucket of RATE changes per second (10–500, default 100, remembered; up to 0.2 s of burst).
+  Each tick works from the latest blend, so the TB-3 skips intermediate values and catches up to
+  where the fader stopped. Sends rotate through the changed runs so no block starves.
 - The morph result is a temporary blend. Editing a control, or saving, turns it into the active
   slot's edits.
 
@@ -99,7 +111,6 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - `packages/bank-files` from PLAN.md is replaced by a TB-3-specific set format. A shared package
   can wait until the SP-404 needs one.
 
-- Morph sends at most every 40 ms: over DIN a whole patch takes about 140 ms to send.
 
 ## Open questions
 

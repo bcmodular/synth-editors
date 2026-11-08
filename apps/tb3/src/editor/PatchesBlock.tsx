@@ -203,7 +203,18 @@ export function MorphBlock(p: { session: Session }) {
   const s = p.session;
   const target = s.morphTarget === null ? null : s.state.slots[s.morphTarget];
   return (
-    <Section title="MORPH" className="morph">
+    <Section
+      title="MORPH"
+      className="morph"
+      extra={
+        <span
+          className="tag"
+          title="Fast moves between very different patches can leave the TB-3 out of step. SYNC TO TB-3 resends the whole patch."
+        >
+          EXPERIMENTAL
+        </span>
+      }
+    >
       <div className="hrow">
         <span className="lbl" style={{ width: 60 }}>
           TARGET

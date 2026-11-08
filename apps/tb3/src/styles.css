@@ -720,6 +720,13 @@ svg .eqfill.cut {
   outline: 1px dashed #fff3;
   outline-offset: 4px;
 }
+.morph .tag {
+  font: 11px "DIN Condensed", sans-serif;
+  letter-spacing: 0.05em;
+  color: var(--alt);
+  border: 1px solid currentColor;
+  padding: 1px 4px 0;
+}
 .morphname {
   overflow: hidden;
   text-overflow: ellipsis;

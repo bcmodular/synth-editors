@@ -88,6 +88,12 @@ header. After trying it, the library moved into the sidebar so it's always to ha
   bucket of RATE changes per second (10–500, default 100, remembered; up to 0.2 s of burst).
   Each tick works from the latest blend, so the TB-3 skips intermediate values and catches up to
   where the fader stopped. Sends rotate through the changed runs so no block starves.
+- A block where a snapping byte changes (a switch, an enum, an EFX type) goes whole, in one
+  message, ahead of the runs (`morphRuns`). Changing an EFX type makes the TB-3 reset that
+  effect's slots, so slot bytes sent on their own could be left in the wrong state.
+- **Status: experimental.** Even at 10/s a fast drag between very different patches has left some
+  params wrong on the TB-3 (seen before the whole-block rule above). Morph stays as an advanced
+  feature to experiment with; SYNC TO TB-3 resends the whole patch if the TB-3 drifts.
 - The morph result is a temporary blend. Editing a control, or saving, turns it into the active
   slot's edits.
 

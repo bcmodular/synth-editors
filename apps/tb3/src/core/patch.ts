@@ -110,23 +110,26 @@ export interface ByteRun {
   key: BlockKey;
   offset: number;
   data: number[];
+  whole?: boolean; // the whole block (morphRuns: a switch, enum or EFX type changed)
+}
+
+function blockRuns(key: BlockKey, x: readonly number[], y: readonly number[], runs: ByteRun[]) {
+  let run: ByteRun | null = null;
+  for (let i = 0; i < y.length; i++) {
+    if (x[i] === y[i]) {
+      run = null;
+      continue;
+    }
+    if (!run) runs.push((run = { key, offset: i, data: [] }));
+    run.data.push(y[i]!);
+  }
 }
 
 export function diffRuns(a: Patch, b: Patch): ByteRun[] {
   const runs: ByteRun[] = [];
   for (const blk of PATCH_BLOCKS) {
     const key = addrKey(blk.addr);
-    const x = a.blocks[key]!;
-    const y = b.blocks[key]!;
-    let run: ByteRun | null = null;
-    for (let i = 0; i < y.length; i++) {
-      if (x[i] === y[i]) {
-        run = null;
-        continue;
-      }
-      if (!run) runs.push((run = { key, offset: i, data: [] }));
-      run.data.push(y[i]!);
-    }
+    blockRuns(key, a.blocks[key]!, b.blocks[key]!, runs);
   }
   return runs;
 }
@@ -165,6 +168,25 @@ function buildPlans(): Map<BlockKey, MorphPlan> {
 }
 
 const MORPH_PLANS = buildPlans();
+
+const glides = (plan: MorphPlan, o: number) =>
+  plan.lerp7.has(o) || plan.lerp16.includes(o) || plan.lerp16.includes(o - 1);
+
+// Like diffRuns, for sending a morph in pieces: a block where a byte that snaps changed (a switch,
+// an enum, an EFX type) goes whole, in one message and ahead of everything else. Changing an EFX
+// type makes the TB-3 reset that effect's slots, so slot bytes sent separately, or thought to be
+// already sent, could be left wrong.
+export function morphRuns(a: Patch, b: Patch): ByteRun[] {
+  const whole: ByteRun[] = [];
+  const runs: ByteRun[] = [];
+  for (const [key, plan] of MORPH_PLANS) {
+    const x = a.blocks[key]!;
+    const y = b.blocks[key]!;
+    if (y.some((v, o) => v !== x[o] && !glides(plan, o))) whole.push({ key, offset: 0, data: [...y], whole: true });
+    else blockRuns(key, x, y, runs);
+  }
+  return [...whole, ...runs];
+}
 
 export function morph(base: Patch, target: Patch, t: number): Patch {
   if (t <= 0) return base;

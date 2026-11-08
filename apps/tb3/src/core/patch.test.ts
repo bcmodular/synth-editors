@@ -10,6 +10,7 @@ import {
   blocksToSysex,
   diffBlocks,
   diffRuns,
+  morphRuns,
   encodeEfxByte,
   encodeParam,
   getEfxRaw,
@@ -272,5 +273,26 @@ describe("diffRuns", () => {
     const msg = parseDt1(runToSysex(runs[0]!))!;
     expect(msg.addr).toEqual(paramAddr(def));
     expect(msg.checksumOk).toBe(true);
+  });
+});
+
+describe("morphRuns", () => {
+  it("sends a block whole, first, when an EFX type changes", () => {
+    const base = setEfxType(synthetic(), 1, 1);
+    const target = setEfxRaw(setRaw(setEfxType(base, 1, 2), paramById("vcf_cutoff"), 3), 1, 3, 77);
+    const runs = morphRuns(base, target);
+    expect(runs[0]!.whole).toBe(true);
+    expect(runs[0]!.offset).toBe(0);
+    expect(runs[0]!.data).toEqual(target.blocks[runs[0]!.key]);
+    expect(runs.filter((r) => r.whole)).toHaveLength(1);
+    expect(diffRuns(runs.reduce(applyRun, base), target)).toEqual([]);
+  });
+
+  it("sends gliding params as byte runs", () => {
+    const base = synthetic();
+    const def = paramById("lfo_delay");
+    const runs = morphRuns(base, setRaw(base, def, (getRaw(base, def) + 9) % 128));
+    expect(runs.length).toBeGreaterThan(0);
+    expect(runs.every((r) => !r.whole)).toBe(true);
   });
 });

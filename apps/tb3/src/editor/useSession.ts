@@ -5,7 +5,7 @@
 // that differ from it. Edits send single params through the edit queue, but first bring the
 // TB-3 in line if it doesn't hold the edited patch yet (after startup or a preview).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { applyRun, blocksToSysex, diffBlocks, diffRuns, morph, patchToSysex, runToSysex } from "../core/patch";
+import { applyRun, blocksToSysex, diffBlocks, morph, morphRuns, patchToSysex, runToSysex } from "../core/patch";
 import type { Patch } from "../core/patch";
 import { SLOT_COUNT, emptySlots, patchFromHex, patchToHex, slotKey } from "../core/patchSet";
 import type { Slot, Slots } from "../core/patchSet";
@@ -313,18 +313,22 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     const cap = Math.max(1, rate.current * BURST_S);
     pm.tokens = Math.min(cap, pm.tokens + ((now - pm.last) / 1000) * rate.current);
     pm.last = now;
-    const runs = diffRuns(from, target);
+    const runs = morphRuns(from, target);
     if (!runs.length) {
       sent.current = target; // caught up: keep identity so edits don't resend
       pumpTarget.current = null;
       return stopPump();
     }
+    // Whole blocks first, in order; then the byte runs, rotating.
+    const whole = runs.filter((r) => r.whole);
+    const parts = runs.filter((r) => !r.whole);
+    const order = [...whole, ...parts.map((_, n) => parts[(pm.cursor + n) % parts.length]!)];
     let p = from;
-    for (let n = 0; n < runs.length; n++) {
-      const run = runs[(pm.cursor + n) % runs.length]!;
+    for (let n = 0; n < order.length; n++) {
+      const run = order[n]!;
       // A run bigger than the whole bucket still goes once the bucket is full.
       if (pm.tokens < Math.min(run.data.length, cap)) {
-        pm.cursor = (pm.cursor + n) % runs.length;
+        if (parts.length) pm.cursor = (pm.cursor + Math.max(0, n - whole.length)) % parts.length;
         break;
       }
       sendTb3(runToSysex(run));

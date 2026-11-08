@@ -81,6 +81,7 @@ those blocks through a typed parameter table. This replaces the TouchOSC split b
 - See [docs/tb3-phase3-design.md](docs/tb3-phase3-design.md): a browsable folder of .syx patches,
   16 slots per self-contained set file, click-empty-to-store, DELETE / GRAB modes, preset morph to a slot,
   unsaved edits kept across launches.
+- To do: [docs/tb3-phase3-todo.md](docs/tb3-phase3-todo.md).
 
 ### Phase 4 — Controllers
 - Launchpad: top two rows → 16 slots with mode colours; side buttons for morph, delete (hold),

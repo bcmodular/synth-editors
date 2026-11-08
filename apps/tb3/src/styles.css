@@ -73,7 +73,7 @@ select {
   align-items: start;
 }
 .strip {
-  grid-template-columns: 230px 300px 1fr;
+  grid-template-columns: 230px 300px 260px 1fr;
 }
 .osc {
   grid-template-columns: 300px 370px 520px 1fr;
@@ -581,10 +581,6 @@ svg .eqfill.cut {
 .anchor {
   position: relative;
 }
-.perform .popover {
-  left: auto;
-  right: 0;
-}
 
 /* Top strip */
 .tb3 .btn.wide {
@@ -710,6 +706,32 @@ svg .eqfill.cut {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* PATCH: the name of the patch in the editor, large; under it the patch being auditioned, or a prompt */
+.patchname {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.patchname .big {
+  font-size: 26px;
+  letter-spacing: 0.02em;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.patchname .where {
+  flex: none;
+  color: var(--dim);
+  font-size: 14px;
+}
+.patchname .mod {
+  color: var(--alt);
+}
+.nowline .v.dim {
+  color: var(--dim);
+}
 .nowline.audition .v,
 .nowline.audition .lbl {
   color: #fff;
@@ -751,9 +773,6 @@ svg .eqfill.cut {
 }
 .librow.root .name {
   font-weight: 600;
-}
-.nowline .folder {
-  color: var(--dim);
 }
 .libbar .search {
   flex: 1;
@@ -927,6 +946,23 @@ svg .eqfill.cut {
 .dialog .row {
   justify-content: flex-end;
 }
+.dialog .choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dialog .choice .lbl {
+  color: var(--dim);
+  font-size: 14px;
+}
+.dialog .choice select {
+  flex: 1;
+  background: var(--well);
+  border: 1px solid var(--edge);
+  color: var(--text);
+  font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 4px 6px;
+}
 .toast {
   position: fixed;
   z-index: 70;
@@ -941,7 +977,8 @@ svg .eqfill.cut {
   font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: pointer;
 }
-.perform {
+.perform,
+.porta {
   gap: 8px;
 }
 .assigns {

@@ -264,27 +264,24 @@ export function LfoSection() {
   );
 }
 
-// Portamento and bend, shown in a popover from the PERFORM block.
-export function PortaBendPanel() {
+// Portamento and bend: a section in the top strip.
+export function PortaBendSection() {
   const mode = useParam("porta_mode");
   return (
-    <div className="col">
-      <div className="row">
-        <ParamLed id="porta_sw" label="PORTA" />
-        <Assignable def={mode.def}>
-          <Segmented
-            options={[
-              { label: "LEGATO", value: 0 },
-              { label: "ALWAYS", value: 1 },
-            ]}
-            value={mode.value}
-            onChange={mode.set}
-            disabled={mode.disabled}
-          />
-        </Assignable>
-      </div>
+    <Section title="PORTA · BEND" className="porta" extra={<ParamLed id="porta_sw" label="PORTA" />}>
+      <Assignable def={mode.def}>
+        <Segmented
+          options={[
+            { label: "LEGATO", value: 0 },
+            { label: "ALWAYS", value: 1 },
+          ]}
+          value={mode.value}
+          onChange={mode.set}
+          disabled={mode.disabled}
+        />
+      </Assignable>
       <ParamH id="porta_time" label="TIME" width={170} labelWidth={50} />
       <ParamH id="bender_range" label="BEND" width={170} labelWidth={50} />
-    </div>
+    </Section>
   );
 }

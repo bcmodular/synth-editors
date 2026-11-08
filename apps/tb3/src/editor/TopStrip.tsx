@@ -1,14 +1,13 @@
-// Top strip: TB-3 sync + MIDI settings, perform controls (accent, global tuning, porta/bend
-// popover) and parameter assign. PATCHES and MORPH are in PatchesBlock.tsx.
+// Top strip: TB-3 sync + MIDI settings, perform controls (accent, global tuning) and parameter
+// assign. PORTA · BEND is in sections.tsx; PATCH, SET and MORPH are in PatchesBlock.tsx.
 import { useState } from "react";
 import { GLOBAL_TUNING_DISPLAY } from "../core/display";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
 import { HFader } from "../ui/Fader";
-import { Popover, Section } from "../ui/controls";
+import { Section } from "../ui/controls";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
-import { PortaBendPanel } from "./sections";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
 
 export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boolean }) {
@@ -92,19 +91,8 @@ function MidiSettings(p: { midi: Tb3Midi; onClose: () => void }) {
 
 // Global tuning is CC 104, not part of the patch: local state, sent only.
 export function PerformBlock(p: { tuning: number; onTuning: (v: number) => void; connected: boolean }) {
-  const [open, setOpen] = useState(false);
   return (
-    <Section
-      title="PERFORM"
-      className="perform"
-      extra={
-        <Popover open={open} onClose={() => setOpen(false)} panel={<PortaBendPanel />}>
-          <button className={`btn ${open ? "sel" : ""}`} onClick={() => setOpen((o) => !o)}>
-            PORTA · BEND ▾
-          </button>
-        </Popover>
-      }
-    >
+    <Section title="PERFORM" className="perform">
       <ParamH id="accent" label="ACCENT" width={170} labelWidth={84} />
       <div className="hrow">
         <span className="lbl" style={{ width: 84 }}>

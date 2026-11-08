@@ -12,6 +12,7 @@ import {
   DistSection,
   LfoSection,
   ModSection,
+  PortaBendSection,
   RingModSection,
   VcaSection,
   VcfSection,
@@ -52,7 +53,11 @@ function EditorApp() {
   const session = useSession(midi.sendTb3);
   sessionRef.current = session;
   const library = useLibrary();
-  const actions = useSetActions(session, folder, setError);
+  const folders = useMemo(
+    () => ["", ...Array.from(walk(library.tree), (e) => (e.kind === "dir" ? e.path : null)).filter((f) => f !== null)],
+    [library.tree],
+  );
+  const actions = useSetActions(session, folder, folders, setError);
   const patch = session.patch;
 
   useEffect(() => {
@@ -119,7 +124,7 @@ function EditorApp() {
     <EditorContext.Provider value={editor}>
       <main ref={setMainEl} className={`app ${armed ? "assigning" : ""} ${session.previewKey ? "auditioning" : ""}`}>
         <aside className="side">
-          <PatchBlock session={session} actions={actions} folder={folder} hasLibrary={Boolean(library.root)} />
+          <PatchBlock session={session} actions={actions} hasLibrary={Boolean(library.root)} />
           <SetBlock session={session} actions={actions} findPatch={findPatch} />
           <MorphBlock session={session} />
           <LibraryBrowser
@@ -135,6 +140,7 @@ function EditorApp() {
           <div className="strip">
             <Tb3Block midi={midi} hasPatch={Boolean(session.activePatch)} onSyncTo={session.sendAll} />
             <PerformBlock tuning={tuning} onTuning={changeTuning} connected={midi.connected} />
+            <PortaBendSection />
             <AssignBlock />
           </div>
           <div className="osc">

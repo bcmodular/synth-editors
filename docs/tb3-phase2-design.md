@@ -68,8 +68,8 @@ Column widths (CSS px, 1580 inside the margins):
 | FX row | Distortion 240, EFX1 and EFX2 split the rest |
 | Top strip | ~140 px tall |
 
-PORTA · BEND opens as a popover from a button in the PERFORM header, so the three section rows
-each hold three sections.
+PORTA · BEND was a popover from PERFORM while PATCHES and MORPH shared the top strip. Since
+those moved to the sidebar (Phase 3) it is a section in the strip again, between PERFORM and ASSIGN.
 
 The LFO depths (→ VCO, → VCF, → VCA) live only in the LFO section, so the LFO is self-contained
 and nothing is duplicated.
@@ -99,7 +99,7 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 | Distortion | **6b**: type stepper, then ON and COLOR LED buttons, then DRIVE (0–120), BOTTOM and TONE (bipolar, centre 50), EFX LVL and DRY LVL. | `dist_*` |
 | LFO | **5a** (see below), then RATE, DELAY and CV OFFSET bars, BPM SYNC and RETRIG LED buttons, and bipolar → VCO/→ VCF/→ VCA. | `lfo_*`, `*_lfo_depth` |
 | EFX1 / EFX2 | **7a** (see below). | EFX blocks |
-| Porta · Bend | Popover from PERFORM: PORTA LED button, a LEGATO/ALWAYS segmented control, TIME bar, and BEND RANGE bar (display `±n st`). | `porta_*`, `bender_range` |
+| Porta · Bend | Top strip section: PORTA LED button, a LEGATO/ALWAYS segmented control, TIME bar, and BEND RANGE bar (display `±n st`). | `porta_*`, `bender_range` |
 | Assign | **8a** learn-by-click (see below). | `assign_*` |
 
 ### Envelope editor (4a)
@@ -199,7 +199,7 @@ Patch-bound wrappers live in `apps/tb3/src/editor/`:
 - **Section components:** `TopStrip` (`Tb3Block`, `PatchGridPlaceholder`,
   `MorphPlaceholder`, `PerformBlock`, `AssignBlock`), `VcoSection`, `ModSection`, `VcfSection`,
   `VcaSection`, `DistSection`, `LfoSection`, `EfxSection(efx)`, `VcoSumSection`, `RingModSection`, and
-  `PortaBendPanel` (in the PERFORM popover).
+  `PortaBendSection` (in the top strip).
 - **`MidiSettings`:** a popover opened from the TB-3 block. It holds the existing four port
   pickers (TB-3 in/out, Launchpad in/out, remembered by name) plus the TB-3 MIDI channel
   (default 2). A collapsible MIDI log from the spike stays here for debugging.

@@ -8,10 +8,11 @@ export interface DialogSpec {
   title: string;
   message?: string;
   input?: string; // initial text: shows a text field
+  choice?: { label: string; options: { value: string; label: string }[]; value: string }; // shows a menu
   buttons: string[]; // first is the default (Enter); Esc cancels
 }
 
-export type DialogResult = { button: string; value: string } | null;
+export type DialogResult = { button: string; value: string; choice: string } | null;
 type Ask = (d: DialogSpec) => Promise<DialogResult>;
 
 const DialogContext = createContext<Ask | null>(null);
@@ -43,6 +44,7 @@ export function DialogHost(p: { children: ReactNode }) {
 
 function DialogBox(p: { spec: DialogSpec; onDone: (r: DialogResult) => void }) {
   const [value, setValue] = useState(p.spec.input ?? "");
+  const [choice, setChoice] = useState(p.spec.choice?.value ?? "");
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
     input.current?.select();
@@ -55,7 +57,7 @@ function DialogBox(p: { spec: DialogSpec; onDone: (r: DialogResult) => void }) {
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [p]);
-  const done = (button: string) => p.onDone({ button, value: value.trim() });
+  const done = (button: string) => p.onDone({ button, value: value.trim(), choice });
   return (
     <div className="dialog-back" onPointerDown={(e) => e.target === e.currentTarget && p.onDone(null)}>
       <form
@@ -69,6 +71,18 @@ function DialogBox(p: { spec: DialogSpec; onDone: (r: DialogResult) => void }) {
         {p.spec.message && <p>{p.spec.message}</p>}
         {p.spec.input !== undefined && (
           <input ref={input} value={value} onChange={(e) => setValue(e.target.value)} spellCheck={false} />
+        )}
+        {p.spec.choice && (
+          <label className="choice">
+            <span className="lbl">{p.spec.choice.label}</span>
+            <select value={choice} onChange={(e) => setChoice(e.target.value)}>
+              {p.spec.choice.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
         )}
         <div className="row">
           {p.spec.buttons.map((b, i) => (

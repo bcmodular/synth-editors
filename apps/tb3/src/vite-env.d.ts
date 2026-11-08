@@ -7,6 +7,8 @@ interface LibraryNode {
   path: string; // relative to the library root, "/"-separated
   children?: LibraryNode[]; // folders
   data?: Uint8Array; // patches: the file's bytes
+  created?: number; // files: birth and modification times, ms since the epoch
+  modified?: number;
 }
 
 interface Window {

@@ -16,20 +16,20 @@ import type { SetActions } from "./useSetActions";
 
 export const PATCH_DRAG_TYPE = "application/x-tb3-patch";
 
-export function PatchBlock(p: { session: Session; actions: SetActions; folder: string; hasLibrary: boolean }) {
+export function PatchBlock(p: { session: Session; actions: SetActions; hasLibrary: boolean }) {
   const s = p.session;
   const { slots, active } = s.state;
-  const name =
-    s.mode === "store"
-      ? "Click a slot to store it. Esc cancels."
+  const name = active !== null ? slots[active]!.name : s.activePatch ? (s.currentName ?? "Synced from TB-3") : "–";
+  const where = active !== null ? `SLOT ${active + 1}` : s.activePatch ? "NOT IN SET" : "";
+  const modified = active !== null && s.modified[active];
+  // Under the name: the patch being auditioned (the editor shows it until release), or a slot prompt.
+  const [lbl, line] = s.previewName
+    ? ["AUDITION", s.previewName]
+    : s.mode === "store"
+      ? ["STORE", "Click a slot to store it. Esc cancels."]
       : s.mode === "target"
-        ? "Click a slot to morph towards. Esc cancels."
-        : (s.previewName ??
-          (active !== null
-            ? `${active + 1} · ${slots[active]!.name}${s.modified[active] ? " ●" : ""}`
-            : s.activePatch
-              ? `${s.currentName ?? "Synced from TB-3"} (not in set)`
-              : "–"));
+        ? ["MORPH", "Click a slot to morph towards. Esc cancels."]
+        : ["AUDITION", null];
   return (
     <Section
       title="PATCH"
@@ -38,23 +38,22 @@ export function PatchBlock(p: { session: Session; actions: SetActions; folder: s
         <button
           className="btn"
           disabled={!p.hasLibrary || !s.activePatch}
-          title={`Save the patch in the editor as a .syx into /${p.folder}`}
+          title="Save the patch in the editor as a .syx file"
           onClick={() => s.activePatch && p.actions.savePatchAs(s.activePatch, s.currentName ?? "Untitled")}
         >
           SAVE AS…
         </button>
       }
     >
-      <div className={`nowline ${s.previewName ? "audition" : ""}`}>
-        <span className="lbl">{s.previewName ? "AUDITION" : "EDITING"}</span>
-        <span className="v" title={name}>
-          {name}
-        </span>
+      <div className="patchname" title={name}>
+        <span className="big">{name}</span>
+        {modified && <span className="mod">●</span>}
+        {where && <span className="where">{where}</span>}
       </div>
-      <div className="nowline">
-        <span className="lbl">SAVE TO</span>
-        <span className="v folder" title="Click a folder in the library to change">
-          {p.hasLibrary ? `/${p.folder}` : "choose a library folder"}
+      <div className={`nowline ${s.previewName ? "audition" : ""}`}>
+        <span className="lbl">{lbl}</span>
+        <span className={`v ${line ? "" : "dim"}`} title={line ?? undefined}>
+          {line ?? "hold ▶ in the library, or Option-click a slot"}
         </span>
       </div>
     </Section>

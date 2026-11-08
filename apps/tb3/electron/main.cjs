@@ -75,7 +75,15 @@ async function listDir(dir) {
       const ext = path.extname(e.name).toLowerCase();
       // Patches are a few hundred bytes: send them along so the page can validate every one.
       const data = ext === ".syx" ? new Uint8Array(await fsp.readFile(p)) : undefined;
-      nodes.push({ kind: ext === ".syx" ? "patch" : "set", name: e.name, path: relOf(p), data });
+      const st = await fsp.stat(p);
+      nodes.push({
+        kind: ext === ".syx" ? "patch" : "set",
+        name: e.name,
+        path: relOf(p),
+        data,
+        created: st.birthtimeMs,
+        modified: st.mtimeMs,
+      });
     }
   }
   return nodes.sort(byName);

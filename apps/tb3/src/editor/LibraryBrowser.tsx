@@ -1,5 +1,5 @@
 // Patch library: the sidebar under PATCHES and MORPH.
-//   folders: click to open as the save folder · drop patches/sets/folders on them to move
+//   folders: click to select (the default folder for saves) · triangle or double-click to open · drop patches/sets/folders on them to move
 //   patches: double-click to load into the editor (not the set) · hold ▶ to audition ·
 //            drag onto a slot · right-click for load / rename / trash
 //   sets: double-click to open
@@ -16,6 +16,19 @@ import type { Session } from "./useSession";
 import type { SetActions } from "./useSetActions";
 
 const MOVE_DRAG_TYPE = "application/x-tb3-move";
+
+const when = (ms: number | undefined) =>
+  ms ? new Date(ms).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "–";
+
+// Hover text: the path, and for files when they were created and last changed.
+const tip = (e: LibEntry) =>
+  [
+    e.path,
+    e.error && `Not a TB-3 patch: ${e.error}`,
+    e.kind !== "dir" && `Created ${when(e.created)}\nModified ${when(e.modified)}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
 // Entries whose name matches, plus the folders leading to them.
 function filter(entries: LibEntry[], q: string): LibEntry[] {
@@ -162,7 +175,7 @@ export function LibraryBrowser(p: {
           onDoubleClick={() => (isDir ? toggle(e.path) : e.kind === "set" ? p.actions.openSet(e.path) : load(e))}
           onContextMenu={(ev) => setMenu(menuAt(ev, menuItems(e)))}
           {...(isDir ? dropTarget(e.path) : {})}
-          title={e.error ? `Not a TB-3 patch: ${e.error}` : e.path}
+          title={tip(e)}
         >
           {isDir ? twist(e.path, open) : <span className="twist" />}
           {!isDir && <span className="icon">{e.kind === "set" ? "▦" : "♪"}</span>}
@@ -232,8 +245,8 @@ export function LibraryBrowser(p: {
           onChange={(e) => setQuery(e.target.value)}
           spellCheck={false}
         />
-        <button className="btn mini" disabled={!lib.root} title="New folder" onClick={() => newFolder(p.folder)}>
-          + FOLDER
+        <button className="btn mini" disabled={!lib.root} onClick={() => newFolder(p.folder)}>
+          + SUB-FOLDER
         </button>
       </div>
       <div className={`libtree ${dropOn === "" ? "drop" : ""}`} {...dropTarget("")}>

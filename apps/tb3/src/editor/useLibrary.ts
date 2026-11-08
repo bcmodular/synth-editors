@@ -13,16 +13,19 @@ export interface LibEntry {
   children?: LibEntry[];
   patch?: Patch; // valid patches
   error?: string; // patches that don't parse
+  created?: number; // files: ms since the epoch
+  modified?: number;
 }
 
 function parse(nodes: LibraryNode[]): LibEntry[] {
   return nodes.map((n) => {
     if (n.kind === "dir") return { kind: n.kind, name: n.name, path: n.path, children: parse(n.children ?? []) };
-    if (n.kind === "set") return { kind: n.kind, name: n.name, path: n.path };
+    const file = { kind: n.kind, name: n.name, path: n.path, created: n.created, modified: n.modified };
+    if (n.kind === "set") return file;
     try {
-      return { kind: n.kind, name: n.name, path: n.path, patch: patchFromBytes(n.data ?? []) };
+      return { ...file, patch: patchFromBytes(n.data ?? []) };
     } catch (e) {
-      return { kind: n.kind, name: n.name, path: n.path, error: e instanceof Error ? e.message : String(e) };
+      return { ...file, error: e instanceof Error ? e.message : String(e) };
     }
   });
 }

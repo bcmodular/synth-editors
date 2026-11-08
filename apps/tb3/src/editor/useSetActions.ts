@@ -1,26 +1,37 @@
-// Set and patch file actions shared by the PATCHES block, the browser and slot menus. "Save as"
-// writes into the folder open in the browser, asking only for a name.
+// Set and patch file actions shared by the PATCH and SET blocks, the browser and slot menus. "Save as"
+// asks for a name and a folder, starting at the folder selected in the library.
 import { useCallback } from "react";
 import { PATCH_EXT, SET_EXT, emptySlots, nameFromPath, patchToBytes, setFromJson, setToJson } from "../core/patchSet";
 import type { Patch } from "../core/patch";
-import { askName, confirmed, useDialog } from "../ui/Dialog";
+import { confirmed, useDialog } from "../ui/Dialog";
 import { joinPath } from "./useLibrary";
 import type { Session } from "./useSession";
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const isExists = (e: unknown) => message(e).includes("EXISTS:");
 
-export function useSetActions(session: Session, folder: string, onError: (msg: string) => void) {
+// folders: every folder in the library, "" for the library folder itself.
+export function useSetActions(session: Session, folder: string, folders: string[], onError: (msg: string) => void) {
   const ask = useDialog();
   const files = window.tb3Files;
 
-  // Write a new file into `folder`, asking before replacing one with the same name.
+  // Write a new file, asking for its name and folder, and before replacing one with the same name.
   const writeNew = useCallback(
     async (title: string, initial: string, ext: string, data: Uint8Array | string): Promise<string | null> => {
       if (!files) return null;
-      const name = await askName(ask, title, initial);
+      const r = await ask({
+        title,
+        input: initial,
+        choice: {
+          label: "FOLDER",
+          options: folders.map((f) => ({ value: f, label: `/${f}` })),
+          value: folders.includes(folder) ? folder : "",
+        },
+        buttons: ["SAVE"],
+      });
+      const name = r?.value;
       if (!name) return null;
-      const path = joinPath(folder, name.endsWith(ext) ? name : name + ext);
+      const path = joinPath(r.choice, name.endsWith(ext) ? name : name + ext);
       try {
         await files.write(path, data);
       } catch (e) {
@@ -30,7 +41,7 @@ export function useSetActions(session: Session, folder: string, onError: (msg: s
       }
       return path;
     },
-    [ask, files, folder],
+    [ask, files, folder, folders],
   );
 
   const guard = useCallback(

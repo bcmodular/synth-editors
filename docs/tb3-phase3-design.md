@@ -24,8 +24,10 @@ the TB-3 holds, preview, STORE, morph, recovery), `editor/useLibrary.ts` + `elec
 
 A permanent sidebar on the left holds, top to bottom:
 
-- **PATCH**: what the editor shows (EDITING / AUDITION), the folder saves go into, and SAVE AS…
-  to write that patch as a `.syx`.
+- **PATCH**: the name of the patch in the editor, large, with its slot (or NOT IN SET) and an
+  unsaved-edits mark. Under it, the AUDITION line names the patch being auditioned while ▶ or an
+  Option-click is held, so both show at once; it also carries the STORE / morph target prompts.
+  SAVE AS… writes that patch as a `.syx`.
 - **SET**: STORE, the 16 slots, and the set file line (NEW / SAVE / SAVE AS…).
 - **MORPH**: target, amount and send rate.
 - **LIBRARY**: fills the rest of the sidebar's height.
@@ -35,10 +37,11 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 ## Browser
 
 - It shows a tree of the library: folders, patches, and sets (with their own icon).
-- **Save folder**: clicking a folder makes it the folder saves go into. Expanding and collapsing
-  is separate: the disclosure triangle, or double-click. The library folder itself
+- **Selected folder**: clicking a folder selects it: SAVE AS… dialogs start there, and + SUB-FOLDER
+  creates inside it. Expanding and collapsing is separate: the disclosure triangle, or double-click. The library folder itself
   is the tree's top node, so it can be picked (and dropped onto) like any other folder.
 - **Search box**: filters the tree by name as you type.
+- **Hover** a patch or set for its path and when it was created and last modified.
 - **Invalid files**: every `.syx` is listed, but files that don't parse as a full TB-3 patch get
   an error badge and can't be loaded or previewed.
 - **Double-click a patch** (or right-click → Load into editor): load it into the unslotted buffer
@@ -65,18 +68,20 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - **STORE button** (SET header): it blinks, then clicking a slot stores the active patch there
   (asking before overwriting a full slot). Esc cancels. This is how the unslotted buffer gets into
   a slot, and it maps onto a Launchpad side button later.
-- **Right-click a slot**: Clear; Save slot as .syx… (into the browser's current folder).
+- **Right-click a slot**: Clear; Save slot as .syx….
 
 ## Sets
 
 - File format: one JSON file, `Name.tb3set`:
   `{ "format": "tb3set", "version": 1, "slots": [ { "name": "Acid 1", "blocks": "<hex of the 11 blocks>" } | null, … 16 ] }`.
   The hex is the same 11-block dump as a `.syx`, so a slot round-trips byte for byte.
-- **New set / Save set / Save set as…** (the FILE line in SET): Save As writes into the browser's current folder, asking
-  only for a name. The set's title shows in the PATCHES header, marked when it has unsaved changes.
+- **New set / Save set / Save set as…** (the FILE line in SET). The set's name shows on the FILE
+  line, marked when it has unsaved changes.
+- **Save as dialogs** (patch, slot and set) ask for a name and a folder. The folder menu lists every
+  library folder and starts at the one selected in the library.
 - Opening a set while the current one has unsaved changes asks: Save / Discard / Cancel.
-- **Unslotted buffer**: SAVE AS… in PATCH writes the patch in the editor as a `.syx`
-  into the browser's current folder, or STORE puts it into a slot.
+- **Unslotted buffer**: SAVE AS… in PATCH writes the patch in the editor as a `.syx`, or STORE
+  puts it into a slot.
 
 ## Morph
 

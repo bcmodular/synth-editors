@@ -7,12 +7,11 @@ What's left for the patch library, slots and sets. The design is in
 
 - [ ] **Undo history** (with redo): slot DELETE, Replace, CLEAR on a morph, parameter edits. This
       is why DELETE no longer asks first.
-- [ ] **Patch details on hover** in the library, e.g. its EFX types (the design's open question).
 
-## Morph
+## Parked
 
-- [ ] Find why a fast drag between very different patches can leave params wrong on the TB-3, and
-      decide whether morph stays marked experimental.
+- Morph: a fast drag between very different patches can leave params wrong on the TB-3. It stays
+  marked experimental.
 
 ## Checks on the TB-3
 

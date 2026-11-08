@@ -132,7 +132,3 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - `packages/bank-files` from PLAN.md is replaced by a TB-3-specific set format. A shared package
   can wait until the SP-404 needs one.
 
-
-## Open questions
-
-- Whether the browser overlay should also show a patch's details (e.g. its EFX types) on hover.

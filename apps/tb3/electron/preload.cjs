@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("tb3Files", {
   rename: (from, to) => ipcRenderer.invoke("lib:rename", from, to),
   trash: (rel) => ipcRenderer.invoke("lib:trash", rel),
   mkdir: (rel) => ipcRenderer.invoke("lib:mkdir", rel),
+  rmdir: (rel) => ipcRenderer.invoke("lib:rmdir", rel),
   reveal: (rel) => ipcRenderer.invoke("lib:reveal", rel),
   onChanged: (cb) => {
     const listener = () => cb();

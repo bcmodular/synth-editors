@@ -119,6 +119,7 @@ function registerLibraryIpc() {
   });
   ipcMain.handle("lib:trash", (_e, rel) => shell.trashItem(abs(rel)));
   ipcMain.handle("lib:mkdir", (_e, rel) => fsp.mkdir(abs(rel)));
+  ipcMain.handle("lib:rmdir", (_e, rel) => fsp.rmdir(abs(rel))); // empty folders only (undo of new folder)
   ipcMain.handle("lib:reveal", (_e, rel) => shell.showItemInFolder(abs(rel)));
 }
 

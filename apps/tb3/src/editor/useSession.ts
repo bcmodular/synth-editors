@@ -9,9 +9,10 @@ import type { Slot, Slots } from "../core/patchSet";
 import { persistSession, restoreSession } from "./sessionPersist";
 import * as rules from "./sessionState";
 import type { MorphState, SessionState } from "./sessionState";
-import * as history from "./undoHistory";
-import type { History } from "./undoHistory";
+import { useLatest } from "./useLatest";
+import type { Latest } from "./useLatest";
 import { useTb3Link } from "./useTb3Link";
+import { useUndo } from "./useUndo";
 
 export type { SessionState } from "./sessionState";
 export { currentPatch } from "./sessionState";
@@ -21,17 +22,6 @@ export { MORPH_RATES } from "./sessionPersist";
 export type SlotMode = "delete" | "grab" | "target" | null;
 
 type Link = ReturnType<typeof useTb3Link>;
-
-// State kept in a ref as well, so callbacks read the latest without re-binding.
-function useLatest<T>(initial: T | (() => T)) {
-  const [state, setState] = useState(initial);
-  const ref = useRef(state);
-  const commit = useCallback((next: T) => {
-    ref.current = next;
-    setState(next);
-  }, []);
-  return { state, ref, commit };
-}
 
 // The session survives quitting: saved shortly after each change, and on unload.
 function usePersistedSession() {
@@ -77,8 +67,8 @@ function usePreview(link: Link, active: () => Patch | null) {
   return { previewing: on, shown, preview, endPreview };
 }
 
-type SessionStore = ReturnType<typeof usePersistedSession>;
-type MorphStore = ReturnType<typeof useLatest<MorphState>>;
+type SessionStore = Latest<SessionState>;
+type MorphStore = Latest<MorphState>;
 
 // Morph and CLEAR. While previewing, the editor's patch changes but the TB-3 keeps the audition.
 function useMorph(session: SessionStore, morphs: MorphStore, link: Link, undo: UndoStore) {
@@ -217,55 +207,9 @@ function useSetEdits(session: SessionStore, morphs: MorphStore, undo: UndoStore)
   return { store, loadIntoSlot, clear, rename, openSet, markSaved };
 }
 
-// Undo and redo: snapshots taken by `remember` just before each undoable action. Off while
-// previewing (the editor shows the auditioned patch, read only).
-function useUndo(session: SessionStore, morphs: MorphStore, link: Link, previewing: { current: boolean }) {
-  const hist = useLatest<History>(history.emptyHistory);
-  const snapshot = useCallback(
-    () => history.takeSnapshot(session.ref.current, morphs.ref.current),
-    [morphs.ref, session.ref],
-  );
-
-  // `mergeKey`: edits to one param in quick succession are one step.
-  const remember = useCallback(
-    (label: string, mergeKey?: string) => {
-      const merge = mergeKey === undefined ? undefined : { key: mergeKey, at: performance.now() };
-      hist.commit(history.record(hist.ref.current, { label, before: snapshot(), merge }));
-    },
-    [hist, snapshot],
-  );
-
-  const forget = useCallback(() => hist.commit(history.emptyHistory), [hist]);
-
-  const { sendPatch } = link;
-  const travel = useCallback(
-    (go: typeof history.undo) => {
-      const r = previewing.current ? null : go(hist.ref.current, snapshot());
-      if (!r) return;
-      hist.commit(r.history);
-      const back = history.restoreSnapshot(session.ref.current, r.restore);
-      session.commit(back.session);
-      morphs.commit(back.morph);
-      const cur = rules.currentPatch(back.session);
-      if (cur) sendPatch(cur);
-    },
-    [hist, morphs, previewing, sendPatch, session, snapshot],
-  );
-
-  return {
-    previewing,
-    remember,
-    forget,
-    undo: useCallback(() => travel(history.undo), [travel]),
-    redo: useCallback(() => travel(history.redo), [travel]),
-    undoLabel: history.undoLabel(hist.state),
-    redoLabel: history.redoLabel(hist.state),
-  };
-}
-
 type UndoStore = ReturnType<typeof useUndo>;
 
-export function useSession(sendTb3: (msg: number[]) => void) {
+export function useSession(sendTb3: (msg: number[]) => void, onError: (msg: string) => void) {
   const session = usePersistedSession();
   const morphs = useLatest<MorphState>(rules.noMorph);
   const link = useTb3Link(sendTb3);
@@ -279,7 +223,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     const cur = active();
     if (cur) sendAllOf(cur);
   }, [active, sendAllOf]);
-  const undo = useUndo(session, morphs, link, previewing);
+  const undo = useUndo({ session, morphs, sendPatch: link.sendPatch, previewing, onError });
   const patchActions = usePatchActions(session, morphs, link, undo);
   const setEdits = useSetEdits(session, morphs, undo);
   const morphActions = useMorph(session, morphs, link, undo);
@@ -307,6 +251,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     redo: undo.redo,
     undoLabel: undo.undoLabel, // the step undo would take back; null = nothing to undo
     redoLabel: undo.redoLabel,
+    rememberFile: undo.rememberFile, // a library file step, once done
     ...patchActions,
     ...setEdits,
     ...morphActions,

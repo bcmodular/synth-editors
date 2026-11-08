@@ -21,6 +21,7 @@ interface Window {
     rename(from: string, to: string): Promise<void>;
     trash(path: string): Promise<void>;
     mkdir(path: string): Promise<void>;
+    rmdir(path: string): Promise<void>; // fails unless the folder is empty
     reveal(path: string): Promise<void>;
     onChanged(cb: () => void): () => void;
   };

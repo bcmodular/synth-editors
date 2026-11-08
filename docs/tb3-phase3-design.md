@@ -115,9 +115,15 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 ## Undo history
 
 - **What can be undone**: DELETE, Replace (a library patch dropped on a slot, or Replace from a
-  slot's menu), STORE into an empty slot, rename, morph CLEAR and parameter edits. Not
-  undoable: recall, loading a file, SYNC from the TB-3 and auditioning, since they only change
-  which patch is shown. Morph fader moves aren't undoable either while morph is experimental.
+  slot's menu), STORE into an empty slot, rename, morph CLEAR and parameter edits; and in the
+  library, renaming, moving and new folders. Not undoable: recall, loading a file, SYNC from the
+  TB-3 and auditioning, since they only change which patch is shown; Move to Trash (the Trash puts
+  things back, and it still asks first). Morph fader moves aren't undoable either while morph is
+  experimental.
+- **Library steps** share the one history with the session, so ⌘Z takes back whatever was done
+  last. Each carries its own reverse: rename or move back, or remove the new folder (only if it is
+  still empty). If Finder has changed things so a step can't be reversed (the name is taken, the
+  folder isn't empty, another library folder was chosen), it says so and the step is dropped.
 - **Each step is a snapshot** of the slots, the active slot, the unslotted buffer and the morph
   (target, amount, base), taken just before the action (`editor/undoHistory.ts`). It leaves out
   the set's path and saved state, so undoing after a save still marks the slot modified.
@@ -129,7 +135,7 @@ header. After trying it, the library moved into the sidebar so it's always to ha
   box and dialogs keep their own text undo). UNDO and REDO buttons sit in the top strip; hovering
   names the step, e.g. "Undo DELETE slot 3".
 - **Scope**: up to 100 steps, in memory only (not kept across quitting). A new action clears
-  redo. Opening or starting a set clears the history.
+  redo. Opening or starting a set clears the session steps; library steps stay.
 
 ## Startup and persistence
 

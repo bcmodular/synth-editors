@@ -51,7 +51,7 @@ function EditorApp() {
   useFitZoom(mainEl);
   const sessionRef = useRef<Session | null>(null);
   const midi = useTb3Midi((p) => sessionRef.current?.fromTb3(p));
-  const session = useSession(midi.sendTb3);
+  const session = useSession(midi.sendTb3, setError);
   sessionRef.current = session;
   const library = useLibrary();
   const folders = useMemo(

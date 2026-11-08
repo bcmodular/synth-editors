@@ -3,7 +3,7 @@
 //   patches: double-click to load into the editor (not the set) · hold ▶ to audition ·
 //            drag onto a slot · right-click for load / rename / trash
 //   sets: double-click to open
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { DragEvent, MouseEvent as ReactMouseEvent } from "react";
 import { nameFromPath } from "../core/patchSet";
 import { Section } from "../ui/controls";
@@ -20,26 +20,47 @@ import type { SetActions } from "./useSetActions";
 
 const ROOT = ""; // the library folder itself
 
-// File operations on the library, reporting failures through `onError`.
-function useLibraryOps(onFolder: (dir: string) => void, onError: (msg: string) => void) {
+type Files = NonNullable<Window["tb3Files"]>;
+
+// Undo and redo of a file step run against the library it was done in: if another library folder
+// has been chosen since, they fail rather than touch it.
+function fileAction(root: { current: string | null }, run: { undo: () => Promise<void>; redo: () => Promise<void> }) {
+  const at = root.current;
+  const guard = (fn: () => Promise<void>) => () =>
+    root.current === at ? fn() : Promise.reject(new Error("the library folder has changed"));
+  return { undo: guard(run.undo), redo: guard(run.redo) };
+}
+
+// File operations on the library, reporting failures through `onError`. Renames, moves and new
+// folders go into the undo history; Move to Trash doesn't (the Trash can put things back).
+function useLibraryOps(lib: Library, session: Session, p: { onFolder: (dir: string) => void; onError: (msg: string) => void }) {
   const ask = useDialog();
   const files = window.tb3Files;
-  const run = (fn: (f: NonNullable<typeof files>) => Promise<unknown>) => {
+  const root = useRef(lib.root);
+  root.current = lib.root;
+  const run = (fn: (f: Files) => Promise<unknown>) => {
     if (!files) return;
-    void fn(files).catch((e: unknown) => onError(e instanceof Error ? e.message : String(e)));
+    void fn(files).catch((e: unknown) => p.onError(e instanceof Error ? e.message : String(e)));
+  };
+  // Rename or move `from` to `to`, undoably.
+  const renameFile = async (f: Files, label: string, from: string, to: string) => {
+    await f.rename(from, to);
+    session.rememberFile(label, fileAction(root, { undo: () => f.rename(to, from), redo: () => f.rename(from, to) }));
   };
   return {
     newFolder: (dir: string) =>
       run(async (f) => {
         const name = await askName(ask, "New folder", "New folder");
         if (!name) return;
-        await f.mkdir(joinPath(dir, name));
-        onFolder(joinPath(dir, name));
+        const path = joinPath(dir, name);
+        await f.mkdir(path);
+        session.rememberFile(`New folder ${name}`, fileAction(root, { undo: () => f.rmdir(path), redo: () => f.mkdir(path) }));
+        p.onFolder(path);
       }),
     rename: (e: LibEntry) =>
       run(async (f) => {
         const name = await askName(ask, `Rename ${e.kind === "dir" ? "folder" : "file"}`, displayName(e));
-        if (name) await f.rename(e.path, renameTarget(e, name));
+        if (name) await renameFile(f, `Rename ${displayName(e)}`, e.path, renameTarget(e, name));
       }),
     trash: (e: LibEntry) =>
       run(async (f) => {
@@ -47,7 +68,7 @@ function useLibraryOps(onFolder: (dir: string) => void, onError: (msg: string) =
       }),
     move: (m: Move) => {
       const to = moveTarget(m);
-      if (to) run((f) => f.rename(m.from, to));
+      if (to) run((f) => renameFile(f, `Move ${nameFromPath(m.from)}`, m.from, to));
     },
     reveal: (path: string) => void files?.reveal(path),
   };
@@ -227,7 +248,7 @@ export function LibraryBrowser(p: {
   onError: (msg: string) => void;
 }) {
   const { library: lib, session: s } = p;
-  const ops = useLibraryOps(p.onFolder, p.onError);
+  const ops = useLibraryOps(lib, s, p);
   const [query, setQuery] = useState("");
   const { collapsed, toggle } = useCollapsed();
   const [menu, setMenu] = useState<MenuState | null>(null);

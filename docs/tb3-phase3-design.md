@@ -4,7 +4,7 @@ Status: **implemented**. It replaces the PLAN.md Phase 3 outline, which followed
 model (16 slots + JSON banks). Here the file system is a first-class part of the editor.
 
 Code: `core/patchSet.ts` (file and set formats), `editor/useSession.ts` (slots, active patch, what
-the TB-3 holds, preview, STORE, morph, recovery), `editor/useLibrary.ts` + `electron/main.cjs`
+the TB-3 holds, preview, store, morph, recovery), `editor/useLibrary.ts` + `electron/main.cjs`
 (file access over IPC), `editor/PatchesBlock.tsx` (PATCHES and MORPH), `editor/LibraryBrowser.tsx`.
 
 ## Concepts
@@ -26,9 +26,9 @@ A permanent sidebar on the left holds, top to bottom:
 
 - **PATCH**: the name of the patch in the editor, large, with its slot (or NOT IN SET) and an
   unsaved-edits mark. Under it, the AUDITION line names the patch being auditioned while ▶ or an
-  Option-click is held, so both show at once; it also carries the STORE / morph target prompts.
+  a GRAB is held, so both show at once; it also carries the DELETE / GRAB / morph target prompts.
   SAVE AS… writes that patch as a `.syx`.
-- **SET**: STORE, the 16 slots, and the set file line (NEW / SAVE / SAVE AS…).
+- **SET**: DELETE and GRAB, the 16 slots, and the set file line (NEW / SAVE / SAVE AS…).
 - **MORPH**: target, amount and send rate.
 - **LIBRARY**: fills the rest of the sidebar's height.
  (The first build had the library as an overlay that slid down from the PATCHES
@@ -45,7 +45,7 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - **Invalid files**: every `.syx` is listed, but files that don't parse as a full TB-3 patch get
   an error badge and can't be loaded or previewed.
 - **Double-click a patch** (or right-click → Load into editor): load it into the unslotted buffer
-  and send it, without touching the set. STORE then puts it into a slot under its file name.
+  and send it, without touching the set. Clicking an empty slot then stores it there under its file name.
 - **Preview button** on each patch row: while it's held, the TB-3 plays that file (changed blocks
   only) and the editor shows it, read only (the EDITING line reads AUDITION). On release both
   return to the active patch, including any unsaved edits.
@@ -58,17 +58,22 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 ## Slots (the SET block)
 
 - An 8 × 2 grid as now. Hovering shows the slot name. States: empty, filled, active, modified
-  (unsaved edits), and "not sent since opening" (see Startup).
+  (unsaved edits).
 - **Click a filled slot**: recall it. The changed blocks go to the TB-3 and it becomes active.
+- **Click an empty slot**: store the patch in the editor there; it becomes the active slot. This is
+  how the unslotted buffer gets into the set, as on the TouchOSC panel. A full slot is replaced
+  from its right-click menu (asking first), or DELETE it and click it.
 - **Edits are per slot**: each slot keeps its own unsaved edits in memory. Switching between slots
   never loses work, and edits are only written when the set is saved.
-- **Option + hold a slot**: grab, i.e. audition it. Releasing returns to the active patch. This
-  matches the browser's preview button.
+- **DELETE and GRAB** (SET header, as on the TouchOSC panel): click to toggle the mode, Esc or a
+  second click ends it. The button and the filled slots take the mode's colour (red, orange).
+  In DELETE, clicking a slot clears it, with no question, and the mode stays on for more. In GRAB,
+  holding a slot auditions it; releasing returns to the active patch, like the browser's ▶.
+  Option + hold a slot grabs without the mode. Both map onto Launchpad side buttons in Phase 4,
+  where they are held rather than toggled.
 - **Double-click a slot**: rename it. The name is stored in the set; library files aren't touched.
-- **STORE button** (SET header): it blinks, then clicking a slot stores the active patch there
-  (asking before overwriting a full slot). Esc cancels. This is how the unslotted buffer gets into
-  a slot, and it maps onto a Launchpad side button later.
-- **Right-click a slot**: Clear; Save slot as .syx….
+- **Right-click a slot**: Store / Replace with the patch in the editor; Rename; Save as .syx…;
+  Clear.
 
 ## Sets
 
@@ -80,8 +85,8 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - **Save as dialogs** (patch, slot and set) ask for a name and a folder. The folder menu lists every
   library folder and starts at the one selected in the library.
 - Opening a set while the current one has unsaved changes asks: Save / Discard / Cancel.
-- **Unslotted buffer**: SAVE AS… in PATCH writes the patch in the editor as a `.syx`, or STORE
-  puts it into a slot.
+- **Unslotted buffer**: SAVE AS… in PATCH writes the patch in the editor as a `.syx`, or clicking
+  an empty slot puts it into the set.
 
 ## Morph
 
@@ -106,8 +111,8 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 ## Startup and persistence
 
 - The app remembers the library root, the last set file, and the active slot.
-- **At launch**: the last set reopens, but **nothing is sent** to the TB-3. Every slot shows a
-  "not sent since opening" mark until it's recalled. The editor shows the last active slot.
+- **At launch**: the last set reopens, but **nothing is sent** to the TB-3. The editor shows the
+  last active slot. (A "not sent since opening" mark per slot was tried and dropped.)
 - **Unsaved slot edits survive quitting**: the whole session is kept in the app's local storage
   (written shortly after each change and on quit) and restored on the next launch, still marked
   as modified.

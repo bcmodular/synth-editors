@@ -1,7 +1,8 @@
 // Sidebar PATCH (what the editor shows, save as .syx), SET (the open set's 16 slots and its
 // file buttons) and MORPH (target slot, amount, send rate).
-//   click: recall · Option + hold: audition · double-click: rename · right-click: menu
-//   STORE, then click: store the active patch · drop a patch from the browser: load into slot
+//   click a filled slot: recall · click an empty slot: store the patch in the editor there
+//   DELETE, then click: clear · GRAB (or Option), then hold: audition · double-click: rename
+//   right-click: menu · drop a patch from the browser: load into slot
 import { useState } from "react";
 import type { DragEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { Patch } from "../core/patch";
@@ -25,11 +26,13 @@ export function PatchBlock(p: { session: Session; actions: SetActions; hasLibrar
   // Under the name: the patch being auditioned (the editor shows it until release), or a slot prompt.
   const [lbl, line] = s.previewName
     ? ["AUDITION", s.previewName]
-    : s.mode === "store"
-      ? ["STORE", "Click a slot to store it. Esc cancels."]
-      : s.mode === "target"
-        ? ["MORPH", "Click a slot to morph towards. Esc cancels."]
-        : ["AUDITION", null];
+    : s.mode === "delete"
+      ? ["DELETE", "Click slots to clear them. Esc ends."]
+      : s.mode === "grab"
+        ? ["GRAB", "Hold a slot to audition it. Esc ends."]
+        : s.mode === "target"
+          ? ["MORPH", "Click a slot to morph towards. Esc cancels."]
+          : ["AUDITION", null];
   return (
     <Section
       title="PATCH"
@@ -53,7 +56,7 @@ export function PatchBlock(p: { session: Session; actions: SetActions; hasLibrar
       <div className={`nowline ${s.previewName ? "audition" : ""}`}>
         <span className="lbl">{lbl}</span>
         <span className={`v ${line ? "" : "dim"}`} title={line ?? undefined}>
-          {line ?? "hold ▶ in the library, or Option-click a slot"}
+          {line ?? "hold ▶ in the library, or GRAB a slot"}
         </span>
       </div>
     </Section>
@@ -66,7 +69,7 @@ export function SetBlock(p: {
   findPatch: (path: string) => Patch | undefined;
 }) {
   const s = p.session;
-  const { slots, active, unsent, setPath } = s.state;
+  const { slots, active, setPath } = s.state;
   const ask = useDialog();
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [dropOn, setDropOn] = useState<number | null>(null);
@@ -74,22 +77,37 @@ export function SetBlock(p: {
   const replaceOk = async (i: number) =>
     !slots[i] || (await confirmed(ask, `Replace slot ${i + 1}?`, `“${slots[i]!.name}” will be replaced.`));
 
-  const onClick = async (i: number, e: ReactMouseEvent) => {
-    if (e.altKey) return; // Option is audition
-    if (s.mode === "store") {
-      s.setMode(null);
-      if (await replaceOk(i)) s.store(i);
+  const onClick = (i: number, e: ReactMouseEvent) => {
+    if (e.altKey || s.mode === "grab") return; // audition, on pointer down
+    if (s.mode === "delete") {
+      if (slots[i]) s.clear(i); // stays in delete mode, like the TouchOSC panel
     } else if (s.mode === "target") {
       s.setMode(null);
       if (slots[i]) s.chooseMorphTarget(i);
     } else if (slots[i]) {
       s.recall(i);
+    } else if (s.activePatch) {
+      s.store(i);
     }
   };
 
+  const storeOver = async (i: number) => {
+    if (await replaceOk(i)) s.store(i);
+  };
+
+  const modeButton = (mode: "delete" | "grab", label: string, title: string) => (
+    <button
+      className={`btn mini mode-${mode} ${s.mode === mode ? "sel" : ""}`}
+      title={title}
+      onClick={() => s.setMode(s.mode === mode ? null : mode)}
+    >
+      {label}
+    </button>
+  );
+
   const onPointerDown = (i: number, e: ReactPointerEvent) => {
     const slot = slots[i];
-    if (!e.altKey || !slot || e.button !== 0) return;
+    if (!(e.altKey || s.mode === "grab") || !slot || e.button !== 0) return;
     e.preventDefault();
     s.preview(slot.patch, `slot:${i}`, slot.name);
     window.addEventListener("pointerup", () => s.endPreview(), { once: true });
@@ -115,44 +133,43 @@ export function SetBlock(p: {
       title="SET"
       className="patches"
       extra={
-        <button
-          className={`btn ${s.mode === "store" ? "sel blink" : ""}`}
-          disabled={!s.activePatch}
-          title="Store the patch in the editor into a slot of the set"
-          onClick={() => s.setMode(s.mode === "store" ? null : "store")}
-        >
-          STORE
-        </button>
+        <span className="row tight">
+          {modeButton("delete", "DELETE", "Then click slots to clear them")}
+          {modeButton("grab", "GRAB", "Then hold a slot to audition it (or Option-hold a slot)")}
+        </span>
       }
     >
-      <div className={`slots16 ${s.mode ? "armed" : ""}`}>
+      <div className={`slots16 ${s.mode ? `armed ${s.mode}` : ""}`}>
         {slots.map((slot, i) => {
           const cls = [
             "slot",
             slot ? "filled" : "",
             active === i ? "active" : "",
             s.modified[i] ? "modified" : "",
-            slot && unsent[i] ? "unsent" : "",
             s.previewKey === `slot:${i}` ? "preview" : "",
             s.morphTarget === i ? "target" : "",
             dropOn === i ? "drop" : "",
           ].join(" ");
-          const notes = [s.modified[i] && "unsaved edits", slot && unsent[i] && "not sent since opening"].filter(
-            Boolean,
-          );
           return (
             <button
               key={i}
               className={cls}
               title={
-                slot ? `${i + 1} · ${slot.name}${notes.length ? ` (${notes.join(", ")})` : ""}` : `${i + 1} · empty`
+                slot
+                  ? `${i + 1} · ${slot.name}${s.modified[i] ? " (unsaved edits)" : ""}`
+                  : `${i + 1} · empty${s.activePatch ? ": click to store the patch in the editor" : ""}`
               }
-              onClick={(e) => void onClick(i, e)}
+              onClick={(e) => onClick(i, e)}
               onPointerDown={(e) => onPointerDown(i, e)}
               onDoubleClick={() => slot && !s.mode && void rename(i)}
               onContextMenu={(e) =>
                 setMenu(
                   menuAt(e, [
+                    {
+                      label: slot ? "Replace with the patch in the editor…" : "Store the patch in the editor",
+                      onClick: () => void storeOver(i),
+                      disabled: !s.activePatch,
+                    },
                     { label: "Rename…", onClick: () => void rename(i), disabled: !slot },
                     {
                       label: "Save as .syx…",

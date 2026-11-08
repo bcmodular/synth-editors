@@ -641,7 +641,7 @@ svg .eqfill.cut {
   border-color: var(--led);
   color: var(--val);
 }
-/* Unsaved edits: amber corner. Not sent since opening: dim dot. */
+/* Unsaved edits: amber corner. */
 .slot.modified::after {
   content: "";
   position: absolute;
@@ -650,17 +650,6 @@ svg .eqfill.cut {
   width: 5px;
   height: 5px;
   background: var(--alt);
-}
-.slot.unsent::before {
-  content: "";
-  position: absolute;
-  bottom: 3px;
-  left: 50%;
-  margin-left: -2px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--dim);
 }
 .slot.preview {
   border-color: #fff;
@@ -677,6 +666,21 @@ svg .eqfill.cut {
 .slots16.armed .slot {
   cursor: pointer;
   border-style: dashed;
+}
+/* DELETE and GRAB (as on the TouchOSC panel): the mode's colour on its button and the filled slots */
+.btn.mode-delete.sel,
+.slots16.delete .slot.filled {
+  border-color: #e70000;
+  color: #ff6a5a;
+}
+.btn.mode-grab.sel,
+.slots16.grab .slot.filled {
+  border-color: #ff9500;
+  color: #ffb347;
+}
+.slots16.delete .slot:not(.filled),
+.slots16.grab .slot:not(.filled) {
+  cursor: default;
 }
 .btn.blink {
   animation: pulse 0.8s ease-in-out infinite;
@@ -708,6 +712,8 @@ svg .eqfill.cut {
 }
 /* PATCH: the name of the patch in the editor, large; under it the patch being auditioned, or a prompt */
 .patchname {
+  margin: 6px 0 2px;
+  padding-left: 10px;
   display: flex;
   align-items: baseline;
   gap: 8px;

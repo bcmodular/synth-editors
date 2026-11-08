@@ -18,10 +18,10 @@ export interface SessionState {
   active: number | null; // null = the unslotted buffer
   buffer: Patch | null;
   bufferName: string | null; // file the buffer was loaded from, if any
-  unsent: readonly boolean[]; // not sent to the TB-3 since the set was opened
 }
 
-export type SlotMode = "store" | "target" | null;
+// Slot click modes: delete clears, grab auditions while held, target picks the morph target.
+export type SlotMode = "delete" | "grab" | "target" | null;
 
 const STORAGE_KEY = "tb3.session";
 const RATE_KEY = "tb3.morphRate";
@@ -46,14 +46,12 @@ const fresh = (): SessionState => ({
   active: null,
   buffer: null,
   bufferName: null,
-  unsent: Array<boolean>(SLOT_COUNT).fill(true),
 });
 
 export const currentPatch = (s: SessionState): Patch | null =>
   s.active === null ? s.buffer : (s.slots[s.active]?.patch ?? null);
 
 const withSlot = (slots: Slots, i: number, slot: Slot | null): Slots => slots.map((s, j) => (j === i ? slot : s));
-const withFlag = (flags: readonly boolean[], i: number, v: boolean) => flags.map((f, j) => (j === i ? v : f));
 
 // --- Persistence: the whole session, unsaved edits included, survives quitting. --------------
 
@@ -138,9 +136,6 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     [queue, sendTb3],
   );
 
-  const markSent = (s: SessionState): SessionState =>
-    s.active === null || !s.unsent[s.active] ? s : { ...s, unsent: withFlag(s.unsent, s.active, false) };
-
   const replaceCurrent = (s: SessionState, p: Patch): SessionState =>
     s.active === null
       ? { ...s, buffer: p }
@@ -160,7 +155,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
       if (sent.current !== cur) sendPatch(cur);
       const next = fn(cur);
       sent.current = next;
-      commit(markSent(replaceCurrent(s, next)));
+      commit(replaceCurrent(s, next));
       queue.push(key, msg);
       if (morphBase.current) resetMorph(); // editing turns the blend into the active patch's edits
     },
@@ -172,7 +167,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
       const s = ref.current;
       const slot = s.slots[i];
       if (!slot) return;
-      commit(markSent({ ...s, active: i }));
+      commit({ ...s, active: i });
       sendPatch(slot.patch);
       resetMorph();
     },
@@ -207,8 +202,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     const cur = currentPatch(ref.current);
     if (!cur) return;
     sendPatch(cur);
-    commit(markSent(ref.current));
-  }, [commit, sendPatch]);
+  }, [sendPatch]);
 
   // Sync from TB-3: the TB-3's patch becomes the unslotted buffer.
   const fromTb3 = useCallback(
@@ -225,8 +219,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     if (!cur) return;
     sent.current = null; // force every block
     sendPatch(cur);
-    commit(markSent(ref.current));
-  }, [commit, sendPatch]);
+  }, [sendPatch]);
 
   const store = useCallback(
     (i: number) => {
@@ -238,7 +231,6 @@ export function useSession(sendTb3: (msg: number[]) => void) {
         ...s,
         slots: withSlot(s.slots, i, { name, patch: cur }),
         active: i,
-        unsent: withFlag(s.unsent, i, sent.current !== cur),
       });
     },
     [commit],
@@ -249,7 +241,7 @@ export function useSession(sendTb3: (msg: number[]) => void) {
       const s = ref.current;
       // Replacing the active slot leaves what it held in the buffer, so the editor keeps showing it.
       const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch, bufferName: s.slots[i]!.name } : {};
-      commit({ ...s, ...keep, slots: withSlot(s.slots, i, slot), unsent: withFlag(s.unsent, i, true) });
+      commit({ ...s, ...keep, slots: withSlot(s.slots, i, slot) });
     },
     [commit],
   );

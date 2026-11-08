@@ -79,7 +79,7 @@ those blocks through a typed parameter table. This replaces the TouchOSC split b
 
 ### Phase 3 — Patch library, slots and sets
 - See [docs/tb3-phase3-design.md](docs/tb3-phase3-design.md): a browsable folder of .syx patches,
-  16 slots per self-contained set file, STORE, hold-to-audition, preset morph to a slot,
+  16 slots per self-contained set file, click-empty-to-store, DELETE / GRAB modes, preset morph to a slot,
   unsaved edits kept across launches.
 
 ### Phase 4 — Controllers

@@ -1,440 +1,235 @@
 // Patch session: the open set's 16 slots, the active patch (a slot, or the unslotted buffer),
-// what the TB-3 currently holds, preview/grab, STORE and morph. See docs/tb3-phase3-design.md.
+// preview/grab, STORE and morph. See docs/tb3-phase3-design.md.
 //
-// The TB-3's state is tracked in `sent`: every recall, preview and morph sends only the blocks
-// that differ from it. Edits send single params through the edit queue, but first bring the
-// TB-3 in line if it doesn't hold the edited patch yet (after startup or a preview).
+// The state rules are plain functions in sessionState.ts; the TB-3 side (what it holds, diffed
+// sends, the morph pump) is in useTb3Link.ts. This hook wires the two to React.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { applyRun, blocksToSysex, diffBlocks, morph, morphRuns, patchToSysex, runToSysex } from "../core/patch";
 import type { Patch } from "../core/patch";
-import { SLOT_COUNT, emptySlots, patchFromHex, patchToHex, slotKey } from "../core/patchSet";
 import type { Slot, Slots } from "../core/patchSet";
-import { createEditQueue } from "./editQueue";
+import { persistSession, restoreSession } from "./sessionPersist";
+import * as rules from "./sessionState";
+import type { MorphState, SessionState } from "./sessionState";
+import { useTb3Link } from "./useTb3Link";
 
-export interface SessionState {
-  setPath: string | null; // library-relative path of the open set; null = never saved
-  slots: Slots;
-  savedKeys: readonly string[]; // slotKey of each slot as last opened or saved
-  active: number | null; // null = the unslotted buffer
-  buffer: Patch | null;
-  bufferName: string | null; // file the buffer was loaded from, if any
-}
+export type { SessionState } from "./sessionState";
+export { currentPatch } from "./sessionState";
+export { MORPH_RATES } from "./sessionPersist";
 
 // Slot click modes: delete clears, grab auditions while held, target picks the morph target.
 export type SlotMode = "delete" | "grab" | "target" | null;
 
-const STORAGE_KEY = "tb3.session";
-const RATE_KEY = "tb3.morphRate";
+type Link = ReturnType<typeof useTb3Link>;
 
-// Morph sends are capped in changed bytes per second: a fast move between patches that differ a
-// lot can otherwise flood the TB-3 until it stops playing. The editor follows the fader at once;
-// the TB-3 catches up at the capped rate, latest values only.
-export const MORPH_RATES = [10, 20, 30, 50, 75, 100, 150, 200, 300, 500] as const;
-const DEFAULT_RATE = 100;
-const PUMP_MS = 20;
-const BURST_S = 0.2; // the bucket holds at most this many seconds of budget
-
-function restoreRate(): number {
-  const v = Number(localStorage.getItem(RATE_KEY));
-  return (MORPH_RATES as readonly number[]).includes(v) ? v : DEFAULT_RATE;
-}
-
-const fresh = (): SessionState => ({
-  setPath: null,
-  slots: emptySlots(),
-  savedKeys: Array<string>(SLOT_COUNT).fill(""),
-  active: null,
-  buffer: null,
-  bufferName: null,
-});
-
-export const currentPatch = (s: SessionState): Patch | null =>
-  s.active === null ? s.buffer : (s.slots[s.active]?.patch ?? null);
-
-const withSlot = (slots: Slots, i: number, slot: Slot | null): Slots => slots.map((s, j) => (j === i ? slot : s));
-
-// --- Persistence: the whole session, unsaved edits included, survives quitting. --------------
-
-interface Stored {
-  setPath: string | null;
-  slots: ({ name: string; hex: string } | null)[];
-  savedKeys: string[];
-  active: number | null;
-  buffer: string | null;
-  bufferName?: string | null;
-}
-
-function restore(): SessionState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return fresh();
-    const s = JSON.parse(raw) as Stored;
-    return {
-      ...fresh(),
-      setPath: s.setPath,
-      slots: s.slots.map((x) => x && { name: x.name, patch: patchFromHex(x.hex) }),
-      savedKeys: s.savedKeys,
-      active: s.active,
-      buffer: s.buffer ? patchFromHex(s.buffer) : null,
-      bufferName: s.bufferName ?? null,
-    };
-  } catch {
-    return fresh(); // unreadable recovery data: start clean rather than fail to open
-  }
-}
-
-function persist(s: SessionState) {
-  const stored: Stored = {
-    setPath: s.setPath,
-    slots: s.slots.map((x) => x && { name: x.name, hex: patchToHex(x.patch) }),
-    savedKeys: [...s.savedKeys],
-    active: s.active,
-    buffer: s.buffer ? patchToHex(s.buffer) : null,
-    bufferName: s.bufferName,
-  };
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-  } catch {
-    // Recovery is best effort.
-  }
-}
-
-// --- Hook ------------------------------------------------------------------------------------
-
-export function useSession(sendTb3: (msg: number[]) => void) {
-  const [state, setState] = useState<SessionState>(restore);
+// State kept in a ref as well, so callbacks read the latest without re-binding.
+function useLatest<T>(initial: T | (() => T)) {
+  const [state, setState] = useState(initial);
   const ref = useRef(state);
-  const commit = useCallback((next: SessionState) => {
+  const commit = useCallback((next: T) => {
     ref.current = next;
     setState(next);
   }, []);
+  return { state, ref, commit };
+}
 
-  const queue = useMemo(() => createEditQueue(sendTb3), [sendTb3]);
-  const sent = useRef<Patch | null>(null); // what the TB-3 holds; null = unknown
-  const previewing = useRef(false);
-  const [previewing_, setPreviewing] = useState<{ key: string; name: string; patch: Patch } | null>(null);
-  const [mode, setMode] = useState<SlotMode>(null);
-  const [morphTarget, setMorphTarget] = useState<number | null>(null);
-  const [morphAmount, setMorphAmount] = useState(0);
-  const morphBase = useRef<Patch | null>(null);
-  const [morphRate, setMorphRateState] = useState(restoreRate);
-  const rate = useRef(morphRate);
-  // Rate-limited morph sends: `pumpTarget` is the latest blend, sent in byte runs from a token
-  // bucket. Rotating `cursor` keeps one busy block from starving the others.
-  const pumpTarget = useRef<Patch | null>(null);
-  const pump = useRef({ timer: undefined as ReturnType<typeof setInterval> | undefined, tokens: 0, last: 0, cursor: 0 });
+// The session survives quitting: saved shortly after each change, and on unload.
+function usePersistedSession() {
+  const store = useLatest<SessionState>(restoreSession);
+  const { state, ref } = store;
+  useEffect(() => {
+    const t = setTimeout(() => persistSession(state), 400);
+    return () => clearTimeout(t);
+  }, [state]);
+  useEffect(() => {
+    // Quitting or reloading inside the debounce window must not lose the last edits.
+    const flush = () => persistSession(ref.current);
+    window.addEventListener("beforeunload", flush);
+    return () => window.removeEventListener("beforeunload", flush);
+  }, [ref]);
+  return store;
+}
 
-  // Bring the TB-3 in line with `target`, sending only the blocks that differ.
-  const sendPatch = useCallback(
-    (target: Patch) => {
-      queue.flush();
-      pumpTarget.current = null; // a full send supersedes any morph catch-up
-      const keys = sent.current ? diffBlocks(sent.current, target) : null;
-      (keys ? blocksToSysex(target, keys) : patchToSysex(target)).forEach(sendTb3);
-      sent.current = target;
-    },
-    [queue, sendTb3],
-  );
+// Hold-to-audition (browser preview button, Option + slot): the editor shows the auditioned
+// patch, read only; release sends the active patch back.
+function usePreview(link: Link, active: () => Patch | null) {
+  const on = useRef(false);
+  const [shown, setShown] = useState<{ key: string; name: string; patch: Patch } | null>(null);
+  const { sendPatch } = link;
 
-  const replaceCurrent = (s: SessionState, p: Patch): SessionState =>
-    s.active === null
-      ? { ...s, buffer: p }
-      : { ...s, slots: withSlot(s.slots, s.active, { ...s.slots[s.active]!, patch: p }) };
-
-  const resetMorph = () => {
-    morphBase.current = null;
-    setMorphAmount(0);
-  };
-
-  // Apply an edit to the active patch; `msg` is its DT1, coalesced by `key` in the edit queue.
-  const edit = useCallback(
-    (fn: (p: Patch) => Patch, key: string, msg: number[]) => {
-      const s = ref.current;
-      const cur = currentPatch(s);
-      if (!cur || previewing.current) return; // the editor shows the auditioned patch: read only
-      if (sent.current !== cur) sendPatch(cur);
-      const next = fn(cur);
-      sent.current = next;
-      commit(replaceCurrent(s, next));
-      queue.push(key, msg);
-      if (morphBase.current) resetMorph(); // editing turns the blend into the active patch's edits
-    },
-    [commit, queue, sendPatch],
-  );
-
-  const recall = useCallback(
-    (i: number) => {
-      const s = ref.current;
-      const slot = s.slots[i];
-      if (!slot) return;
-      commit({ ...s, active: i });
-      sendPatch(slot.patch);
-      resetMorph();
-    },
-    [commit, sendPatch],
-  );
-
-  // Load a patch file into the unslotted buffer (not into the set) and send it.
-  const load = useCallback(
-    (p: Patch, name: string) => {
-      commit({ ...ref.current, active: null, buffer: p, bufferName: name });
-      sendPatch(p);
-      resetMorph();
-    },
-    [commit, sendPatch],
-  );
-
-  // Hold-to-audition (browser preview button, Option + slot): the editor shows the auditioned
-  // patch, read only; release sends the active patch back.
   const preview = useCallback(
     (p: Patch, key: string, name: string) => {
-      previewing.current = true;
-      setPreviewing({ key, name, patch: p });
+      on.current = true;
+      setShown({ key, name, patch: p });
       sendPatch(p);
     },
     [sendPatch],
   );
 
   const endPreview = useCallback(() => {
-    if (!previewing.current) return;
-    previewing.current = false;
-    setPreviewing(null);
-    const cur = currentPatch(ref.current);
-    if (!cur) return;
-    sendPatch(cur);
-  }, [sendPatch]);
+    if (!on.current) return;
+    on.current = false;
+    setShown(null);
+    const cur = active();
+    if (cur) sendPatch(cur);
+  }, [active, sendPatch]);
+
+  return { previewing: on, shown, preview, endPreview };
+}
+
+type SessionStore = ReturnType<typeof usePersistedSession>;
+type MorphStore = ReturnType<typeof useLatest<MorphState>>;
+
+// Morph and CLEAR. While previewing, the editor's patch changes but the TB-3 keeps the audition.
+function useMorph(session: SessionStore, morphs: MorphStore, link: Link, previewing: { current: boolean }) {
+  const { commit } = session;
+  const { sendPatch, pumpTo } = link;
+
+  const chooseMorphTarget = useCallback((i: number) => morphs.commit(rules.chooseMorphTarget(i)), [morphs]);
+
+  const clearMorph = useCallback(() => {
+    const { session: next, reverted } = rules.clearMorph(session.ref.current, morphs.ref.current);
+    morphs.commit(rules.noMorph);
+    if (!reverted) return;
+    commit(next);
+    if (!previewing.current) sendPatch(reverted);
+  }, [commit, morphs, previewing, sendPatch, session.ref]);
+
+  const setMorph = useCallback(
+    (amount: number) => {
+      const step = rules.morphStep(session.ref.current, morphs.ref.current, amount);
+      if (!step) return;
+      morphs.commit(step.morph);
+      commit(step.session);
+      if (!previewing.current) pumpTo(rules.currentPatch(step.session)!);
+    },
+    [commit, morphs, previewing, pumpTo, session.ref],
+  );
+
+  return { chooseMorphTarget, clearMorph, setMorph };
+}
+
+// Edits, recall, loading and sync: each changes the active patch and sends it.
+function usePatchActions(session: SessionStore, morphs: MorphStore, link: Link, previewing: { current: boolean }) {
+  const { ref, commit } = session;
+  const { sendPatch, sendEdit, holds } = link;
+  const restartMorph = useCallback(() => morphs.commit(rules.restartMorph(morphs.ref.current)), [morphs]);
+
+  // Apply an edit to the active patch; `msg` is its DT1, coalesced by `key` in the edit queue.
+  // Editing turns a morph blend into the active patch's edits.
+  const edit = useCallback(
+    (fn: (p: Patch) => Patch, key: string, msg: number[]) => {
+      const result = previewing.current ? null : rules.editCurrent(ref.current, fn); // previewing: read only
+      if (!result) return;
+      sendEdit(result.before, result.patch, key, msg);
+      commit(result.session);
+      if (morphs.ref.current.base) restartMorph();
+    },
+    [commit, morphs, previewing, ref, restartMorph, sendEdit],
+  );
+
+  const recall = useCallback(
+    (i: number) => {
+      const next = rules.recallSlot(ref.current, i);
+      if (!next) return;
+      commit(next);
+      sendPatch(rules.currentPatch(next)!);
+      restartMorph();
+    },
+    [commit, ref, restartMorph, sendPatch],
+  );
+
+  // Load a patch file into the unslotted buffer (not into the set) and send it.
+  const load = useCallback(
+    (p: Patch, name: string) => {
+      commit(rules.loadBuffer(ref.current, p, name));
+      sendPatch(p);
+      restartMorph();
+    },
+    [commit, ref, restartMorph, sendPatch],
+  );
 
   // Sync from TB-3: the TB-3's patch becomes the unslotted buffer.
   const fromTb3 = useCallback(
     (p: Patch) => {
-      sent.current = p;
-      commit({ ...ref.current, active: null, buffer: p, bufferName: null });
-      resetMorph();
+      holds(p);
+      commit(rules.loadBuffer(ref.current, p, null));
+      restartMorph();
     },
-    [commit],
+    [commit, holds, ref, restartMorph],
   );
 
-  const sendAll = useCallback(() => {
-    const cur = currentPatch(ref.current);
-    if (!cur) return;
-    sent.current = null; // force every block
-    sendPatch(cur);
-  }, [sendPatch]);
+  return { edit, recall, load, fromTb3 };
+}
 
-  const store = useCallback(
-    (i: number) => {
-      const s = ref.current;
-      const cur = currentPatch(s);
-      if (!cur) return;
-      const name = s.active !== null ? s.slots[s.active]!.name : (s.bufferName ?? "Untitled");
-      commit({
-        ...s,
-        slots: withSlot(s.slots, i, { name, patch: cur }),
-        active: i,
-      });
-    },
-    [commit],
-  );
+// STORE, Replace, DELETE, rename, and opening or saving a set: no sends.
+function useSetEdits(session: SessionStore, morphs: MorphStore) {
+  const { ref, commit } = session;
+  // Apply a rule that may decline (null): nothing changes then.
+  const apply = useCallback((next: SessionState | null) => next && commit(next), [commit]);
 
-  const loadIntoSlot = useCallback(
-    (i: number, slot: Slot) => {
-      const s = ref.current;
-      // Replacing the active slot leaves what it held in the buffer, so the editor keeps showing it.
-      const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch, bufferName: s.slots[i]!.name } : {};
-      commit({ ...s, ...keep, slots: withSlot(s.slots, i, slot) });
-    },
-    [commit],
-  );
+  const store = useCallback((i: number) => apply(rules.storeSlot(ref.current, i)), [apply, ref]);
+  const loadIntoSlot = useCallback((i: number, slot: Slot) => apply(rules.replaceSlot(ref.current, i, slot)), [apply, ref]);
+  const rename = useCallback((i: number, name: string) => apply(rules.renameSlot(ref.current, i, name)), [apply, ref]);
+  const markSaved = useCallback((path: string) => apply(rules.markSaved(ref.current, path)), [apply, ref]);
 
   const clear = useCallback(
     (i: number) => {
-      const s = ref.current;
-      const keep = s.active === i ? { active: null, buffer: s.slots[i]!.patch, bufferName: s.slots[i]!.name } : {};
-      commit({ ...s, ...keep, slots: withSlot(s.slots, i, null) });
-      if (morphTarget === i) setMorphTarget(null);
+      apply(rules.deleteSlot(ref.current, i));
+      morphs.commit(rules.morphAfterDelete(morphs.ref.current, i));
     },
-    [commit, morphTarget],
+    [apply, morphs, ref],
   );
 
-  const rename = useCallback(
-    (i: number, name: string) => {
-      const s = ref.current;
-      const slot = s.slots[i];
-      if (slot && name.trim()) commit({ ...s, slots: withSlot(s.slots, i, { ...slot, name: name.trim() }) });
-    },
-    [commit],
-  );
-
-  // Opening a set (or a new one) keeps the editor on the patch it was showing, as the buffer.
   const openSet = useCallback(
     (path: string | null, slots: Slots) => {
-      const s = ref.current;
-      commit({
-        ...fresh(),
-        setPath: path,
-        slots,
-        savedKeys: slots.map(slotKey),
-        buffer: currentPatch(s),
-        bufferName: s.active === null ? s.bufferName : s.slots[s.active]!.name,
-      });
-      setMorphTarget(null);
-      resetMorph();
+      apply(rules.openSet(ref.current, path, slots));
+      morphs.commit(rules.noMorph);
     },
-    [commit],
+    [apply, morphs, ref],
   );
 
-  const markSaved = useCallback(
-    (path: string) => commit({ ...ref.current, setPath: path, savedKeys: ref.current.slots.map(slotKey) }),
-    [commit],
-  );
+  return { store, loadIntoSlot, clear, rename, openSet, markSaved };
+}
 
-  const stopPump = useCallback(() => {
-    clearInterval(pump.current.timer);
-    pump.current.timer = undefined;
-  }, []);
-
-  const tick = useCallback(() => {
-    const target = pumpTarget.current;
-    const from = sent.current;
-    if (!target || !from) {
-      if (target) sendPatch(target); // TB-3 state unknown: one full send
-      return stopPump();
-    }
-    const pm = pump.current;
-    const now = performance.now();
-    const cap = Math.max(1, rate.current * BURST_S);
-    pm.tokens = Math.min(cap, pm.tokens + ((now - pm.last) / 1000) * rate.current);
-    pm.last = now;
-    const runs = morphRuns(from, target);
-    if (!runs.length) {
-      sent.current = target; // caught up: keep identity so edits don't resend
-      pumpTarget.current = null;
-      return stopPump();
-    }
-    // Whole blocks first, in order; then the byte runs, rotating.
-    const whole = runs.filter((r) => r.whole);
-    const parts = runs.filter((r) => !r.whole);
-    const order = [...whole, ...parts.map((_, n) => parts[(pm.cursor + n) % parts.length]!)];
-    let p = from;
-    for (let n = 0; n < order.length; n++) {
-      const run = order[n]!;
-      // A run bigger than the whole bucket still goes once the bucket is full.
-      if (pm.tokens < Math.min(run.data.length, cap)) {
-        if (parts.length) pm.cursor = (pm.cursor + Math.max(0, n - whole.length)) % parts.length;
-        break;
-      }
-      sendTb3(runToSysex(run));
-      p = applyRun(p, run);
-      pm.tokens -= run.data.length;
-    }
-    sent.current = p;
-  }, [sendPatch, sendTb3, stopPump]);
-
-  const startPump = useCallback(() => {
-    const pm = pump.current;
-    if (pm.timer !== undefined) return;
-    queue.flush();
-    pm.last = performance.now();
-    tick(); // send what the bucket allows straight away
-    if (pumpTarget.current) pm.timer = setInterval(tick, PUMP_MS);
-  }, [queue, tick]);
-
-  const setMorphRate = useCallback((r: number) => {
-    rate.current = r;
-    setMorphRateState(r);
-    try {
-      localStorage.setItem(RATE_KEY, String(r));
-    } catch {
-      // best effort
-    }
-  }, []);
-
-  // Morph: the base is the active patch when the fader first moves after choosing a target.
-  // Choosing another target keeps the blend in the editor as the active patch.
-  const chooseMorphTarget = useCallback((i: number) => {
-    setMorphTarget(i);
-    resetMorph();
-  }, []);
-
-  // CLEAR: drop the target and go back to the patch from before the morph. (To keep a blend,
-  // store or save it first; editing a control also makes it the active patch's edits.)
-  const clearMorph = useCallback(() => {
-    const base = morphBase.current;
-    setMorphTarget(null);
-    resetMorph();
-    if (!base) return;
-    commit(replaceCurrent(ref.current, base));
-    if (!previewing.current) sendPatch(base);
-  }, [commit, sendPatch]);
-
-  const setMorph = useCallback(
-    (amount: number) => {
-      const s = ref.current;
-      const target = morphTarget === null ? null : s.slots[morphTarget];
-      const cur = currentPatch(s);
-      if (!target || !cur) return;
-      morphBase.current ??= cur;
-      setMorphAmount(amount);
-      commit(replaceCurrent(s, morph(morphBase.current, target.patch, amount / 127)));
-      if (!previewing.current) {
-        pumpTarget.current = currentPatch(ref.current);
-        startPump();
-      }
-    },
-    [commit, morphTarget, startPump],
-  );
-
-  useEffect(() => {
-    const t = setTimeout(() => persist(state), 400);
-    return () => clearTimeout(t);
-  }, [state]);
-
-  // Quitting or reloading inside the debounce window must not lose the last edits.
-  useEffect(() => {
-    const flush = () => persist(ref.current);
-    window.addEventListener("beforeunload", flush);
-    return () => {
-      window.removeEventListener("beforeunload", flush);
-      clearInterval(pump.current.timer);
-    };
-  }, []);
-
-  const keys = useMemo(() => state.slots.map(slotKey), [state.slots]);
-  const modified = keys.map((k, i) => state.slots[i] !== null && k !== state.savedKeys[i]);
-  const dirty = keys.some((k, i) => k !== state.savedKeys[i]);
+export function useSession(sendTb3: (msg: number[]) => void) {
+  const session = usePersistedSession();
+  const morphs = useLatest<MorphState>(rules.noMorph);
+  const link = useTb3Link(sendTb3);
+  const active = useCallback(() => rules.currentPatch(session.ref.current), [session.ref]);
+  const { previewing, shown, preview, endPreview } = usePreview(link, active);
+  const [mode, setMode] = useState<SlotMode>(null);
+  const { state } = session;
+  const { modified, dirty } = useMemo(() => rules.saveStatus(state), [state]);
+  const { sendAll: sendAllOf } = link;
+  const sendAll = useCallback(() => {
+    const cur = active();
+    if (cur) sendAllOf(cur);
+  }, [active, sendAllOf]);
+  const patchActions = usePatchActions(session, morphs, link, previewing);
+  const setEdits = useSetEdits(session, morphs);
+  const morphActions = useMorph(session, morphs, link, previewing);
 
   return {
     state,
-    patch: previewing_?.patch ?? currentPatch(state), // what the editor shows
-    activePatch: currentPatch(state),
-    currentName: state.active === null ? state.bufferName : (state.slots[state.active]?.name ?? null),
-    previewKey: previewing_?.key ?? null,
-    previewName: previewing_?.name ?? null,
+    patch: shown?.patch ?? rules.currentPatch(state), // what the editor shows
+    activePatch: rules.currentPatch(state),
+    currentName: rules.currentName(state),
+    previewKey: shown?.key ?? null,
+    previewName: shown?.name ?? null,
     modified,
     dirty,
     mode,
     setMode,
-    morphTarget,
-    morphAmount,
-    morphRate,
-    setMorphRate,
-    push: queue.push, // sends outside the patch (global tuning), coalesced like edits
-    edit,
-    recall,
-    load,
+    morphTarget: morphs.state.target,
+    morphAmount: morphs.state.amount,
+    morphRate: link.morphRate,
+    setMorphRate: link.setMorphRate,
+    push: link.push, // sends outside the patch (global tuning), coalesced like edits
     preview,
     endPreview,
-    fromTb3,
     sendAll,
-    store,
-    loadIntoSlot,
-    clear,
-    rename,
-    openSet,
-    markSaved,
-    chooseMorphTarget,
-    clearMorph,
-    setMorph,
+    ...patchActions,
+    ...setEdits,
+    ...morphActions,
   };
 }
 

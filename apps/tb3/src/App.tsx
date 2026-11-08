@@ -29,11 +29,13 @@ import type { Session } from "./editor/useSession";
 import { useSetActions } from "./editor/useSetActions";
 import { useTb3Midi } from "./editor/useTb3Midi";
 import { DialogHost } from "./ui/Dialog";
+import { TooltipLayer } from "./ui/Tooltip";
 
 export function App() {
   return (
     <DialogHost>
       <EditorApp />
+      <TooltipLayer />
     </DialogHost>
   );
 }

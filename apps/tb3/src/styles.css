@@ -855,6 +855,20 @@ svg .eqfill.cut {
 }
 
 /* Context menu and dialogs (fixed, positioned in zoomed px) */
+/* Hover tooltips (ui/Tooltip.tsx): in <body>, outside the zoomed editor */
+.tooltip {
+  position: fixed;
+  z-index: 80;
+  max-width: 300px;
+  padding: 4px 8px;
+  background: #2a2b30;
+  border: 1px solid var(--rule);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  color: #e8e9ec;
+  font: 12px -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: pre-line;
+  pointer-events: none;
+}
 .ctxmenu {
   position: fixed;
   z-index: 50;

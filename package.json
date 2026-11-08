@@ -9,6 +9,8 @@
   "scripts": {
     "dev:tb3": "npm run dev -w @synth-editors/tb3",
     "test": "vitest run",
+    "test:e2e": "npm run e2e -w @synth-editors/tb3",
+    "test:tb3": "npm run e2e:hw -w @synth-editors/tb3",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {

@@ -5,3 +5,7 @@ out/
 
 # Third-party patches used as local-only test fixtures
 fixtures/local/
+
+# Playwright output
+test-results/
+playwright-report/

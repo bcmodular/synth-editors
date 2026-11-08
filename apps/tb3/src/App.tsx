@@ -29,6 +29,7 @@ import { useSession } from "./editor/useSession";
 import type { Session } from "./editor/useSession";
 import { useSetActions } from "./editor/useSetActions";
 import { useTb3Midi } from "./editor/useTb3Midi";
+import { useUndoKeys } from "./editor/useUndoKeys";
 import { DialogHost } from "./ui/Dialog";
 import { TooltipLayer } from "./ui/Tooltip";
 
@@ -77,6 +78,8 @@ function EditorApp() {
     return () => window.removeEventListener("keydown", onKey);
   }, [armed, session]);
 
+  useUndoKeys(session);
+
   useEffect(() => {
     if (!error) return;
     const t = setTimeout(() => setError(null), 6000);
@@ -90,14 +93,19 @@ function EditorApp() {
 
   const editor = useMemo<Editor>(() => {
     const setParamDef = (def: ParamDef, raw: number) =>
-      session.edit((p) => setRaw(p, def, raw), def.id, encodeParam(def, raw));
+      session.edit((p) => setRaw(p, def, raw), def.id, encodeParam(def, raw), def.name);
     return {
       patch,
       setParam: (id, raw) => setParamDef(paramById(id), raw),
       setEfxType: (efx: EfxNum, type: number) =>
-        session.edit((p) => setEfxType(p, efx, type), `efx:${efx}:0`, encodeEfxByte(efx, 0, type)),
+        session.edit((p) => setEfxType(p, efx, type), `efx:${efx}:0`, encodeEfxByte(efx, 0, type), `EFX${efx} TYPE`),
       setEfxByte: (efx: EfxNum, offset: number, raw: number) =>
-        session.edit((p) => setEfxRaw(p, efx, offset, raw), `efx:${efx}:${offset}`, encodeEfxByte(efx, offset, raw)),
+        session.edit(
+          (p) => setEfxRaw(p, efx, offset, raw),
+          `efx:${efx}:${offset}`,
+          encodeEfxByte(efx, offset, raw),
+          `EFX${efx} edit`,
+        ),
       armed,
       arm: setArmed,
       assignTo: (def) => {
@@ -138,7 +146,12 @@ function EditorApp() {
         </aside>
         <div className="editor">
           <div className="strip">
-            <Tb3Block midi={midi} hasPatch={Boolean(session.activePatch)} onSyncTo={session.sendAll} />
+            <Tb3Block
+              midi={midi}
+              hasPatch={Boolean(session.activePatch)}
+              onSyncTo={session.sendAll}
+              history={session}
+            />
             <PerformBlock tuning={tuning} onTuning={changeTuning} connected={midi.connected} />
             <PortaBendSection />
             <AssignBlock />

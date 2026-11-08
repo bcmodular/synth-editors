@@ -5,8 +5,9 @@ What's left for the patch library, slots and sets. The design is in
 
 ## Features
 
-- [ ] **Undo history** (with redo): slot DELETE, Replace, CLEAR on a morph, parameter edits. This
-      is why DELETE no longer asks first.
+- [x] **Undo history** (with redo): slot DELETE, Replace, CLEAR on a morph, parameter edits (and
+      STORE and rename). This is why DELETE no longer asks first. ⌘Z / ⇧⌘Z or UNDO / REDO in the
+      TB-3 block; see the design's Undo history section.
 
 ## Parked
 

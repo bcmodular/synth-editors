@@ -10,7 +10,39 @@ import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
 
-export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boolean }) {
+// UNDO / REDO; hovering names the step.
+export interface UndoControls {
+  undo: () => void;
+  redo: () => void;
+  undoLabel: string | null;
+  redoLabel: string | null;
+}
+
+function UndoButtons(p: { history: UndoControls }) {
+  const h = p.history;
+  return (
+    <>
+      <button
+        className="btn mini"
+        disabled={!h.undoLabel}
+        title={h.undoLabel ? `Undo ${h.undoLabel} (⌘Z)` : "Nothing to undo"}
+        onClick={h.undo}
+      >
+        UNDO
+      </button>
+      <button
+        className="btn mini"
+        disabled={!h.redoLabel}
+        title={h.redoLabel ? `Redo ${h.redoLabel} (⇧⌘Z)` : "Nothing to redo"}
+        onClick={h.redo}
+      >
+        REDO
+      </button>
+    </>
+  );
+}
+
+export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boolean; history: UndoControls }) {
   const [open, setOpen] = useState(false);
   const { sync } = p.midi;
   const status = p.midi.error
@@ -27,9 +59,12 @@ export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boo
       title="TB-3"
       className="tb3"
       extra={
-        <button className="btn" onClick={() => setOpen((o) => !o)}>
-          MIDI
-        </button>
+        <span className="row tight">
+          <UndoButtons history={p.history} />
+          <button className="btn" onClick={() => setOpen((o) => !o)}>
+            MIDI
+          </button>
+        </span>
       }
     >
       <button className={`btn wide ${p.hasPatch ? "" : "pulse"}`} onClick={p.midi.syncFromTb3}>

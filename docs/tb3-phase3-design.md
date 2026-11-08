@@ -112,6 +112,25 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - The morph result is a temporary blend. Editing a control, or saving, turns it into the active
   slot's edits.
 
+## Undo history
+
+- **What can be undone**: DELETE, Replace (a library patch dropped on a slot, or Replace from a
+  slot's menu), STORE into an empty slot, rename, morph CLEAR and parameter edits. Not
+  undoable: recall, loading a file, SYNC from the TB-3 and auditioning, since they only change
+  which patch is shown. Morph fader moves aren't undoable either while morph is experimental.
+- **Each step is a snapshot** of the slots, the active slot, the unslotted buffer and the morph
+  (target, amount, base), taken just before the action (`editor/undoHistory.ts`). It leaves out
+  the set's path and saved state, so undoing after a save still marks the slot modified.
+- **Edit grouping**: one fader drag or wheel run is one step. Consecutive edits to the same
+  param merge until another param is edited, another action happens, or 1 s passes.
+- **Sending**: undo and redo send the TB-3 only the blocks that changed. Both are off while
+  auditioning.
+- **Keys and buttons**: ⌘Z undoes, ⇧⌘Z redoes, except while a text field has focus (the search
+  box and dialogs keep their own text undo). UNDO and REDO buttons sit in the top strip; hovering
+  names the step, e.g. "Undo DELETE slot 3".
+- **Scope**: up to 100 steps, in memory only (not kept across quitting). A new action clears
+  redo. Opening or starting a set clears the history.
+
 ## Startup and persistence
 
 - The app remembers the library root, the last set file, and the active slot.

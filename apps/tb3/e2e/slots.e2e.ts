@@ -126,6 +126,68 @@ test("morph CLEAR goes back to the patch from before the morph", async () => {
   await expect(fader).toHaveClass(/disabled/); // no target any more
 });
 
+test("undo and redo a DELETE, from the keys and the buttons", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  await takeSent(page);
+  await sideButton(page, "patches", "DELETE").click();
+  await slot(page, 1).click();
+  await page.keyboard.press("Escape");
+  await expect(slot(page, 1)).not.toHaveClass(/filled/);
+  await page.keyboard.press("ControlOrMeta+z");
+  await expect(slot(page, 1)).toHaveClass(/filled/);
+  const historyButton = (label: string) => page.locator(".strip .tb3").getByRole("button", { name: label, exact: true });
+  const redo = historyButton("REDO");
+  await expect(redo).toHaveAttribute("title", "Redo DELETE slot 2 (⇧⌘Z)");
+  await redo.click();
+  await expect(slot(page, 1)).not.toHaveClass(/filled/);
+  await historyButton("UNDO").click();
+  await expect(slot(page, 1)).toHaveClass(/filled/);
+  expect(await takeSent(page)).toEqual(HW ? null : []); // the active patch never changed
+  await slot(page, 1).click();
+  await expectTb3(page, p.b, "slot 2, back after undo");
+});
+
+test("undo a run of edits to one param in one step, and redo it", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  const once = await editParam(page, p.a, "master_volume", "VOLUME");
+  const twice = await editParam(page, once, "master_volume", "VOLUME");
+  await expectTb3(page, twice, "slot 1 with two edits");
+  await expect(slot(page, 0)).toHaveClass(/modified/);
+  await page.keyboard.press("ControlOrMeta+z");
+  await expectTb3(page, p.a, "slot 1 as saved");
+  await expect(slot(page, 0)).not.toHaveClass(/modified/);
+  await page.keyboard.press("ControlOrMeta+Shift+z");
+  await expectTb3(page, twice, "slot 1 with both edits again");
+});
+
+test("undo a morph CLEAR goes back to the blend", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  await sideButton(page, "morph", "PICK").click();
+  await slot(page, 1).click();
+  const fader = page.locator(".side .morph .hf").first();
+  const box = (await fader.boundingBox())!;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + 4, y);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.6, y, { steps: 10 });
+  await page.mouse.up();
+  const amount = await fader.textContent();
+  await expect.poll(async () => diffBlocks(await readTb3(page), p.a).length, { timeout: 5000 }).toBeGreaterThan(0);
+  await page.waitForTimeout(1000); // let the rate-limited sends catch up
+  const blend = await readTb3(page);
+  await sideButton(page, "morph", "CLEAR").click();
+  await expectTb3(page, p.a, "slot 1 after CLEAR");
+  await page.keyboard.press("ControlOrMeta+z");
+  await expectTb3(page, blend, "the blend again");
+  await expect(fader).toHaveText(amount!);
+});
+
 test("relaunching reopens the set and sends nothing", async () => {
   await slot(t.page, 0).click();
   await expectTb3(t.page, t.patches.a, "slot 1");

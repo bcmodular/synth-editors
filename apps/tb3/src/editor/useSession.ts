@@ -9,6 +9,8 @@ import type { Slot, Slots } from "../core/patchSet";
 import { persistSession, restoreSession } from "./sessionPersist";
 import * as rules from "./sessionState";
 import type { MorphState, SessionState } from "./sessionState";
+import * as history from "./undoHistory";
+import type { History } from "./undoHistory";
 import { useTb3Link } from "./useTb3Link";
 
 export type { SessionState } from "./sessionState";
@@ -79,19 +81,21 @@ type SessionStore = ReturnType<typeof usePersistedSession>;
 type MorphStore = ReturnType<typeof useLatest<MorphState>>;
 
 // Morph and CLEAR. While previewing, the editor's patch changes but the TB-3 keeps the audition.
-function useMorph(session: SessionStore, morphs: MorphStore, link: Link, previewing: { current: boolean }) {
+function useMorph(session: SessionStore, morphs: MorphStore, link: Link, undo: UndoStore) {
   const { commit } = session;
+  const { previewing, remember } = undo;
   const { sendPatch, pumpTo } = link;
 
   const chooseMorphTarget = useCallback((i: number) => morphs.commit(rules.chooseMorphTarget(i)), [morphs]);
 
   const clearMorph = useCallback(() => {
     const { session: next, reverted } = rules.clearMorph(session.ref.current, morphs.ref.current);
+    if (reverted) remember("Morph CLEAR");
     morphs.commit(rules.noMorph);
     if (!reverted) return;
     commit(next);
     if (!previewing.current) sendPatch(reverted);
-  }, [commit, morphs, previewing, sendPatch, session.ref]);
+  }, [commit, morphs, previewing, remember, sendPatch, session.ref]);
 
   const setMorph = useCallback(
     (amount: number) => {
@@ -108,22 +112,25 @@ function useMorph(session: SessionStore, morphs: MorphStore, link: Link, preview
 }
 
 // Edits, recall, loading and sync: each changes the active patch and sends it.
-function usePatchActions(session: SessionStore, morphs: MorphStore, link: Link, previewing: { current: boolean }) {
+function usePatchActions(session: SessionStore, morphs: MorphStore, link: Link, undo: UndoStore) {
   const { ref, commit } = session;
+  const { previewing, remember } = undo;
   const { sendPatch, sendEdit, holds } = link;
   const restartMorph = useCallback(() => morphs.commit(rules.restartMorph(morphs.ref.current)), [morphs]);
 
-  // Apply an edit to the active patch; `msg` is its DT1, coalesced by `key` in the edit queue.
-  // Editing turns a morph blend into the active patch's edits.
+  // Apply an edit to the active patch; `msg` is its DT1, coalesced by `key` in the edit queue and
+  // in the undo history (`label` names the param there). Editing turns a morph blend into the
+  // active patch's edits.
   const edit = useCallback(
-    (fn: (p: Patch) => Patch, key: string, msg: number[]) => {
+    (fn: (p: Patch) => Patch, key: string, msg: number[], label: string) => {
       const result = previewing.current ? null : rules.editCurrent(ref.current, fn); // previewing: read only
       if (!result) return;
+      remember(label, key);
       sendEdit(result.before, result.patch, key, msg);
       commit(result.session);
       if (morphs.ref.current.base) restartMorph();
     },
-    [commit, morphs, previewing, ref, restartMorph, sendEdit],
+    [commit, morphs, previewing, ref, remember, restartMorph, sendEdit],
   );
 
   const recall = useCallback(
@@ -161,34 +168,102 @@ function usePatchActions(session: SessionStore, morphs: MorphStore, link: Link, 
 }
 
 // STORE, Replace, DELETE, rename, and opening or saving a set: no sends.
-function useSetEdits(session: SessionStore, morphs: MorphStore) {
+function useSetEdits(session: SessionStore, morphs: MorphStore, undo: UndoStore) {
   const { ref, commit } = session;
-  // Apply a rule that may decline (null): nothing changes then.
-  const apply = useCallback((next: SessionState | null) => next && commit(next), [commit]);
+  const { remember, forget } = undo;
+  // Apply a rule as an undoable step called `label`. A rule may decline (null): nothing changes then.
+  const apply = useCallback(
+    (label: string, next: SessionState | null) => {
+      if (!next) return;
+      remember(label);
+      commit(next);
+    },
+    [commit, remember],
+  );
+  const filled = useCallback((i: number) => ref.current.slots[i] !== null, [ref]);
 
-  const store = useCallback((i: number) => apply(rules.storeSlot(ref.current, i)), [apply, ref]);
-  const loadIntoSlot = useCallback((i: number, slot: Slot) => apply(rules.replaceSlot(ref.current, i, slot)), [apply, ref]);
-  const rename = useCallback((i: number, name: string) => apply(rules.renameSlot(ref.current, i, name)), [apply, ref]);
-  const markSaved = useCallback((path: string) => apply(rules.markSaved(ref.current, path)), [apply, ref]);
+  const store = useCallback(
+    (i: number) => apply(`${filled(i) ? "Replace" : "STORE"} slot ${i + 1}`, rules.storeSlot(ref.current, i)),
+    [apply, filled, ref],
+  );
+  const loadIntoSlot = useCallback(
+    (i: number, slot: Slot) => apply(`Replace slot ${i + 1}`, rules.replaceSlot(ref.current, i, slot)),
+    [apply, ref],
+  );
+  const rename = useCallback(
+    (i: number, name: string) => apply(`Rename slot ${i + 1}`, rules.renameSlot(ref.current, i, name)),
+    [apply, ref],
+  );
+  const markSaved = useCallback((path: string) => commit(rules.markSaved(ref.current, path)), [commit, ref]);
 
   const clear = useCallback(
     (i: number) => {
-      apply(rules.deleteSlot(ref.current, i));
+      if (!filled(i)) return;
+      apply(`DELETE slot ${i + 1}`, rules.deleteSlot(ref.current, i));
       morphs.commit(rules.morphAfterDelete(morphs.ref.current, i));
     },
-    [apply, morphs, ref],
+    [apply, filled, morphs, ref],
   );
 
   const openSet = useCallback(
     (path: string | null, slots: Slots) => {
-      apply(rules.openSet(ref.current, path, slots));
+      commit(rules.openSet(ref.current, path, slots));
       morphs.commit(rules.noMorph);
+      forget();
     },
-    [apply, morphs, ref],
+    [commit, forget, morphs, ref],
   );
 
   return { store, loadIntoSlot, clear, rename, openSet, markSaved };
 }
+
+// Undo and redo: snapshots taken by `remember` just before each undoable action. Off while
+// previewing (the editor shows the auditioned patch, read only).
+function useUndo(session: SessionStore, morphs: MorphStore, link: Link, previewing: { current: boolean }) {
+  const hist = useLatest<History>(history.emptyHistory);
+  const snapshot = useCallback(
+    () => history.takeSnapshot(session.ref.current, morphs.ref.current),
+    [morphs.ref, session.ref],
+  );
+
+  // `mergeKey`: edits to one param in quick succession are one step.
+  const remember = useCallback(
+    (label: string, mergeKey?: string) => {
+      const merge = mergeKey === undefined ? undefined : { key: mergeKey, at: performance.now() };
+      hist.commit(history.record(hist.ref.current, { label, before: snapshot(), merge }));
+    },
+    [hist, snapshot],
+  );
+
+  const forget = useCallback(() => hist.commit(history.emptyHistory), [hist]);
+
+  const { sendPatch } = link;
+  const travel = useCallback(
+    (go: typeof history.undo) => {
+      const r = previewing.current ? null : go(hist.ref.current, snapshot());
+      if (!r) return;
+      hist.commit(r.history);
+      const back = history.restoreSnapshot(session.ref.current, r.restore);
+      session.commit(back.session);
+      morphs.commit(back.morph);
+      const cur = rules.currentPatch(back.session);
+      if (cur) sendPatch(cur);
+    },
+    [hist, morphs, previewing, sendPatch, session, snapshot],
+  );
+
+  return {
+    previewing,
+    remember,
+    forget,
+    undo: useCallback(() => travel(history.undo), [travel]),
+    redo: useCallback(() => travel(history.redo), [travel]),
+    undoLabel: history.undoLabel(hist.state),
+    redoLabel: history.redoLabel(hist.state),
+  };
+}
+
+type UndoStore = ReturnType<typeof useUndo>;
 
 export function useSession(sendTb3: (msg: number[]) => void) {
   const session = usePersistedSession();
@@ -204,9 +279,10 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     const cur = active();
     if (cur) sendAllOf(cur);
   }, [active, sendAllOf]);
-  const patchActions = usePatchActions(session, morphs, link, previewing);
-  const setEdits = useSetEdits(session, morphs);
-  const morphActions = useMorph(session, morphs, link, previewing);
+  const undo = useUndo(session, morphs, link, previewing);
+  const patchActions = usePatchActions(session, morphs, link, undo);
+  const setEdits = useSetEdits(session, morphs, undo);
+  const morphActions = useMorph(session, morphs, link, undo);
 
   return {
     state,
@@ -227,6 +303,10 @@ export function useSession(sendTb3: (msg: number[]) => void) {
     preview,
     endPreview,
     sendAll,
+    undo: undo.undo,
+    redo: undo.redo,
+    undoLabel: undo.undoLabel, // the step undo would take back; null = nothing to undo
+    redoLabel: undo.redoLabel,
     ...patchActions,
     ...setEdits,
     ...morphActions,

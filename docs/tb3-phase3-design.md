@@ -66,9 +66,10 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 - **Edits are per slot**: each slot keeps its own unsaved edits in memory. Switching between slots
   never loses work, and edits are only written when the set is saved.
 - **DELETE and GRAB** (SET header, as on the TouchOSC panel): click to toggle the mode, Esc or a
-  second click ends it. The button and the filled slots take the mode's colour (red, orange).
-  In DELETE, clicking a slot clears it, with no question, and the mode stays on for more. In GRAB,
-  holding a slot auditions it; releasing returns to the active patch, like the browser's ▶.
+  second click ends it. The button and the filled slots take the mode's colour: red, or white for
+  grab like every audition (amber stays morph's). In DELETE, clicking a slot clears it, with no
+  question (an undo history is planned instead), and the mode stays on for more. In GRAB, holding
+  a slot auditions it; releasing returns to the active patch, like the browser's ▶.
   Option + hold a slot grabs without the mode. Both map onto Launchpad side buttons in Phase 4,
   where they are held rather than toggled.
 - **Double-click a slot**: rename it. The name is stored in the set; library files aren't touched.

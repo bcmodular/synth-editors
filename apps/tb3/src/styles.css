@@ -673,10 +673,20 @@ svg .eqfill.cut {
   border-color: #e70000;
   color: #ff6a5a;
 }
+/* Grab is white like every audition (morph keeps amber) */
 .btn.mode-grab.sel,
 .slots16.grab .slot.filled {
-  border-color: #ff9500;
-  color: #ffb347;
+  border-color: #e8e8e8;
+  color: #fff;
+}
+.slots16 .slot.preview {
+  background: #ffffff2e;
+}
+.btn.mode-delete.sel {
+  background: #2e0e0c;
+}
+.btn.mode-grab.sel {
+  background: #ffffff1f;
 }
 .slots16.delete .slot:not(.filled),
 .slots16.grab .slot:not(.filled) {
@@ -722,7 +732,7 @@ svg .eqfill.cut {
 .patchname .big {
   font-size: 26px;
   letter-spacing: 0.02em;
-  color: #fff;
+  color: var(--led);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

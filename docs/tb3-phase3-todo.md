@@ -32,6 +32,8 @@ TB3_PORT="H12MIDI-Pro Port 4" npm run test:tb3    # the real TB-3; puts its soun
 
 ## Code
 
+- [ ] Code health check with CodeScene (MCP) over `apps/tb3`, fixing the worst hotspots first, and
+      again on each change from here on.
 - [ ] Unit tests for the session logic (store, delete, grab, morph base and CLEAR). The end-to-end
       tests cover what reaches the TB-3; these would cover the state rules, and the pure parts
       need pulling out of `useSession` first, which the undo history needs anyway.

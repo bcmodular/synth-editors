@@ -87,6 +87,7 @@ export function LibraryBrowser(p: {
     onDragOver: (e: DragEvent) => {
       if (!e.dataTransfer.types.includes(MOVE_DRAG_TYPE)) return;
       e.preventDefault();
+      e.stopPropagation(); // the innermost folder wins over the tree (the root) around it
       e.dataTransfer.dropEffect = "move";
       setDropOn(dir);
     },
@@ -96,6 +97,7 @@ export function LibraryBrowser(p: {
       const from = e.dataTransfer.getData(MOVE_DRAG_TYPE);
       if (from) {
         e.preventDefault();
+        e.stopPropagation();
         move(from, dir);
       }
     },
@@ -176,6 +178,38 @@ export function LibraryBrowser(p: {
     );
   };
 
+  // The library folder itself: the top of the tree, a save folder and a drop target like any other.
+  const rootOpen = Boolean(q) || !collapsed.has("");
+  const rootRow = (root: string) => (
+    <div
+      className={`librow dir root ${p.folder === "" ? "current" : ""} ${dropOn === "" ? "drop" : ""}`}
+      style={{ paddingLeft: 8 }}
+      title={root}
+      onClick={() => {
+        p.onFolder("");
+        setCollapsed((c) => {
+          const n = new Set(c);
+          if (n.has("")) n.delete("");
+          else n.add("");
+          return n;
+        });
+      }}
+      onContextMenu={(ev) =>
+        setMenu(
+          menuAt(ev, [
+            { label: "New folder…", onClick: () => newFolder("") },
+            { label: "Reveal in Finder", onClick: () => void files?.reveal("") },
+          ]),
+        )
+      }
+      {...dropTarget("")}
+    >
+      <span className="twist">{rootOpen ? "▾" : "▸"}</span>
+      <span className="icon">▣</span>
+      <span className="name">{root.split("/").pop()}</span>
+    </div>
+  );
+
   return (
     <Section
       title="LIBRARY"
@@ -187,14 +221,6 @@ export function LibraryBrowser(p: {
       }
     >
       <div className="libbar">
-        <button
-          className={`libroot ${lib.root && p.folder === "" ? "current" : ""}`}
-          disabled={!lib.root}
-          title={lib.root ? `${lib.root}\nClick to save into the library's top folder` : undefined}
-          onClick={() => p.onFolder("")}
-        >
-          {lib.root ? lib.root.split("/").pop() : "No folder"}
-        </button>
         <input
           className="search"
           placeholder="Search"
@@ -213,10 +239,15 @@ export function LibraryBrowser(p: {
           <p className="status err">{lib.error}</p>
         ) : !lib.root ? (
           <p className="status">Choose a folder of TB-3 .syx patches to start.</p>
-        ) : tree.length ? (
-          tree.map((e) => row(e, 0))
         ) : (
-          <p className="status">{q ? "Nothing matches." : "This folder has no .syx patches or sets yet."}</p>
+          <>
+            {rootRow(lib.root)}
+            {!rootOpen ? null : tree.length ? (
+              tree.map((e) => row(e, 1))
+            ) : (
+              <p className="status">{q ? "Nothing matches." : "This folder has no .syx patches or sets yet."}</p>
+            )}
+          </>
         )}
       </div>
       <ContextMenu menu={menu} onClose={() => setMenu(null)} />

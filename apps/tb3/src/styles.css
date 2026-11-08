@@ -749,24 +749,8 @@ svg .eqfill.cut {
   gap: 6px;
   padding: 6px 0;
 }
-.libroot {
-  background: none;
-  border: 1px solid transparent;
-  padding: 1px 5px 0;
-  cursor: pointer;
-  font-size: 16px;
-  color: #e8e9ec;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.libroot:hover:not(:disabled) {
-  background: #202125;
-}
-.libroot.current {
-  background: #1e2a22;
-  border-color: #2e4a36;
+.librow.root .name {
+  font-weight: 600;
 }
 .nowline .folder {
   color: var(--dim);

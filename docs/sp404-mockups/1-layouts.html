@@ -1,0 +1,232 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SP-404 Desk Layouts</title>
+<style>
+:root{--bg:#0b0b0c;--panel:#141416;--panel2:#1a1b1e;--rule:#3a3b41;--edge:#2c2d32;--txt:#d4d5da;--dim:#8a8d96;
+--lcd:#0d1f12;--lcdtxt:#8ff0a4;--cap:#3ddc5a;--b1:#ff8a2a;--b2:#3ddc5a;--dry:#e8e8ea;--mute:#ff3b30;--well:#222327;
+--bankA:#7fc4ea;--bankB:#e6c27a;--bankC:#c9a3e6;--bankD:#8fdcc4;--sel:#ffffff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:12px "DIN Condensed","DIN Alternate","Avenir Next Condensed","Helvetica Neue",sans-serif;user-select:none}
+.top{padding:14px 20px 6px;font:13px -apple-system,sans-serif;color:var(--dim);max-width:1200px;line-height:1.45}
+.top h1{font:500 17px -apple-system,sans-serif;color:#fff;margin:0 0 4px}
+.tabs{display:flex;gap:6px;padding:6px 20px 10px}
+.tabs button{background:var(--panel2);color:var(--txt);border:1px solid var(--rule);padding:6px 12px;font:13px -apple-system,sans-serif;cursor:pointer}
+.tabs button.on{background:#fff;color:#000}
+.note{font:12.5px -apple-system,sans-serif;color:var(--dim);padding:0 20px 10px;max-width:1300px;line-height:1.45}
+.note b{color:#fff;font-weight:500}
+.app{width:1600px;height:980px;margin:0 20px 30px;background:var(--panel);border:1px solid var(--rule);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.bar{height:30px;display:flex;align-items:center;gap:14px;padding:0 12px;border-bottom:1px solid var(--edge);background:#101012;font-size:13px;letter-spacing:.06em;color:var(--dim)}
+.bar .logo{color:#fff;font-size:15px;letter-spacing:.12em}
+.bar .pill{border:1px solid var(--rule);padding:2px 8px}
+.bar .pill.on{border-color:var(--cap);color:var(--cap)}
+.bar .sp{flex:1}
+.lbl{font-size:11px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.h{font-size:13px;letter-spacing:.12em;color:#fff;text-transform:uppercase}
+/* ---------- FX ---------- */
+.fx{display:flex;gap:0;border-bottom:2px solid #000;background:var(--panel)}
+.bus{border-right:1px solid var(--edge);padding:8px 10px;display:flex;flex-direction:column;gap:7px;position:relative}
+.bus .hd{display:flex;align-items:center;gap:8px}
+.bus .num{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--rule);font-size:13px;color:#fff}
+.bus .name{flex:1;background:var(--lcd);color:var(--lcdtxt);padding:4px 7px;font-size:14px;letter-spacing:.05em;border:1px solid #000;cursor:pointer}
+.ring{border:2px solid var(--b1);color:var(--b1);padding:2px 7px;font-size:11px;letter-spacing:.08em;background:#000;border-radius:3px;cursor:pointer}
+.ring.off{opacity:.35}
+.ring.g{border-color:var(--b2);color:var(--b2)}
+.ring.w{border-color:var(--dry);color:var(--dry)}
+.ring.b{border-color:#4aa3ff;color:#4aa3ff}
+.knobs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 8px}
+.kn{display:flex;flex-direction:column;align-items:center;gap:2px}
+.kn i{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3a3b40,#1a1b1e 70%);border:1px solid #000;position:relative;display:block}
+.kn i::after{content:"";position:absolute;left:50%;top:3px;width:2px;height:12px;background:#fff;transform-origin:50% 14px;transform:translateX(-50%) rotate(var(--a,0deg))}
+.kn em{font-style:normal;font-size:12px;color:var(--lcdtxt)}
+.presets{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+.presets span{height:16px;background:#26272b;border:1px solid #000}
+.presets span.st{background:#3c5a8a}.presets span.act{background:#9cc6ff}
+.morph{display:flex;align-items:center;gap:6px}
+.morph .tr{flex:1;height:8px;background:var(--well);border:1px solid var(--edge);position:relative}
+.morph .tr i{position:absolute;left:0;top:0;bottom:0;width:30%;background:#d8a2ff}
+.exp{font-size:9px;color:#d8a2ff;border:1px solid #d8a2ff;padding:0 3px;letter-spacing:.06em}
+.side{padding:8px 10px;display:flex;flex-direction:column;gap:8px;min-width:150px}
+.scenes{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.scenes span{height:20px;background:#26272b;border:1px solid #000;font-size:10px;color:var(--dim);display:grid;place-items:center}
+.scenes span.st{background:#3a3020;color:#ffcf80}
+.flowarrow{color:var(--dim);font-size:18px;align-self:center;padding:0 2px}
+.grp{display:flex;flex-direction:column}
+.grp>.gt{font-size:10px;letter-spacing:.1em;color:var(--dim);padding:4px 10px 0;text-transform:uppercase}
+.grp>.gb{display:flex}
+/* ---------- MIXER ---------- */
+.mixer{flex:1;display:flex;min-height:0;position:relative;background:#111113}
+.mx-left{width:150px;border-right:1px solid var(--edge);padding:8px 10px;display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.desk{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;padding:0 4px}
+.bank{display:flex;border-right:2px solid #000;margin-right:2px}
+.bank>.strips{display:flex;flex-direction:column}
+.bank .btitle{height:18px;display:flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:.14em;color:#000;font-weight:600}
+.bank .row{display:flex;flex:1}
+.strip{width:41px;border-right:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0 6px;position:relative}
+.strip.sel{background:#1c1d20}
+.strip.play::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:#fff}
+.strip .pad{width:38px;text-align:center;font-size:12px;color:#000;font-weight:600;background:#ddd;padding:1px 0}
+.strip .nt{font-size:10px;color:var(--dim);letter-spacing:.03em}
+.strip .nm{width:40px;height:32px;background:var(--lcd);color:var(--lcdtxt);font-size:10px;line-height:10.5px;padding:2px 2px;border:1px solid #000;overflow:hidden;text-align:center;word-break:break-all}
+.ahr{width:40px;height:22px;background:#0d0d0f;border:1px solid var(--edge);cursor:pointer}
+.ahr polyline{fill:none;stroke:var(--lcdtxt);stroke-width:1.3}
+.mg{width:40px;height:16px;border:1px solid var(--rule);font-size:11px;display:grid;place-items:center;color:var(--dim)}
+.mg.on{color:#ffcf80;border-color:#8a6d3a}
+.rt{display:flex;flex-direction:column;gap:2px}
+.rt span{width:38px;height:15px;font-size:9.5px;letter-spacing:.06em;display:grid;place-items:center;border:1.5px solid;border-radius:2px;background:#000;opacity:.28}
+.rt span.on{opacity:1}
+.rt .r1{border-color:var(--b1);color:var(--b1)}.rt .r2{border-color:var(--b2);color:var(--b2)}.rt .rd{border-color:var(--dry);color:var(--dry)}
+.rtx{display:flex;width:40px;border:1.5px solid var(--rule);border-radius:2px;overflow:hidden}
+.rtx span{flex:1;height:15px;font-size:9.5px;display:grid;place-items:center;color:var(--dim);background:#000}
+.rtx span.on.r1{background:var(--b1);color:#000}.rtx span.on.r2{background:var(--b2);color:#000}.rtx span.on.rd{background:var(--dry);color:#000}
+.pan{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3a3b40,#1a1b1e 70%);border:1px solid #000;position:relative}
+.pan::after{content:"";position:absolute;left:50%;top:2px;width:2px;height:10px;background:#fff;transform-origin:50% 12px;transform:translateX(-50%) rotate(var(--a,0deg))}
+.pv{font-size:10px;color:var(--dim);margin-top:-3px}
+.mute{width:38px;height:17px;border:1px solid var(--rule);font-size:10px;letter-spacing:.06em;display:grid;place-items:center;color:var(--dim);background:#1d1e21}
+.mute.on{background:var(--mute);color:#000;border-color:var(--mute)}
+.fader{flex:1;width:40px;position:relative;min-height:120px}
+.fader .slot{position:absolute;left:50%;top:4px;bottom:4px;width:4px;transform:translateX(-50%);background:#000;border:1px solid #2a2a2e}
+.fader .fill{position:absolute;left:50%;bottom:4px;width:4px;transform:translateX(-50%);background:var(--cap);box-shadow:0 0 6px var(--cap)}
+.fader .scale{position:absolute;left:3px;top:4px;bottom:4px;width:6px;background:repeating-linear-gradient(to bottom,#555 0 1px,transparent 1px 10%)}
+.fader .knobcap{position:absolute;left:50%;width:30px;height:16px;transform:translate(-50%,50%);background:linear-gradient(#3a3b40,#18191c);border:1px solid #000;border-top:2px solid var(--cap);border-radius:2px}
+.fader.muted .fill{background:#2f6a3a;box-shadow:none}.fader.muted .knobcap{border-top-color:#2f6a3a}
+.lv{font-size:12px;color:var(--lcdtxt)}
+.strip.master{width:48px;background:#18191c}
+.strip.master .pad{background:#000;color:#fff;border:1px solid var(--rule)}
+.mx-right{width:96px;border-left:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:6px;background:var(--panel)}
+.meter{flex:1;display:flex;gap:6px}
+.meter i{width:10px;background:linear-gradient(to top,#3ddc5a 0 70%,#ffb020 70% 88%,#ff3b30 88%);position:relative;border:1px solid #000}
+.meter i::after{content:"";position:absolute;left:0;right:0;top:0;height:var(--h,40%);background:#0b0b0c}
+.btn{border:1px solid var(--rule);padding:4px 6px;text-align:center;font-size:11px;letter-spacing:.06em;color:var(--txt);background:#1d1e21;cursor:pointer}
+.btn.on{border-color:var(--cap);color:var(--cap)}
+/* keyboard overlay */
+.kbd{position:absolute;left:0;right:0;bottom:0;height:0;overflow:hidden;background:#0f1012;border-top:2px solid #d8a2ff;transition:height .25s;z-index:5;display:flex;flex-direction:column}
+.kbd.open{height:380px}
+.kbd .kh{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.keys{flex:1;display:flex;margin:4px 12px 12px;position:relative}
+.keys .w{flex:1;background:#e8e8ea;border:1px solid #000;border-radius:0 0 3px 3px}
+.keys .bk{position:absolute;top:0;width:2.2%;height:60%;background:#111;border:1px solid #000;border-radius:0 0 2px 2px}
+.compact .knobs{grid-template-columns:repeat(6,1fr)}
+.compact .kn i{width:26px;height:26px}
+.compact .kn i::after{height:9px;transform-origin:50% 10px}
+.legend{font:12px -apple-system,sans-serif;color:var(--dim);padding:0 20px 24px;max-width:1300px;line-height:1.5}
+.legend b{color:#fff;font-weight:500}
+
+/* ---- D ---- */
+.d .bus{gap:6px;padding:8px 10px 8px}
+.d .bus .name{font-size:15px}
+.view{height:150px;background:#0a0b0c;border:1px solid #000;position:relative}
+.view svg{width:100%;height:100%;display:block}
+.view .tag{position:absolute;right:5px;top:4px;font-size:9px;letter-spacing:.1em;color:var(--dim)}
+.view .grid line{stroke:#1f2226;stroke-width:1}
+.view .cv{fill:none;stroke-width:2}
+.view .ar{fill-opacity:.12;stroke:none}
+.d .knobs{gap:4px 6px}
+.d .kn i{width:40px;height:40px}
+.d .kn i::after{height:14px;transform-origin:50% 17px}
+.d .kn em{font-size:13px}
+.d .strip .fader{flex:0 0 112px;min-height:0}
+.d .strip{gap:3px}
+.d .mixer .scenes span{height:17px}
+.d .fx{flex:1 1 auto;min-height:0}.d .mixer{flex:0 0 auto}.d .grp>.gb{flex:1}.d .view{flex:1;height:auto;min-height:150px}.d .strip{width:40px}.d .strip.master{width:46px}.d .nm{width:38px}
+.fader .fill{background:var(--fc,var(--cap));box-shadow:0 0 5px var(--fc,var(--cap))}
+.fader .knobcap{border-top-color:var(--fc,var(--cap))}
+.chain{display:flex;align-items:center;gap:4px;font-size:10px;letter-spacing:.08em;color:var(--dim);padding:4px 10px 0}
+.chain b{color:#fff;font-weight:400;border:1px solid var(--rule);padding:0 4px}
+</style></head><body>
+<div class="top">
+<h1>SP-404 MK2 editor: desk layouts</h1>
+FX on top, pad mixer below, MX-1 cues. Window drawn at 1600 × 980. Pads are grouped by bank, and empty pads are hidden (here: A 12 pads, B 5, C 8, D 3 = 28 strips plus 4 bank masters). The bank colour runs across each group's title. Click <b>KEYBOARD</b> in the top bar to see the Launchkey panel slide over the mixer.
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="note" id="note"></div>
+<div class="app" id="app"></div>
+<div class="legend">
+<b>Strip, top to bottom (follows the signal flow sample → envelope → level → bank volume → bus):</b> pad label in bank colour · MIDI note and channel (from the app's MIDI Mode / note offset setting) · sample name (LCD) · AHR envelope thumbnail (click to edit Attack / Hold / Release) · mute group (– or A–J) · routing DRY / BUS 1 / BUS 2, in the device colours (white / orange / green) · pan knob (L50–R50) · MUTE (app-side: level to 0 and back) · level fader 0–127 · value.<br>
+<b>Bank master</b> (black label, right of each group): bank volume 0–127, which scales the whole bank on the device. A white line on top of a strip = that pad is sounding (status poll); a lighter strip = the pad selected on the unit.<br>
+<b>Not real yet:</b> every value is made up; the knobs, faders and buttons don't respond.
+</div>
+<script>
+const NAMES={A:["KICK 1","KICK 2","SNARE","RIM","CLAP","CH HAT","OH HAT","RIDE","TOM LO","TOM HI","SHAKER","CRASH"],B:["SUB BASS","303 LINE","REESE","PLUCK","BASS STAB"],C:["RHODES Cm","RHODES Fm","PAD WARM","CHORD 1","CHORD 2","BELL","ORGAN","STRINGS"],D:["VOX CHOP","AH","HEY"]};
+const BANKCOL={A:"var(--bankA)",B:"var(--bankB)",C:"var(--bankC)",D:"var(--bankD)"};
+const NOTE=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const BANKIDX={A:0,B:1,C:2,D:3};
+// MIDI mode B, note offset 0: bank A = 12..27 ordered 13-16, 9-12, 5-8, 1-4
+function noteFor(b,p){const base=12+16*(BANKIDX[b]%5);const row=Math.floor((p-1)/4),col=(p-1)%4;const n=base+(3-row)*4+col;return NOTE[n%12]+(Math.floor(n/12)-1)}
+function rnd(s){let x=Math.sin(s)*10000;return x-Math.floor(x)}
+function ahr(seed){const a=4+rnd(seed)*10,h=6+rnd(seed+1)*14,r=6+rnd(seed+2)*14;return `<svg class="ahr" viewBox="0 0 40 22"><polyline points="1,20 ${1+a},3 ${1+a+h},3 ${Math.min(39,1+a+h+r)},20"/></svg>`}
+function strip(b,p,i,route){const s=BANKIDX[b]*20+p;const lv=Math.round(60+rnd(s)*67);const pan=Math.round((rnd(s+3)-.5)*80);
+ const mg=(b==="A"&&(p===6||p===7))?"A":(b==="C"&&p<=2?"B":"–");const muted=(b==="B"&&p===3);
+ const r=["rd","r1","r2"][Math.floor(rnd(s+5)*3)];const sel=(b==="A"&&p===3)?" sel":"";const play=(b==="A"&&p===1)||(b==="C"&&p===3)?" play":"";
+ const routeHtml=route==="stack"?`<div class="rt"><span class="rd ${r==="rd"?"on":""}">DRY</span><span class="r1 ${r==="r1"?"on":""}">BUS 1</span><span class="r2 ${r==="r2"?"on":""}">BUS 2</span></div>`
+  :`<div class="rtx"><span class="rd ${r==="rd"?"on":""}">D</span><span class="r1 ${r==="r1"?"on":""}">1</span><span class="r2 ${r==="r2"?"on":""}">2</span></div>`;
+ const pos=muted?0:lv/127;
+ return `<div class="strip${sel}${play}"><div class="pad" style="background:${BANKCOL[b]}">${b}${p}</div><div class="nt">${noteFor(b,p)} ·ch1</div><div class="nm">${NAMES[b][i]}</div>${ahr(s)}<div class="mg ${mg!=="–"?"on":""}">MG ${mg}</div>${routeHtml}<div class="pan" style="--a:${pan*1.6}deg"></div><div class="pv">${pan===0?"C":(pan<0?"L"+(-pan):"R"+pan)}</div><div class="mute ${muted?"on":""}">MUTE</div><div class="fader ${muted?"muted":""}" style="--fc:${BANKCOL[b]}"><div class="scale"></div><div class="slot"></div><div class="fill" style="height:calc(${pos} * (100% - 8px))"></div><div class="knobcap" style="bottom:calc(4px + ${lv/127} * (100% - 8px))"></div></div><div class="lv">${muted?"("+lv+")":lv}</div></div>`}
+function master(b){const lv={A:127,B:110,C:96,D:120}[b];return `<div class="strip master"><div class="pad">BANK ${b}</div><div class="nt">&nbsp;</div><div class="nm" style="background:#000;color:#fff">BANK<br>VOL</div><div style="flex:0 0 120px"></div><div class="fader"><div class="scale"></div><div class="slot"></div><div class="fill" style="height:calc(${lv/127} * (100% - 8px));background:#fff;box-shadow:0 0 6px #fff"></div><div class="knobcap" style="bottom:calc(4px + ${lv/127} * (100% - 8px));border-top-color:#fff"></div></div><div class="lv" style="color:#fff">${lv}</div></div>`}
+function desk(route){let h='<div class="desk">';for(const b of ["A","B","C","D"]){h+=`<div class="bank"><div class="strips"><div class="btitle" style="background:${BANKCOL[b]}">BANK ${b}</div><div class="row">`;
+ const pads=b==="A"?[1,2,3,4,5,6,7,8,9,10,11,12]:b==="B"?[1,2,3,5,9]:b==="C"?[1,2,3,4,5,6,7,8]:[1,2,4];
+ pads.forEach((p,i)=>h+=strip(b,p,i,route));h+=master(b)+'</div></div></div>'}return h+'</div>'}
+const FXN=[["FILTER+DRIVE","on"],["SX DELAY","on"],["WRMSATURATOR","off"],["SX REVERB","on"],["VOCODER","off"]];
+const KNL={0:["CUTOFF","RESO","DRIVE","TYPE","LO FRQ","LO GAIN"],1:["TIME","FDBK","BAL","","",""],2:["DRIVE","EQ LO","EQ HI","LEVEL","",""],3:["TIME","TONE","BAL","","",""],4:["NOTE","FORMANT","TONE","SCALE","CHORD","BAL"]};
+const KNV={0:["1.2k","38","20","LPF","120","+3"],1:["1/8","42%","35%","","",""],2:["+12","+2","-1","80","",""],3:["62","+4","28%","","",""],4:["C3","+10","-5","MAJ","OFF","50%"]};
+function busMod(i,w,opts={}){const [n,st]=FXN[i];const lbl=["BUS 1","BUS 2","BUS 3","BUS 4","INPUT"][i];
+ let k='<div class="knobs">';KNL[i].forEach((l,j)=>{k+= l?`<div class="kn"><i style="--a:${(rnd(i*7+j)-.5)*260}deg"></i><span class="lbl">${l}</span><em>${KNV[i][j]}</em></div>`:`<div class="kn" style="opacity:.15"><i></i><span class="lbl">–</span><em>&nbsp;</em></div>`});k+='</div>';
+ let pr='<div class="presets">';for(let j=0;j<8;j++){pr+=`<span class="${j<5?(j===2?"act":"st"):""}"></span>`}pr+='</div>';
+ if(opts.compact){return `<div class="bus" style="width:${w}px;gap:5px"><div class="hd"><div class="num">${i<4?i+1:"IN"}</div><div class="name">${n}</div><div class="ring ${i===1||i===4?"g":""} ${st==="on"?"":"off"}">${st==="on"?"ON":"OFF"}</div></div>${k}
+ <div style="display:flex;gap:6px;align-items:center"><span class="lbl">${lbl}</span><div class="presets" style="flex:1">${pr.slice(21,-6)}</div></div>
+ <div style="display:flex;gap:4px;align-items:center"><div class="morph" style="flex:1"><span class="lbl">MRP</span><div class="tr"><i></i></div><span class="exp">EXP</span></div><span class="btn" style="padding:2px 4px">DEF</span><span class="btn" style="padding:2px 4px">GRB</span><span class="btn" style="padding:2px 4px">LCK</span><span class="btn" style="padding:2px 4px">SYN</span></div></div>`}
+ return `<div class="bus" style="width:${w}px"><div class="hd"><div class="num">${i<4?i+1:"IN"}</div><div class="name">${n}</div><div class="ring ${i===1||i===4?"g":""} ${st==="on"?"":"off"}">${st==="on"?"ON":"OFF"}</div></div>
+ <div class="lbl">${lbl}${i===2||i===3?" · MASTER":""}${i===4?" · INPUT FX":""}</div>${k}${opts.nopre?"":`<div class="lbl">PRESETS</div>${pr}`}
+ ${opts.nomorph?"":`<div class="morph"><span class="lbl">MORPH</span><div class="tr"><i></i></div><span class="exp">EXP</span></div>`}
+ <div style="display:flex;gap:4px"><span class="btn">DEFAULT</span><span class="btn">GRAB</span><span class="btn">LOCK</span><span class="btn">SYNC</span></div></div>`}
+function side(){let s='<div class="side"><div class="h">FX SCENES</div><div class="scenes">';for(let j=1;j<=16;j++)s+=`<span class="${[1,2,5,9].includes(j)?"st":""}">${j}</span>`;return s+'</div><div style="display:flex;gap:4px"><span class="btn">STORE</span><span class="btn">DEL</span></div></div>'}
+function mxLeft(){let s='<div class="mx-left"><div class="h">MIX SCENES</div><div class="scenes">';for(let j=1;j<=16;j++)s+=`<span class="${[1,2,3].includes(j)?"st":""}">${j}</span>`;
+ return s+`</div><div style="display:flex;gap:4px"><span class="btn">RECALL</span><span class="btn">STORE</span></div><div class="lbl" style="margin-top:8px">RECALL SAFE</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px"><span class="btn on">LEVEL</span><span class="btn on">PAN</span><span class="btn">ROUTE</span><span class="btn on">MUTE</span><span class="btn">MG</span><span class="btn">AHR</span></div>
+ <div class="lbl" style="margin-top:8px">PROJECT</div><div class="nm" style="width:auto;height:auto;font-size:12px;padding:4px">06 · LIVE SET</div>
+ <div class="lbl">SHOW</div><div style="display:flex;flex-wrap:wrap;gap:3px">${"ABCDEFGHIJ".split("").map(c=>`<span class="btn ${"ABCD".includes(c)?"on":""}" style="padding:2px 5px">${c}</span>`).join("")}</div></div>`}
+function mxRight(){return `<div class="mx-right"><div class="lbl">USB OUT</div><div class="meter"><i style="--h:35%"></i><i style="--h:42%"></i></div><div class="lbl">L &nbsp; R</div></div>`}
+function bar(){return `<div class="bar"><span class="logo">SP-404 MK2</span><span class="pill on">MIDI ● SP-404</span><span class="pill on">USB ● PROJECT 06</span><span class="pill">LAUNCHPAD</span><span class="sp"></span><span class="pill" id="kb" style="cursor:pointer">KEYBOARD</span><span class="pill">CC LEARN</span><span class="pill">SETTINGS</span></div>`}
+function kbd(){let w='';for(let i=0;i<29;i++)w+='<div class="w"></div>';let bk='';const pat=[1,1,0,1,1,1,0];let x=0;for(let i=0;i<28;i++){if(pat[i%7])bk+=`<div class="bk" style="left:calc(${(i+1)/29*100}% - 1.1%)"></div>`}
+ return `<div class="kbd" id="kbd"><div class="kh"><span class="h" style="color:#d8a2ff">KEYBOARD · INPUT FX: VOCODER</span><span class="ring b">GRAB</span><span class="lbl">Launchkey encoders 1–6 → NOTE · FORMANT · TONE · SCALE · CHORD · BAL</span><span style="flex:1"></span><span class="btn">OCT −</span><span class="btn">OCT +</span><span class="btn" id="kbx">CLOSE</span></div><div class="keys">${w}${bk}</div></div>`}
+
+const ACC=["#ff8a2a","#3ddc5a","#4aa3ff","#4aa3ff","#d8a2ff"];
+function gridSvg(){let g='<g class="grid">';for(let x=1;x<8;x++)g+=`<line x1="${x*35}" y1="0" x2="${x*35}" y2="150"/>`;for(let y=1;y<5;y++)g+=`<line x1="0" y1="${y*30}" x2="280" y2="${y*30}"/>`;return g+'</g>'}
+function viewFor(i){const c=ACC[i];let body='',tag='';
+ if(i===0){tag='FILTER + DRIVE · LPF 1.2 kHz · RESO 38';let pts=[];for(let x=0;x<=280;x+=4){const f=x/280;let y=70-(f<0.12?10:0);const fc=0.55;const d=f-fc;y+= d<0?-22*Math.exp(-((d/0.06)**2)):-22*Math.exp(-((d/0.06)**2))+ (d*d*900);pts.push(`${x},${Math.min(148,y).toFixed(1)}`)}
+  body=`<polyline class="cv" stroke="${c}" points="${pts.join(" ")}"/><polygon class="ar" fill="${c}" points="0,150 ${pts.join(" ")} 280,150"/><text x="6" y="144" fill="#555" font-size="9">20</text><text x="250" y="144" fill="#555" font-size="9">20k</text>`}
+ if(i===1){tag='SX DELAY · 1/8 · FEEDBACK 42%';let b='';for(let k=0;k<8;k++){const h=110*Math.pow(.62,k)*(k?1:1);const x=20+k*32;b+=`<rect x="${x}" y="${140-h}" width="8" height="${h}" fill="${c}" opacity="${k?0.9:0.5}"/>`}
+  body=b+`<line x1="0" y1="140" x2="280" y2="140" stroke="#333"/><text x="18" y="12" fill="#666" font-size="9">DRY</text>`}
+ if(i===2){tag='WRMSATURATOR · DRIVE +12 dB';let pts=[];for(let x=0;x<=280;x+=4){const v=(x-140)/140;const y=75-70*Math.tanh(v*2.6)/Math.tanh(2.6);pts.push(`${x},${y.toFixed(1)}`)}
+  body=`<line x1="0" y1="145" x2="280" y2="5" stroke="#333" stroke-dasharray="3 3"/><polyline class="cv" stroke="${c}" points="${pts.join(" ")}"/><text x="6" y="12" fill="#666" font-size="9">OUT</text><text x="250" y="144" fill="#666" font-size="9">IN</text>`}
+ if(i===3){tag='SX REVERB · TIME 62 · TONE +4';let pts=[];for(let x=0;x<=280;x+=3){const t=x/280;const y=150-125*Math.exp(-t*3.2)*(0.75+0.25*Math.abs(Math.sin(x*1.7)));pts.push(`${x},${y.toFixed(1)}`)}
+  body=`<polygon class="ar" fill="${c}" style="fill-opacity:.35" points="0,150 ${pts.join(" ")} 280,150"/><polyline class="cv" stroke="${c}" stroke-width="1" points="${pts.filter((_,j)=>j%4==0).join(" ")}"/>`}
+ if(i===4){tag='GENERIC';const L=KNL[4],V=KNV[4];let r='';L.forEach((l,j)=>{const f=0.2+rnd(j+40)*0.7;const y=12+j*23;r+=`<text x="6" y="${y+11}" fill="#8a8d96" font-size="10">${l}</text><rect x="70" y="${y+2}" width="170" height="11" fill="#1a1b1e"/><rect x="70" y="${y+2}" width="${170*f}" height="11" fill="${c}" opacity=".8"/><text x="246" y="${y+11}" fill="#cfd" font-size="10">${V[j]}</text>`});body=r}
+ return `<div class="view"><svg viewBox="0 0 280 150" preserveAspectRatio="none">${i<4?gridSvg():""}${body}</svg><span class="tag">${tag}</span></div>`}
+function busBig(i,w){const [n,st]=FXN[i];const lbl=["BUS 1","BUS 2","BUS 3 · MASTER","BUS 4 · MASTER","INPUT FX"][i];
+ let k='<div class="knobs">';KNL[i].forEach((l,j)=>{k+= l?`<div class="kn"><i style="--a:${(rnd(i*7+j)-.5)*260}deg"></i><span class="lbl">${l}</span><em>${KNV[i][j]}</em></div>`:`<div class="kn" style="opacity:.12"><i></i><span class="lbl">–</span><em>&nbsp;</em></div>`});k+='</div>';
+ let pr='<div class="presets">';for(let j=0;j<8;j++){pr+=`<span class="${j<5?(j===2?"act":"st"):""}"></span>`}pr+='</div>';
+ return `<div class="bus" style="width:${w}px"><div class="hd"><div class="num">${i<4?i+1:"IN"}</div><div class="name">${n}</div><div class="ring ${i===1||i===4?"g":""} ${st==="on"?"":"off"}">${st==="on"?"ON":"OFF"}</div></div>
+ <div class="lbl">${lbl}</div>${viewFor(i)}${k}<div style="display:flex;gap:6px;align-items:center"><span class="lbl">PRESETS</span><div style="flex:1">${pr}</div></div>
+ <div style="display:flex;gap:4px;align-items:center"><div class="morph" style="flex:1"><span class="lbl">MORPH</span><div class="tr"><i></i></div><span class="exp">EXP</span></div><span class="btn">DEF</span><span class="btn">GRAB</span><span class="btn">LOCK</span><span class="btn">SYNC</span></div></div>`}
+const LAYOUTS={
+A:{t:"A · Row of five",n:"<b>All five buses in one row across the top half</b>, each module identical: effect name (click to choose), ON, six knobs, 8 presets, morph (marked EXP), default / grab / lock / sync. FX scenes on the right. Mixer below with mix scenes on the left, desk in the middle, USB master meter on the right. Most even; the FX half is tall (≈300 px) so the faders are mid-length.",
+ html(){return bar()+`<div class="fx">${[0,1,2,3,4].map(i=>busMod(i,282)).join("")}${side()}</div><div class="mixer">${mxLeft()}${desk("stack")}${mxRight()}${kbd()}</div>`}},
+B:{t:"B · Signal flow",n:"<b>The top half follows the signal path of the device</b> (your sketch): BUS 1 and BUS 2 stacked as a pair with their SERIAL / PARALLEL routing (set on the device, shown read-only) → BUS 3 → BUS 4 (master), with INPUT FX feeding in at the left. Arrows show the path. Same module contents, arranged as a chain. Mixer as in A.",
+ html(){return bar()+`<div class="fx"><div class="grp"><div class="gt">INPUT</div><div class="gb">${busMod(4,250,{nopre:false})}</div></div><div class="flowarrow">→</div>
+ <div class="grp"><div class="gt">PAD BUSES · PARALLEL</div><div class="gb">${busMod(0,262)}${busMod(1,262)}</div></div><div class="flowarrow">→</div>
+ <div class="grp"><div class="gt">MASTER</div><div class="gb">${busMod(2,262)}${busMod(3,262)}</div></div>${side()}</div><div class="mixer">${mxLeft()}${desk("stack")}${mxRight()}${kbd()}</div>`}},
+D:{t:"D · Signal flow, big FX",n:"<b>B refined.</b> The FX half takes everything the mixer doesn't need (about 600 px); the mixer gets short faders (112 px) in the bank colours and compact D / 1 / 2 routing. Each bus has a <b>view</b> above its encoders: a custom one per effect (filter curve, delay taps, saturation curve, reverb decay; like the TB-3 EQ) or, until an effect has one, a generic bar list of its six parameters (INPUT, Vocoder). The encoders stay underneath either way, so every effect is editable from day one.",
+ html(){return bar()+`<div class="fx"><div class="grp"><div class="gt">INPUT</div><div class="gb">${busBig(4,278)}</div></div><div class="flowarrow">→</div>
+ <div class="grp"><div class="gt">PAD BUSES · <span style="color:#fff">PARALLEL</span> (set on the SP-404)</div><div class="gb">${busBig(0,278)}${busBig(1,278)}</div></div><div class="flowarrow">→</div>
+ <div class="grp"><div class="gt">MASTER · BUS 3 → BUS 4</div><div class="gb">${busBig(2,278)}${busBig(3,278)}</div></div>${side()}</div><div class="mixer">${mxLeft()}${desk("seg")}${mxRight()}${kbd()}</div>`}},
+C:{t:"C · Low FX strip",n:"<b>A shorter FX strip</b>: each bus has its six knobs in one row, presets in a single line beside the bus name, and morph, defaults and buttons squeezed into one thin row. The FX takes ≈160 px, so the faders get much longer. Routing on the strip becomes a compact D / 1 / 2 selector to save height.",
+ html(){return bar()+`<div class="fx compact">${[0,1,2,3,4].map(i=>busMod(i,282,{compact:true})).join("")}${side()}</div><div class="mixer">${mxLeft()}${desk("seg")}${mxRight()}${kbd()}</div>`}}};
+let cur="D";
+function render(){document.getElementById("tabs").innerHTML=Object.entries(LAYOUTS).map(([k,v])=>`<button class="${k===cur?"on":""}" data-k="${k}">${v.t}</button>`).join("");
+ document.getElementById("note").innerHTML=LAYOUTS[cur].n;const ap=document.getElementById("app");ap.className="app"+(cur==="D"?" d":"");ap.innerHTML=LAYOUTS[cur].html();
+ if(cur==="C"){document.querySelectorAll(".compact .bus").forEach(b=>{b.style.gap="4px";const p=b.querySelector(".presets");if(p)p.style.gridTemplateColumns="repeat(8,1fr)";b.querySelectorAll(".kn em").forEach(e=>e.style.fontSize="10px")})}
+ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{cur=b.dataset.k;render()});
+ const kb=document.getElementById("kb"),k=document.getElementById("kbd");kb.onclick=()=>{k.classList.toggle("open");kb.classList.toggle("on")};document.getElementById("kbx").onclick=()=>{k.classList.remove("open");kb.classList.remove("on")}}
+render();
+</script>
+</body></html>

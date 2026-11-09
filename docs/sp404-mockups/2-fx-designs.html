@@ -1,0 +1,862 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SP-404 FX Designs</title>
+<style>
+:root{--bg:#0b0b0c;--panel:#141416;--panel2:#1a1b1e;--rule:#3a3b41;--edge:#2c2d32;--txt:#d4d5da;--dim:#8a8d96;
+--lcd:#0d1f12;--lcdtxt:#8ff0a4;--cap:#3ddc5a;--well:#222327;--acc:#ff8a2a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:12px "DIN Condensed","DIN Alternate","Avenir Next Condensed","Helvetica Neue",sans-serif;user-select:none}
+.top{padding:14px 20px 4px;font:13px -apple-system,sans-serif;color:var(--dim);max-width:1250px;line-height:1.45}
+.top h1{font:500 17px -apple-system,sans-serif;color:#fff;margin:0 0 4px}
+.top b{color:#fff;font-weight:500}
+.toolbar{display:flex;gap:6px;align-items:center;padding:8px 20px;font:12px -apple-system,sans-serif;color:var(--dim);position:sticky;top:0;background:var(--bg);z-index:3;border-bottom:1px solid var(--edge)}
+.toolbar button{background:var(--panel2);color:var(--txt);border:1px solid var(--rule);padding:5px 10px;font:12px -apple-system,sans-serif;cursor:pointer}
+.toolbar button.on{background:#fff;color:#000}
+.toolbar .sp{width:14px}
+.wrap{display:flex;align-items:flex-start}
+nav{width:200px;flex:none;padding:10px 0 30px 20px;position:sticky;top:44px;max-height:calc(100vh - 44px);overflow:auto;font:12.5px -apple-system,sans-serif}
+nav .cat{font:600 10.5px -apple-system,sans-serif;letter-spacing:.08em;color:var(--dim);margin:12px 0 4px;text-transform:uppercase}
+nav a{display:flex;justify-content:space-between;gap:6px;padding:3px 8px;color:var(--txt);cursor:pointer;border-left:2px solid transparent}
+nav a:hover{background:#17181b}
+nav a.on{border-left-color:#fff;background:#1c1d21;color:#fff}
+nav a small{color:#5d6069;font-size:10px}
+main{flex:1;padding:12px 20px 40px;min-width:0}
+.one{display:flex;gap:26px;align-items:flex-start}
+.notes{max-width:640px;font:13px -apple-system,sans-serif;color:var(--dim);line-height:1.5}
+.notes h2{font:500 18px -apple-system,sans-serif;color:#fff;margin:0 0 2px}
+.notes h3{font:600 11px -apple-system,sans-serif;letter-spacing:.08em;color:#bbb;text-transform:uppercase;margin:16px 0 6px}
+.notes p{margin:6px 0}
+.notes b{color:#fff;font-weight:500}
+.notes table{border-collapse:collapse;width:100%;font-size:12px}
+.notes td,.notes th{border-bottom:1px solid #222327;padding:4px 6px;text-align:left;vertical-align:top}
+.notes th{color:#777;font-weight:500;font-size:11px}
+.notes td.v{color:#aeb2bb}
+.chip{display:inline-block;border:1px solid var(--rule);padding:0 5px;margin-right:4px;font-size:11px;color:#ccc}
+.chip.no{opacity:.3;text-decoration:line-through}
+.chip.ex{border-color:#a07a3a;color:#ffcf80}
+.chip.app{border-color:#4aa3ff;color:#8cc4ff}
+.rules{margin-top:14px;padding:10px 12px;border:1px solid var(--edge);background:#111214;font-size:12.5px}
+.rules li{margin:3px 0}
+.all h4{font:600 11px -apple-system,sans-serif;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;margin:18px 0 6px}
+.all .row{display:flex;flex-wrap:wrap;gap:10px}
+.all .cell{display:flex;flex-direction:column;gap:3px}
+.all .cell .cap{font:11px -apple-system,sans-serif;color:var(--dim)}
+
+/* ---- bus module (D size) ---- */
+.bus{width:340px;height:520px;display:flex;flex-direction:column;gap:5px;padding:8px 10px;background:var(--panel);border:1px solid var(--edge);flex:none}
+.bus .hd{display:flex;align-items:center;gap:8px}
+.bus .num{width:22px;height:22px;display:grid;place-items:center;border:1px solid var(--rule);font-size:13px;color:#fff}
+.bus .name{flex:1;background:var(--lcd);color:var(--lcdtxt);padding:4px 7px;font-size:15px;letter-spacing:.05em;border:1px solid #000;white-space:nowrap;overflow:hidden}
+.ring{border:2px solid var(--acc);color:var(--acc);padding:2px 7px;font-size:11px;letter-spacing:.08em;background:#000;border-radius:3px;cursor:pointer}
+.ring.off{opacity:.35}
+.lbl{font-size:11px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+.lbl small{font-size:8.5px;color:#5d6069;margin-right:2px;letter-spacing:0}
+.warn{font-size:11px;letter-spacing:.06em;color:#ff6b5e}
+.view{flex:1 1 auto;min-height:100px;background:#0a0b0c;border:1px solid #000;position:relative;overflow:hidden}
+.view svg{display:block}
+.r2{display:flex;align-items:center;gap:4px}
+.r2>.lbl{width:56px;flex:none;overflow:hidden}
+.seg{display:flex;flex:1;gap:2px;min-width:0}
+.seg b,.gsel b,.nv b{flex:1;min-width:0;height:18px;font-weight:400;font-size:10.5px;display:grid;place-items:center;background:#1d1e21;border:1px solid #000;color:#a3a6ae;cursor:pointer;white-space:nowrap;overflow:hidden}
+.seg b.on,.gsel b.on,.nv b.on{background:var(--acc);color:#000}
+.gsel{flex:1;display:grid;gap:2px}
+.gsel b{height:16px;font-size:10px}
+.nv{flex:1;display:grid;gap:2px}
+.nv i{font-style:normal;font-size:9px;color:#5d6069;display:grid;place-items:center}
+.nv b{height:22px;font-size:11.5px}
+.nv b.x{visibility:hidden}
+.nv b.sf{background:#18191c}.nv b.sf.on{background:var(--acc)}
+.r2.col{flex-direction:column;align-items:stretch;gap:2px}.r2.col>.lbl{width:auto}
+select.dd{flex:1;min-width:0;background:var(--lcd);color:var(--lcdtxt);border:1px solid #000;font:12px "DIN Condensed","Helvetica Neue",sans-serif;height:19px;letter-spacing:.04em}
+b.big{flex:1;height:24px;display:grid;place-items:center;font-weight:400;font-size:12px;letter-spacing:.1em;border:2px solid var(--acc);color:var(--acc);background:#000;border-radius:3px;cursor:pointer}
+b.big.on{background:var(--acc);color:#000}
+b.app{border-color:#4aa3ff;color:#8cc4ff}
+b.app.on{background:#4aa3ff;color:#000}
+.knobs{display:grid;grid-template-columns:repeat(6,1fr);gap:2px 2px}
+.knobs.k4{grid-template-columns:repeat(4,1fr)}.knobs.k5{grid-template-columns:repeat(5,1fr)}
+.kn{display:flex;flex-direction:column;align-items:center;gap:1px;cursor:ns-resize;min-width:0}
+.kn i{width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3a3b40,#1a1b1e 70%);border:1px solid #000;position:relative;display:block}
+.kn i::after{content:"";position:absolute;left:50%;top:3px;width:2px;height:11px;background:#fff;transform-origin:50% 13px;transform:translateX(-50%) rotate(var(--a,0deg))}
+.kn.st i{box-shadow:0 0 0 1px #4b4d55}
+.kn .lbl{font-size:9.5px;max-width:42px;overflow:hidden;text-overflow:clip}
+.kn em{font-style:normal;font-size:12px;color:var(--lcdtxt);white-space:nowrap}
+.body{flex:1;display:flex;gap:5px;min-height:0}
+.mcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.pcol{width:50px;flex:none;display:flex;flex-direction:column;gap:3px;align-items:stretch}
+.pcol .lbl{font-size:9.5px;letter-spacing:.04em;text-align:center}
+.pcol .btn{padding:4px 0;cursor:pointer}
+.presets{display:flex;flex-direction:column;gap:3px;flex:1}
+.presets span{flex:1;background:#26272b;border:1px solid #000;border-radius:2px;font-size:12px;color:#777;display:grid;place-items:center;cursor:pointer}
+.presets span.st{color:#cfe0ff}.presets span.act{color:#000}
+.presets span.st{background:#3c5a8a}.presets span.act{background:#9cc6ff}
+.morph{display:flex;align-items:center;gap:6px;flex:1}
+.morph .tr{flex:1;height:8px;background:var(--well);border:1px solid var(--edge);position:relative}
+.morph .tr i{position:absolute;left:0;top:0;bottom:0;width:30%;background:#d8a2ff}
+.exp{font-size:9px;color:#d8a2ff;border:1px solid #d8a2ff;padding:0 3px;letter-spacing:.06em}
+.btn{border:1px solid var(--rule);padding:2px 5px;text-align:center;font-size:10.5px;letter-spacing:.06em;color:var(--txt);background:#1d1e21}
+/* svg */
+.gl{fill:#5b5e66;font-size:9px;font-family:-apple-system,sans-serif}
+.gt{fill:#c9ccd3;font-size:10px;font-family:-apple-system,sans-serif;letter-spacing:.04em}
+.big1{fill:#fff;font-size:15px;font-family:"DIN Condensed","Helvetica Neue",sans-serif;letter-spacing:.08em}
+.hl{fill:#fff;font-size:9px;font-family:-apple-system,sans-serif;pointer-events:none}
+.gr{stroke:#1d2024;stroke-width:1}
+.ax{stroke:#3a3d44;stroke-width:1}
+.cv{fill:none;stroke:var(--acc);stroke-width:2;stroke-linejoin:round}
+.cv2{fill:none;stroke:#e8e8ea;stroke-width:1.2;stroke-dasharray:3 3}
+.ar{fill:var(--acc);fill-opacity:.15}
+.af{fill:var(--acc)}
+.dimf{fill:#2a2c31}
+.hdl .dot{fill:#0a0b0c;stroke:#fff;stroke-width:2;cursor:grab}
+.hdl .hit{fill:transparent;cursor:grab}
+.hdl:hover .dot{fill:var(--acc)}
+.drag{cursor:ns-resize}
+.dragx{cursor:ew-resize}
+.wk{fill:#d9dadf;stroke:#000;cursor:pointer}
+.wk.lit{fill:var(--acc)}
+.bk{fill:#18191c;stroke:#000;cursor:pointer}
+.bk.lit{fill:var(--acc);stroke:#000}
+.wk.root,.bk.root{stroke:#fff;stroke-width:2}
+.pad{fill:#1d1e21;stroke:#000;cursor:pointer}
+.pad.on{fill:var(--acc)}
+.padt{fill:#a3a6ae;font-size:13px;font-family:"DIN Condensed","Helvetica Neue",sans-serif;pointer-events:none}
+.padt.on{fill:#000}
+.clk{cursor:pointer}
+.ld .bar{height:30px;display:flex;align-items:center;gap:14px;padding:0 12px;border-bottom:1px solid var(--edge);background:#101012;font-size:13px;letter-spacing:.06em;color:var(--dim)}
+.ld .bar .logo{color:#fff;font-size:15px;letter-spacing:.12em}
+.ld .bar .pill{border:1px solid var(--rule);padding:2px 8px}
+.ld .bar .pill.on{border-color:var(--cap);color:var(--cap)}
+.ld .bar .sp{flex:1}
+.ld .h{font-size:13px;letter-spacing:.12em;color:#fff;text-transform:uppercase}
+.ld .side{padding:8px 10px;display:flex;flex-direction:column;gap:8px;min-width:150px}
+.ld .scenes{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.ld .scenes span{height:20px;background:#26272b;border:1px solid #000;font-size:10px;color:var(--dim);display:grid;place-items:center}
+.ld .scenes span.st{background:#3a3020;color:#ffcf80}
+.ld .flowarrow{color:var(--dim);font-size:18px;align-self:center;padding:0 2px}
+.ld .grp{display:flex;flex-direction:column}
+.ld .grp>.gt{font-size:10px;letter-spacing:.1em;color:var(--dim);padding:4px 10px 0;text-transform:uppercase}
+.ld .grp>.gb{display:flex}
+.ld .mixer{flex:1;display:flex;min-height:0;position:relative;background:#111113}
+.ld .mx-left{width:150px;border-right:1px solid var(--edge);padding:8px 10px;display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.ld .desk{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;padding:0 4px}
+.ld .bank{display:flex;border-right:2px solid #000;margin-right:2px}
+.ld .bank>.strips{display:flex;flex-direction:column}
+.ld .bank .btitle{height:18px;display:flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:.14em;color:#000;font-weight:600}
+.ld .bank .row{display:flex;flex:1}
+.ld .strip{width:41px;border-right:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0 6px;position:relative}
+.ld .strip.sel{background:#1c1d20}
+.ld .strip.play::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:#fff}
+.ld .strip .pad{width:38px;text-align:center;font-size:12px;color:#000;font-weight:600;background:#ddd;padding:1px 0}
+.ld .strip .nt{font-size:10px;color:var(--dim);letter-spacing:.03em}
+.ld .strip .nm{width:40px;height:32px;background:var(--lcd);color:var(--lcdtxt);font-size:10px;line-height:10.5px;padding:2px 2px;border:1px solid #000;overflow:hidden;text-align:center;word-break:break-all}
+.ld .ahr{width:40px;height:22px;background:#0d0d0f;border:1px solid var(--edge);cursor:pointer}
+.ld .ahr polyline{fill:none;stroke:var(--lcdtxt);stroke-width:1.3}
+.ld .mg{width:40px;height:16px;border:1px solid var(--rule);font-size:11px;display:grid;place-items:center;color:var(--dim)}
+.ld .mg.on{color:#ffcf80;border-color:#8a6d3a}
+.ld .rt{display:flex;flex-direction:column;gap:2px}
+.ld .rt span{width:38px;height:15px;font-size:9.5px;letter-spacing:.06em;display:grid;place-items:center;border:1.5px solid;border-radius:2px;background:#000;opacity:.28}
+.ld .rt span.on{opacity:1}
+.ld .rt .r1{border-color:var(--b1);color:var(--b1)}
+.ld .rt .r2{border-color:var(--b2);color:var(--b2)}
+.ld .rt .rd{border-color:var(--dry);color:var(--dry)}
+.ld .rtx{display:flex;width:40px;border:1.5px solid var(--rule);border-radius:2px;overflow:hidden}
+.ld .rtx span{flex:1;height:15px;font-size:9.5px;display:grid;place-items:center;color:var(--dim);background:#000}
+.ld .rtx span.on.r1{background:var(--b1);color:#000}
+.ld .rtx span.on.r2{background:var(--b2);color:#000}
+.ld .rtx span.on.rd{background:var(--dry);color:#000}
+.ld .pan{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#3a3b40,#1a1b1e 70%);border:1px solid #000;position:relative}
+.ld .pan::after{content:"";position:absolute;left:50%;top:2px;width:2px;height:10px;background:#fff;transform-origin:50% 12px;transform:translateX(-50%) rotate(var(--a,0deg))}
+.ld .pv{font-size:10px;color:var(--dim);margin-top:-3px}
+.ld .mute{width:38px;height:17px;border:1px solid var(--rule);font-size:10px;letter-spacing:.06em;display:grid;place-items:center;color:var(--dim);background:#1d1e21}
+.ld .mute.on{background:var(--mute);color:#000;border-color:var(--mute)}
+.ld .fader{flex:1;width:40px;position:relative;min-height:120px}
+.ld .fader .slot{position:absolute;left:50%;top:4px;bottom:4px;width:4px;transform:translateX(-50%);background:#000;border:1px solid #2a2a2e}
+.ld .fader .fill{position:absolute;left:50%;bottom:4px;width:4px;transform:translateX(-50%);background:var(--cap);box-shadow:0 0 6px var(--cap)}
+.ld .fader .scale{position:absolute;left:3px;top:4px;bottom:4px;width:6px;background:repeating-linear-gradient(to bottom,#555 0 1px,transparent 1px 10%)}
+.ld .fader .knobcap{position:absolute;left:50%;width:30px;height:16px;transform:translate(-50%,50%);background:linear-gradient(#3a3b40,#18191c);border:1px solid #000;border-top:2px solid var(--cap);border-radius:2px}
+.ld .fader.muted .fill{background:#2f6a3a;box-shadow:none}
+.ld .fader.muted .knobcap{border-top-color:#2f6a3a}
+.ld .lv{font-size:12px;color:var(--lcdtxt)}
+.ld .strip.master{width:48px;background:#18191c}
+.ld .strip.master .pad{background:#000;color:#fff;border:1px solid var(--rule)}
+.ld .mx-right{width:96px;border-left:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:6px;background:var(--panel)}
+.ld .meter{flex:1;display:flex;gap:6px}
+.ld .meter i{width:10px;background:linear-gradient(to top,#3ddc5a 0 70%,#ffb020 70% 88%,#ff3b30 88%);position:relative;border:1px solid #000}
+.ld .meter i::after{content:"";position:absolute;left:0;right:0;top:0;height:var(--h,40%);background:#0b0b0c}
+.ld .btn{border:1px solid var(--rule);padding:4px 6px;text-align:center;font-size:11px;letter-spacing:.06em;color:var(--txt);background:#1d1e21;cursor:pointer}
+.ld .btn.on{border-color:var(--cap);color:var(--cap)}
+.ld /* keyboard overlay */
+.kbd{position:absolute;left:0;right:0;bottom:0;height:0;overflow:hidden;background:#0f1012;border-top:2px solid #d8a2ff;transition:height .25s;z-index:5;display:flex;flex-direction:column}
+.ld .kbd.open{height:380px}
+.ld .kbd .kh{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.ld .keys{flex:1;display:flex;margin:4px 12px 12px;position:relative}
+.ld .keys .w{flex:1;background:#e8e8ea;border:1px solid #000;border-radius:0 0 3px 3px}
+.ld .keys .bk{position:absolute;top:0;width:2.2%;height:60%;background:#111;border:1px solid #000;border-radius:0 0 2px 2px}
+.ld .strip .fader{flex:0 0 112px;min-height:0}
+.ld .strip{gap:3px}
+.ld .mixer .scenes span{height:17px}
+.ld .fx{flex:1 1 auto;min-height:0}
+.ld .mixer{flex:0 0 auto}
+.ld .grp>.gb{flex:1}
+.ld .view{flex:1;height:auto;min-height:150px}
+.ld .strip{width:40px}
+.ld .strip.master{width:46px}
+.ld .nm{width:38px}
+.ld .fader .fill{background:var(--fc,var(--cap));box-shadow:0 0 5px var(--fc,var(--cap))}
+.ld .fader .knobcap{border-top-color:var(--fc,var(--cap))}
+.ld{width:1920px;height:1080px;background:var(--panel);border:1px solid var(--rule);display:flex;flex-direction:column;position:relative;overflow:hidden;
+--b1:#ff8a2a;--b2:#3ddc5a;--dry:#e8e8ea;--mute:#ff3b30;--bankA:#7fc4ea;--bankB:#e6c27a;--bankC:#c9a3e6;--bankD:#8fdcc4}
+.ld .fxrow{display:flex;align-items:stretch;border-bottom:2px solid #000;background:var(--panel)}
+.ld .fxrow .bus{border:none;border-right:1px solid var(--edge);gap:5px;padding:8px 10px}
+.ld .grp>.gt{padding:4px 10px 0}
+.ld .flowarrow{align-self:center}
+.ld .mixer{flex:1}
+.ld .strip .fader{flex:1 1 auto;min-height:100px}
+.ld .fxrow .bus{width:358px}
+.ld .fxrow .side{min-width:0;width:auto;flex:1;padding:8px 8px}
+.ld .fxrow .side .h{font-size:11px;letter-spacing:.08em;text-align:center}
+.ld .fxrow .side .scenes{flex:1;grid-template-columns:repeat(2,1fr);grid-auto-flow:column;grid-template-rows:repeat(8,1fr);gap:4px}
+.ld .fxrow .side .scenes span{height:auto;font-size:14px;border-radius:2px}
+.ld .fxrow .side .btn{flex:1;padding:6px 0}
+.ld .wdesk{flex:1;display:flex;overflow-x:auto;overflow-y:hidden;padding:0 6px;gap:6px}
+.ld .wbank{display:flex;flex-direction:column;border-right:2px solid #000;padding-right:6px}
+.ld .wbank .btitle{height:20px;display:flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:.14em;color:#000;font-weight:600}
+.ld .wbank .row{display:flex;flex:1;min-height:0}
+.ld .ws{width:84px;border-right:1px solid var(--edge);display:flex;flex-direction:column;gap:5px;padding:6px 6px 8px;position:relative}
+.ld .ws.sel{background:#1c1d20}.ld .ws.play::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:#fff}
+.ld .ws .wtop{display:flex;align-items:center;justify-content:space-between}
+.ld .ws .wpad{font-size:13px;color:#000;font-weight:600;padding:1px 6px}
+.ld .ws .nt{font-size:11px;color:var(--dim)}
+.ld .ws .nm1{background:var(--lcd);color:var(--lcdtxt);font-size:12.5px;padding:3px 4px;border:1px solid #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ld .ws .ahr{width:100%;height:26px}
+.ld .ws .wrow{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.ld .ws .mg{width:auto;flex:none;height:20px;font-size:11px;letter-spacing:.04em}
+.ld .ws .rtx{flex:1;width:auto}.ld .ws .rtx span{height:20px;font-size:11px}
+.ld .ws .pan{width:30px;height:30px;flex:none}.ld .ws .pv{margin:0;font-size:11px;flex:1;text-align:center}
+.ld .ws .mute{width:auto;flex:none;height:22px;font-size:11px}
+.ld .ws .fader{width:100%;flex:1 1 auto;min-height:80px}
+.ld .ws .fader .knobcap{width:44px;height:18px}
+.ld .ws .lv{text-align:center;font-size:13px}
+.ld .ws.master{width:76px;background:#18191c}
+.ld .showb{cursor:pointer}.ld .showb.na{opacity:.3;cursor:default}
+.ldwrap{padding:12px 20px 30px;overflow:auto}
+.ldsets{display:flex;gap:6px;align-items:center;padding:4px 0 10px;font:12px -apple-system,sans-serif;color:var(--dim)}
+.ldsets button{background:var(--panel2);color:var(--txt);border:1px solid var(--rule);padding:5px 10px;font:12px -apple-system,sans-serif;cursor:pointer}
+.ldsets button.on{background:#fff;color:#000}
+
+</style></head><body>
+<div class="top"><h1>SP-404 MK2 · one design per effect</h1>
+Every effect at the real size of a bus module in layout D, now widened to 340 × 520. <b>Everything works</b>: drag the white handles in the views, the knobs (drag up and down, Shift for fine), the buttons and the drop-downs. Values come from the effect tables in the old TouchOSC controller, so the value lists are real; the response curves are illustrative drawings, not measurements of the SP-404. <b>One effect</b> shows a module with its design notes; <b>All 46</b> shows every module for side-by-side review. <b>Preview bus</b> changes the accent colour and flags effects that a bus can't load.</div>
+<div class="toolbar"><span>VIEW</span><button data-mode="one" class="on">One effect</button><button data-mode="all">All 46</button><span class="sp"></span>
+<span>PREVIEW BUS</span><button data-bus="0" class="on">BUS 1</button><button data-bus="1">BUS 2</button><button data-bus="2">BUS 3</button><button data-bus="3">BUS 4</button><button data-bus="4">INPUT</button><span class="sp"></span>
+<button data-mode="ld">Layout D</button><span class="sp"></span><span>SIZE</span><button data-zoom="1" class="on">1×</button><button data-zoom="1.5">1.5×</button></div>
+<div class="wrap"><nav id="nav"></nav><main id="main"></main></div>
+<script>
+// ---------------- value tables (from controls_info.lua / control_mapper.lua) ----------------
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FREQ=[20.0,21.1,22.2,23.4,24.7,26.0,27.4,28.9,30.4,32.1,33.8,35.6,37.5,39.5,41.7,43.9,46.3,48.8,51.4,54.2,57.1,60.1,63.4,66.8,70.4,74.2,78.2,82.4,86.8,91.5,96.4,102,107,113,119,125,132,139,147,155,163,172,181,191,201,212,223,235,248,261,275,290,306,322,339,358,377,397,418,441,465,490,516,544,573,604,637,671,707,745,785,827,872,919,968,1020,1075,1133,1194,1258,1326,1397,1473,1552,1636,1724,1816,1914,2017,2126,2240,2361,2488,2622,2763,2912,3068,3233,3407,3591,3784,3988,4202,4429,4667,4918,5183,5462,5756,6066,6392,6736,7099,7481,7884,8308,8755,9227,9723,10247,10798,11379,11992,12637,13318,14035,14790,16000];
+const DT=['1/32','1/16T','1/32D','1/16','1/8T','1/16D','1/8','1/4T','1/8D','1/4','1/2T','1/4D','1/2','1/1T','1/2D','1/1'];
+const S16=[0,9,17,25,33,41,49,57,65,73,81,89,97,105,113,121], S16B=[0,9,17,26,34,43,51,60,68,77,85,94,102,111,119,127], ZZS=[0,9,17,28,36,44,52,60,68,77,87,95,103,114,122,127];
+const LD=['FLAT','80','100','125','160','200','250','315','400','500','630','800'], LDS=[0,11,22,33,44,55,65,76,87,98,109,119], LDS2=[0,11,22,32,43,54,64,75,85,96,107,117];
+const HD=['630','800','1k','1.25k','1.6k','2k','2.5k','3.15k','4k','5k','6.3k','8k','10k','12.5k','FLAT'], HDS=[0,9,18,26,35,43,52,60,69,77,86,94,103,111,120], HDS2=[0,9,17,26,34,43,51,60,68,77,85,94,102,111,119];
+const LC=['FLAT','20','25','31','40','50','63','80','100','125','160','200','250','315','400','500','630','800'], LCS=[0,8,15,22,29,36,43,50,57,64,71,78,85,95,102,109,116,123];
+const HFD=['200','250','315','400','500','630','800','1k','1.25k','1.6k','2k','2.5k','3.15k','4k','5k','6.3k','8k','OFF'];
+const OO=['OFF','ON'], S2=[0,64];
+const EQ31=[];for(let i=-15;i<=15;i++)EQ31.push((i>0?'+':'')+i);
+const EQS=[0,5,9,13,17,21,25,29,33,37,42,46,50,54,58,62,66,70,75,79,83,87,91,95,99,103,107,112,116,120,124];
+const R22=['2/1','1/1D','2/1T','1/1','1/2D','1/1T','1/2','1/4D','1/2T','1/4','1/8D','1/4T','1/8','1/16D','1/8T','1/16','1/32D','1/16T','1/32','1/32T','1/64','1/64T'];
+const R22S=[0,7,13,19,25,31,37,43,49,55,61,67,73,79,85,92,98,104,110,116,122,127];
+const N35=[];for(let i=-17;i<=18;i++)if(i)N35.push((i>0?'+':'')+i);
+const N35S=[0,4,8,11,15,19,22,26,30,33,37,41,44,48,51,55,59,62,66,70,73,77,81,84,88,92,95,99,102,106,110,113,117,121,124];
+const SC24=[...NOTES.map(n=>n+' Maj'),...NOTES.map(n=>n+' Min')], SC24S=[0,6,11,16,22,27,32,38,43,48,54,59,64,70,75,80,85,91,96,101,107,112,117,123];
+const VCH=['Root','P5','Oct','UpDn','UpDnP5','3rd','5thUp','5thDn','7thUp','7thDn'], VCHS=[0,13,26,39,51,64,77,90,102,115];
+const KEY13=['CHROMA','A','B♭','B','C','D♭','D','E♭','E','F','G♭','G','A♭'], KEYS=[0,10,20,30,40,49,59,69,79,89,99,108,118];
+const CHORD16=['Root','Oct','UpDn','P5','m3','m5','m7','m7oct','m9','m11','M3','M5','M7','M7oct','M9','M11'];
+const CHORD_IV={Root:[0],Oct:[0,12],UpDn:[-12,0,12],P5:[0,7],m3:[0,3],m5:[0,3,7],m7:[0,3,7,10],m7oct:[0,3,7,10,12],m9:[0,3,7,10,14],m11:[0,3,7,10,14,17],M3:[0,4],M5:[0,4,7],M7:[0,4,7,11],M7oct:[0,4,7,11,12],M9:[0,4,7,11,14],M11:[0,4,7,11,14,17]};
+// display functions (approximations of the Lua maps where the exact table isn't needed for a mockup)
+const pct=r=>r>=127?100:Math.floor(r/127.5*100);
+const n99=r=>Math.min(99,Math.floor(r/127.5*100));
+const db24=r=>Math.floor(r/127.5*49)-24, db48=r=>Math.floor(r/127.5*49);
+const sg=v=>(v>0?'+':'')+v;
+const bip=r=>Math.round(r/127*200-100);
+const bal=r=>{const b=Math.round(r/127*100);return (100-b)+':'+b};
+const ms100=r=>Math.round(r/127*100);
+const tape=r=>Math.round(10*Math.pow(80,r/127));
+const loopLen=r=>r>=127?0.012:0.230-r/127.5*0.218;
+const hz=h=>h>=1000?(+(h/1000).toFixed(h>=10000?1:2))+'k':Math.round(h)+'';
+const iso=r=>r===0?'−INF':(r<=65?(20*Math.log10(r/65)).toFixed(1):'+'+((r-65)/62*12).toFixed(1));
+const isoDb=r=>r===0?-60:(r<=65?20*Math.log10(r/65):(r-65)/62*12);
+const semis=r=>r<=84?Math.round(-24+r*24/84):Math.round((r-84)*12/43);
+const panLR=r=>{const d=Math.round((r-64)/63*50);return d===0?'C':d<0?'L'+(-d):'R'+Math.min(50,d)};
+const sbf=r=>r===0?'−INF':(r<108?(-52.3+(r-1)*52.3/107).toFixed(1):'+'+((r-107)/20*10).toFixed(1));
+const crushHz=r=>331*Math.pow(15392/331,r/127);
+const chRate=r=>(0.33+r*1.97/127).toFixed(2)+'s';
+const flBar=r=>(4-r*3.984/127).toFixed(2)+' bar';
+const wahBar=r=>Math.pow(0.01,r/127).toFixed(3)+' bar';
+const cloudP=r=>{const v=Math.round((-12+r/127*24)*5)/5;return (v>0?'+':'')+v.toFixed(1)};
+const age60=r=>r>=127?60:Math.floor(r/127.5*60);
+const rootN=r=>NOTES[r%12]+(Math.floor(r/12)-1);
+const parseHz=s=>{if(s==='FLAT'||s==='OFF')return null;return s.endsWith('k')?parseFloat(s)*1000:parseFloat(s)};
+const noteFrac=s=>{const m=/^(\d+)\/(\d+)([TD]?)$/.exec(s||'');if(!m)return null;let v=+m[1]/+m[2];if(m[3]==='T')v*=2/3;if(m[3]==='D')v*=1.5;return v};
+
+// ---------------- parameter constructors ----------------
+const evenStarts=n=>Array.from({length:n},(_,j)=>Math.round(j*128/n));
+const K=(cc,n,f,o)=>({cc,n,f,t:'k',...o});
+const D=(cc,n,list,starts,ui,o)=>({cc,n,list,starts:starts||evenStarts(list.length),ui,t:'d',...o});
+const SYNC=cc=>D(cc,'SYNC',OO,S2,'seg',{sync:true});
+const idxOf=(starts,r)=>{let i=0;starts.forEach((s,j)=>{if(r>=s)i=j});return i};
+
+// ---------------- svg helpers ----------------
+const FMIN=20,FMAX=20000;
+const fx2=(h,W)=>Math.log(h/FMIN)/Math.log(FMAX/FMIN)*W;
+const x2f=(x,W)=>FMIN*Math.pow(FMAX/FMIN,x/W);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const T=(x,y,s,cls='gl',a='start')=>`<text class="${cls}" x="${x.toFixed?x.toFixed(1):x}" y="${y.toFixed?y.toFixed(1):y}" text-anchor="${a}">${s}</text>`;
+const Ln=(x1,y1,x2,y2,cls='gr')=>`<line class="${cls}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;
+const PL=(pts,cls='cv',st='')=>`<polyline class="${cls}" style="${st}" points="${pts.join(' ')}"/>`;
+const PG=(pts,cls='ar',st='')=>`<polygon class="${cls}" style="${st}" points="${pts.join(' ')}"/>`;
+const R=(x,y,w,h,cls,attr='')=>`<rect class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(0,w).toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" ${attr}/>`;
+const dA=(dx,dy,o={})=>[dx!=null?`data-dx="${dx}"`:'',dy!=null?`data-dy="${dy}"`:'',o.sx?`data-sx="${o.sx}"`:'',o.sy?`data-sy="${o.sy}"`:''].join(' ');
+function H_(c,x,y,lab,dx,dy,o={}){x=clamp(x,7,c.W-7);y=clamp(y,7,c.H-7);const a=dA(dx,dy,o);
+ const ly=o.below||y<18?y+17:y-10;return `<g class="hdl"><circle class="hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="13" ${a}/><circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" ${a}/>${lab?T(x,ly,lab,'hl','middle'):''}</g>`}
+const svg=(c,b)=>`<svg width="${c.W}" height="${c.H}" viewBox="0 0 ${c.W} ${c.H}">${b}</svg>`;
+// filter maths (illustrative)
+const lpdb=(u,q)=>-10*Math.log10((1-u*u)**2+(u/q)**2);
+const bpdb=(u,q)=>20*Math.log10((u/q)/Math.sqrt((1-u*u)**2+(u/q)**2)+1e-6);
+const shLo=(f,fc,g)=>g/(1+(f/fc)**2), shHi=(f,fc,g)=>g*(f/fc)**2/(1+(f/fc)**2);
+const pk=(f,fc,g,w=.8)=>g*Math.exp(-Math.pow(Math.log2(f/fc)/w,2));
+const qOf=r=>0.7+r/127*7;
+// frequency response panel
+function resp(c,fn,o={}){const range=o.range||24,y0=o.y0||0,h=o.h||c.H,W=c.W,mid=y0+h/2;
+ const dbY=d=>mid-clamp(d,-range,range)/range*(h/2-9);let g='';
+ [[100,'100'],[1000,'1k'],[10000,'10k']].forEach(([f,l])=>{const x=fx2(f,W);g+=Ln(x,y0,x,y0+h)+T(x+2,y0+h-3,l)});
+ [-range/2,range/2].forEach(d=>g+=Ln(0,dbY(d),W,dbY(d)));g+=Ln(0,mid,W,mid,'ax');
+ if(!o.nolab)g+=T(3,dbY(range/2)-2,'+'+range/2)+T(3,dbY(-range/2)-2,'−'+range/2);
+ const p=[];for(let x=0;x<=W;x+=2)p.push(`${x},${dbY(fn(x2f(x,W))).toFixed(1)}`);
+ return {svg:g+PG([`0,${mid}`,...p,`${W},${mid}`])+PL(p,'cv',o.sw?`stroke-width:${o.sw}`:''),dbY,mid}}
+// band strip: passband between two frequencies with draggable edges
+function band(c,y,lo,hi,pLo,pHi,lab){const W=c.W,x1=lo?fx2(lo,W):0,x2=hi?fx2(hi,W):W;
+ return R(0,y,W,14,'dimf')+R(x1,y,x2-x1,14,'ar','style="fill-opacity:.4"')+T(4,y+10,lab,'gl')+
+ `<rect class="dragx" x="${(x1-5).toFixed(1)}" y="${y}" width="10" height="14" fill="#fff" fill-opacity=".85" ${dA(pLo,null,{sx:.35})}/>`+
+ `<rect class="dragx" x="${(x2-5).toFixed(1)}" y="${y}" width="10" height="14" fill="#fff" fill-opacity=".85" ${dA(pHi,null,{sx:.35})}/>`+
+ T(x1+7,y+10,lo?hz(lo):'FLAT','hl')+T(x2-7,y+10,hi?hz(hi):'FLAT','hl','end')}
+// delay taps
+function taps(c,o){const W=c.W,base=o.base||c.H-6,top=14,mh=base-top;let g='';
+ const win=o.win||Math.max(1,o.t*7),pxb=(W-14)/win;
+ for(let b=0;b<=win*4;b++){const x=8+b*pxb/4;if(x>W)break;g+=Ln(x,top-6,x,base,b%4?'gr':'ax')}
+ g+=T(W-3,top-4,(o.unit||'bars'),'gl','end');
+ const mid=top+mh/2;
+ g+=o.pan?R(5,mid-mh*.25,5,mh*.5,'dimf'):R(5,base-mh*.55,5,mh*.55,'dimf');
+ let hs='',k=1;const per=o.per||[1];
+ for(let rep=0;rep<40;rep++){let stop=false;
+  per.forEach((pf,j)=>{const x=8+(rep+pf)*o.t*pxb;if(x>W-4){stop=true;return}
+   const a=o.lvl*Math.pow(o.fb,rep)*(o.amp?o.amp[j]:1);const h=Math.max(1,a*mh*(o.pan?.48:1));
+   const side=o.pan?((rep*per.length+j)%2?1:-1):0;
+   const y=o.pan?(side<0?mid-h:mid):base-h;g+=R(x-2.5,y,5,h,'af',`opacity="${(0.35+0.65*a).toFixed(2)}"`);
+   if(rep===0&&j===0&&o.pL!=null)hs+=H_(c,x,o.pan?mid-h:base-h,'LEVEL',null,o.pL);
+   if(rep===1&&j===0)hs+=H_(c,x,o.pan?(side<0?mid-h:mid+h):base-h,'FB',null,o.pF);
+  });if(stop)break}
+ if(o.pan){g+=Ln(0,mid,W,mid,'ax')+T(W-3,mid-mh*.5+10,'L','gl','end')+T(W-3,mid+mh*.5-2,'R','gl','end')}
+ return g+hs}
+// lfo waveform
+function wave(shape,ph){ph=ph-Math.floor(ph);switch(shape){case'SQR':return ph<.5?1:-1;case'TRI':return ph<.5?4*ph-1:3-4*ph;case'SAW1':return 2*ph-1;case'SAW2':return 1-2*ph;case'TRP':return clamp((ph<.5?4*ph-1:3-4*ph)*2,-1,1);default:return Math.sin(ph*2*Math.PI)}}
+function lfoPts(c,shape,cyc,amp,y0,h,mode){const p=[];for(let x=0;x<=c.W;x+=1.5){const w=wave(shape,x/c.W*cyc);
+ const y=mode==='trem'?y0+(1-amp*(w+1)/2)*h*0.9+h*.05:y0+h/2-w*amp*(h/2-4);p.push(`${x.toFixed(1)},${y.toFixed(1)}`)}return p}
+// reverb envelope
+function verb(c,o){const W=c.W,base=o.base||c.H-4,top=16,mh=base-top;let g='';
+ for(let x=8;x<W;x+=32)g+=Ln(x,top,x,base);g+=Ln(0,base,W,base,'ax');
+ const x0=14+o.pre/100*56,len=24+o.time*(W-x0-20);
+ g+=R(6,top,3,mh,'af','opacity=".7"')+T(11,top+8,'DRY','gl');
+ const p=[`${x0},${base}`];for(let x=x0;x<=W;x+=2){const t=(x-x0)/len;const e=o.lvl*Math.exp(-3*t)*(1+(o.mod||0)*.25*Math.sin(x*.35)*Math.sin(x*.05));p.push(`${x.toFixed(1)},${(base-clamp(e,0,1)*mh).toFixed(1)}`)}
+ p.push(`${W},${base}`);g+=PG(p,'ar','fill-opacity:.35')+PL(p.slice(1,-1),'cv','stroke-width:1.4');
+ if(o.pPre!=null){g+=Ln(9,top+mh*.5,x0,top+mh*.5,'cv2')+T((9+x0)/2,top+mh*.5-4,'PRE '+Math.round(o.pre),'gl','middle');
+ g+=H_(c,x0,base-o.lvl*mh,'PRE · LVL',o.pPre,o.pLvl,{sx:.9})}
+ const xt=x0+len*.75;g+=H_(c,xt,base-o.lvl*Math.exp(-2.25)*mh,'TIME',o.pTime,null,{sx:.5});
+ return g}
+// keyboard
+function keys(c,o){const {x0=0,y0,w,h,start,octs,lit,root,setP,rawFor,cls=''}=o;const nW=7*octs,kw=w/nW;let wk='',bk='';const WH=[0,2,4,5,7,9,11],BL={1:0,3:1,6:3,8:4,10:5};
+ for(let oc=0;oc<octs;oc++){WH.forEach((s,j)=>{const n=start+oc*12+s,x=x0+(oc*7+j)*kw;const at=setP!=null?`data-set="${setP}:${rawFor(n)}"`:'';wk+=`<rect class="wk ${lit.has(n)?'lit':''} ${n===root?'root':''}" x="${x.toFixed(1)}" y="${y0}" width="${(kw-1).toFixed(1)}" height="${h}" ${at}/>`});
+  Object.entries(BL).forEach(([s,j])=>{s=+s;const n=start+oc*12+s,x=x0+(oc*7+j+1)*kw-kw*.32;const at=setP!=null?`data-set="${setP}:${rawFor(n)}"`:'';bk+=`<rect class="bk ${lit.has(n)?'lit':''} ${n===root?'root':''}" x="${x.toFixed(1)}" y="${y0}" width="${(kw*.64).toFixed(1)}" height="${(h*.6).toFixed(1)}" ${at}/>`})}
+ return wk+bk}
+// xy pad
+function xyGrid(c,y0,h,xl,yl){let g=R(0,y0,c.W,h,'dimf','fill-opacity=".35"');for(let i=1;i<4;i++){g+=Ln(c.W*i/4,y0,c.W*i/4,y0+h)+Ln(0,y0+h*i/4,c.W,y0+h*i/4)}g+=Ln(c.W/2,y0,c.W/2,y0+h,'ax')+Ln(0,y0+h/2,c.W,y0+h/2,'ax');return g+T(c.W-3,y0+h-3,xl,'gl','end')+T(3,y0+9,yl,'gl')}
+// transfer curve
+function xfer(c,x0,y0,w,h,fn,lab){let g=R(x0,y0,w,h,'dimf','fill-opacity=".3"')+Ln(x0,y0+h,x0+w,y0,'cv2')+Ln(x0,y0+h/2,x0+w,y0+h/2,'gr')+Ln(x0+w/2,y0,x0+w/2,y0+h,'gr');const p=[];for(let i=0;i<=80;i++){const v=i/40-1;p.push(`${(x0+i/80*w).toFixed(1)},${(y0+h/2-fn(v)*(h/2-4)).toFixed(1)}`)}return g+PL(p)+T(x0+3,y0+10,lab||'OUT','gl')+T(x0+w-3,y0+h-3,'IN','gl','end')+`<rect class="drag" x="${x0}" y="${y0}" width="${w}" height="${h}" fill="transparent" data-dy="0"/>`}
+// tone panel under a transfer curve
+function tonePanel(c,y0,h,fn,hs){const W=c.W,yOf=d=>y0+h/2-clamp(d,-24,24)/24*(h/2-8);const p=[];for(let x=0;x<=W;x+=2)p.push(`${x},${yOf(fn(x2f(x,W))).toFixed(1)}`);
+ let g=R(0,y0,W,h,'dimf','fill-opacity=".3"')+Ln(0,yOf(0),W,yOf(0),'ax');[[100,'100'],[1000,'1k'],[10000,'10k']].forEach(([f,l])=>{const x=fx2(f,W);g+=Ln(x,y0,x,y0+h)+T(x+2,y0+h-3,l)});
+ return g+PL(p)+T(3,y0+10,'TONE','gl')+hs.map(([f,d,l,pi])=>H_(c,fx2(f,W),yOf(d),l,null,pi)).join('')}
+const PAD=(x,y,w,h,on,set,label,fs)=>`<rect class="pad ${on?'on':''}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="3" data-set="${set}"/>`+`<text class="padt${on?' on':''}" x="${(x+w/2).toFixed(1)}" y="${(y+h/2+(fs||13)*.35).toFixed(1)}" text-anchor="middle" style="font-size:${fs||13}px">${label}</text>`;
+const rnd=k=>{const x=Math.sin(k*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+
+// ---------------- effects ----------------
+const CATS=['Filter & EQ','Drive & character','Vintage sim','Delay','Reverb','Modulation','Pitch & harmonic','DJ & performance'];
+const E=[];
+function fx(n,cat,on,p,view,note,o={}){E.push({n,cat,on,p,view,note,...o})}
+// 1
+fx('Filter + Drive',0,[1,10,0],[K(16,'CUTOFF',r=>hz(FREQ[r])),K(17,'RESO',pct),K(18,'DRIVE',pct),D(80,'TYPE',['HPF','LPF'],S2,'seg'),K(81,'LOW FREQ',r=>hz(FREQ[r])),K(82,'LOW GAIN',r=>sg(db24(r))+'dB')],
+c=>{const fc=FREQ[c.r(0)],q=qOf(c.r(1)),lp=c.x(3)===1,lf=FREQ[c.r(4)],lg=db24(c.r(5));
+ const o=resp(c,f=>(lp?lpdb(f/fc,q):lpdb(fc/f,q))+shLo(f,lf,lg),{range:30,sw:2+c.r(2)/40});
+ return svg(c,o.svg+H_(c,fx2(fc,c.W),o.dbY(20*Math.log10(q)),'CUT · RESO',0,1,{sx:.55})+H_(c,fx2(lf,c.W),o.dbY(lg),'LOW',4,5,{sx:.55})+T(c.W-4,12,(lp?'LPF':'HPF')+' · DRIVE '+pct(c.r(2)),'gt','end'))},
+'The cutoff/resonance handle moves along the filter curve; the second handle is the low shelf (frequency × gain). Drive thickens the curve as a reminder that it colours the sound. Type is a two-way switch rather than a knob.',{d:[70,50,30,64,20,80]});
+// 2
+fx('Resonator',6,[2,17,0],[K(16,'ROOT',rootN,{ex:true}),K(17,'BRIGHT',pct),K(18,'FEEDBACK',r=>n99(r)+'%'),D(80,'CHORD',CHORD16,[0,9,17,25,33,41,49,57,65,73,81,89,97,105,113,121],'grid:8',{ex:true}),K(81,'PAN',pct),K(82,'ENV MOD',pct)],
+c=>{const W=c.W,root=c.r(0),ch=CHORD16[c.x(3)],iv=CHORD_IV[ch],fb=c.r(2)/127,br=c.r(1)/127,top=30,bot=c.H-8,lo=-13,hi=18,yOf=s=>bot-(s-lo)/(hi-lo)*(bot-top);let g='';
+ for(let s=-12;s<=17;s++){const y=yOf(s);g+=Ln(36,y,W,y,s%12===0?'ax':'gr');if(s%12===0)g+=T(W-3,y-2,(s>0?'+':'')+(s/12)+' oct','gl','end')}
+ iv.forEach(i=>{const y=yOf(i),len=(W-48)*(0.25+0.75*fb);g+=`<line x1="40" y1="${y.toFixed(1)}" x2="${(40+len).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--acc)" stroke-width="4" stroke-linecap="round" opacity="${(.35+.65*br).toFixed(2)}"/>`;
+  for(let k=1;k<4;k++)g+=`<line x1="${(40+len+k*5).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(40+len+k*5+2).toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--acc)" stroke-width="4" opacity="${((.35+.65*br)*(1-k/4)).toFixed(2)}"/>`;
+  g+=T(4,y+3,rootN(clamp(root+i,0,127)),'gt')});
+ return svg(c,g+T(6,18,rootN(root)+' · '+ch,'big1')+T(W-6,16,'root from the keyboard','gl','end')+`<rect class="drag" x="0" y="${top}" width="${W}" height="${bot-top}" fill="transparent" ${dA(null,0,{sy:.25})}/>`)},
+'The notes the resonator rings at, on a pitch ladder: one bar per chord tone, named, its length showing how long it rings (FEEDBACK) and its brightness BRIGHT. ROOT comes from the keyboard overlay, as in the old controller (drag the view up or down, or use the knob, for fine changes). The 16 chords sit in a 2 × 8 button grid in place of a knob. ROOT and CHORD are tuning parameters (excluded from preset recall when Exclude tuning is on). The chord tones shown are my reading of the chord names and need checking on the device.',{d:[60,70,60,73,64,40]});
+// 3
+const dlyView=(pT,pF,pL,pLo,pHi,o={})=>c=>{let t=o.t?o.t(c):noteFrac(c.v(pT));const s=taps(c,{t,fb:c.r(pF)/127,lvl:pL!=null?.4+c.r(pL)/127*.6:.9,pF,pL,base:pLo!=null?c.H-22:c.H-6,pan:o.pan&&o.pan(c),per:o.per&&o.per(c),win:o.win,unit:o.unit});
+ return svg(c,s+(pLo!=null?band(c,c.H-17,o.lo?o.lo(c):parseHz(c.v(pLo)),parseHz(c.v(pHi)),pLo,pHi,'DAMP'):'')+T(6,12,(o.lab?o.lab(c):c.v(pT))+' · FB '+c.v(pF),'gt'))};
+fx('Sync Delay',3,[3,23,0],[D(16,'TIME',DT,S16,'nv'),K(17,'FEEDBACK',r=>n99(r)+'%'),K(18,'LEVEL',pct),D(80,'L DAMP',LD,LDS,'drop'),D(81,'H DAMP',HD,HDS,'drop')],
+dlyView(0,1,2,3,4),'Echo taps on a beat grid: spacing is the note value, height falls with feedback. Drag the first tap for LEVEL and the second for FEEDBACK. The damping strip at the bottom is the band the repeats keep; drag its edges (or use the drop-downs). Time is picked from a note-value matrix: straight, triplet (T) and dotted (D) rows.',{d:[49,70,90,22,90]});
+// 4
+fx('Isolator',0,[4,8,0],[K(16,'LOW',iso),K(17,'MID',iso),K(18,'HIGH',iso)],
+c=>{const W=c.W,mid=c.H*.42,top=16,bot=c.H-20;let g='';const yOf=d=>d>=0?mid-d/12*(mid-top):mid+Math.min(-d,42)/42*(bot-mid);
+ g+=Ln(0,mid,W,mid,'ax')+T(3,top+2,'+12','gl')+T(3,mid-3,'0','gl')+T(3,bot-2,'−INF','gl');
+ ['LOW','MID','HIGH'].forEach((l,i)=>{const x=W*(i/3)+10,w=W/3-20,d=isoDb(c.r(i)),y=yOf(d);const kill=c.r(i)===0;
+  g+=R(x,Math.min(y,mid),w,Math.abs(y-mid),'af',`opacity="${kill?.15:.8}"`)+`<rect class="drag" x="${x}" y="${top}" width="${w}" height="${bot-top}" fill="transparent" ${dA(null,i,{sy:.6})}/>`;
+  g+=Ln(x,y,x+w,y,'cv')+T(x+w/2,c.H-6,l+' '+(kill?'KILL':iso(c.r(i))),kill?'hl':'gt','middle')});
+ return svg(c,g)},
+'A three-band DJ isolator drawn as three level columns: drag a column up or down. Below the view are KILL buttons, an app feature: KILL sends the band to −INF and a second press restores the level it had.',{d:[80,58,95],extra:'kill'});
+// 5
+fx('DJFX Looper',7,[5,35,0],[K(16,'LENGTH',r=>loopLen(r).toFixed(3)+'s'),K(17,'SPEED',r=>sg(bip(r))),D(18,'LOOP',OO,S2,'big')],
+c=>{const W=c.W,H=c.H,mid=H/2-6;let g='';for(let x=2;x<W;x+=3){const a=(0.25+0.75*rnd(x))*(H*.32)*(0.6+0.4*Math.sin(x*.05));g+=Ln(x,mid-a,x,mid+a,'gr')}
+ const L=loopLen(c.r(0)),w=12+L/0.23*(W*.55),x0=W*.3,on=c.x(2)===1;
+ g+=R(x0,10,w,H-40,'ar',`style="fill-opacity:${on?.45:.18}"`)+Ln(x0,10,x0,H-30,'cv')+Ln(x0+w,10,x0+w,H-30,'cv');
+ for(let x=x0;x<x0+w;x+=3){const a=(0.25+0.75*rnd(x))*(H*.32)*(0.6+0.4*Math.sin(x*.05));g+=Ln(x,mid-a,x,mid+a,'cv').replace('class="cv"','class="cv" style="stroke-width:1"')}
+ g+=`<rect class="dragx" x="${(x0+w-6).toFixed(1)}" y="10" width="12" height="${H-40}" fill="#fff" fill-opacity=".12" ${dA(0,null,{sx:-.7})}/>`;
+ const sp=bip(c.r(1));g+=T(x0+w/2,H-14,(sp<0?'◀ ':'')+'SPEED '+sg(sp)+(sp>=0?' ▶':''),'gt','middle')+`<rect class="dragx" x="0" y="${H-28}" width="${W}" height="24" fill="transparent" ${dA(1,null,{sx:.6})}/>`;
+ return svg(c,g+T(6,22,L.toFixed(3)+' s','big1')+T(x0+w+4,22,'drag edge','gl'))},
+'A waveform with the loop window over it: drag the right edge to change LENGTH (12 ms to 230 ms), drag along the bottom strip for SPEED (reverse to forward). LOOP is a large latching button because it is played live.',{d:[60,90,64]});
+// 6
+const SCD=[0,13,26,39,52,65,77,90,103,115];
+fx('Scatter',7,[6,36,0],[D(16,'TYPE',['1','2','3','4','5','6','7','8','9','10'],SCD,'inview'),D(17,'DEPTH',['10','20','30','40','50','60','70','80','90','100'],SCD,'inview'),D(18,'SCATTER',OO,S2,'big'),D(80,'SPEED',['SINGLE','DOUBLE'],S2,'seg')],
+c=>{const W=c.W,H=c.H,pw=(W-2)/10,ph=22;let g=T(4,11,'TYPE '+c.v(0),'gt');
+ for(let i=0;i<10;i++)g+=PAD(1+i*pw+1,16,pw-2,ph,c.x(0)===i,'0:'+SCD[i],i+1,12);
+ const y0=16+ph+12;g+=T(4,y0+8,'DEPTH '+c.v(1),'gt');const by=y0+14,bh=H-by-2,dw=(W-2)/10,d=c.x(1);
+ for(let i=0;i<10;i++){const h=bh*(.3+.7*(i+1)/10),x=1+i*dw+1,on=i<=d;g+=`<rect class="pad ${on?'on':''}" x="${x.toFixed(1)}" y="${(by+bh-h).toFixed(1)}" width="${(dw-2).toFixed(1)}" height="${h.toFixed(1)}" rx="3" data-set="1:${SCD[i]}" style="${on&&i<d?'fill-opacity:.55':''}"/>`+T(x+(dw-2)/2,by+bh-6,(i+1)*10,'padt'+(on?' on':''),'middle')}
+ return svg(c,g)},
+'Scatter is played, so both choices are pads. TYPE is a compact row of ten; DEPTH gets the bigger buttons as rising bars (10 to 100), lit up to the chosen depth. SCATTER is a large latching button. The device has no picture of what each type does, so the type pads only show numbers.',{d:[26,65,64,0]});
+// 7
+fx('Downer',7,[7,5,10],[K(16,'DEPTH',pct),D(17,'RATE',['2/1','1/1','1/2','1/4','1/8','1/16','1/32'],[0,19,37,55,73,91,127],'seg'),K(18,'FILTER',pct),D(80,'PITCH',['OFF','ON'],S2,'seg'),K(81,'RESO',pct)],
+c=>{const W=c.W,H=c.H,top=20,bot=H-14;const len=noteFrac(c.v(1)),win=Math.max(2,len),x1=8+len/win*(W-16);let g='';for(let b=0;b<=win*4;b++){const x=8+b/(win*4)*(W-16);g+=Ln(x,top,x,bot,b%4?'gr':'ax')}
+ const d=c.r(0)/127,pOn=c.x(3)===1;const pp=[],fp=[];for(let x=8;x<=W-8;x+=2){const t=clamp((x-8)/(x1-8),0,1);const e=1-Math.pow(t,0.7);pp.push(`${x},${(top+(1-e)*d*(bot-top)).toFixed(1)}`);fp.push(`${x},${(top+(1-e)*(c.r(2)/127)*(bot-top)+6).toFixed(1)}`)}
+ g+=(pOn?PL(pp):PL(pp,'cv','stroke-opacity:.25'))+PL(fp,'cv2');
+ return svg(c,g+H_(c,x1,top+d*(bot-top),'DEPTH',null,0)+T(6,12,'PITCH '+(pOn?'ON':'OFF')+' · '+c.v(1),'gt')+T(W-6,12,'— pitch  - - filter','gl','end'))},
+'Shows the drop over time: the solid line is pitch (dimmed when PITCH is off), the dashed line is the filter. The curve reaches the bottom after the RATE note value; drag the end point for DEPTH. RATE is a seven-way switch.',{d:[90,55,70,64,40]});
+// 8
+fx('Ha-Dou',4,[8,21,0],[K(16,'MOD DEPTH',pct),K(17,'TIME',pct),K(18,'LEVEL',pct),D(80,'LOW CUT',LC,LCS,'drop'),D(81,'HIGH CUT',HD,HDS,'drop'),K(82,'PRE DLY',r=>ms100(r)+'ms')],
+c=>svg(c,verb(c,{pre:ms100(c.r(5)),time:c.r(1)/127,lvl:.3+c.r(2)/127*.7,mod:c.r(0)/127,pPre:5,pLvl:2,pTime:1,base:c.H-22})+band(c,c.H-17,parseHz(c.v(3)),parseHz(c.v(4)),3,4,'CUT')+T(c.W-4,12,'MOD '+pct(c.r(0)),'gt','end')),
+'Reverb envelope: drag the front corner for PRE-DELAY (sideways) and LEVEL (up and down), the tail for TIME. Modulation depth makes the tail wobble. The strip at the bottom is the low-cut and high-cut band, with drop-downs as well.',{d:[50,70,90,36,103,30]});
+// 9
+fx('Ko-Da-Ma',3,[9,25,0],[D(16,'TIME',DT,S16,'nv'),K(17,'FEEDBACK',r=>n99(r)+'%'),K(18,'LEVEL',pct),D(80,'L DAMP',LD,LDS,'drop'),D(81,'H DAMP',HD,HDS,'drop'),D(82,'MODE',['SINGLE','PAN'],S2,'seg')],
+dlyView(0,1,2,3,4,{pan:c=>c.x(5)===1}),'Like Sync Delay, but in PAN mode the taps alternate above (left) and below (right) the centre line, so the ping-pong is visible.',{d:[65,80,90,0,120,64]});
+// 10
+fx('Zan-Zou',3,[10,22,0],[K(16,'TIME',pct,{sl:{list:DT,starts:ZZS,ui:'nv'}}),K(17,'FEEDBACK',n99),D(18,'HF DAMP',HFD,LCS,'drop'),K(80,'LEVEL',pct),D(81,'MODE',['2TAP','3TAP','4TAP'],[0,43,86],'seg'),SYNC(82)],
+dlyView(0,1,3,null,null,{t:c=>c.sync()?noteFrac(c.v(0)):0.06+c.r(0)/127*.9,per:c=>[[.5,1],[1/3,2/3,1],[.25,.5,.75,1]][c.x(4)],pan:()=>true,lab:c=>(c.sync()?c.v(0):'TIME '+c.v(0))+' · '+c.v(4)}),
+'Multi-tap delay. MODE picks 2, 3 or 4 taps; the taps alternate left and right. With SYNC on, TIME becomes the note-value matrix; with SYNC off, it is a 0–100 knob. The tap pattern is drawn from the mode names and needs checking on the device.',{d:[60,70,17,90,43,64]});
+// 11
+fx('To-Gu-Ro',5,[11,34,0],[K(16,'DEPTH',pct),K(17,'RATE',pct,{sl:{list:['2/1','1/1','1/2','1/4','1/8','1/16','1/32','1/64','1/128'],starts:[0,16,32,48,64,80,96,112,127],ui:'seg'}}),K(18,'RESO',pct),K(80,'FLT MOD',pct),K(81,'AMP MOD',pct),SYNC(82)],
+c=>{const cyc=c.sync()?Math.min(16,1/noteFrac(c.v(1))):1+c.r(1)/127*10;const d=c.r(0)/127;let g='';for(let i=1;i<4;i++)g+=Ln(c.W*i/4,0,c.W*i/4,c.H);
+ g+=PL(lfoPts(c,'SIN',cyc,d*c.r(3)/127,10,c.H-30,'bi'))+PL(lfoPts(c,'SIN',cyc,d*c.r(4)/127,10,c.H-30,'bi').map(s=>{const[x,y]=s.split(',');return x+','+(c.H-30-(+y-10)+10)}),'cv2');
+ return svg(c,g+H_(c,c.W*.25/cyc,10+(c.H-30)/2-d*(c.H-30)/2*c.r(3)/127,'DEPTH',null,0)+T(6,c.H-6,'— filter mod  - - amp mod · 1 bar shown','gl')+T(c.W-6,c.H-6,c.sync()?c.v(1):'RATE '+c.v(1),'gt','end'))},
+'One bar of the modulation: the solid line is the filter movement, the dashed line the volume movement. FLT MOD and AMP MOD set the size of each; drag the peak for DEPTH. With SYNC on, RATE is a nine-way note switch.',{d:[90,48,60,90,70,64]});
+// 12
+fx('SBF',0,[12,16,0],[K(16,'INTERVAL',pct),K(17,'WIDTH',pct),K(18,'BALANCE',bal),D(80,'TYPE',['SBF1','SBF2','SBF3','SBF4','SBF5','SBF6'],[0,25,51,76,102,127],'seg'),K(81,'GAIN',r=>sbf(r)+'dB')],
+c=>{const sp=0.6+c.r(0)/127*2,wd=0.03+c.r(1)/127*.2,dep=-22;const f0=80;
+ const o=resp(c,f=>{const k=Math.log2(f/f0)/sp;const fr=k-Math.round(k);return dep*Math.exp(-Math.pow(fr/wd,2))},{range:24});
+ return svg(c,o.svg+H_(c,fx2(f0*Math.pow(2,sp),c.W),o.dbY(dep),'INTERVAL · WIDTH',0,1,{sx:.6,sy:.8})+T(c.W-4,12,c.v(3)+' · GAIN '+c.v(4)+' dB','gt','end'))},
+'SBF drawn as a comb of notches: INTERVAL spaces them, WIDTH widens them; one handle sets both. TYPE (SBF1–6) is a six-way switch. The notch shape is a guess at what SBF does and needs checking by ear.',{d:[50,40,80,25,108]});
+// 13
+fx('Stopper',7,[13,0,0],[K(16,'DEPTH',pct),D(17,'RATE',['4/1','2/1','1/1','1/2','1/4','1/8','1/16','1/32','1/64'],[0,16,32,48,64,80,96,112,127],'seg'),K(18,'RESO',pct),K(80,'FLT MOD',pct),K(81,'AMP MOD',pct)],
+c=>{const W=c.W,top=20,bot=c.H-14,len=noteFrac(c.v(1)),win=Math.max(1,len)*1.25,x1=8+len/win*(W-16);let g='';for(let b=0;b<=win*4;b++){const x=8+b/(win*4)*(W-16);g+=Ln(x,top,x,bot,b%4?'gr':'ax')}
+ const d=c.r(0)/127,sp=[],am=[];for(let x=8;x<=W-8;x+=2){const t=clamp((x-8)/(x1-8),0,1);const v=1-d*t*t;sp.push(`${x},${(bot-v*(bot-top)).toFixed(1)}`);am.push(`${x},${(bot-(1-(c.r(4)/127)*t)*(bot-top)+4).toFixed(1)}`)}
+ return svg(c,g+PL(sp)+PL(am,'cv2')+H_(c,x1,bot-(1-d)*(bot-top),'DEPTH',null,0)+T(6,12,'TAPE STOP · '+c.v(1),'gt')+T(W-6,12,'— speed  - - level','gl','end'))},
+'A tape-stop curve: the speed slows over the RATE note value; DEPTH is how far it slows (drag the end point). The dashed line is the volume (AMP MOD). Bus 1/2 only.',{d:[110,48,50,40,60]});
+// 14
+const TAPEMODES=['S','M','L','S+M','S+L','M+L','S+M+L'];
+fx('Tape Echo',3,[14,26,0],[K(16,'TIME',r=>tape(r)+'ms'),K(17,'FEEDBACK',r=>n99(r)+'%'),K(18,'LEVEL',pct),D(80,'MODE',TAPEMODES,[0,19,37,55,73,91,110],'inview'),K(81,'WF RATE',pct),K(82,'WF DEPTH',pct)],
+c=>{const W=c.W,H=c.H,mode=TAPEMODES[c.x(3)].split('+');let g='';const ty=8,th=H*.38,lw=W*.62+(W-26-W*.62)*c.r(0)/127;
+ g+=`<rect x="6" y="${ty}" width="${lw.toFixed(1)}" height="${th}" rx="${th/2}" fill="none" stroke="#5b5e66" stroke-width="3"/>`;
+ g+=T(6+lw/2,ty+th/2-2,tape(c.r(0))+' ms','big1','middle')+T(6+lw/2,ty+th/2+12,'drag the loop end for TIME','gl','middle');
+ const hx=[.2,.4,.6,.8].map(f=>6+lw*f),hl=['REC','S','M','L'];hl.forEach((l,i)=>{const on=i===0||mode.includes(l);g+=`<rect class="${i?'pad clk':'pad'} ${on?'on':''}" x="${hx[i]-14}" y="${ty+th-9}" width="28" height="18" rx="2" ${i?`data-head="${l}"`:''}/>`+T(hx[i],ty+th+4,l,'padt'+(on?' on':''),'middle')});
+ g+=`<rect class="dragx" x="${(6+lw-th/2).toFixed(1)}" y="${ty}" width="${(th/2+8).toFixed(1)}" height="${th-12}" fill="transparent" ${dA(0,null,{sx:.6})}/>`+H_(c,6+lw,ty+th/2,'TIME',0,null,{sx:.6,below:1});
+ const base=H-8,top=ty+th+22,mh=base-top,u=tape(c.r(0))/2400*(W-20);for(let x=10;x<W;x+=u*3)g+=Ln(x,top,x,base);
+ const fb=c.r(1)/127,wf=c.r(5)/127,wr=c.r(4)/127;const hv={S:1,M:2,L:3};
+ for(let rep=0;rep<12;rep++)mode.forEach(m=>{const x=10+(hv[m]+rep*3)*u;if(x>W-4)return;const a=Math.pow(fb,rep)*(.4+.6*c.r(2)/127);g+=R(x-2,base-a*mh,4,a*mh,'af',`opacity="${(.4+.6*a).toFixed(2)}"`)});
+ const wp=[];for(let x=0;x<=W;x+=2)wp.push(`${x},${(top-6+Math.sin(x*(.03+wr*.25))*wf*5).toFixed(1)}`);g+=PL(wp,'cv2');
+ return svg(c,g+T(W-6,top-12,'click the heads','gl','end'))},
+'A tape loop with its playback heads. The loop gets longer with TIME: drag its right end (the handle). Click S, M or L to switch heads in or out, and the app picks the matching MODE (all seven combinations). The taps below follow the heads; the dashed line above them is wow and flutter (WF RATE, WF DEPTH).',{d:[60,70,90,73,40,40]});
+// 15
+fx('TimeCtrlDly',3,[15,24,8],[K(16,'TIME',r=>tape(r)+'ms',{sl:{list:DT,starts:S16B,ui:'nv'}}),K(17,'FEEDBACK',r=>n99(r)+'%'),K(18,'LEVEL',pct),D(80,'L DAMP',LD,LDS2,'drop'),D(81,'H DAMP',HD,HDS2,'drop'),SYNC(82)],
+dlyView(0,1,2,3,4,{t:c=>c.sync()?noteFrac(c.v(0)):tape(c.r(0))/2000,lab:c=>c.v(0)}),'With SYNC on, TIME is the note-value matrix; with SYNC off, it is a knob in milliseconds (10–800 ms; the grid is drawn at 120 BPM). Otherwise the same as Sync Delay.',{d:[51,70,90,0,111,64]});
+// 16
+fx('Super Filter',0,[16,9,0],[K(16,'CUTOFF',pct),K(17,'RESO',pct),D(18,'TYPE',['LPF','BPF','HPF'],[0,43,85],'seg'),K(80,'DEPTH',pct),K(81,'RATE',pct,{sl:{list:R22,starts:R22S,ui:'nv8'}}),SYNC(82)],
+c=>{const fc=20*Math.pow(1000,c.r(0)/127),q=qOf(c.r(1)),ty=c.x(2);const o=resp(c,f=>ty===0?lpdb(f/fc,q):ty===2?lpdb(fc/f,q):bpdb(f/fc,q/1.5)+20*Math.log10(q)*.5,{range:30});
+ const sw=c.r(3)/127*3,xa=fx2(fc/Math.pow(2,sw),c.W),xb=fx2(fc*Math.pow(2,sw),c.W);
+ return svg(c,R(xa,0,xb-xa,c.H,'ar','style="fill-opacity:.1"')+o.svg+H_(c,fx2(fc,c.W),o.dbY(20*Math.log10(q)),'CUT · RESO',0,1,{sx:.55})+T(c.W-4,12,'LFO '+(c.sync()?c.v(4):'RATE '+c.v(4))+' · DEPTH '+pct(c.r(3)),'gt','end'))},
+'Filter curve with a cutoff/resonance handle; the shaded band is how far the LFO sweeps (DEPTH). TYPE is a three-way switch. With SYNC on, RATE is a note-value matrix (2/1 to 1/64, with dotted and triplet).',{d:[70,70,0,60,55,64]});
+// 17
+fx('WrmSaturator',1,[17,11,11],[K(16,'DRIVE',r=>'+'+db48(r)+'dB'),K(17,'EQ LOW',r=>sg(db24(r))+'dB'),K(18,'EQ HIGH',r=>sg(db24(r))+'dB'),K(80,'LEVEL',pct)],
+c=>{const dr=.5+db48(c.r(0))/6,h1=c.H*.56,lo=db24(c.r(1)),hi=db24(c.r(2));
+ return svg(c,xfer(c,0,0,c.W,h1-4,v=>Math.tanh(v*dr)/Math.tanh(dr),'OUT')+T(c.W/2,h1-14,'DRIVE +'+db48(c.r(0))+' dB','gt','middle')+tonePanel(c,h1+2,c.H-h1-2,f=>shLo(f,200,lo)+shHi(f,4000,hi),[[150,lo,'LOW '+sg(lo),1],[7000,hi,'HIGH '+sg(hi),2]]))},
+'Top: the saturation curve; drag up or down anywhere on it for DRIVE. Bottom: the two-band tone EQ with LOW and HIGH gain handles.',{d:[40,70,60,90]});
+// 18
+fx('303 VinylSim',2,[18,1,12],[K(16,'COMP',pct),K(17,'NOISE',pct),K(18,'WOW FLUT',pct),K(80,'LEVEL',pct)],
+c=>{const cx=c.W*.42,cy=c.H/2,r=Math.min(c.H/2-8,c.W*.36),w=c.r(2)/127;let g='';
+ for(let k=0;k<14;k++){const rr=r*(0.32+k*0.05),pts=[];for(let a=0;a<=6.3;a+=.06){const q=rr*(1+w*(0.06*Math.sin(3*a+k*.7)+0.035*Math.sin(7*a+k*1.9)+0.02*Math.sin(13*a+k)));pts.push(`${(cx+Math.cos(a)*q).toFixed(1)},${(cy+Math.sin(a)*q).toFixed(1)}`)}
+  g+=`<polygon points="${pts.join(' ')}" fill="none" stroke="${k%3?'#2c2e34':'#41444c'}" stroke-width="${k%3?1:1.4}"/>`}
+ g+=`<circle cx="${cx}" cy="${cy}" r="${r*.28}" class="af" opacity=".8"/>`+T(cx,cy+4,'303','padt on','middle');
+ const n=Math.round(c.r(1)/127*90);for(let i=0;i<n;i++){const a=rnd(i)*6.283,rr=r*(.3+.7*rnd(i+50));g+=`<circle cx="${(cx+Math.cos(a)*rr).toFixed(1)}" cy="${(cy+Math.sin(a)*rr).toFixed(1)}" r="1" fill="#e8e8ea" opacity=".6"/>`}
+ const mx=c.W-30,mt=14,mb=c.H-20,cm=c.r(0)/127;g+=R(mx,mt,14,mb-mt,'dimf')+R(mx,mb-(mb-mt)*cm,14,(mb-mt)*cm,'af','opacity=".7"')+T(mx+7,c.H-6,'COMP','gl','middle')+`<rect class="drag" x="${mx-6}" y="${mt}" width="26" height="${mb-mt}" fill="transparent" ${dA(null,0)}/>`;
+ return svg(c,g+`<rect class="drag" x="${cx-r}" y="${cy-r}" width="${2*r}" height="${2*r}" fill="transparent" ${dA(2,1,{sx:.6})}/>`+T(6,12,'NOISE '+pct(c.r(1))+' · WOW '+pct(c.r(2)),'gt'))},
+'Mostly a character view: crackle dots for NOISE, grooves that wobble more as WOW FLUT goes up and a COMP bar on the right that rises with the amount of compression (drag it up or down). Drag on the record: sideways for WOW FLUT, up and down for NOISE.',{d:[60,50,40,90]});
+// 19
+fx('404 VinylSim',2,[19,2,13],[K(16,'FREQ',pct),K(17,'NOISE',pct),K(18,'WOW FLUT',pct)],
+c=>{const f=c.r(0)/127,lo=40+(1-f)*500,hi=2500+f*14000;const o=resp(c,x=>lpdb(x/hi,.7)+lpdb(lo/x,.7),{range:30});const ny=o.dbY(-30+c.r(1)/127*24);
+ const wp=[];for(let x=0;x<=c.W;x+=2)wp.push(`${x},${(ny+Math.sin(x*.08)*c.r(2)/127*6).toFixed(1)}`);
+ return svg(c,o.svg+PL(wp,'cv2')+H_(c,fx2(hi,c.W),o.dbY(-3),'FREQ',0,null,{sx:.4})+H_(c,c.W*.5,ny,'NOISE',null,1)+T(c.W-4,12,'WOW '+pct(c.r(2)),'gt','end'))},
+'Band-limited response: FREQ narrows the band as it goes down (drag the edge handle). The dashed line is the noise floor (drag it for NOISE); its wobble is WOW FLUT.',{d:[70,50,40]});
+// 20
+fx('Cassette Sim',2,[20,3,14],[K(16,'TONE',pct),K(17,'HISS',pct),K(18,'AGE',r=>age60(r)+''),K(80,'DRIVE',pct),K(81,'WOW FLUT',pct),K(82,'CATCH',pct)],
+c=>{const W=c.W,H=c.H,h1=H*.55,mid=h1/2+8,amp=h1/2-12,ag=age60(c.r(2))/60,hs=c.r(1)/127,wf=c.r(4)/127,dr=c.r(3)/127*3,ct=c.r(5)/127,tn=(c.r(0)-64)/64;let g=R(0,4,W,h1,'dimf','fill-opacity=".3"')+Ln(0,mid,W,mid,'ax');
+ const sig=(a,ag,tb)=>{let v=0;for(let k=1;k<=24;k++)v+=Math.sin(k*a)/k*Math.exp(-(k-1)*ag*.9)*(k>3?1+tb:1);return v/1.7};
+ const drops=[];for(let k=0;k<Math.round(ct*6);k++)drops.push(W*(.08+.84*rnd(k+40)));
+ const nH=Math.round(hs*320);for(let i=0;i<nH;i++){const x=rnd(i+500)*W,y=mid+(rnd(i+900)-.5)*amp*2*(.3+.7*hs);g+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r=".9" fill="#c9ccd3" opacity="${(.15+.45*rnd(i+77)).toFixed(2)}"/>`}
+ const p=[],q=[];for(let x=0;x<=W;x+=1.5){const a0=x/W*2*Math.PI*3;q.push(`${x.toFixed(1)},${(mid-sig(a0,0,0)*amp).toFixed(1)}`);
+  const a=a0+wf*1.4*Math.sin(x*.045);let v=sig(a,ag,tn*.5);if(dr>0)v=Math.tanh(dr*v)/Math.tanh(dr);v*=1-ag*.25;
+  if(drops.some(d=>x>d&&x<d+9))v*=.15;v+=(rnd(x*3.7)-.5)*hs*.25;p.push(`${x.toFixed(1)},${(mid-v*amp).toFixed(1)}`)}
+ g+=PL(q,'cv2','stroke-opacity:.45')+PL(p,'cv','stroke-width:1.6')+T(6,16,'AGE '+age60(c.r(2))+' · HISS '+pct(c.r(1))+' · WOW '+pct(c.r(4))+' · DRIVE '+pct(c.r(3))+(ct>0?' · CATCH '+pct(c.r(5)):''),'gt')+T(W-4,h1,'- - input   — output','gl','end');
+ g+=`<rect class="drag" x="0" y="4" width="${W}" height="${h1}" fill="transparent" ${dA(2,1,{sx:.5,sy:.6})}/>`;
+ const fc=16000/Math.pow(2,ag*3.5),tone=tn*8;const o=resp(c,f=>lpdb(f/fc,.8)+shHi(f,2500,tone),{range:24,y0:h1+8,h:H-h1-10,nolab:1});
+ g+=o.svg+T(4,h1+20,'TONE','gt')+H_(c,fx2(6000,W),o.dbY(shHi(6000,2500,tone)+lpdb(6000/fc,.8)),'TONE '+sg(Math.round(tn*100)),null,0,{sy:.6});
+ return svg(c,g)},
+'Top: a test signal (dashed) and what the cassette does to it (solid). With every control at zero the two lines sit on top of each other. The test signal is a sawtooth with sharp edges; AGE (0 = new tape) rounds the edges off as the treble goes and lowers the level, HISS fills the panel with grain, WOW FLUT bends it in time, DRIVE squares it off and CATCH punches short dropouts into it. Drag the top panel sideways for AGE and up or down for HISS. Bottom: the frequency response, where TONE tilts the top end (drag its handle) and AGE pulls the treble down.',{d:[64,45,30,25,35,25]});
+// 21
+fx('Lo-fi',1,[21,4,15],[D(16,'PRE FILTER',['1','2','3','4','5','6'],[0,22,43,64,85,107],'seg'),D(17,'LOFI TYPE',['1','2','3','4','5','6','7','8','9'],[0,15,29,43,57,71,85,100,114],'seg'),K(18,'TONE',r=>sg(bip(r))),D(80,'CUTOFF',['200','250','315','400','500','630','800','1k','1.25k','1.6k','2k','2.5k','3.15k','4k','5k','6.3k','8k'],[0,8,15,23,30,38,45,53,60,68,75,83,90,98,105,113,120],'drop'),K(81,'BALANCE',bal),K(82,'LEVEL',pct)],
+c=>{const W=c.W,h1=c.H*.45;const steps=4+(8-c.x(1))*3;let p=[],q=[];for(let x=0;x<=W;x+=2){const v=Math.sin(x/W*Math.PI*4);p.push(`${x},${(h1/2+4-v*(h1/2-6)).toFixed(1)}`)}
+ const sw=W/(10+(8-c.x(1))*8);for(let x=0;x<=W;x+=sw){const v=Math.round(Math.sin(x/W*Math.PI*4)*steps)/steps;q.push(`${x.toFixed(1)},${(h1/2+4-v*(h1/2-6)).toFixed(1)}`,`${(x+sw).toFixed(1)},${(h1/2+4-v*(h1/2-6)).toFixed(1)}`)}
+ const fc=parseHz(c.v(3)),o=resp(c,f=>lpdb(f/fc,.9)+shHi(f,2000,bip(c.r(2))/100*8),{range:24,y0:h1+6,h:c.H-h1-8,nolab:1});
+ return svg(c,PL(p,'cv2')+PL(q)+T(6,12,'TYPE '+c.v(1)+' · PRE '+c.v(0),'gt')+o.svg+H_(c,fx2(fc,W),o.dbY(-3),'CUTOFF',3,null,{sx:.3}))},
+'Top: a sine wave against its crushed copy (coarser for lower LOFI TYPE numbers; illustrative). Bottom: the CUTOFF filter (drag it; 17 steps) with TONE tilting the top end. PRE FILTER and LOFI TYPE are button rows because they are plain numbered choices.',{d:[43,57,64,75,90,90]});
+// 22
+fx('Reverb',4,[22,20,7],[D(16,'TYPE',['AMBI','ROOM','HALL1','HALL2'],[0,32,64,96],'seg'),K(17,'TIME',pct),K(18,'LEVEL',pct),D(80,'LOW CUT',LC,LCS,'drop'),D(81,'HIGH CUT',HD,HDS,'drop'),K(82,'PRE DLY',r=>ms100(r)+'ms')],
+c=>svg(c,verb(c,{pre:ms100(c.r(5)),time:Math.min(1,(c.r(1)/127)*(.5+c.x(0)*.2)),lvl:.3+c.r(2)/127*.7,pPre:5,pLvl:2,pTime:1,base:c.H-22})+band(c,c.H-17,parseHz(c.v(3)),parseHz(c.v(4)),3,4,'CUT')+T(c.W-4,12,c.v(0),'gt','end')),
+'Same reverb view as Ha-Dou: front corner for PRE-DELAY and LEVEL, tail for TIME, cut band at the bottom. TYPE (AMBI, ROOM, HALL1, HALL2) is a four-way switch, and it lengthens the drawn tail.',{d:[64,80,90,22,103,20]});
+// 23
+fx('Chorus',5,[23,27,5],[K(16,'DEPTH',pct),K(17,'RATE',chRate),K(18,'BALANCE',bal),D(80,'EQ LOW',EQ31,EQS,'sk'),D(81,'EQ HIGH',EQ31,EQS,'sk'),K(82,'LEVEL',pct)],
+c=>{const W=c.W,h1=c.H*.45,per=0.33+c.r(1)*1.97/127,cyc=4/per,d=c.r(0)/127;let g='';for(let i=1;i<4;i++)g+=Ln(W*i/4,0,W*i/4,h1);
+ g+=PL(lfoPts(c,'SIN',cyc,d,4,h1-4))+PL(lfoPts(c,'SIN',cyc,d,4,h1-4).map(s=>{const[x,y]=s.split(',');return x+','+(h1-(+y))}),'cv2')+T(6,12,'RATE '+chRate(c.r(1))+' · 4 s shown','gt');
+ g+=`<rect class="drag" x="0" y="0" width="${W}" height="${h1}" fill="transparent" ${dA(1,0,{sx:-.4})}/>`;
+ const lo=+EQ31[c.x(3)],hi=+EQ31[c.x(4)],o=resp(c,f=>shLo(f,200,lo)+shHi(f,4000,hi),{range:18,y0:h1+4,h:c.H-h1-6,nolab:1});
+ return svg(c,g+o.svg+H_(c,fx2(120,W),o.dbY(lo),'EQ LOW',null,3)+H_(c,fx2(8000,W),o.dbY(hi),'EQ HIGH',null,4))},
+'Top: the two chorus voices moving (drag up and down for DEPTH, sideways for RATE). Bottom: the low/high EQ, with a handle for each band (±15 dB in 1 dB steps).',{d:[60,40,64,66,70,90]});
+// 24
+const JUNO=['JUNO 1','JUNO 2','JUNO 12','JX-1 1','JX-1 2'];
+fx('JUNO Chorus',5,[24,28,6],[D(16,'MODE',JUNO,[0,26,51,77,102],'inview'),K(17,'NOISE',pct),K(18,'BALANCE',bal)],
+c=>{const W=c.W,H=c.H;let g=T(8,16,'JUNO','gt')+T(W*.66,16,'JX-1','gt');const lab=['I','II','I+II','I','II'];const bw=(W-34)/5;
+ for(let i=0;i<5;i++){const x=6+i*bw+(i>2?16:0),on=c.x(0)===i;g+=`<circle cx="${x+bw/2-4}" cy="30" r="4" fill="${on?'#ff3b30':'#3a1512'}"/>`+`<rect class="pad ${on?'on':''}" x="${x}" y="40" width="${bw-8}" height="${H*.32}" rx="2" data-set="0:${[0,26,51,77,102][i]}"/>`+T(x+bw/2-4,40+H*.16+5,lab[i],'padt'+(on?' on':''),'middle')}
+ const sy=40+H*.32+16,spread=[.5,.8,1,.6,.9][c.x(0)];g+=Ln(W/2,sy,W/2,H-6,'ax')+T(8,H-6,'L','gl')+T(W-8,H-6,'R','gl','end');
+ for(let k=0;k<5;k++)g+=`<ellipse cx="${W/2}" cy="${(sy+(H-sy)/2).toFixed(1)}" rx="${(W*.45*spread*(1-k*.17)).toFixed(1)}" ry="${((H-sy)/2-4)*(1-k*.15)}" fill="none" stroke="var(--acc)" stroke-opacity="${.6-k*.1}"/>`;
+ return svg(c,g)},
+'Big chorus buttons with LEDs, as on the Juno-60 and JX-1 panels (I, II, I+II). The rings below hint at the stereo width of each mode (illustrative). NOISE and BALANCE are knobs.',{d:[51,30,64]});
+// 25,26
+const flView=(ph)=>c=>{const man=c.r(2)/127,res=.3+c.r(3)/127*.65,d=c.r(0)/127;const f0=ph?300*Math.pow(2,man*5):300*Math.pow(2,man*4);
+ const o=resp(c,ph?(f=>{let s=0;for(let k=0;k<4;k++)s+=-18*res*Math.exp(-Math.pow(Math.log2(f/(f0*Math.pow(2,k*.9)))/.18,2));return s+ (res*6)*Math.exp(-Math.pow(Math.log2(f/(f0*1.4))/.4,2))}):(f=>{const m=1+res*res-2*res*Math.cos(2*Math.PI*f/f0);return 10*Math.log10(m/(1+res*res))*1.6}),{range:24});
+ const xa=fx2(f0/Math.pow(2,d*2.5),c.W),xb=fx2(f0*Math.pow(2,d*2.5),c.W);
+ return svg(c,R(xa,0,xb-xa,c.H,'ar','style="fill-opacity:.1"')+o.svg+H_(c,fx2(ph?f0:f0/2,c.W),o.dbY(-18*res),'MANUAL · RESO',2,3,{sx:.6})+T(c.W-4,12,(c.sync()?'RATE '+c.v(1):'RATE '+c.v(1))+' · DEPTH '+pct(c.r(0)),'gt','end'))};
+fx('Flanger',5,[25,29,0],[K(16,'DEPTH',pct),K(17,'RATE',pct,{sl:{f:flBar}}),K(18,'MANUAL',pct),K(80,'RESO',pct),K(81,'BALANCE',bal),SYNC(82)],flView(0),
+'Comb-filter notches: MANUAL slides them, RESO deepens them, and both are on one handle. The shaded band is the sweep range (DEPTH). With SYNC on, RATE reads in bars (4 to 1/64 bar).',{d:[70,40,60,80,64,0]});
+fx('Phaser',5,[26,30,0],[K(16,'DEPTH',pct),K(17,'RATE',pct,{sl:{f:flBar}}),K(18,'MANUAL',pct),K(80,'RESO',pct),K(81,'BALANCE',bal),SYNC(82)],flView(1),
+'The same view as Flanger with the four phaser notches. MANUAL and RESO are on the handle; the shaded band is the sweep.',{d:[70,40,50,70,64,0]});
+// 27
+fx('Wah',0,[27,31,0],[K(16,'PEAK',pct),K(17,'RATE',pct,{sl:{f:wahBar}}),K(18,'MANUAL',pct),K(80,'DEPTH',pct),D(81,'TYPE',['LPF','BPF'],S2,'seg'),SYNC(82)],
+c=>{const fc=200*Math.pow(2,c.r(2)/127*5.5),q=1+c.r(0)/127*9,bp=c.x(4)===1;const o=resp(c,f=>bp?bpdb(f/fc,q)+20*Math.log10(q)*.6:lpdb(f/fc,q),{range:30});const sw=c.r(3)/127*2.5,xa=fx2(fc/Math.pow(2,sw),c.W),xb=fx2(fc*Math.pow(2,sw),c.W);
+ return svg(c,R(xa,0,xb-xa,c.H,'ar','style="fill-opacity:.1"')+o.svg+H_(c,fx2(fc,c.W),o.dbY(bp?20*Math.log10(q)*.6:20*Math.log10(q)),'MANUAL · PEAK',2,0,{sx:.6})+T(c.W-4,12,(bp?'BPF':'LPF')+' · RATE '+c.v(1),'gt','end'))},
+'The wah peak: drag it sideways for MANUAL (position) and up or down for PEAK (resonance). The shaded band is the auto-wah sweep (DEPTH). TYPE is a two-way switch.',{d:[80,50,60,60,64,64]});
+// 28
+const SL32=Array.from({length:32},(_,i)=>String(i+1));
+fx('Slicer',5,[28,32,0],[D(16,'PATTERN',SL32,Array.from({length:32},(_,i)=>i*4),'inview'),K(17,'SPEED',pct,{sl:{list:R22,starts:R22S,ui:'inview'}}),K(18,'DEPTH',pct),K(80,'SHUFFLE',pct),D(81,'MODE',['LEGATO','SLASH'],S2,'seg'),SYNC(82)],
+c=>{const W=c.W,H=c.H,pat=c.x(0),cols=8,top=16,ph=17,gw=(W-2)/cols;let g=T(4,11,'PATTERN '+(pat+1),'gt');
+ for(let i=0;i<32;i++){const x=1+(i%cols)*gw,y=top+Math.floor(i/cols)*(ph+2);g+=PAD(x+1,y,gw-2,ph,pat===i,'0:'+i*4,i+1,11)}
+ const y0=top+4*(ph+2)+8;g+=T(4,y0+8,'SPEED','gt')+T(W-4,y0+8,c.sync()?c.v(1):'SPEED '+c.v(1)+' (drag)','gt','end');const sy=y0+14,sh=H-sy-2;
+ if(c.sync()){const bases=['2/1','1/1','1/2','1/4','1/8','1/16','1/32','1/64'],bw=(W-2)/8,rh=(sh-4)/3,cur=c.v(1);
+  ['T','','D'].forEach((suf,ri)=>bases.forEach((bs,j)=>{const nm=bs+suf,k=R22.indexOf(nm);if(k<0)return;g+=PAD(1+j*bw+1,sy+ri*(rh+2),bw-2,rh,cur===nm,'1:'+R22S[k],nm,12)}))}
+ else{const v=c.r(1)/127;g+=R(1,sy,W-2,sh,'dimf')+R(1,sy,(W-2)*v,sh,'ar','style="fill-opacity:.5"')+Ln(1+(W-2)*v,sy,1+(W-2)*v,sy+sh,'cv')+`<rect class="dragx" x="0" y="${sy}" width="${W}" height="${sh}" fill="transparent" ${dA(1,null,{sx:.5})}/>`}
+ return svg(c,g)},
+'Compact pattern pads (32, in a 4 × 8 grid) at the top; SPEED gets the bigger buttons below, because it is changed more while playing. With SYNC on, SPEED is a note-value matrix (triplet, straight and dotted rows, every button labelled); with SYNC off it is a wide bar to drag. There is no step picture, as what each pattern does is not documented. DEPTH and SHUFFLE are knobs; MODE is a two-way switch.',{d:[20,73,90,30,0,64]});
+// 29
+const WAVES=['TRI','SQR','SIN','SAW1','SAW2','TRP'];
+fx('Tremolo/Pan',5,[29,33,0],[K(16,'DEPTH',pct),K(17,'RATE',pct,{sl:{f:wahBar}}),D(18,'TYPE',['TREMOLO','PAN'],S2,'seg'),D(80,'WAVE',WAVES,[0,22,43,64,85,107],'seg'),SYNC(81)],
+c=>{const pan=c.x(2)===1,w=WAVES[c.x(3)],d=c.r(0)/127,cyc=c.sync()?Math.max(1,Math.min(12,1/parseFloat(c.v(1)))):2+c.r(1)/127*8;let g='';for(let i=1;i<4;i++)g+=Ln(c.W*i/4,0,c.W*i/4,c.H);
+ if(pan)g+=Ln(0,c.H/2,c.W,c.H/2,'ax')+T(c.W-4,18,'L','gl','end')+T(c.W-4,c.H-6,'R','gl','end');
+ const p=lfoPts(c,w,cyc,d,14,c.H-20,pan?'bi':'trem');
+ return svg(c,g+PG([`0,${pan?c.H/2+4:c.H-6}`,...p,`${c.W},${pan?c.H/2+4:c.H-6}`],'ar')+PL(p)+T(6,12,(pan?'PAN':'TREMOLO')+' · '+w+' · '+(c.sync()?c.v(1):'RATE '+c.v(1)),'gt')+`<rect class="drag" x="0" y="14" width="${c.W}" height="${c.H-20}" fill="transparent" ${dA(null,0)}/>`)},
+'The modulation shape itself: WAVE is a six-way switch (triangle, square, sine, two saws, trapezoid). In PAN mode the wave swings left and right of the centre line; in TREMOLO mode it dips the level. Drag up and down for DEPTH.',{d:[90,40,0,43,64]});
+// 30
+fx('Chromatic PS',6,[30,19,9],[K(16,'PITCH 1',r=>sg(semis(r))),K(17,'PITCH 2',r=>sg(semis(r))),K(18,'BALANCE',bal),K(80,'PAN 1',panLR),K(81,'PAN 2',panLR)],
+c=>{const W=c.W,H=c.H,y0=6,h=H-12;let g=R(0,y0,W,h,'dimf','fill-opacity=".35"');const yOf=s=>y0+(12-s)/36*h;
+ for(let s=-24;s<=12;s++){const y=yOf(s);g+=Ln(0,y,W,y,s%12===0?'ax':'gr');if(s%12===0)g+=T(3,y-2,sg(s),'gl')}g+=Ln(W/2,y0,W/2,y0+h,'ax')+T(W-3,y0+h-3,'PAN →','gl','end');
+ const p1=[(c.r(3)/127)*W,yOf(semis(c.r(0)))],p2=[(c.r(4)/127)*W,yOf(semis(c.r(1)))];
+ return svg(c,g+H_(c,p1[0],p1[1],'1 · '+sg(semis(c.r(0))),3,0,{sx:.5,sy:.5})+H_(c,p2[0],p2[1],'2 · '+sg(semis(c.r(1))),4,1,{sx:.5,sy:.5}))},
+'An XY pad with one dot per voice: up and down is pitch (−24 to +12 semitones, octave lines marked), sideways is pan. Two dots replace four knobs; the knobs stay underneath for exact values.',{d:[70,100,64,30,100]});
+// 31
+const scaleSet=(idx)=>{const k=idx%12,mn=idx>=12,iv=mn?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11];return {k,mn,set:new Set(iv.map(i=>60+((k+i)%12))),root:60+k}};
+// circle of the 12 pitch classes, scale notes lit; click a note for the key, MAJ/MIN in the middle; optional marker for a scale degree (NOTE)
+const scaleCircle=(c,pS,y0,h,deg)=>{const i=c.x(pS),s=scaleSet(i),st=SC24S,cx=c.W/2,cy=y0+h/2,R0=Math.min(h/2-12,c.W/2-14),iv=s.mn?[0,2,3,5,7,8,10]:[0,2,4,5,7,9,11];let g=`<circle cx="${cx}" cy="${cy}" r="${R0}" fill="none" stroke="#202227" stroke-width="18"/>`;
+ let mk=-1;if(deg!=null){const d=deg>0?deg-1:deg,step=((d%7)+7)%7;mk=(s.k+iv[step])%12}
+ for(let n=0;n<12;n++){const a=-Math.PI/2+n/12*2*Math.PI,x=cx+Math.cos(a)*R0,y=cy+Math.sin(a)*R0,lit=s.set.has(60+n),rt=n===s.k;
+  g+=`<circle class="pad clk ${lit?'on':''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rt?13:11}" ${rt?'stroke="#fff" stroke-width="2"':''} style="${lit?'':'fill-opacity:.6'}" data-set="${pS}:${st[n+(s.mn?12:0)]}"/>`+T(x,y+4,NOTES[n],'padt'+(lit?' on':''),'middle');
+  if(n===mk)g+=`<circle cx="${(cx+Math.cos(a)*(R0-22)).toFixed(1)}" cy="${(cy+Math.sin(a)*(R0-22)).toFixed(1)}" r="4" fill="#fff"/>`}
+ g+=['MAJ','MIN'].map((l,j)=>`<rect class="pad clk ${(s.mn?1:0)===j?'on':''}" x="${cx-35+j*36}" y="${cy-9}" width="34" height="18" rx="2" data-set="${pS}:${st[s.k+j*12]}"/>`+T(cx-18+j*36,cy+4,l,'padt'+((s.mn?1:0)===j?' on':''),'middle')).join('');
+ return g};
+fx('Hyper-Reso',6,[31,18,0],[D(16,'NOTE',N35,N35S,'sk',{ex:true}),D(17,'SPREAD',['UNISON','TINY','SMALL','MEDIUM','HUGE'],[0,26,51,77,102],'seg'),K(18,'CHARACTER',pct),D(80,'SCALE',SC24,SC24S,'inview',{ex:true}),K(81,'FEEDBACK',r=>n99(r)+'%'),K(82,'ENV MOD',pct)],
+c=>svg(c,T(6,16,c.v(3)+' · NOTE '+c.v(0),'big1')+scaleCircle(c,3,22,c.H-24,+c.v(0))),
+'The SCALE as a circle of the twelve notes with the scale lit and the key ringed: click a note for the key, MAJ/MIN in the middle. The white dot marks the note NOTE picks (a scale degree, −17 to +18, shown folded into one octave). NOTE and SCALE are normally played from the keyboard overlay, as in the old controller; NOTE is also a stepped knob here. SPREAD is a five-way switch. NOTE and SCALE are tuning parameters.',{d:[60,51,60,48,60,40]});
+// 32
+fx('Ring Mod',1,[32,15,0],[K(16,'FREQUENCY',pct),K(17,'SENS',pct),K(18,'BALANCE',bal),D(80,'POLARITY',['DOWN','UP'],S2,'seg'),D(81,'EQ LOW',EQ31,EQS,'sk'),D(82,'EQ HIGH',EQ31,EQS,'sk')],
+c=>{const W=c.W,H=c.H,mid=H/2,cyc=2+c.r(0)/127*30,sens=c.r(1)/127;const env=x=>Math.exp(-x/W*2.2)*(0.5+.5*sens);const e=[],p=[];
+ for(let x=0;x<=W;x+=1){const a=env(x)*(mid-12);e.push(`${x},${(mid-a).toFixed(1)}`);p.push(`${x},${(mid-a*Math.sin(x/W*cyc*2*Math.PI)*(c.x(3)?1:-1)).toFixed(1)}`)}
+ return svg(c,Ln(0,mid,W,mid,'ax')+PL(e,'cv2')+PL(p,'cv','stroke-width:1.3')+H_(c,W*.5,mid-env(W*.5)*(mid-12),'FREQ · SENS',0,1,{sx:.4})+T(6,12,'FREQ '+pct(c.r(0))+' · SENS '+pct(c.r(1)),'gt'))},
+'The carrier drawn inside the input envelope: FREQUENCY sets how many cycles, SENSITIVITY how strongly the envelope follows the input. One handle sets both. The polarity names DOWN and UP are mine (the table only has 0/1). EQ LOW and EQ HIGH are stepped knobs.',{d:[60,70,64,64,62,62]});
+// 33
+fx('Crusher',1,[33,14,0],[K(16,'FILTER',r=>hz(crushHz(r))),K(17,'RATE',pct),K(18,'BALANCE',bal)],
+c=>{const W=c.W,h1=c.H*.5;let p=[],q=[];for(let x=0;x<=W;x+=2)p.push(`${x},${(h1/2-Math.sin(x/W*Math.PI*3)*(h1/2-8)).toFixed(1)}`);
+ const sw=2+c.r(1)/127*22;for(let x=0;x<=W;x+=sw){const v=Math.sin(x/W*Math.PI*3);q.push(`${x.toFixed(1)},${(h1/2-v*(h1/2-8)).toFixed(1)}`,`${(x+sw).toFixed(1)},${(h1/2-v*(h1/2-8)).toFixed(1)}`)}
+ const fc=crushHz(c.r(0)),o=resp(c,f=>lpdb(f/fc,.8),{range:24,y0:h1+4,h:c.H-h1-6,nolab:1});
+ return svg(c,PL(p,'cv2')+PL(q)+`<rect class="dragx" x="0" y="0" width="${W}" height="${h1}" fill="transparent" ${dA(1,null,{sx:.5})}/>`+T(6,12,'RATE '+pct(c.r(1))+' (drag)','gt')+o.svg+H_(c,fx2(fc,W),o.dbY(-3),'FILTER',0,null,{sx:.5}))},
+'Top: sample-rate reduction as a staircase over the sine (drag sideways for RATE). Bottom: the FILTER low-pass, with its own handle.',{d:[90,60,90]});
+// 34,35
+const odView=(hard)=>c=>{const dr=.6+c.r(0)/127*(hard?12:5),h1=c.H*.56,t=bip(c.r(1))/100*12;
+ return svg(c,xfer(c,0,0,c.W,h1-4,v=>hard?clamp(v*dr,-1,1)*.9+.1*Math.tanh(v*dr):Math.tanh(v*dr)/Math.tanh(dr),'OUT')+T(c.W/2,h1-14,'DRIVE '+pct(c.r(0)),'gt','middle')+tonePanel(c,h1+2,c.H-h1-2,f=>t*(Math.log2(f/1000)/5),[[8000,t*Math.log2(8)/5,'TONE '+sg(bip(c.r(1))),1]]))};
+fx('Overdrive',1,[34,12,0],[K(16,'DRIVE',pct),K(17,'TONE',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'LEVEL',pct)],odView(0),'Soft-clipping curve (drag on it for DRIVE) above a tone tilt with one handle. Uses the same layout as WrmSaturator and Distortion so the drive effects read alike.',{d:[60,80,100,80]});
+fx('Distortion',1,[35,13,0],[K(16,'DRIVE',pct),K(17,'TONE',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'LEVEL',pct)],odView(1),'As Overdrive with a harder clipping curve.',{d:[80,70,100,70]});
+// 36
+fx('Equalizer',0,[36,7,16],[D(16,'LOW GAIN',EQ31,EQS,'inview'),D(17,'MID GAIN',EQ31,EQS,'inview'),D(18,'HIGH GAIN',EQ31,EQS,'inview'),D(80,'LOW FREQ',['20','25','31','40','50','63','80','100','125','160','200','250','315','400'],[0,10,19,28,37,46,55,64,73,82,92,101,110,119],'drop'),D(81,'MID FREQ',['200','250','315','400','500','630','800','1k','1.25k','1.6k','2k','2.5k','3.15k','4k','5k','6.3k','8k'],[0,8,15,23,30,38,45,53,60,68,75,83,90,98,105,113,120],'drop'),D(82,'HIGH FREQ',['2k','2.5k','3.15k','4k','5k','6.3k','8k','10k','12.5k','16k'],[0,13,26,39,52,64,77,90,102,115],'drop')],
+c=>{const lf=parseHz(c.v(3)),mf=parseHz(c.v(4)),hf=parseHz(c.v(5)),lg=+c.v(0),mg=+c.v(1),hg=+c.v(2);const o=resp(c,f=>shLo(f,lf,lg)+pk(f,mf,mg,.9)+shHi(f,hf,hg),{range:18});
+ return svg(c,o.svg+H_(c,fx2(lf,c.W),o.dbY(lg),'LOW '+sg(lg),3,0,{sx:.35,sy:.8})+H_(c,fx2(mf,c.W),o.dbY(mg),'MID '+sg(mg),4,1,{sx:.35,sy:.8})+H_(c,fx2(hf,c.W),o.dbY(hg),'HIGH '+sg(hg),5,2,{sx:.35,sy:.8}))},
+'The TB-3-style EQ: three handles, each dragged sideways for frequency (stepping through the SP-404\'s fixed frequencies) and up or down for gain (±15 dB). The drop-downs below pick a frequency directly; gain lives only on the handles, plus the readout under each handle.',{d:[75,58,83,46,60,77],readouts:[0,1,2]});
+// 37
+fx('Compressor',1,[37,6,17],[K(16,'SUSTAIN',pct),K(17,'ATTACK',pct),K(18,'RATIO',pct),K(80,'LEVEL',pct)],
+c=>{const sz=Math.min(c.W-8,c.H*.66),x0=(c.W-sz)/2,y0=4;const th=-4-c.r(0)/127*40,ra=1+c.r(2)/127*15,mk=(c.r(3)/127-0.7)*12;const m=d=>(d+60)/60*sz;
+ let g=R(x0,y0,sz,sz,'dimf','fill-opacity=".3"')+Ln(x0,y0+sz,x0+sz,y0,'cv2');for(let d=-48;d<0;d+=12)g+=Ln(x0+m(d),y0,x0+m(d),y0+sz)+Ln(x0,y0+sz-m(d),x0+sz,y0+sz-m(d));
+ const p=[];for(let d=-60;d<=0;d+=1){const out=(d<th?d:th+(d-th)/ra)+mk;p.push(`${(x0+m(d)).toFixed(1)},${(y0+sz-clamp(m(out),0,sz)).toFixed(1)}`)}g+=PL(p);
+ g+=H_(c,x0+m(th),y0+sz-m(th+mk),'THRESH',0,null,{sx:-.8})+H_(c,x0+sz-6,y0+sz-clamp(m(th+(0-th)/ra+mk),0,sz),'RATIO',null,2,{sy:-1});
+ const ax=2,aw=c.W-4,ay=y0+sz+6,ah=c.H-ay-20,at=c.r(1)/127;const e=[];for(let i=0;i<=aw;i+=2){const t=i/aw;const v=t<.15?1:1-(.6)*(1-Math.exp(-(t-.15)/(.02+at*.3)));e.push(`${(ax+i).toFixed(1)},${(ay+6+(1-v)*ah).toFixed(1)}`)}
+ g+=R(ax,ay,aw,ah+12,'dimf','fill-opacity=".3"')+PL(e)+T(aw-2,ay+ah+8,'ATTACK '+pct(c.r(1))+' (drag sideways)','gl','end')+`<rect class="dragx" x="${ax}" y="${ay}" width="${aw}" height="${ah+12}" fill="transparent" ${dA(1,null,{sx:.6})}/>`;
+ g+=T(x0+4,y0+12,'SUSTAIN '+pct(c.r(0))+' · RATIO '+pct(c.r(2)),'gt')+T(x0+sz-3,y0+sz-3,'IN −60…0 dB','gl','end');
+ return svg(c,g)},
+'Classic transfer curve: the THRESH handle (more SUSTAIN moves it lower) and the RATIO handle at the top right. The strip underneath shows ATTACK as gain reduction over time (drag sideways). Mapping SUSTAIN/RATIO to dB is a guess for the drawing only.',{d:[70,30,70,90]});
+// 38
+fx('SX Reverb',4,[38,37,0],[K(16,'TIME',pct),K(17,'TONE',r=>sg(bip(r))),K(18,'BALANCE',bal)],
+c=>{const t=bip(c.r(1))/100;return svg(c,verb(c,{pre:8,time:c.r(0)/127,lvl:.85,pTime:0,base:c.H-22})+band(c,c.H-17,t>0?60+t*400:null,t<0?16000*Math.pow(2,t*4):null,1,1,'TONE '+sg(bip(c.r(1)))))},
+'A simpler reverb: drag the tail for TIME. TONE darkens or brightens the tail, shown as the band at the bottom (either edge drags TONE). There is no level or pre-delay parameter, so the only handle is TIME; BALANCE (dry/wet) is a knob.',{d:[80,64,64]});
+// 39
+fx('SX Delay',3,[39,38,0],[D(16,'TIME',DT,S16B,'nv'),K(17,'FEEDBACK',r=>n99(r)+'%'),K(18,'BALANCE',bal)],dlyView(0,1,null,null,null),'Taps on a beat grid with the note-value matrix for TIME. Drag the second tap for FEEDBACK. SX Delay has no level parameter (BALANCE is dry/wet), so the first tap has no handle.',{d:[60,70,64]});
+// 40
+fx('Cloud Delay',3,[40,39,0],[K(16,'WINDOW',pct),K(17,'PITCH',cloudP),K(18,'BALANCE',bal),K(80,'FEEDBACK',r=>sg(bip(r))),K(81,'CLOUDY',pct),D(82,'LOFI',OO,S2,'seg')],
+c=>{const W=c.W,H=c.H,mid=H/2,ps=-12+c.r(1)/127*24,win=.15+c.r(0)/127*.85,cl=c.r(4)/127,fb=Math.abs(bip(c.r(3)))/100;let g=Ln(0,mid,W,mid,'ax');for(let s=-12;s<=12;s+=6)g+=Ln(0,mid-s/12*(mid-14),W,mid-s/12*(mid-14))+T(3,mid-s/12*(mid-14)-2,sg(s),'gl');
+ const n=20+Math.round(cl*70);for(let gen=0;gen<3;gen++){if(gen&&gen>fb*3)break;for(let i=0;i<n;i++){const x=W*.06+gen*W*.3+rnd(i+gen*99)*W*win*.5;if(x>W)continue;let y=mid-(ps*(gen+1)/12)*(mid-14)*(gen?0.6:1)+(rnd(i+7)-.5)*(20+90*cl);const lf=c.x(5)===1;let xx=x,ww=3+win*6,hh=3,op=0.25+0.6*(1-gen/3)*rnd(i+3);
+  if(lf){xx=Math.round(x/8)*8;y=Math.round(y/8)*8;ww=7;hh=7;op=Math.round(op*3)/3+.1}
+  g+=`<rect x="${xx.toFixed(1)}" y="${clamp(y,4,H-4).toFixed(1)}" width="${ww.toFixed(1)}" height="${hh}" class="af" opacity="${op.toFixed(2)}"/>`}}
+ return svg(c,g+H_(c,W*.08+W*win*.6,mid-ps/12*(mid-14),'WINDOW · PITCH',0,1,{sx:.5,sy:.6})+T(W-4,12,'FB '+sg(bip(c.r(3)))+(c.x(5)?' · LOFI':''),'gt','end'))},
+'Grains as a cloud: WINDOW stretches it sideways, PITCH lifts or lowers it (±12 semitones, gridded), CLOUDY scatters it, and each feedback generation drifts further. One handle sets WINDOW and PITCH. LOFI is a toggle; with it on, the grains snap to a coarse grid as chunky blocks.',{d:[60,80,64,90,60,0]});
+// 41
+fx('Back Spin',7,[41,0,0],[D(16,'LENGTH',['1/1','1/2','1/4','1/8','1/16'],[0,32,64,96,127],'seg'),K(17,'SPEED',pct),D(18,'BACK',OO,S2,'big')],
+c=>{const cx=c.W/2,cy=c.H/2,r=Math.min(c.H/2-10,c.W/2-10),len=noteFrac(c.v(0)),on=c.x(2)===1;let g=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#141518" stroke="#3a3b41" stroke-width="2"/>`;for(let k=1;k<6;k++)g+=`<circle cx="${cx}" cy="${cy}" r="${r*k/6}" fill="none" stroke="#202227"/>`;
+ const a1=-Math.PI/2,a2=a1-len*2*Math.PI*.98,rr=r-8,lg=len>.5?1:0;g+=`<path d="M ${cx+rr*Math.cos(a1)} ${cy+rr*Math.sin(a1)} A ${rr} ${rr} 0 ${lg} 0 ${cx+rr*Math.cos(a2)} ${cy+rr*Math.sin(a2)}" fill="none" stroke="var(--acc)" stroke-width="7" stroke-opacity="${on?1:.4}"/>`;
+ g+=`<polygon points="${cx+rr*Math.cos(a2)-8},${cy+rr*Math.sin(a2)} ${cx+rr*Math.cos(a2)+8},${cy+rr*Math.sin(a2)-4} ${cx+rr*Math.cos(a2)+4},${cy+rr*Math.sin(a2)+8}" class="af"/>`;
+ return svg(c,g+T(cx,cy+5,c.v(0)+' · SPEED '+pct(c.r(1)),'gt','middle')+`<rect class="drag" x="${cx-r}" y="${cy-r}" width="${2*r}" height="${2*r}" fill="transparent" ${dA(null,1)}/>`)},
+'A platter: the arc is how far it spins back (LENGTH 1/1 to 1/16), lit while BACK is held. Drag up and down on the platter for SPEED. BACK is a large button for live use. Bus 1/2 only.',{d:[32,70,0]});
+// 42
+fx('DJFX Delay',7,[42,40,0],[K(16,'LENGTH',r=>loopLen(r).toFixed(3)+'s'),K(17,'TIME',r=>tape(r)+'ms',{sl:{list:DT,starts:S16B,ui:'nv'}}),D(18,'LOOP',['LOOP OFF','LOOP ON'],S2,'big'),K(80,'FEEDBACK',r=>n99(r)+'%'),K(81,'LEVEL',pct),SYNC(82)],
+dlyView(1,3,4,null,null,{t:c=>c.sync()?noteFrac(c.v(1)):tape(c.r(1))/2000,lab:c=>(c.x(2)?'LOOP ON · ':'')+c.v(1)+' · LEN '+loopLen(c.r(0)).toFixed(3)+'s'}),'Taps like the other delays, with LOOP as a large latching button and TIME switching between note values (SYNC on) and milliseconds. LENGTH is the loop length knob.',{d:[60,51,0,70,90,64]});
+// 43
+const keyStrip=(c,pK,y0,h)=>{const ki=c.x(pK);let g=`<rect class="pad clk ${ki===0?'on':''}" x="0" y="${y0}" width="${c.W}" height="16" rx="2" data-set="${pK}:0"/>`+T(c.W/2,y0+12,'CHROMATIC','padt'+(ki===0?' on':''),'middle');
+ const name=KEY13[ki],semi={'A':9,'B♭':10,'B':11,'C':0,'D♭':1,'D':2,'E♭':3,'E':4,'F':5,'G♭':6,'G':7,'A♭':8}[name];const lit=ki?new Set([0,2,4,5,7,9,11].map(i=>60+((semi+i)%12))):new Set();
+ const toRaw=n=>{const s=(n-60)%12;const nm=Object.entries({'A':9,'B♭':10,'B':11,'C':0,'D♭':1,'D':2,'E♭':3,'E':4,'F':5,'G♭':6,'G':7,'A♭':8}).find(([k,v])=>v===s)[0];return KEYS[KEY13.indexOf(nm)]};
+ return g+keys(c,{y0:y0+20,w:c.W,h:h-20,start:60,octs:1,lit,root:ki?60+semi:-1,setP:pK,rawFor:toRaw})};
+const pitchXY=(c,pX,pY,y0,h,lx,ly)=>xyGrid(c,y0,h,lx,ly)+H_(c,c.r(pX)/127*c.W,y0+(1-c.r(pY)/127)*h,sg(bip(c.r(pX)))+' / '+sg(bip(c.r(pY))),pX,pY,{sx:.5,sy:.7});
+fx('Auto Pitch',6,[0,0,1],[K(16,'PITCH',r=>sg(bip(r))),K(17,'FORMANT',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'AT PITCH',pct),D(81,'KEY',KEY13,KEYS,'drop',{ex:true}),D(82,'AUTO PITCH',OO,S2,'big')],
+c=>svg(c,T(6,13,'KEY '+c.v(4),'gt')+pitchXY(c,1,0,20,c.H-22,'FORMANT →','PITCH ↑')),
+'An XY pad filling the view: FORMANT sideways and PITCH up and down, the two parameters you move together for voice character. KEY (chromatic or one of 12 keys) is a drop-down rather than a keyboard. AUTO PITCH ON/OFF is a large button. Input FX only. KEY is a tuning parameter.',{d:[64,64,90,70,40,64]});
+// 44
+fx('Vocoder',6,[0,0,2],[D(16,'NOTE',N35,N35S,'sk',{ex:true}),K(17,'FORMANT',r=>sg(bip(r))),K(18,'TONE',r=>sg(bip(r))),D(80,'SCALE',SC24,SC24S,'inview',{ex:true}),D(81,'CHORD',VCH,VCHS,'grid:5',{ex:true}),K(82,'BALANCE',bal)],
+c=>svg(c,T(6,16,c.v(3)+' · '+c.v(4)+' · NOTE '+c.v(0),'big1')+scaleCircle(c,3,22,c.H-24,+c.v(0))),
+'SCALE on the note circle with MAJ/MIN (same widget as Hyper-Reso), CHORD as a 5 × 2 button grid, NOTE as a stepped knob. The keyboard overlay (Launchkey) plays the vocoder notes on channel 11 and sets NOTE, SCALE and CHORD, so there is no keyboard here. Input FX only. NOTE, SCALE and CHORD are tuning parameters.',{d:[60,64,64,48,26,90]});
+// 45
+fx('Harmony',6,[0,0,3],[K(16,'PITCH',r=>sg(bip(r))),K(17,'FORMANT',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'AT PITCH',pct),D(81,'KEY',KEY13,KEYS,'drop',{ex:true}),D(82,'HARMONY',VCH,VCHS,'grid:5',{ex:true})],
+c=>svg(c,T(6,13,'KEY '+c.v(4)+' · '+c.v(5),'gt')+pitchXY(c,1,0,20,c.H-22,'FORMANT →','PITCH ↑')),
+'Same as Auto Pitch, with the HARMONY interval as a 5 × 2 button grid. Input FX only.',{d:[64,64,90,70,40,26]});
+// 46
+const AMPS=['JC','TWIN','BG','MATCH','MS','SLDN'];
+const AMPN=['JC-120 Jazz Chorus','Twin Reverb','Boogie Lead','Matchless','Marshall 1959','Soldano SLO'];
+fx('Gt Amp Sim',1,[0,0,4],[D(16,'AMP',AMPS,[0,22,43,64,85,107],'inview'),K(17,'DRIVE',pct),K(18,'LEVEL',pct),K(80,'BASS',r=>sg(bip(r))),K(81,'MIDDLE',r=>sg(bip(r))),K(82,'TREBLE',r=>sg(bip(r)))],
+c=>{const W=c.W,b=bip(c.r(3))/100*12,m=bip(c.r(4))/100*12,t=bip(c.r(5))/100*12,bh=28,ph=bh*3+8,ax=c.x(0);let g='';
+ for(let i=0;i<6;i++){const x=2+(i%2)*(W/2),y=2+Math.floor(i/2)*(bh+3),on=ax===i;g+=`<rect class="pad ${on?'on':''}" x="${x.toFixed(1)}" y="${y}" width="${(W/2-4).toFixed(1)}" height="${bh}" rx="3" data-set="0:${[0,22,43,64,85,107][i]}"/>`+T(x+W/4-2,y+bh/2+4,AMPN[i],'padt'+(on?' on':''),'middle')}
+ const o=resp(c,f=>shLo(f,120,b)+pk(f,700,m,1.1)+shHi(f,3200,t),{range:18,y0:ph+2,h:c.H-ph-4,nolab:1});
+ return svg(c,g+o.svg+T(W-6,ph+14,'DRIVE '+pct(c.r(1))+' · LEVEL '+pct(c.r(2)),'gt','end')+H_(c,fx2(120,W),o.dbY(b),'BASS',null,3)+H_(c,fx2(700,W),o.dbY(m),'MID',null,4)+H_(c,fx2(3200,W),o.dbY(t),'TREBLE',null,5))},
+'Six large amp buttons with the amps\' full names (the SP-404 shows them as JC, TWIN, BG, MATCH, MS, SLDN; the full names are my reading of those abbreviations and need checking against the manual). Below, the tone-stack response: BASS, MIDDLE and TREBLE each have a gain handle. Input FX only.',{d:[22,60,90,70,60,75]});
+
+// ---------------- state ----------------
+const ST=E.map(e=>e.p.map((p,i)=>e.d&&e.d[i]!=null?e.d[i]:(p.t==='d'?p.starts[Math.min(1,p.starts.length-1)]:64)));
+const DEF=ST.map(s=>s.slice());
+const ONST=E.map(()=>true);
+const KILL=E.map(()=>[null,null,null]);
+let mode='one',cur=0,bus=0,zoom=1;
+const ACC=['#ff8a2a','#3ddc5a','#4aa3ff','#4aa3ff','#d8a2ff'];
+const BUSL=['BUS 1','BUS 2','BUS 3 · MASTER','BUS 4 · MASTER','INPUT FX'];
+const colFor=b=>b<2?0:b<4?1:2;
+const syncIdx=e=>e.p.findIndex(p=>p.sync);
+function syncOn(fx){const s=syncIdx(E[fx]);return s>=0&&ST[fx][s]>=64}
+function pIdx(fx,i){const p=E[fx].p[i],r=ST[fx][i];if(p.sl&&p.sl.list&&syncOn(fx))return idxOf(p.sl.starts,r);return p.t==='d'?idxOf(p.starts,r):r}
+function disp(fx,i){const p=E[fx].p[i],r=ST[fx][i];if(p.sl&&syncOn(fx)){if(p.sl.list)return p.sl.list[idxOf(p.sl.starts,r)];return p.sl.f(r)}if(p.t==='d')return p.list[idxOf(p.starts,r)];return String(p.f(r))}
+function ctx(fx,W,H){return {W,H,r:i=>ST[fx][i],x:i=>pIdx(fx,i),v:i=>disp(fx,i),sync:()=>syncOn(fx)}}
+function previewBus(fx){const e=E[fx];if(e.on[colFor(bus)])return {b:bus,ok:true};const alt=[0,2,4].find(b=>e.on[colFor(b)]);return {b:alt,ok:false}}
+
+// ---------------- rendering ----------------
+const ctrlN=cc=>({16:1,17:2,18:3,80:4,81:5,82:6})[cc];
+const lab=(p,txt)=>`<span class="lbl">${txt||p.n}</span>`;
+function widget(fx,i,list,starts,ui){const ix=idxOf(starts,ST[fx][i]);
+ if(ui==='drop')return `<select class="dd" data-sel="${i}">${list.map((s,j)=>`<option value="${starts[j]}" ${j===ix?'selected':''}>${s}</option>`).join('')}</select>`;
+ if(ui==='nv'||ui==='nv8'){const bases=ui==='nv'?['1/32','1/16','1/8','1/4','1/2','1/1']:['2/1','1/1','1/2','1/4','1/8','1/16','1/32','1/64'];const rows=[['T','T'],['','♩'],['D','D']];
+  let h=`<div class="nv" style="grid-template-columns:repeat(${bases.length},1fr)">`;rows.forEach(([suf])=>{bases.forEach(b=>{const nm=b+suf,j=list.indexOf(nm);h+=j<0?`<b class="x"></b>`:`<b class="${j===ix?'on':''} ${suf?'sf':''}" data-set="${i}:${starts[j]}">${nm}</b>`})});return h+'</div>'}
+ if(ui.startsWith('grid')){const n=+ui.split(':')[1];return `<div class="gsel" style="grid-template-columns:repeat(${n},1fr)">${list.map((s,j)=>`<b class="${j===ix?'on':''}" data-set="${i}:${starts[j]}">${s}</b>`).join('')}</div>`}
+ return `<div class="seg">${list.map((s,j)=>`<b class="${j===ix?'on':''}" data-set="${i}:${starts[j]}">${s}</b>`).join('')}</div>`}
+function knob(fx,i){const p=E[fx].p[i],r=ST[fx][i];return `<div class="kn ${p.t==='d'?'st':''}" data-p="${i}" title="Drag up/down · Shift fine · double-click resets"><i style="--a:${(-135+r/127*270).toFixed(0)}deg"></i>${lab(p)}<em>${disp(fx,i)}</em></div>`}
+const wide=(ui,n)=>ui.startsWith('nv')||(ui==='seg'&&n>7)||(ui.startsWith('grid')&&+ui.split(':')[1]>6);
+function controls(fx){const e=E[fx],sOn=syncOn(fx);let rows='',kn=[],big='';const si=syncIdx(e);
+ if(si>=0)rows+=`<div class="r2">${lab(e.p[si])}${widget(fx,si,OO,S2,'seg')}</div>`;
+ e.p.forEach((p,i)=>{if(p.sync||p.ui==='inview')return;
+  if(p.sl&&p.sl.list&&sOn){if(p.sl.ui==='inview')return;rows+=`<div class="r2 ${wide(p.sl.ui,p.sl.list.length)?'col':''}">${lab(p)}${widget(fx,i,p.sl.list,p.sl.starts,p.sl.ui)}</div>`;return}
+  if(p.t==='k'||p.ui==='sk'){kn.push(knob(fx,i));return}
+  if(p.ui==='big'){const on=idxOf(p.starts,ST[fx][i])===1;big+=`<b class="big ${on?'on':''}" data-set="${i}:${on?0:64}">${p.n}${p.list[0]==='OFF'?' '+(on?'ON':'OFF'):' · '+disp(fx,i)}</b>`;return}
+  rows+=`<div class="r2 ${wide(p.ui,p.list.length)?'col':''}">${lab(p)}${widget(fx,i,p.list,p.starts,p.ui)}</div>`});
+ if(e.extra==='kill')rows+=`<div class="r2"><span class="lbl">APP</span><div class="seg">${['LOW','MID','HIGH'].map((l,i)=>`<b class="app big ${KILL[fx][i]!=null?'on':''}" style="height:20px;font-size:10.5px" data-kill="${i}">KILL ${l}</b>`).join('')}</div></div>`;
+ if(e.readouts)rows+=`<div class="r2" style="justify-content:space-around">${e.readouts.map(i=>`<span class="lbl" style="width:auto">${e.p[i].n}<em style="font-style:normal;color:var(--lcdtxt);font-size:12px">${disp(fx,i)} dB</em></span>`).join('')}</div>`;
+ if(big)rows+=`<div class="r2">${big}</div>`;
+ const kc=kn.length<=4?'k4':kn.length===5?'k5':'';
+ return rows+(kn.length?`<div class="knobs ${kc}">${kn.join('')}</div>`:'')}
+function moduleHTML(fx,fb){const e=E[fx],pb=fb!=null?{b:fb,ok:true}:previewBus(fx),acc=ACC[pb.b];
+ let pr='';for(let j=0;j<8;j++)pr+=`<span class="${j<4?(j===1?'act':'st'):''}">${j+1}</span>`;
+ return `<div class="bus" data-fx="${fx}" style="--acc:${acc}"><div class="hd"><div class="num">${pb.b<4?pb.b+1:'IN'}</div><div class="name">${e.n.toUpperCase()}</div><div class="ring ${ONST[fx]?'':'off'}" data-onoff="1">${ONST[fx]?'ON':'OFF'}</div></div>
+ ${pb.ok?`<div class="lbl">${BUSL[pb.b]}</div>`:`<div class="warn">NOT ON ${BUSL[bus]} · SHOWN ON ${BUSL[pb.b]}</div>`}
+ <div class="body"><div class="mcol"><div class="view"></div>${controls(fx)}</div><div class="pcol"><span class="lbl">PRESETS</span><div class="presets">${pr}</div><span class="btn">DEF</span><span class="btn">GRAB</span><span class="btn">LOCK</span></div></div>
+ <div style="display:flex;gap:4px;align-items:center"><div class="morph"><span class="lbl">MORPH</span><div class="tr"><i></i></div><span class="exp">EXP</span></div></div></div>`}
+function mount(host,fx){host.innerHTML=moduleHTML(fx,host.dataset.bus!=null?+host.dataset.bus:null);const v=host.querySelector('.view');const W=v.clientWidth,H=v.clientHeight;v.innerHTML=E[fx].view(ctx(fx,W,H))}
+function rerender(fx){document.querySelectorAll(`.host[data-host="${fx}"]`).forEach(h=>mount(h,fx));if(mode==='one'&&fx===cur)renderTable()}
+
+// ---------------- notes ----------------
+function rangeText(p){if(p.t==='d'){return p.list.length>18?`${p.list[0]} … ${p.list[p.list.length-1]} (${p.list.length} steps)`:p.list.join(' · ')}let s=`${p.f(0)} … ${p.f(127)}`;if(p.sl)s+=p.sl.list?`<br>SYNC on: ${p.sl.list.length} note values`:`<br>SYNC on: ${p.sl.f(0)} … ${p.sl.f(127)}`;return s}
+function ctrlText(fx,p){if(p.sync)return 'two-way switch';if(p.sl&&p.sl.list)return 'knob; with SYNC on: '+uiName(p.sl.ui,p.sl.list.length);if(p.t==='k')return 'knob';return uiName(p.ui,p.list.length)}
+function uiName(ui,n){return {seg:n===2?'two-way switch':`${n}-way switch`,drop:'drop-down',nv:'note-value matrix',nv8:'note-value matrix',sk:'stepped knob',big:'large latching button',inview:'in the view'}[ui]||(ui.startsWith('grid')?'button grid':ui)}
+function renderTable(){const t=document.getElementById('ptab');if(!t)return;const e=E[cur];t.innerHTML='<tr><th>Ctrl</th><th>CC</th><th>Parameter</th><th>Control</th><th>Values</th><th>Now</th></tr>'+e.p.map((p,i)=>`<tr><td>C${ctrlN(p.cc)}</td><td>${p.cc}</td><td>${p.n}${p.ex?' <span class="chip ex">TUNING</span>':''}</td><td>${ctrlText(cur,p)}</td><td class="v">${rangeText(p)}</td><td class="v">${disp(cur,i)}</td></tr>`).join('')}
+function notesHTML(fx){const e=E[fx];const av=['BUS 1/2','BUS 3/4','INPUT'].map((l,j)=>`<span class="chip ${e.on[j]?'':'no'}">${l}${e.on[j]?' · CC83 '+e.on[j]:''}</span>`).join('');
+ return `<div class="notes"><h2>${e.n}</h2><div style="margin:4px 0 8px">${CATS[e.cat]} &nbsp; ${av}${e.extra==='kill'?'<span class="chip app">APP FEATURE</span>':''}</div><p>${e.note}</p>
+ <h3>Parameters</h3><table id="ptab"></table>
+ <div class="rules"><b>Rules used across every effect</b><ul style="margin:6px 0 0;padding-left:18px">
+ <li><b>Side column</b>: eight preset slots run down the right edge to match a Launchpad column, with DEF, GRAB and LOCK under them, as in the TouchOSC layout. Morph runs along the bottom.</li>
+ <li><b>No CC labels</b> on the controls; the table above maps them to the SP-404's knobs (C1–C6 = CC 16, 17, 18, 80, 81, 82).</li>
+ <li><b>Notes from the keyboard.</b> Root, scale, key and chord notes for Resonator, Hyper-Reso and Vocoder are set from the keyboard overlay, so the modules have no keyboards of their own.</li>
+ <li><b>Handles</b> (white dots and bars) drag relative to where you grab them, Shift for fine, double-click to reset. Knobs, buttons or drop-downs stay underneath; where a value lives only on a handle (the EQ gains), a readout takes the knob's place.</li>
+ <li><b>Discrete parameters.</b> Two values → switch; up to 10 → a row of buttons; 16–32 named values → a button grid; note values → the note-value matrix (straight / triplet / dotted); long numeric lists → a drop-down or a stepped knob (ringed).</li>
+ <li><b>SYNC</b> swaps a rate knob for its note-value control in place.</li>
+ <li><b>Large buttons</b> are for performance switches (looper, scatter, back spin, auto pitch).</li>
+ <li><b>TUNING</b> parameters are left alone by preset recall when Exclude tuning is on (from the old controller).</li>
+ <li>Curves are drawings to make the settings readable, not measurements of the SP-404; where a picture depends on something I don't know (Zan-Zou taps, SBF shape), the notes say so.</li></ul></div></div>`}
+
+const NAMES={A:["KICK 1","KICK 2","SNARE","RIM","CLAP","CH HAT","OH HAT","RIDE","TOM LO","TOM HI","SHAKER","CRASH"],B:["SUB BASS","303 LINE","REESE","PLUCK","BASS STAB"],C:["RHODES Cm","RHODES Fm","PAD WARM","CHORD 1","CHORD 2","BELL","ORGAN","STRINGS"],D:["VOX CHOP","AH","HEY"]};
+const BANKCOL={A:"var(--bankA)",B:"var(--bankB)",C:"var(--bankC)",D:"var(--bankD)"};
+const NOTE=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const BANKIDX={A:0,B:1,C:2,D:3};
+// MIDI mode B, note offset 0: bank A = 12..27 ordered 13-16, 9-12, 5-8, 1-4
+function noteFor(b,p){const base=12+16*(BANKIDX[b]%5);const row=Math.floor((p-1)/4),col=(p-1)%4;const n=base+(3-row)*4+col;return NOTE[n%12]+(Math.floor(n/12)-1)}
+function rnd2(s){let x=Math.sin(s)*10000;return x-Math.floor(x)}
+function ahr(seed){const a=4+rnd2(seed)*10,h=6+rnd2(seed+1)*14,r=6+rnd2(seed+2)*14;return `<svg class="ahr" viewBox="0 0 40 22"><polyline points="1,20 ${1+a},3 ${1+a+h},3 ${Math.min(39,1+a+h+r)},20"/></svg>`}
+function strip(b,p,i,route){const s=BANKIDX[b]*20+p;const lv=Math.round(60+rnd2(s)*67);const pan=Math.round((rnd2(s+3)-.5)*80);
+ const mg=(b==="A"&&(p===6||p===7))?"A":(b==="C"&&p<=2?"B":"–");const muted=(b==="B"&&p===3);
+ const r=["rd","r1","r2"][Math.floor(rnd2(s+5)*3)];const sel=(b==="A"&&p===3)?" sel":"";const play=(b==="A"&&p===1)||(b==="C"&&p===3)?" play":"";
+ const routeHtml=route==="stack"?`<div class="rt"><span class="rd ${r==="rd"?"on":""}">DRY</span><span class="r1 ${r==="r1"?"on":""}">BUS 1</span><span class="r2 ${r==="r2"?"on":""}">BUS 2</span></div>`
+  :`<div class="rtx"><span class="rd ${r==="rd"?"on":""}">D</span><span class="r1 ${r==="r1"?"on":""}">1</span><span class="r2 ${r==="r2"?"on":""}">2</span></div>`;
+ const pos=muted?0:lv/127;
+ return `<div class="strip${sel}${play}"><div class="pad" style="background:${BANKCOL[b]}">${b}${p}</div><div class="nt">${noteFor(b,p)} ·ch1</div><div class="nm">${NAMES[b][i]}</div>${ahr(s)}<div class="mg ${mg!=="–"?"on":""}">MG ${mg}</div>${routeHtml}<div class="pan" style="--a:${pan*1.6}deg"></div><div class="pv">${pan===0?"C":(pan<0?"L"+(-pan):"R"+pan)}</div><div class="mute ${muted?"on":""}">MUTE</div><div class="fader ${muted?"muted":""}" style="--fc:${BANKCOL[b]}"><div class="scale"></div><div class="slot"></div><div class="fill" style="height:calc(${pos} * (100% - 8px))"></div><div class="knobcap" style="bottom:calc(4px + ${lv/127} * (100% - 8px))"></div></div><div class="lv">${muted?"("+lv+")":lv}</div></div>`}
+function master(b){const lv={A:127,B:110,C:96,D:120}[b];return `<div class="strip master"><div class="pad">BANK ${b}</div><div class="nt">&nbsp;</div><div class="nm" style="background:#000;color:#fff">BANK<br>VOL</div><div style="flex:0 0 120px"></div><div class="fader"><div class="scale"></div><div class="slot"></div><div class="fill" style="height:calc(${lv/127} * (100% - 8px));background:#fff;box-shadow:0 0 6px #fff"></div><div class="knobcap" style="bottom:calc(4px + ${lv/127} * (100% - 8px));border-top-color:#fff"></div></div><div class="lv" style="color:#fff">${lv}</div></div>`}
+function desk(route){let h='<div class="desk">';for(const b of ["A","B","C","D"]){h+=`<div class="bank"><div class="strips"><div class="btitle" style="background:${BANKCOL[b]}">BANK ${b}</div><div class="row">`;
+ const pads=b==="A"?[1,2,3,4,5,6,7,8,9,10,11,12]:b==="B"?[1,2,3,5,9]:b==="C"?[1,2,3,4,5,6,7,8]:[1,2,4];
+ pads.forEach((p,i)=>h+=strip(b,p,i,route));h+=master(b)+'</div></div></div>'}return h+'</div>'}
+function side(){let s='<div class="side"><div class="h">FX SCENES</div><div class="scenes">';for(let j=1;j<=16;j++)s+=`<span class="${[1,2,5,9].includes(j)?"st":""}">${j}</span>`;return s+'</div><div style="display:flex;gap:4px"><span class="btn">STORE</span><span class="btn">DEL</span></div></div>'}
+function mxLeft(){let s='<div class="mx-left"><div class="h">MIX SCENES</div><div class="scenes">';for(let j=1;j<=16;j++)s+=`<span class="${[1,2,3].includes(j)?"st":""}">${j}</span>`;
+ return s+`</div><div style="display:flex;gap:4px"><span class="btn">RECALL</span><span class="btn">STORE</span></div><div class="lbl" style="margin-top:8px">RECALL SAFE</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px"><span class="btn on">LEVEL</span><span class="btn on">PAN</span><span class="btn">ROUTE</span><span class="btn on">MUTE</span><span class="btn">MG</span><span class="btn">AHR</span></div>
+ <div class="lbl" style="margin-top:8px">PROJECT</div><div class="nm" style="width:auto;height:auto;font-size:12px;padding:4px">06 · LIVE SET</div>
+ <div class="lbl">SHOW</div><div style="display:flex;flex-wrap:wrap;gap:3px">${"ABCDEFGHIJ".split("").map(c=>`<span class="btn ${"ABCD".includes(c)?"on":""}" style="padding:2px 5px">${c}</span>`).join("")}</div></div>`}
+function mxRight(){return `<div class="mx-right"><div class="lbl">USB OUT</div><div class="meter"><i style="--h:35%"></i><i style="--h:42%"></i></div><div class="lbl">L &nbsp; R</div></div>`}
+function bar(){return `<div class="bar"><span class="logo">SP-404 MK2</span><span class="pill on">MIDI ● SP-404</span><span class="pill on">USB ● PROJECT 06</span><span class="pill">LAUNCHPAD</span><span class="sp"></span><span class="pill" id="kb" style="cursor:pointer">KEYBOARD</span><span class="pill">CC LEARN</span><span class="pill">SETTINGS</span></div>`}
+function kbd(){let w='';for(let i=0;i<29;i++)w+='<div class="w"></div>';let bk='';const pat=[1,1,0,1,1,1,0];let x=0;for(let i=0;i<28;i++){if(pat[i%7])bk+=`<div class="bk" style="left:calc(${(i+1)/29*100}% - 1.1%)"></div>`}
+ return `<div class="kbd" id="kbd"><div class="kh"><span class="h" style="color:#d8a2ff">KEYBOARD · INPUT FX: VOCODER</span><span class="ring b">GRAB</span><span class="lbl">Launchkey encoders 1–6 → NOTE · FORMANT · TONE · SCALE · CHORD · BAL</span><span style="flex:1"></span><span class="btn">OCT −</span><span class="btn">OCT +</span><span class="btn" id="kbx">CLOSE</span></div><div class="keys">${w}${bk}</div></div>`}
+// ---------------- layout D with real modules ----------------
+const LDSETS=[{n:'Live set',fx:['Vocoder','Filter + Drive','Sync Delay','Reverb','Compressor']},
+ {n:'Lo-fi beat',fx:['Auto Pitch','Slicer','Tape Echo','Cassette Sim','Isolator']},
+ {n:'Performance',fx:['Gt Amp Sim','Scatter','Cloud Delay','Super Filter','Equalizer']}];
+let ldSet=0,ldFit=true;
+const fxi=n=>E.findIndex(e=>e.n===n);
+let ldShow=new Set(['A','B']);
+const PADS={A:[1,2,3,4,5,6,7,8,9,10,11,12],B:[1,2,3,5,9],C:[1,2,3,4,5,6,7,8],D:[1,2,4]};
+function wstrip(b,p,i){const s=BANKIDX[b]*20+p,lv=Math.round(60+rnd2(s)*67),pan=Math.round((rnd2(s+3)-.5)*80),mg=(b==='A'&&(p===6||p===7))?'A':(b==='C'&&p<=2?'B':'–'),muted=b==='B'&&p===3;
+ const r=['rd','r1','r2'][Math.floor(rnd2(s+5)*3)],sel=b==='A'&&p===3?' sel':'',play=(b==='A'&&p===1)||(b==='C'&&p===3)?' play':'',pos=muted?0:lv/127;
+ return `<div class="ws${sel}${play}"><div class="wtop"><span class="wpad" style="background:${BANKCOL[b]}">${b}${p}</span><span class="nt">${noteFor(b,p)}</span></div><div class="nm1">${NAMES[b][i]}</div>${ahr(s)}
+ <div class="mg ${mg!=='–'?'on':''}">MUTE GRP ${mg}</div><div class="wrow"><div class="rtx"><span class="rd ${r==='rd'?'on':''}">DRY</span><span class="r1 ${r==='r1'?'on':''}">1</span><span class="r2 ${r==='r2'?'on':''}">2</span></div></div>
+ <div class="wrow"><div class="pan" style="--a:${pan*1.6}deg"></div><span class="pv">${pan===0?'C':(pan<0?'L'+(-pan):'R'+pan)}</span></div><div class="mute ${muted?'on':''}">MUTE</div>
+ <div class="fader ${muted?'muted':''}" style="--fc:${BANKCOL[b]}"><div class="scale"></div><div class="slot"></div><div class="fill" style="height:calc(${pos} * (100% - 8px))"></div><div class="knobcap" style="bottom:calc(4px + ${lv/127} * (100% - 8px))"></div></div><div class="lv">${muted?'('+lv+')':lv}</div></div>`}
+function wmaster(b){const lv={A:127,B:110,C:96,D:120}[b];return `<div class="ws master"><div class="wtop"><span class="wpad" style="background:#000;color:#fff;border:1px solid var(--rule)">BANK ${b}</span></div><div class="nm1" style="background:#000;color:#fff">BANK VOL</div><div style="flex:0 0 112px"></div><div class="fader"><div class="scale"></div><div class="slot"></div><div class="fill" style="height:calc(${lv/127} * (100% - 8px));background:#fff;box-shadow:0 0 6px #fff"></div><div class="knobcap" style="bottom:calc(4px + ${lv/127} * (100% - 8px));border-top-color:#fff"></div></div><div class="lv" style="color:#fff">${lv}</div></div>`}
+function wdesk(){let h='<div class="wdesk">';for(const b of ['A','B','C','D']){if(!ldShow.has(b))continue;h+=`<div class="wbank"><div class="btitle" style="background:${BANKCOL[b]}">BANK ${b}</div><div class="row">`+PADS[b].map((p,i)=>wstrip(b,p,i)).join('')+wmaster(b)+'</div></div>'}return h+'</div>'}
+function ldMxLeft(){return mxLeft().replace(/<div class="lbl">SHOW<\/div>[\s\S]*$/,'')+`<div class="lbl">SHOW BANKS</div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px">${'ABCDEFGHIJ'.split('').map(c=>`<span class="btn showb ${ldShow.has(c)?'on':''} ${PADS[c]?'':'na'}" data-show="${c}" style="padding:4px 0">${c}</span>`).join('')}</div><div class="lbl" style="text-transform:none;letter-spacing:0;line-height:1.3">Banks with no samples are greyed out. Two banks fit without scrolling.</div></div>`}
+function ldHost(name,b){return `<div class="host" data-host="${fxi(name)}" data-bus="${b}"></div>`}
+function ldHTML(){const f=LDSETS[ldSet].fx;
+ return bar()+`<div class="fxrow"><div class="grp"><div class="gt">INPUT</div><div class="gb">${ldHost(f[0],4)}</div></div>
+ <div class="grp"><div class="gt">PAD BUSES · <span style="color:#fff">PARALLEL</span> (set on the SP-404)</div><div class="gb">${ldHost(f[1],0)}${ldHost(f[2],1)}</div></div><div class="flowarrow">→</div>
+ <div class="grp"><div class="gt">MASTER · BUS 3 → BUS 4</div><div class="gb">${ldHost(f[3],2)}${ldHost(f[4],3)}</div></div>${side()}</div><div class="mixer">${ldMxLeft()}${wdesk()}${mxRight()}${kbd()}</div>`}
+function renderLD(m){m.innerHTML=`<div class="ldwrap"><div class="ldsets"><span>EXAMPLE</span>${LDSETS.map((x,i)=>`<button data-ld="${i}" class="${i===ldSet?'on':''}">${x.n}</button>`).join('')}<span style="width:14px"></span><span>SCALE</span><button data-fit="1" class="${ldFit?'on':''}">Fit width</button><button data-fit="0" class="${ldFit?'':'on'}">1:1</button>
+ <span style="margin-left:10px">Window drawn at 1920 × 1080. Every module is live: drag, click and switch as on the effect pages. Click KEYBOARD in the top bar for the overlay.</span></div><div class="ld" id="ld">${ldHTML()}</div></div>`;
+ const box=m.querySelector('.ld');if(ldFit){const w=m.clientWidth-40;box.style.zoom=Math.min(1,w/1922).toFixed(3)}
+ box.querySelectorAll('.host').forEach(h=>mount(h,+h.dataset.host));
+ const kb=document.getElementById('kb'),k=document.getElementById('kbd');kb.onclick=()=>{k.classList.toggle('open');kb.classList.toggle('on')};document.getElementById('kbx').onclick=()=>{k.classList.remove('open');kb.classList.remove('on')};
+ m.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const c=b.dataset.show;if(!PADS[c])return;ldShow.has(c)?ldShow.delete(c):ldShow.add(c);renderLD(m)});
+ m.querySelectorAll('[data-ld]').forEach(b=>b.onclick=()=>{ldSet=+b.dataset.ld;renderLD(m)});m.querySelectorAll('[data-fit]').forEach(b=>b.onclick=()=>{ldFit=b.dataset.fit==='1';renderLD(m)})}
+window.addEventListener('resize',()=>{if(mode==='ld')renderLD(document.getElementById('main'))});
+
+// ---------------- page ----------------
+function nav(){let h='';CATS.forEach((c,ci)=>{h+=`<div class="cat">${c}</div>`;E.forEach((e,i)=>{if(e.cat!==ci)return;const av=['1·2','3·4','IN'].filter((_,j)=>e.on[j]).join(' ');h+=`<a data-go="${i}" class="${mode==='one'&&i===cur?'on':''}">${e.n}<small>${av}</small></a>`})});document.getElementById('nav').innerHTML=h}
+function render(){nav();const m=document.getElementById('main');
+ document.querySelector('.wrap nav').style.display=mode==='ld'?'none':'';if(mode==='ld'){renderLD(m);return}
+ if(mode==='one'){m.innerHTML=`<div class="one"><div class="host" data-host="${cur}" style="zoom:${zoom}"></div>${notesHTML(cur)}</div>`;mount(m.querySelector('.host'),cur);renderTable()}
+ else{let h='<div class="all">';CATS.forEach((c,ci)=>{h+=`<h4 id="cat${ci}">${c}</h4><div class="row">`;E.forEach((e,i)=>{if(e.cat===ci)h+=`<div class="cell" id="fx${i}"><div class="host" data-host="${i}" style="zoom:${zoom}"></div></div>`});h+='</div>'});m.innerHTML=h+'</div>';m.querySelectorAll('.host').forEach(hh=>mount(hh,+hh.dataset.host))}}
+document.querySelector('.toolbar').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
+ if(b.dataset.mode){mode=b.dataset.mode}if(b.dataset.bus){bus=+b.dataset.bus}if(b.dataset.zoom){zoom=+b.dataset.zoom}
+ ['mode','bus','zoom'].forEach(k=>{if(b.dataset[k]!=null)b.parentNode.querySelectorAll(`[data-${k}]`).forEach(x=>x.classList.toggle('on',x===b))});render()});
+document.getElementById('nav').addEventListener('click',ev=>{const a=ev.target.closest('[data-go]');if(!a)return;cur=+a.dataset.go;if(mode==='one'){render();window.scrollTo(0,0)}else document.getElementById('fx'+cur).scrollIntoView({behavior:'smooth',block:'center'})});
+
+// ---------------- interaction ----------------
+function setRaw(fx,i,r){r=clamp(Math.round(r),0,127);if(ST[fx][i]===r)return;ST[fx][i]=r;rerender(fx)}
+let drag=null;
+document.addEventListener('pointerdown',ev=>{const t=ev.target.closest('[data-dx],[data-dy],[data-p]');if(!t||ev.button!==0)return;const host=t.closest('.bus');if(!host)return;const fx=+host.dataset.fx;
+ const dx=t.dataset.dx!=null?+t.dataset.dx:null,dy=t.dataset.dy!=null?+t.dataset.dy:(t.dataset.p!=null?+t.dataset.p:null);
+ drag={fx,dx,dy,sx:+(t.dataset.sx||.5),sy:+(t.dataset.sy||(t.dataset.p!=null?.7:.5)),z:t.closest('.ld')?+(t.closest('.ld').style.zoom||1):zoom,x:ev.clientX,y:ev.clientY,ax:dx!=null?ST[fx][dx]:0,ay:dy!=null?ST[fx][dy]:0};ev.preventDefault()});
+window.addEventListener('pointermove',ev=>{if(!drag)return;if(ev.buttons===0){drag=null;return}const k=(ev.shiftKey?.2:1)/drag.z;const d=drag;
+ if(d.dx!=null){d.ax+=(ev.clientX-d.x)*d.sx*k}if(d.dy!=null){d.ay-=(ev.clientY-d.y)*d.sy*k}d.x=ev.clientX;d.y=ev.clientY;
+ if(d.dx!=null){d.ax=clamp(d.ax,0,127);ST[d.fx][d.dx]=Math.round(d.ax)}if(d.dy!=null){d.ay=clamp(d.ay,0,127);ST[d.fx][d.dy]=Math.round(d.ay)}rerender(d.fx)});
+['pointerup','pointercancel','blur'].forEach(n=>window.addEventListener(n,()=>drag=null));document.addEventListener('visibilitychange',()=>drag=null);
+document.addEventListener('dblclick',ev=>{const t=ev.target.closest('[data-dx],[data-dy],[data-p]');if(!t)return;const fx=+t.closest('.bus').dataset.fx;['dx','dy','p'].forEach(k=>{if(t.dataset[k]!=null){const i=+t.dataset[k];ST[fx][i]=DEF[fx][i]}});rerender(fx)});
+document.addEventListener('click',ev=>{const host=ev.target.closest('.bus');if(!host)return;const fx=+host.dataset.fx;const t=ev.target.closest('[data-set],[data-head],[data-kill],[data-onoff]');if(!t)return;
+ if(t.dataset.set){const[i,r]=t.dataset.set.split(':').map(Number);setRaw(fx,i,r)}
+ if(t.dataset.onoff){ONST[fx]=!ONST[fx];rerender(fx)}
+ if(t.dataset.kill){const i=+t.dataset.kill;if(KILL[fx][i]==null){KILL[fx][i]=ST[fx][i];ST[fx][i]=0}else{ST[fx][i]=KILL[fx][i];KILL[fx][i]=null}rerender(fx)}
+ if(t.dataset.head){const cur=new Set(TAPEMODES[pIdx(fx,3)].split('+'));const h=t.dataset.head;if(cur.has(h)){if(cur.size>1)cur.delete(h)}else cur.add(h);const nm=['S','M','L'].filter(x=>cur.has(x)).join('+');setRaw(fx,3,E[fx].p[3].starts[TAPEMODES.indexOf(nm)])}});
+document.addEventListener('change',ev=>{const s=ev.target.closest('[data-sel]');if(!s)return;const fx=+s.closest('.bus').dataset.fx;setRaw(fx,+s.dataset.sel,+s.value)});
+document.addEventListener('wheel',ev=>{const t=ev.target.closest('[data-p]');if(!t)return;ev.preventDefault();const fx=+t.closest('.bus').dataset.fx,i=+t.dataset.p,p=E[fx].p[i];
+ if(p.t==='d'){const ix=idxOf(p.starts,ST[fx][i])+(ev.deltaY<0?1:-1);setRaw(fx,i,p.starts[clamp(ix,0,p.starts.length-1)])}else setRaw(fx,i,ST[fx][i]+(ev.deltaY<0?1:-1))},{passive:false});
+render();
+</script></body></html>

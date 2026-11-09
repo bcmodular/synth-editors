@@ -3,6 +3,8 @@
 Editor and patch librarian for the Roland TB-3: every tone parameter, 16-slot patch sets, a patch
 library, audition, morph and undo. Talks to the TB-3 over USB MIDI (SysEx).
 
+The [user guide](docs/user-guide.md) explains every feature, with screen grabs.
+
 ## Installing
 
 Download the installer for your computer from the
@@ -47,3 +49,8 @@ git push origin tb3-v0.1.0
 
 GitHub Actions (`.github/workflows/tb3-release.yml`) builds the Mac and Windows installers and
 attaches them to a draft release; check it on the releases page and publish it.
+
+## User guide screen grabs
+
+`npm run guide:shots -w @synth-editors/tb3` retakes every picture in `docs/images/` against the
+fake TB-3 and a made-up library (`e2e/guide.shots.ts`). Run it after changing the UI.

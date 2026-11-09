@@ -11,6 +11,7 @@
     "start": "vite build && electron .",
     "e2e": "vite build && playwright test",
     "e2e:hw": "vite build && TB3_HW=1 playwright test",
+    "guide:shots": "vite build && playwright test -c playwright.guide.config.ts",
     "package": "vite build && node scripts/package.mjs"
   },
   "devDependencies": {

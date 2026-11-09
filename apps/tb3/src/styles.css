@@ -509,6 +509,10 @@ svg .trace {
   display: flex;
   gap: 14px;
 }
+.popover.up {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
 .pgroup {
   display: flex;
   flex-direction: column;

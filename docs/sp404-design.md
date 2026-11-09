@@ -320,15 +320,32 @@ a capture file in `fixtures/local/sp404-captures/` (gitignored, as it holds samp
 - Mixer model: pad set from the device, app-side mute, mix-scene store and the recall rule (with recall safe),
   MIDI note calculation for Modes A and B.
 
-### Phase 2 — FX UI
-- Layout D shell with fit zoom; FX row with the five modules and FX scenes.
+### Phase 2 — Pad mixer
+Built before the FX UI: the serial side is the riskier half, and the mixer is useful on its own while the
+effects are still played from the device.
+- **Shell**: Layout D window at 1920 × 1080 with fit zoom (as the TB-3 app's `useFitZoom`); top bar with MIDI,
+  USB (and project) and Launchpad status; the FX row as a placeholder until Phase 3.
+- **Serial connection**: Web Serial in the renderer, as in Phase 0 (Node serial in the main process only if it
+  proves unreliable). Remembered port, reconnect after unplugging, a clear error if the port is busy, writes
+  through a rate-limited queue, status poll every 500 ms.
+- **Project**: on connect, read the project number and every pad block. Read them again when status byte 1
+  changes or the device sends `1A`. Parse the `7D` project-settings frame for the bank volumes, so the bank
+  masters start from the device's values.
+- **Desk**: one strip per loaded pad, grouped by bank, SHOW BANKS; level, pan, routing, mute group, MUTE
+  (app-side), AHR thumbnail and editor, MIDI note (Settings: mode, Pad MIDI Channels, Note offset); bank master
+  with BANK VOL; status light for the sounding pad and shading for the selected one.
+- **Edits made on the device**: find out whether the SP-404 reports them. If it doesn't, re-read the selected
+  pad's block when the selection changes.
+- **Mix scenes and recall safe**, saved per SP-404 project in a JSON file with autosave. This is the first piece
+  of the Phase 4 file store, which the FX library reuses.
+- **Tests**: e2e against a fake SP-404 serial port (a Web Serial stub in the page, as `fakeTb3.ts` stands in for
+  the TB-3), built from the Phase 0 captures.
+
+### Phase 3 — FX UI
+- FX row with the five modules and FX scenes, in the Phase 2 shell.
 - Module frame (header, side column, morph) and the shared controls (switch, button row, button grid,
   note-value matrix, drop-down, stepped knob, handles).
 - The 46 effect views, in category order, each with an e2e test against a fake SP-404 MIDI port.
-
-### Phase 3 — Pad mixer
-- Serial connection in the main process; strips, bank masters, SHOW BANKS, status lights.
-- AHR editor, mute, mute groups, routing; mix scenes and recall safe.
 
 ### Phase 4 — Library
 - Presets, defaults, recent values, FX scenes, GRAB, LOCK, morph; files with autosave.

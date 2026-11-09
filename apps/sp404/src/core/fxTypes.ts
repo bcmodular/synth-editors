@@ -41,8 +41,13 @@ export interface FxParam {
   sync?: SyncAlt;
 }
 
+// An effect's id in the effects table (not its CC 83 number).
+export type FxId = number;
+// The six raw knob values (0–127) of an effect, in CC order.
+export type FxValues = readonly number[];
+
 export interface FxDef {
-  id: number;
+  id: FxId;
   name: string;
   // CC 83 value that selects the effect, per bus group; 0 = the effect can't load there.
   cc83: Record<BusGroup, number>;

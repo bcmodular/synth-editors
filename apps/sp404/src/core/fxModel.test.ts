@@ -90,23 +90,27 @@ describe("FX scenes", () => {
 describe("morph", () => {
   const source = [60, 0, 0, 0, 0, 0];
   const target = [72, 100, 50, 121, 127, 20];
+  const reso = (amount: number, excludeTuning = false) =>
+    morphValues(fx(RESONATOR), { source, target, amount, excludeTuning });
 
   it("interpolates continuous parameters and snaps stepped ones at halfway", () => {
-    expect(morphValues(fx(RESONATOR), source, target, 0, false)).toEqual(source);
-    expect(morphValues(fx(RESONATOR), source, target, 1, false)).toEqual(target);
-    expect(morphValues(fx(RESONATOR), source, target, 0.25, false)).toEqual([63, 25, 13, 0, 32, 5]);
-    expect(morphValues(fx(RESONATOR), source, target, 0.5, false)).toEqual([66, 50, 25, 121, 64, 10]);
+    expect(reso(0)).toEqual(source);
+    expect(reso(1)).toEqual(target);
+    expect(reso(0.25)).toEqual([63, 25, 13, 0, 32, 5]);
+    expect(reso(0.5)).toEqual([66, 50, 25, 121, 64, 10]);
   });
 
   it("leaves tuning parameters alone with Exclude tuning on", () => {
-    expect(morphValues(fx(RESONATOR), source, target, 1, true)).toEqual([60, 100, 50, 0, 127, 20]);
+    expect(reso(1, true)).toEqual([60, 100, 50, 0, 127, 20]);
   });
 
   it("steps a synced rate while SYNC is on and glides it while off", () => {
-    const syncOff = [0, 0, 0, 0, 0, 0];
-    expect(morphValues(fx(ZAN_ZOU), syncOff, [100, 0, 0, 0, 0, 0], 0.25, false)[0]).toBe(25);
-    const syncOn = [0, 0, 0, 0, 0, 64];
-    expect(morphValues(fx(ZAN_ZOU), syncOn, [100, 0, 0, 0, 0, 64], 0.25, false)[0]).toBe(0);
-    expect(morphValues(fx(ZAN_ZOU), syncOn, [100, 0, 0, 0, 0, 64], 0.75, false)[0]).toBe(100);
+    const zanZouRate = (sync: number, amount: number) =>
+      morphValues(fx(ZAN_ZOU), {
+        source: [0, 0, 0, 0, 0, sync], target: [100, 0, 0, 0, 0, sync], amount, excludeTuning: false,
+      })[0];
+    expect(zanZouRate(0, 0.25)).toBe(25);
+    expect(zanZouRate(64, 0.25)).toBe(0);
+    expect(zanZouRate(64, 0.75)).toBe(100);
   });
 });

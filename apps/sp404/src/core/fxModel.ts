@@ -2,7 +2,7 @@
 // following the TouchOSC layout's behaviour (see docs/sp404-design.md).
 
 import { effectById, initialValues, isSyncOn, syncParam } from "./fx";
-import { BUSES, type Bus, type FxDef, type FxParam } from "./fxTypes";
+import { BUSES, type Bus, type FxDef, type FxId, type FxParam, type FxValues } from "./fxTypes";
 import type { BusFx } from "./midi";
 
 export const PRESETS_PER_EFFECT = 8;
@@ -10,40 +10,42 @@ export const SCENE_COUNT = 16;
 export const RECENT_LIMIT = 16;
 
 export type PresetSlots = (number[] | null)[];
+// A preset slot, 0–7.
+export type SlotIndex = number;
 
 // Library for one bus: presets and defaults keyed by effect id, most recent effect first.
 export interface BusLibrary {
   presets: Record<number, PresetSlots>;
   defaults: Record<number, number[]>;
-  recent: { fxId: number; values: number[] }[];
+  recent: { fxId: FxId; values: number[] }[];
 }
 
 export const emptyBusLibrary = (): BusLibrary => ({ presets: {}, defaults: {}, recent: [] });
 
 // ---- presets
 
-export function presetSlots(lib: BusLibrary, fxId: number): PresetSlots {
+export function presetSlots(lib: BusLibrary, fxId: FxId): PresetSlots {
   return lib.presets[fxId] ?? Array<null>(PRESETS_PER_EFFECT).fill(null);
 }
 
-export function storePreset(lib: BusLibrary, fxId: number, slot: number, values: readonly number[]): BusLibrary {
+export function storePreset(lib: BusLibrary, fxId: FxId, slot: SlotIndex, values: FxValues): BusLibrary {
   const slots = presetSlots(lib, fxId).map((v, i) => (i === slot ? [...values] : v));
   return { ...lib, presets: { ...lib.presets, [fxId]: slots } };
 }
 
-export function deletePreset(lib: BusLibrary, fxId: number, slot: number): BusLibrary {
+export function deletePreset(lib: BusLibrary, fxId: FxId, slot: SlotIndex): BusLibrary {
   const slots = presetSlots(lib, fxId).map((v, i) => (i === slot ? null : v));
   return { ...lib, presets: { ...lib.presets, [fxId]: slots } };
 }
 
 // Values after recalling `stored`. With Exclude tuning on, tuning parameters keep their live values.
-export function recallValues(fx: FxDef, live: readonly number[], stored: readonly number[], excludeTuning: boolean) {
+export function recallValues(fx: FxDef, live: FxValues, stored: FxValues, excludeTuning: boolean) {
   return fx.params.map((p, i) => (excludeTuning && p.tuning ? live[i] : stored[i]) ?? live[i] ?? 0);
 }
 
 // ---- recent values and choosing an effect
 
-export function pushRecent(lib: BusLibrary, fxId: number, values: readonly number[]): BusLibrary {
+export function pushRecent(lib: BusLibrary, fxId: FxId, values: FxValues): BusLibrary {
   const rest = lib.recent.filter((r) => r.fxId !== fxId);
   return { ...lib, recent: [{ fxId, values: [...values] }, ...rest].slice(0, RECENT_LIMIT) };
 }
@@ -56,14 +58,14 @@ export function valuesForEffect(lib: BusLibrary, fx: FxDef): number[] {
 }
 
 // Switch a bus to another effect, remembering the outgoing effect's values.
-export function chooseEffect(lib: BusLibrary, bus: BusFx, fxId: number): { lib: BusLibrary; bus: BusFx } {
+export function chooseEffect(lib: BusLibrary, bus: BusFx, fxId: FxId): { lib: BusLibrary; bus: BusFx } {
   const fx = effectById(fxId);
   if (!fx) return { lib, bus };
   const kept = bus.fxId ? pushRecent(lib, bus.fxId, bus.values) : lib;
   return { lib: kept, bus: { fxId, on: bus.on, values: valuesForEffect(kept, fx) } };
 }
 
-export function storeDefaults(lib: BusLibrary, fxId: number, values: readonly number[]): BusLibrary {
+export function storeDefaults(lib: BusLibrary, fxId: FxId, values: FxValues): BusLibrary {
   return { ...lib, defaults: { ...lib.defaults, [fxId]: [...values] } };
 }
 
@@ -98,11 +100,17 @@ function isStepped(p: FxParam, syncOn: boolean): boolean {
   return Boolean(p.isSync || p.starts || (p.sync?.starts && syncOn));
 }
 
-// Blend live values towards a preset by `amount` (0–1). Continuous parameters interpolate, stepped ones
+// A morph from a bus's live values towards a stored preset. `amount` runs 0–1.
+export interface Morph {
+  source: FxValues;
+  target: FxValues;
+  amount: number;
+  excludeTuning: boolean;
+}
+
+// Blend live values towards a preset by the morph amount. Continuous parameters interpolate, stepped ones
 // snap at the halfway point. With Exclude tuning on, tuning parameters stay put.
-export function morphValues(
-  fx: FxDef, source: readonly number[], target: readonly number[], amount: number, excludeTuning: boolean,
-): number[] {
+export function morphValues(fx: FxDef, { source, target, amount, excludeTuning }: Morph): number[] {
   const t = Math.max(0, Math.min(1, amount));
   const pick = (i: number) => ((t < 0.5 ? source[i] : target[i]) ?? 0);
   const syncIndex = fx.params.findIndex((p) => p === syncParam(fx));

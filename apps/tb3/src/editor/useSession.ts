@@ -13,6 +13,7 @@ import { useLatest } from "./useLatest";
 import type { Latest } from "./useLatest";
 import { useTb3Link } from "./useTb3Link";
 import { useUndo } from "./useUndo";
+import type { Tb3Sender } from "./pacer";
 
 export type { SessionState } from "./sessionState";
 export { currentPatch } from "./sessionState";
@@ -209,10 +210,10 @@ function useSetEdits(session: SessionStore, morphs: MorphStore, undo: UndoStore)
 
 type UndoStore = ReturnType<typeof useUndo>;
 
-export function useSession(sendTb3: (msg: number[]) => void, onError: (msg: string) => void) {
+export function useSession(tb3: Tb3Sender, onError: (msg: string) => void) {
   const session = usePersistedSession();
   const morphs = useLatest<MorphState>(rules.noMorph);
-  const link = useTb3Link(sendTb3);
+  const link = useTb3Link(tb3);
   const active = useCallback(() => rules.currentPatch(session.ref.current), [session.ref]);
   const { previewing, shown, preview, endPreview } = usePreview(link, active);
   const [mode, setMode] = useState<SlotMode>(null);

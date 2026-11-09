@@ -7,9 +7,10 @@ import type { Patch } from "../core/patch";
 import { createEditQueue } from "./editQueue";
 import { PUMP_MS, emptyBucket, pumpStep } from "./morphPump";
 import { persistRate, restoreRate } from "./sessionPersist";
+import type { Tb3Sender } from "./pacer";
 
-export function useTb3Link(sendTb3: (msg: number[]) => void) {
-  const queue = useMemo(() => createEditQueue(sendTb3), [sendTb3]);
+export function useTb3Link(tb3: Tb3Sender) {
+  const queue = useMemo(() => createEditQueue(tb3.send), [tb3]);
   const sent = useRef<Patch | null>(null); // what the TB-3 holds; null = unknown
   const pumpTarget = useRef<Patch | null>(null); // latest morph blend still to reach the TB-3
 
@@ -19,10 +20,10 @@ export function useTb3Link(sendTb3: (msg: number[]) => void) {
       queue.flush();
       pumpTarget.current = null; // a full send supersedes any morph catch-up
       const keys = sent.current ? diffBlocks(sent.current, target) : null;
-      (keys ? blocksToSysex(target, keys) : patchToSysex(target)).forEach(sendTb3);
+      (keys ? blocksToSysex(target, keys) : patchToSysex(target)).forEach(tb3.send);
       sent.current = target;
     },
-    [queue, sendTb3],
+    [queue, tb3],
   );
 
   // Send every block, whatever the TB-3 is thought to hold.
@@ -50,20 +51,20 @@ export function useTb3Link(sendTb3: (msg: number[]) => void) {
     sent.current = p;
   }, []);
 
-  const pump = useMorphPump({ sendTb3, sent, pumpTarget, sendPatch, flushEdits: queue.flush });
+  const pump = useMorphPump({ tb3, sent, pumpTarget, sendPatch, flushEdits: queue.flush });
 
   return { push: queue.push, sendPatch, sendAll, sendEdit, holds, ...pump };
 }
 
 interface PumpDeps {
-  sendTb3: (msg: number[]) => void;
+  tb3: Tb3Sender;
   sent: { current: Patch | null };
   pumpTarget: { current: Patch | null };
   sendPatch: (p: Patch) => void;
   flushEdits: () => void;
 }
 
-function useMorphPump({ sendTb3, sent, pumpTarget, sendPatch, flushEdits }: PumpDeps) {
+function useMorphPump({ tb3, sent, pumpTarget, sendPatch, flushEdits }: PumpDeps) {
   const [morphRate, setMorphRateState] = useState(restoreRate);
   const rate = useRef(morphRate);
   const timer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -82,15 +83,16 @@ function useMorphPump({ sendTb3, sent, pumpTarget, sendPatch, flushEdits }: Pump
       sendPatch(target); // TB-3 state unknown: one full send
       return stop();
     }
+    if (tb3.backlog() > PUMP_MS) return; // still sending the last tick's runs: catch up from here next time
     const step = pumpStep(from, target, bucket.current, { rate: rate.current, now: performance.now() });
-    step.runs.forEach((run) => sendTb3(runToSysex(run)));
+    step.runs.forEach((run) => tb3.send(runToSysex(run)));
     bucket.current = step.bucket;
     sent.current = step.sent; // caught up: keeps identity with `target`, so edits don't resend
     if (step.done) {
       pumpTarget.current = null;
       stop();
     }
-  }, [pumpTarget, sent, sendPatch, sendTb3, stop]);
+  }, [pumpTarget, sent, sendPatch, tb3, stop]);
 
   // Send the TB-3 towards `p` at the capped rate.
   const pumpTo = useCallback(

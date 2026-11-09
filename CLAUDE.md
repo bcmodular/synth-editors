@@ -37,7 +37,8 @@ open and tests on the hardware as work goes along, so keep the app runnable betw
 - `src/editor/` holds the React editor; `useSession` owns the session state (slots, active patch, morph).
 - `src/ui/` holds generic controls (faders, dialogs, tooltips).
 - The TB-3 talks Roland SysEx (DT1 to write, RQ1 to read back). In the studio it is on MIDI channel 2, behind the
-  H12MIDI-Pro interface on Port 4.
+  H12MIDI-Pro interface on Port 4, or on its own USB port (`TB3_PORT="TB-3"`, with Roland's driver). Over USB it drops
+  messages that arrive too close together, so every send goes through `editor/pacer.ts`.
 - End-to-end tests (`apps/tb3/e2e/`): `tb3.ts` is the harness. It gives each test a throwaway profile and library,
   reads the TB-3 back with RQ1, and restores the TB-3's sound at the end. `fakeTb3.ts` stands in for the hardware.
   With real hardware, a debug app instance must stub `MIDIOutput.prototype.send` before selecting any port.

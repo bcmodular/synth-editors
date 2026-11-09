@@ -1,5 +1,5 @@
 // MIDI ports (remembered by name), TB-3 channel, log, and the Sync from TB-3 handshake.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   findInputByName,
   findOutputByName,
@@ -12,6 +12,8 @@ import {
 import { patchFromSysex } from "../core/patch";
 import type { Patch } from "../core/patch";
 import { PATCH_BLOCKS, addrKey, parseDt1, rq1 } from "../core/sysex";
+import { createPacer } from "./pacer";
+import type { Tb3Sender } from "./pacer";
 
 export type PortRole = "tb3In" | "tb3Out" | "lpIn" | "lpOut";
 const ROLES: PortRole[] = ["tb3In", "tb3Out", "lpIn", "lpOut"];
@@ -86,8 +88,12 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
   const tb3OutRef = useRef(tb3Out);
   tb3OutRef.current = tb3Out;
 
-  // Stable sender for the edit queue: always uses the currently selected output.
-  const sendTb3 = useCallback((msg: number[]) => tb3OutRef.current?.send(msg), []);
+  // Stable sender for everything to the TB-3: always the currently selected output, paced so a
+  // burst never arrives back to back (see pacer.ts).
+  const tb3 = useMemo<Tb3Sender>(() => {
+    const pacer = createPacer();
+    return { send: (msg) => tb3OutRef.current?.send(msg, pacer.at(msg.length)), backlog: pacer.backlog };
+  }, []);
 
   const finishSync = useCallback(() => {
     clearTimeout(timer.current);
@@ -132,7 +138,7 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
     }
     pending.current = new Map();
     setSync({ kind: "waiting", got: 0 });
-    for (const b of PATCH_BLOCKS) tb3Out.send(rq1(b.addr, b.size));
+    for (const b of PATCH_BLOCKS) tb3.send(rq1(b.addr, b.size));
     addLog(`TB-3 → RQ1 × ${PATCH_BLOCKS.length}`);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
@@ -147,7 +153,7 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
       setSync({ kind: "error", message: "Choose the TB-3 output in MIDI settings" });
       return;
     }
-    msgs.forEach((m) => tb3Out.send(m));
+    msgs.forEach(tb3.send);
     addLog(`TB-3 → DT1 × ${msgs.length}`);
   };
 
@@ -165,7 +171,7 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
     log,
     sync,
     connected: Boolean(tb3Out),
-    sendTb3,
+    tb3,
     syncFromTb3,
     sendAllToTb3,
   };

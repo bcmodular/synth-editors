@@ -18,6 +18,7 @@ import { emptySlots, patchToBytes, setToJson } from "../src/core/patchSet";
 import type { Slot } from "../src/core/patchSet";
 import { PATCH_BLOCKS, addrKey, rq1 } from "../src/core/sysex";
 import { demoPatch } from "../src/editor/demoPatch";
+import { sendOffsets } from "../src/editor/pacer";
 import { installFakeTb3 } from "./fakeTb3";
 
 export const HW = process.env.TB3_HW === "1";
@@ -144,18 +145,30 @@ export async function finish(t: Tb3App | undefined) {
   await rm(t.library, { recursive: true, force: true });
 }
 
+// The harness's own messages to the TB-3 are spaced out like the app's (src/editor/pacer.ts): over
+// USB the TB-3 drops messages that arrive back to back. They start after the app's own paced sends
+// have had time to go, so they never cut in among them.
+const AFTER_APP_MS = 100;
+const sendTimes = (msgs: number[][]) => ({ after: AFTER_APP_MS, offsets: sendOffsets(msgs) });
+
+// Waits until the last message has gone, so the app can be closed straight after.
 async function sendToTb3(page: Page, msgs: number[][]) {
-  await page.evaluate(async (msgs) => {
-    const a = await navigator.requestMIDIAccess({ sysex: true });
-    const out = [...a.outputs.values()].find((p) => p.name === localStorage.getItem("port.tb3Out"));
-    msgs.forEach((m) => out?.send(m));
-  }, msgs);
+  await page.evaluate(
+    async ([msgs, t]) => {
+      const a = await navigator.requestMIDIAccess({ sysex: true });
+      const out = [...a.outputs.values()].find((p) => p.name === localStorage.getItem("port.tb3Out"));
+      const start = performance.now() + t.after;
+      msgs.forEach((m, i) => out?.send(m, start + t.offsets[i]!));
+      await new Promise((r) => setTimeout(r, t.after + (t.offsets.at(-1) ?? 0) + 50));
+    },
+    [msgs, sendTimes(msgs)] as const,
+  );
 }
 
 // Ask the TB-3 for all 11 blocks (RQ1) and decode its replies.
 export async function readTb3(page: Page): Promise<Patch> {
   const requests = PATCH_BLOCKS.map((b) => rq1(b.addr, b.size));
-  const replies = await page.evaluate(async (requests) => {
+  const replies = await page.evaluate(async ([requests, t]) => {
     const a = await navigator.requestMIDIAccess({ sysex: true });
     const input = [...a.inputs.values()].find((p) => p.name === localStorage.getItem("port.tb3In"));
     const output = [...a.outputs.values()].find((p) => p.name === localStorage.getItem("port.tb3Out"));
@@ -169,7 +182,12 @@ export async function readTb3(page: Page): Promise<Patch> {
         if (got.length === requests.length) end(resolve);
       };
       const timer = setTimeout(
-        () => end(() => reject(new Error(`TB-3 replied with ${got.length}/${requests.length} blocks`))),
+        () => {
+          const have = got.map((m) => m.slice(7, 11).join(","));
+          const missing = requests.filter((r) => !have.includes(r.slice(7, 11).join(","))).map((r) => r.slice(7, 11));
+          const msg = `TB-3 replied with ${got.length}/${requests.length} blocks, not ${JSON.stringify(missing)}`;
+          end(() => reject(new Error(msg)));
+        },
         3000,
       );
       const end = (fn: () => void) => {
@@ -179,10 +197,11 @@ export async function readTb3(page: Page): Promise<Patch> {
       };
       input.addEventListener("midimessage", on);
     });
-    requests.forEach((r) => output.send(r));
+    const start = performance.now() + t.after;
+    requests.forEach((r, i) => output.send(r, start + t.offsets[i]!));
     await done;
     return got;
-  }, requests);
+  }, [requests, sendTimes(requests)] as const);
   return patchFromSysex(replies);
 }
 

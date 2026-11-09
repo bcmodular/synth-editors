@@ -27,6 +27,14 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, "..", "dist", "index.html"));
   }
+  // Stop watching the library with the window gone: a change after that (the tests delete their
+  // library as the app closes) would otherwise message a destroyed window and crash.
+  win.on("closed", () => {
+    win = null;
+    clearTimeout(changeTimer);
+    watcher?.close();
+    watcher = null;
+  });
 }
 
 // --- Patch library -------------------------------------------------------------------------
@@ -54,7 +62,7 @@ async function openRoot(dir) {
   // Finder changes (and our own) refresh the browser; bursts are coalesced.
   watcher = fs.watch(root, { recursive: true }, () => {
     clearTimeout(changeTimer);
-    changeTimer = setTimeout(() => win?.webContents.send("lib:changed"), 150);
+    changeTimer = setTimeout(() => win && !win.isDestroyed() && win.webContents.send("lib:changed"), 150);
   });
   return root;
 }

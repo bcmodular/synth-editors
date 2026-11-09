@@ -12,6 +12,8 @@ import { Section, Segmented, Stepper } from "../ui/controls";
 import { WaveView } from "../ui/WaveView";
 import { XmodMatrix } from "../ui/XmodMatrix";
 import { useEditor } from "./EditorContext";
+import { LiveWave } from "./LiveWave";
+import type { Tb3Audio } from "./useTb3Audio";
 import { Assignable, ParamH, ParamLed, ParamV, useParam } from "./Param";
 
 export function VcoSection() {
@@ -44,7 +46,21 @@ const raw = (patch: Patch, id: string) => getRaw(patch, paramById(id));
 const level = (patch: Patch, id: string, sw: string) => (raw(patch, sw) ? raw(patch, id) : 0);
 const offset = (patch: Patch, id: string) => raw(patch, id) - (paramById(id).center ?? 0);
 
-export function VcoSumSection() {
+// DRAWN: the mix pictured from the settings. LIVE: the TB-3's actual output.
+function ViewSwitch(p: { audio: Tb3Audio }) {
+  return (
+    <Segmented
+      options={[
+        { label: "DRAWN", value: 0 },
+        { label: "LIVE", value: 1 },
+      ]}
+      value={p.audio.view === "live" ? 1 : 0}
+      onChange={(v) => p.audio.setView(v ? "live" : "drawn")}
+    />
+  );
+}
+
+export function VcoSumSection(p: { audio: Tb3Audio }) {
   const { patch } = useEditor();
   const ys = patch
     ? vcoShape({
@@ -60,8 +76,12 @@ export function VcoSumSection() {
       })
     : null;
   return (
-    <Section title="VCO MIX" className="vcosum">
-      <WaveView ys={ys} width={370} height={236} />
+    <Section title="VCO MIX" className="vcosum" extra={<ViewSwitch audio={p.audio} />}>
+      {p.audio.view === "live" ? (
+        <LiveWave audio={p.audio} width={370} height={236} />
+      ) : (
+        <WaveView ys={ys} width={370} height={236} />
+      )}
     </Section>
   );
 }

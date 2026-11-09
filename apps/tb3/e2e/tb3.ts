@@ -64,7 +64,9 @@ async function launchElectron(profile: string) {
   const env = Object.fromEntries(
     Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && e[0] !== "VITE_DEV_SERVER_URL"),
   );
-  const app = await electron.launch({ args: [APP_DIR, `--user-data-dir=${profile}`], env });
+  // Chromium's fake audio input (a tone with beeps) stands in for the TB-3's USB audio.
+  const fakeAudio = ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"];
+  const app = await electron.launch({ args: [APP_DIR, `--user-data-dir=${profile}`, ...fakeAudio], env });
   const page = await app.firstWindow();
   await page.waitForLoadState("domcontentloaded");
   return { app, page };

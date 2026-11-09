@@ -133,10 +133,16 @@ function registerLibraryIpc() {
 }
 
 app.whenReady().then(() => {
-  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => {
-    callback(MIDI_PERMISSIONS.has(permission));
+  // MIDI, and audio input for VCO MIX's LIVE view (never the camera).
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
+    const types = details.mediaTypes ?? [];
+    const audioOnly = permission === "media" && types.length > 0 && types.every((t) => t === "audio");
+    callback(MIDI_PERMISSIONS.has(permission) || audioOnly);
   });
-  session.defaultSession.setPermissionCheckHandler((_wc, permission) => MIDI_PERMISSIONS.has(permission));
+  session.defaultSession.setPermissionCheckHandler(
+    (_wc, permission, _origin, details) =>
+      MIDI_PERMISSIONS.has(permission) || (permission === "media" && details.mediaType === "audio"),
+  );
   registerLibraryIpc();
   createWindow();
 });

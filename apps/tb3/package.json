@@ -53,7 +53,10 @@
       ],
       "category": "public.app-category.music",
       "identity": "-",
-      "hardenedRuntime": false
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "TB-3 Editor listens to the TB-3's USB audio to show its waveform and level."
+      }
     },
     "win": {
       "target": [

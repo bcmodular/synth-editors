@@ -9,6 +9,7 @@ import { Section } from "../ui/controls";
 import { KEYS } from "../ui/platform";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
+import type { Tb3Audio } from "./useTb3Audio";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
 
 // UNDO / REDO; hovering names the step.
@@ -43,7 +44,13 @@ function UndoButtons(p: { history: UndoControls }) {
   );
 }
 
-export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boolean; history: UndoControls }) {
+export function Tb3Block(p: {
+  midi: Tb3Midi;
+  audio: Tb3Audio;
+  onSyncTo: () => void;
+  hasPatch: boolean;
+  history: UndoControls;
+}) {
   const [open, setOpen] = useState(false);
   const { sync } = p.midi;
   const status = p.midi.error
@@ -75,12 +82,12 @@ export function Tb3Block(p: { midi: Tb3Midi; onSyncTo: () => void; hasPatch: boo
         SYNC TO TB-3
       </button>
       <span className={`status ${sync.kind === "error" || p.midi.error ? "err" : ""}`}>{status}</span>
-      {open && <MidiSettings midi={p.midi} onClose={() => setOpen(false)} />}
+      {open && <MidiSettings midi={p.midi} audio={p.audio} onClose={() => setOpen(false)} />}
     </Section>
   );
 }
 
-function MidiSettings(p: { midi: Tb3Midi; onClose: () => void }) {
+function MidiSettings(p: { midi: Tb3Midi; audio: Tb3Audio; onClose: () => void }) {
   const m = p.midi;
   const [showLog, setShowLog] = useState(false);
   const select = (role: PortRole, label: string, list: { id: string; name: string }[]) => (
@@ -112,6 +119,7 @@ function MidiSettings(p: { midi: Tb3Midi; onClose: () => void }) {
           ))}
         </select>
       </label>
+      <AudioInputChoice audio={p.audio} />
       <div className="row">
         <button className="btn" onClick={() => setShowLog((s) => !s)}>
           {showLog ? "HIDE LOG" : "SHOW LOG"}
@@ -122,6 +130,26 @@ function MidiSettings(p: { midi: Tb3Midi; onClose: () => void }) {
       </div>
       {showLog && <pre className="log">{m.log.join("\n")}</pre>}
     </div>
+  );
+}
+
+// The audio input for VCO MIX's LIVE view. Names only show once audio input has been allowed, which
+// the first LIVE asks for; until then the menu just offers the automatic choice.
+function AudioInputChoice(p: { audio: Tb3Audio }) {
+  const a = p.audio;
+  const named = a.inputs.filter((d) => d.name);
+  return (
+    <label className="port">
+      <span className="lbl">AUDIO IN (LIVE)</span>
+      <select value={a.inputName ?? ""} onChange={(e) => a.chooseInput(e.target.value)}>
+        <option value="">Automatic (TB-3)</option>
+        {named.map((d) => (
+          <option key={d.id} value={d.name}>
+            {d.name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

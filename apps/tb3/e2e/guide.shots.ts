@@ -239,6 +239,49 @@ async function shootMorphAndUndo(page: Page, tb3: Locator) {
   await shotHere(page, "undo", [tb3, page.locator(".tooltip")]);
 }
 
+// Stands in for the TB-3's USB audio in the picture: an acid-style line (a sawtooth through a resonant
+// filter, gated 16ths with accents) offered as an input named "TB-3". Runs in the page.
+function fakeTb3Audio() {
+  const ctx = new AudioContext();
+  const out = ctx.createMediaStreamDestination();
+  const osc = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  const amp = ctx.createGain();
+  osc.type = "sawtooth";
+  filter.type = "lowpass";
+  filter.Q.value = 14;
+  amp.gain.value = 0;
+  osc.connect(filter).connect(amp).connect(out);
+  const notes = [36, 36, 48, 36, 39, 36, 43, 46, 36, 48, 36, 41, 36, 39, 51, 36];
+  const accents = new Set([0, 3, 6, 10, 14]);
+  const step = 0.115; // 16ths at 130 bpm
+  for (let i = 0; i < 400; i++) {
+    const t = ctx.currentTime + 0.05 + i * step;
+    const n = i % notes.length;
+    const peak = accents.has(n) ? 0.3 : 0.17;
+    osc.frequency.setValueAtTime(440 * 2 ** ((notes[n]! - 69) / 12), t);
+    amp.gain.setValueAtTime(peak, t);
+    amp.gain.exponentialRampToValueAtTime(0.01, t + step * (n % 4 === 3 ? 0.9 : 0.6));
+    filter.frequency.setValueAtTime(accents.has(n) ? 3200 : 1800, t);
+    filter.frequency.exponentialRampToValueAtTime(260, t + step);
+  }
+  osc.start();
+  const tb3 = { kind: "audioinput", deviceId: "tb3", label: "TB-3", groupId: "tb3", toJSON: () => ({}) };
+  navigator.mediaDevices.enumerateDevices = async () => [tb3 as MediaDeviceInfo];
+  navigator.mediaDevices.getUserMedia = async () => out.stream;
+}
+
+// VCO MIX's LIVE view on the stand-in audio above.
+async function shootLive(page: Page) {
+  const vcoMix = page.locator(".vcosum");
+  await page.evaluate(fakeTb3Audio);
+  await vcoMix.getByRole("button", { name: "LIVE" }).click();
+  await expect(vcoMix.locator(".livestatus")).toHaveCount(0);
+  await page.waitForTimeout(4200); // fill the panel
+  await shot(page, "vco-mix-live", [vcoMix]);
+  await vcoMix.getByRole("button", { name: "DRAWN" }).click();
+}
+
 let t: Tb3App | undefined;
 test.afterEach(async () => finish(t));
 
@@ -249,6 +292,7 @@ test("user guide screen grabs", async () => {
   await openDemo(t);
   await shootFirstLaunch(page, tb3);
   await shootEditor(page);
+  await shootLive(page);
   await shootSlots(page);
   await shootLibrary(page);
   await shootMorphAndUndo(page, tb3);

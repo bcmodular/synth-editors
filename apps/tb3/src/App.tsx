@@ -28,6 +28,7 @@ import { useLibrary, walk } from "./editor/useLibrary";
 import { useSession } from "./editor/useSession";
 import type { Session } from "./editor/useSession";
 import { useSetActions } from "./editor/useSetActions";
+import { useTb3Audio } from "./editor/useTb3Audio";
 import { useTb3Midi } from "./editor/useTb3Midi";
 import { useUndoKeys } from "./editor/useUndoKeys";
 import { DialogHost } from "./ui/Dialog";
@@ -51,6 +52,7 @@ function EditorApp() {
   useFitZoom(mainEl);
   const sessionRef = useRef<Session | null>(null);
   const midi = useTb3Midi((p) => sessionRef.current?.fromTb3(p));
+  const audio = useTb3Audio();
   const session = useSession(midi.tb3, setError);
   sessionRef.current = session;
   const library = useLibrary();
@@ -148,6 +150,7 @@ function EditorApp() {
           <div className="strip">
             <Tb3Block
               midi={midi}
+              audio={audio}
               hasPatch={Boolean(session.activePatch)}
               onSyncTo={session.sendAll}
               history={session}
@@ -158,7 +161,7 @@ function EditorApp() {
           </div>
           <div className="osc">
             <VcoSection />
-            <VcoSumSection />
+            <VcoSumSection audio={audio} />
             <ModSection />
             <RingModSection />
           </div>

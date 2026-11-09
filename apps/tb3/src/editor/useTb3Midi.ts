@@ -14,28 +14,13 @@ import type { Patch } from "../core/patch";
 import { PATCH_BLOCKS, addrKey, parseDt1, rq1 } from "../core/sysex";
 import { createPacer } from "./pacer";
 import type { Tb3Sender } from "./pacer";
+import { load, save } from "./storage";
 
 export type PortRole = "tb3In" | "tb3Out" | "lpIn" | "lpOut";
 const ROLES: PortRole[] = ["tb3In", "tb3Out", "lpIn", "lpOut"];
 const LOG_LIMIT = 200;
 const SYNC_TIMEOUT_MS = 2000;
 const BLOCK_KEYS = new Set(PATCH_BLOCKS.map((b) => addrKey(b.addr)));
-
-function load(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-function save(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    // Remembered settings are a convenience; ignore storage failures.
-  }
-}
 
 export type SyncState = { kind: "idle" } | { kind: "waiting"; got: number } | { kind: "error"; message: string };
 

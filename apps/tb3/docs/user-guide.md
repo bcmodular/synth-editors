@@ -37,6 +37,9 @@ the TB-3's port, such as a DAW or MIDI-OX, before you start.
 
 The ports, channel and library folder are remembered.
 
+**AUDIO IN (LIVE)** picks the audio input for VCO MIX's live waveform: see
+[The TB-3's output, live](#the-tb-3s-output-live). Leave it on Automatic to use the TB-3's own USB audio.
+
 **SHOW LOG** in the MIDI settings lists the messages going to and from the TB-3, which helps when
 something isn't getting through. The LAUNCHPAD ports are for Launchpad support in a later version
 and don't do anything yet.
@@ -85,12 +88,35 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
 - **VCO**: a level fader for each source: saw, square, sine, white and pink noise, and the ring
   modulator. The little light above each fader switches that source on and off. TUNING sets the
   pitch offsets of the saw, square, and ring + sine oscillators.
-- **VCO MIX**: a picture of the mixed waveform. It is drawn from the settings to show the shape
-  of the mix, not measured from the TB-3's output.
+- **VCO MIX**: with **DRAWN** selected, a picture of the mixed waveform, drawn from the settings to
+  show the shape of the mix. With **LIVE** selected, the TB-3's actual output: see below.
 - **CROSS MOD**: how much the square, saw and noise sources modulate the saw (left column) and
   the square (right column). The diagram in the middle shows which paths are active: green for
   positive amounts, amber for negative ones.
 - **RING MOD**: the ring modulator's source depths and overall depth.
+
+### The TB-3's output, live
+
+![VCO MIX in LIVE: the last 4 seconds of the TB-3's output, with its level](images/vco-mix-live.png)
+
+Click **LIVE** in VCO MIX to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
+so the TB-3 needs to be connected by USB, with Roland's TB-3 driver installed.
+
+- **The waveform** scrolls from right to left and shows the last 4 seconds. Each note is a burst whose
+  shape follows the envelopes; accents stand taller, filter sweeps and the LFO change the outline, and
+  silence is a flat line.
+- **The meter** on the right shows the left and right peak levels. The top turns amber above −6 dBFS,
+  and a tick holds each peak for a moment.
+- **The red light** under the meter comes on if the level reaches full scale. It stays on until you
+  click it. The number underneath is the highest peak since the last click, in dBFS.
+
+The first time you click LIVE, the Mac asks whether TB-3 Editor may use the microphone. Allow it: the
+Mac calls any audio input a microphone. If you said no, allow TB-3 Editor in System Settings →
+Privacy & Security → Microphone.
+
+The editor finds the TB-3's audio by itself. If it can't, LIVE says so; choose the input under
+**AUDIO IN (LIVE)** in the MIDI settings. The editor only listens: the TB-3's sound still reaches your
+speakers the way it always has. Whether DRAWN or LIVE is selected is remembered.
 
 ### Filter, amp and LFO
 

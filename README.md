@@ -31,6 +31,13 @@ which asks for MIDI + SysEx permission on first load.
 
 ```
 apps/tb3/            TB-3 editor (Electron main in electron/, React renderer in src/)
+apps/sp404/          SP-404 MK2 editor (in progress: the core in src/core/)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 ```
+
+## Credits
+
+The SP-404 MK2 pad mixer talks to the SP-404's USB serial port using the reverse-engineered protocol notes
+of the [SparkyMK2](https://github.com/TuscanPL/SparkyMK2) project (GPL-3). The code here was written from
+their notes only; none of theirs is copied.

@@ -54,8 +54,10 @@ These match the TouchOSC version's behaviour, including the lock rules.
 - **MUTE is app-side**: the SP-404 has no pad-mute parameter over serial, so MUTE sets the level to 0 and a
   second press restores the level it had. The strip shows the remembered level in brackets.
 - **MIDI note** is shown so the pads can be sequenced from an OXI One. The SP-404 doesn't report its MIDI
-  mode or note offset, so the app has a setting for both (Mode A: channel per bank; Mode B: channel pair plus
-  note offset) and works the notes out from it.
+  mode or note offset, so the app has a setting for both and works the notes out from it (`padNotes.ts`, from
+  Roland's MIDI note map): Mode A = bank A–J on channels 1–10, notes 36–51 in every bank; Mode B = banks A–E on
+  one channel and F–J on the next (Pad MIDI Channels), notes 12–91 plus Note offset. Pad 13 is each bank's
+  lowest note.
 - **Mix scenes**: 16, stored per SP-404 project, in the spirit of a Yamaha 02R. A scene stores the mixer values
   of the pads loaded when it was stored. On recall:
   - pads in the scene that are loaded now get the scene's values;
@@ -241,12 +243,16 @@ protocol notes from the [SparkyMK2](https://github.com/TuscanPL/SparkyMK2/tree/m
 implement from their notes only and copy none of their code.**
 
 - USB CDC-ACM device `0582:02E7`, 921600 baud 8N1, DTR and RTS raised.
+- Frames (no checksum): short = 12 bytes (`12 60 E0 channel`, payload in 4–10, length in 11); long = 16-byte
+  header (`13 60 E0 channel`, length u32 at 12–15) then the payload. Codec: `serialFrames.ts`, `serialMessages.ts`.
 - Set a pad parameter: a long frame on channel 5 (`01 id 00 target:u16 value:i32`, little-endian). Parameter
   ids: level `69` (0–127), pan `78` (13–115, centre 64), mute group `6D` (0–10), routing `7A` (0–2),
   attack `7D`, hold `7E` (1–100), release `7F`.
 - Bank volume: global target `FFFF`, id `35 + bank`, value `127 − volume`.
 - Read a pad: `9E pad` returns a 327-byte block (name at 175–198; an empty pad has field 0 = 0).
-- Status: poll `FE 66 00` every 500 ms for the selected pad and the pads playing.
+- Status: poll `FE 66 00` every 500 ms. The reply gives the project, the selected bank and pad, and the frame
+  count of the pad that's sounding (`FFFFFFFF` when none), but not *which* pad is sounding, and no set of
+  playing pads. Until a capture shows otherwise, the strip light follows the selected pad while something plays.
 - In the Electron main process (Node serial), exposed to the renderer through a small IPC API, like the TB-3
   app's file access.
 

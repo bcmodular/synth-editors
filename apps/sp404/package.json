@@ -1,0 +1,8 @@
+{
+  "name": "@synth-editors/sp404",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FX and pad mixer editor for the Roland SP-404 MK2",
+  "author": "BC Modular"
+}

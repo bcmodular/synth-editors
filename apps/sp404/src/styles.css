@@ -1,0 +1,79 @@
+:root {
+  --body: #121214;
+  --text: #d4d5da;
+  --dim: #8a8d96;
+  --rule: #34353a;
+  --well: #222327;
+  --error: #ff6b6b;
+  color-scheme: dark;
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 14px;
+}
+
+body {
+  margin: 0;
+  background: var(--body);
+  color: var(--text);
+}
+
+main {
+  padding: 16px 24px;
+}
+
+h1 {
+  font-size: 20px;
+}
+
+h2 {
+  font-size: 16px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 4px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.error {
+  color: var(--error);
+}
+
+input.num {
+  width: 64px;
+}
+
+input.wide {
+  width: 420px;
+}
+
+td.name {
+  font-family: Menlo, monospace;
+  white-space: pre;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+th,
+td {
+  padding: 2px 6px;
+  text-align: left;
+}
+
+.log {
+  background: var(--well);
+  padding: 8px;
+  max-height: 320px;
+  overflow: auto;
+  font-size: 12px;
+}

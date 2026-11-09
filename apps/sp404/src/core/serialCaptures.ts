@@ -53,4 +53,18 @@ export const STATUS_C6_SELECTED =
   "13 e0 ca 05 32 85 a6 bb 28 17 5a 83 13 00 00 00 7e 02 00 02 00 05 00 00 ff ff ff ff 00 00 00 01 " +
   "00 0b 33";
 
+// Project settings (7D) for project 3, all bank volumes at 127; the project's name is replaced with "PROJECT 3".
+export const PROJECT_SETTINGS =
+  "13 e0 03 05 fc bb 2b 20 a8 86 5a 83 93 00 00 00 7d 02 00 c8 32 01 00 00 00 00 00 00 00 00 00 40 " +
+  "00 00 00 40 00 00 00 40 00 00 00 00 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00 20 " +
+  "00 00 00 90 65 00 00 78 69 00 00 50 46 00 00 50 46 00 00 50 46 00 00 50 46 00 00 50 46 00 00 50 " +
+  "46 00 00 50 46 00 00 50 46 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 " +
+  "00 00 00 50 52 4f 4a 45 43 54 20 33 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 " +
+  "20 20 00";
+
+// Status reply while a pattern played: A13 selected, a frame count, byte 12 = 4. The pattern's pads don't select.
+export const STATUS_PATTERN =
+  "13 e0 ca 05 32 85 a6 bb b0 7f 5b 83 13 00 00 00 7e 02 00 00 00 0c 00 00 00 08 00 00 04 00 00 01 " +
+  "00 0b 33";
+
 export const bytes = (hex: string): Uint8Array => new Uint8Array(hex.trim().split(/\s+/).map((h) => parseInt(h, 16)));

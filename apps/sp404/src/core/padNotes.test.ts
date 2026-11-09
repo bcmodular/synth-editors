@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { noteName, padNote, type PadMidiSettings } from "./padNotes";
+import { noteName, padFromNote, padNote, type PadMidiSettings } from "./padNotes";
 
 // Pad number from bank letter and the pad's label on the device (1–16).
 const pad = (bank: string, label: number) => (bank.charCodeAt(0) - 65) * 16 + label - 1;
@@ -76,5 +76,32 @@ describe("padNote and noteName", () => {
     expect(noteName(12)).toBe("C0");
     expect(noteName(0)).toBe("C-1");
     expect(noteName(91)).toBe("G6");
+  });
+});
+
+describe("padFromNote", () => {
+  const settings: PadMidiSettings[] = [MODE_A, MODE_B, { mode: "B", baseChannel: 5, noteOffset: 9 }];
+
+  it("finds the pad for every pad's own note, in each mode", () => {
+    for (const s of settings) {
+      for (let p = 0; p < 160; p++) {
+        const n = padNote(p, s);
+        if (n) expect(padFromNote(n.channel, n.note, s)).toBe(p);
+      }
+    }
+  });
+
+  it("knows the corners of the user's Mode B sheet", () => {
+    expect(padFromNote(1, 12, MODE_B)).toBe(pad("A", 13));
+    expect(padFromNote(1, 27, MODE_B)).toBe(pad("A", 4));
+    expect(padFromNote(2, 91, MODE_B)).toBe(pad("J", 4));
+  });
+
+  it("ignores notes that aren't pads", () => {
+    expect(padFromNote(1, 0, MODE_B)).toBeUndefined(); // EXT SOURCE
+    expect(padFromNote(1, 92, MODE_B)).toBeUndefined();
+    expect(padFromNote(3, 12, MODE_B)).toBeUndefined();
+    expect(padFromNote(1, 35, MODE_A)).toBeUndefined(); // EXT SOURCE in Mode A
+    expect(padFromNote(11, 36, MODE_A)).toBeUndefined();
   });
 });

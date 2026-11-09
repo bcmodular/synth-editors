@@ -66,6 +66,24 @@ export function padNote(pad: PadNumber, settings: PadMidiSettings = DEFAULT_PAD_
   return isValid(result) ? result : undefined;
 }
 
+// The other way round: the pad a received note belongs to, for the pad lights (the SP-404 sends a note-on when a
+// pad is played). The bottom-up order is its own inverse, so stepInBank maps a step back to its pad.
+function bankAndStep(channel: number, note: number, settings: PadMidiSettings): [number, number] | undefined {
+  if (settings.mode === "A") return [channel - 1, note - MODE_A_FIRST_NOTE];
+  const group = channel - settings.baseChannel;
+  const rel = note - MODE_B_FIRST_NOTE - settings.noteOffset;
+  if (!inRange(group, 0, 1) || !inRange(rel, 0, MODE_B_BANKS_PER_CHANNEL * PADS_PER_BANK - 1)) return undefined;
+  return [group * MODE_B_BANKS_PER_CHANNEL + Math.floor(rel / PADS_PER_BANK), rel % PADS_PER_BANK];
+}
+
+export function padFromNote(channel: number, note: number, settings: PadMidiSettings = DEFAULT_PAD_MIDI): PadNumber | undefined {
+  const found = bankAndStep(channel, note, settings);
+  if (!found) return undefined;
+  const [bank, step] = found;
+  if (!inRange(bank, 0, BANK_COUNT - 1) || !inRange(step, 0, PADS_PER_BANK - 1)) return undefined;
+  return bank * PADS_PER_BANK + stepInBank(step);
+}
+
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 // Note name with middle C (60) = C4, as in Roland's MIDI note map.

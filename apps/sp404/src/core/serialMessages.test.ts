@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bytes, ECHO_SET_LEVEL, PAD_BLOCK_EMPTY, PAD_BLOCK_LOADED, STATUS_C6_PLAYING, STATUS_C6_SELECTED, STATUS_IDLE,
-  STATUS_PLAYING,
+  STATUS_PATTERN, STATUS_PLAYING,
 } from "./serialCaptures";
 import { splitFrames, type Frame } from "./serialFrames";
 import {
@@ -105,7 +105,7 @@ function statusReply(bytes: Record<number, number>, frames: number): Uint8Array 
 describe("status", () => {
   it("reads project, selected bank and pad, and the sounding pad's frame count", () => {
     expect(parseStatus(reply(statusReply({ 1: 5, 3: 2, 5: 7 }, 12345)))).toEqual({
-      project: 5, selectedBank: 2, selectedPad: 7, playingFrames: 12345,
+      project: 5, selectedBank: 2, selectedPad: 7, playingFrames: 12345, mode: 0,
     });
   });
 
@@ -114,6 +114,12 @@ describe("status", () => {
     expect(playing).toMatchObject({ selectedBank: 2, selectedPad: 5, playingFrames: 0x3000 });
     expect(selectedPadNumber(playing)).toBe(37);
     expect(soundingPad(playing)).toBe(37);
+  });
+
+  it("can't name the sounding pad while a pattern plays (byte 12 = 4)", () => {
+    const pattern = parseStatus(captured(STATUS_PATTERN))!;
+    expect(pattern).toMatchObject({ selectedPad: 12, playingFrames: 0x800, mode: 4 });
+    expect(soundingPad(pattern)).toBeUndefined();
   });
 
   it("keeps the pad selected after it stops sounding", () => {
@@ -133,10 +139,10 @@ describe("status", () => {
 
   it("parses status replies captured from the device", () => {
     expect(parseStatus(captured(STATUS_IDLE))).toEqual({
-      project: 2, selectedBank: 0, selectedPad: 0, playingFrames: undefined,
+      project: 2, selectedBank: 0, selectedPad: 0, playingFrames: undefined, mode: 0,
     });
     expect(parseStatus(captured(STATUS_PLAYING))).toEqual({
-      project: 2, selectedBank: 1, selectedPad: 1, playingFrames: 0x5000,
+      project: 2, selectedBank: 1, selectedPad: 1, playingFrames: 0x5000, mode: 0,
     });
   });
 });

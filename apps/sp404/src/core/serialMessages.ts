@@ -113,15 +113,18 @@ export interface DeviceStatus {
   selectedPad: number; // 0–15 within the bank; hitting a pad selects it (checked on the device)
   // Frames played by the selected pad while it sounds, or undefined when nothing is playing.
   playingFrames: number | undefined;
+  // Byte 12: 0 while pads are played by hand. It reads 4 while a pattern plays (and on some settings screens);
+  // then the frame count is for whatever the pattern plays, not the selected pad.
+  mode: number;
 }
 
 // The selected pad as the mixer numbers it (bank × 16 + pad).
 export const selectedPadNumber = (s: DeviceStatus): number => s.selectedBank * PADS_IN_BANK + s.selectedPad;
 
-// The pad that's sounding, if any. The device only reports the last pad hit, so a pad still ringing after another
-// is hit isn't shown.
+// The pad that's sounding, if the status can tell. The device only reports the last pad hit, so a pad still ringing
+// after another is hit isn't shown, and while a pattern plays it can't say which pad sounds.
 export const soundingPad = (s: DeviceStatus): number | undefined =>
-  s.playingFrames === undefined ? undefined : selectedPadNumber(s);
+  s.playingFrames === undefined || s.mode !== 0 ? undefined : selectedPadNumber(s);
 
 export function parseStatus(frame: Frame): DeviceStatus | undefined {
   const bytes = frame.payload;
@@ -132,5 +135,6 @@ export function parseStatus(frame: Frame): DeviceStatus | undefined {
     selectedBank: bytes[3] ?? 0,
     selectedPad: bytes[5] ?? 0,
     playingFrames: frames === NOT_PLAYING ? undefined : frames,
+    mode: bytes[12] ?? 0,
   };
 }

@@ -29,7 +29,7 @@ describe("SerialLink", () => {
     const log: Direction[] = [];
     const link = new SerialLink(device.streams, (d) => log.push(d));
     const status = await link.request(statusFrame(), parseStatus);
-    expect(status).toEqual({ project: 5, selectedBank: 2, selectedPad: 1, playingFrames: undefined });
+    expect(status).toEqual({ project: 5, selectedBank: 2, selectedPad: 1, playingFrames: undefined, mode: 0 });
     expect(log).toEqual(["out", "in", "in"]);
     await link.close();
   });

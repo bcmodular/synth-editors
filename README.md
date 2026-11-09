@@ -16,7 +16,7 @@ Status: **TB-3 Phase 0 spike**. See [PLAN.md](PLAN.md).
 ```bash
 npm install
 npm run dev:tb3      # Vite dev server + Electron window
-npm run dev:sp404    # SP-404 MK2 Phase 0 spike (serial + MIDI, with capture log)
+npm run dev:sp404    # SP-404 MK2 editor (the Phase 0 spike is at #spike)
 npm test             # Vitest
 npm run typecheck
 ```

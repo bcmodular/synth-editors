@@ -21,10 +21,14 @@ interface SerialPort {
   open(options: { baudRate: number; dataBits?: number; stopBits?: number; parity?: "none" }): Promise<void>;
   setSignals(signals: { dataTerminalReady?: boolean; requestToSend?: boolean }): Promise<void>;
   close(): Promise<void>;
+  getInfo?(): { usbVendorId?: number; usbProductId?: number };
 }
 
 interface Navigator {
   readonly serial?: {
     requestPort(options?: { filters?: SerialPortFilter[] }): Promise<SerialPort>;
+    getPorts(): Promise<SerialPort[]>;
+    addEventListener(type: "connect" | "disconnect", listener: () => void): void;
+    removeEventListener(type: "connect" | "disconnect", listener: () => void): void;
   };
 }

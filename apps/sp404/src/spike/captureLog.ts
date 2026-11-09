@@ -2,7 +2,7 @@
 // fixtures/local/sp404-captures by the main process (lines are batched) and kept in memory for the page.
 
 import { toHex } from "@synth-editors/midi";
-import type { Direction } from "./serialLink";
+import type { Direction } from "../serial/serialLink";
 
 const FLUSH_MS = 250;
 const KEEP_LINES = 300;

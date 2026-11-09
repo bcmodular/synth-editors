@@ -10,6 +10,9 @@ const SP404 = { vendorId: 0x0582, productId: 0x02e7 };
 // Gitignored: a capture holds the user's sample names. Copy what tests need into fixtures by hand.
 const CAPTURE_DIR = path.resolve(__dirname, "..", "..", "..", "fixtures", "local", "sp404-captures");
 
+// End-to-end tests set this so the app can never reach a real SP-404: no serial port is offered or granted.
+const NO_REAL_SERIAL = process.env.SP404_NO_REAL_SERIAL === "1";
+
 let win = null;
 let captureFile = null;
 
@@ -37,7 +40,7 @@ function registerSerialChooser() {
   session.defaultSession.on("select-serial-port", (event, ports, _wc, callback) => {
     event.preventDefault();
     console.log("Serial ports:", ports.map((p) => `${p.portName} ${p.vendorId}:${p.productId} ${p.displayName ?? ""}`));
-    callback(ports.find(isSp404)?.portId ?? "");
+    callback(NO_REAL_SERIAL ? "" : (ports.find(isSp404)?.portId ?? ""));
   });
 }
 
@@ -55,8 +58,10 @@ function registerCaptureIpc() {
 
 app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(PERMISSIONS.has(permission)));
-  session.defaultSession.setPermissionCheckHandler((_wc, permission) => PERMISSIONS.has(permission));
-  session.defaultSession.setDevicePermissionHandler((details) => details.deviceType === "serial");
+  session.defaultSession.setPermissionCheckHandler(
+    (_wc, permission) => PERMISSIONS.has(permission) && !(NO_REAL_SERIAL && permission === "serial"),
+  );
+  session.defaultSession.setDevicePermissionHandler((details) => !NO_REAL_SERIAL && details.deviceType === "serial");
   registerSerialChooser();
   registerCaptureIpc();
   createWindow();

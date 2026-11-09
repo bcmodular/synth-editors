@@ -65,8 +65,11 @@ These match the TouchOSC version's behaviour, including the lock rules.
   - pads in the scene that aren't loaded any more are skipped (nothing is sent).
 - **Recall safe**: per value type (level, pan, routing, mute, mute group, AHR). A safe type is left alone by
   scene recall.
-- **Status**: the app polls the SP-404 twice a second. A strip lights a white line while its pad is sounding,
-  and the pad selected on the device is shaded.
+- **Status**: a strip's pad number flashes each time the pad plays, from the note-ons the SP-404 sends over USB
+  MIDI. This needs **SEQ Note Out** (pattern playback) and **PAD Note Out** (hand hits) set to ON in the SP-404's
+  system settings, MIDI tab; the user guide should say so. Without the SP-404's MIDI input the app falls back on the
+  serial status (hand hits only). The pad selected on the device is shaded, from the serial status poll (every
+  150 ms).
 - **Project**: the app reads the project number and pad contents on connect and when the project changes.
 
 ### Controllers
@@ -302,6 +305,9 @@ a capture file in `fixtures/local/sp404-captures/` (gitignored, as it holds samp
   on a settings screen. Byte 7 is `01` for one poll after a set-parameter. Bytes 15–18 read `01 00 0B 33`
   throughout.
 - Hitting pads often sends an unsolicited 147-byte `7D` project-settings frame too (113 in one session).
+- While a pattern plays, status byte 12 reads `04` and the pads the pattern plays don't become selected: the frame
+  count belongs to whatever plays, so the status can't say which pad sounds. The pad lights use MIDI note-ons
+  instead (SEQ Note Out and PAD Note Out on). The SP-404 sends Note On only, no Note Off.
 - Changing bank on the device sends, unasked, a set-parameter echo `01 01 00 FF FF 00 00 00 00` and a 147-byte
   `7D` project-settings frame.
 - On the device: pad level and bank volume changed as sent. On BUS 1, CC 83 = 2 loaded Resonator and 5 loaded

@@ -4,30 +4,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MixField } from "../core/mixer";
 import { BANK_COUNT, PADS_PER_BANK } from "../core/padNotes";
-import { CHANNEL_CONTROL, longFrame, SERIAL_BAUD, SERIAL_USB_ID, shortFrame } from "../core/serialFrames";
+import { CHANNEL_CONTROL, longFrame, shortFrame } from "../core/serialFrames";
 import {
   bankVolumeFrame, mixChangeFrame, parsePadBlock, parseStatus, readPadFrame, statusFrame, type DeviceStatus,
   type PadBlock,
 } from "../core/serialMessages";
+import { choosePort, openSp404 } from "../serial/openPort";
 import { CaptureLog } from "./captureLog";
-import { SerialLink } from "./serialLink";
+import { SerialLink } from "../serial/serialLink";
 
 const POLL_MS = 500;
-const OPEN_SETTLE_MS = 350; // SparkyMK2's notes: the app waits this long; whether it's needed is untested
 // Raw sends are limited to commands that read, or set one parameter: 01 set, 9E pad, FE status, FD project.
 const RAW_ALLOWED = new Set([0x01, 0x9e, 0xfe, 0xfd]);
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 async function openPort(): Promise<SerialPort> {
-  if (!navigator.serial) throw new Error("Web Serial isn't available");
-  const port = await navigator.serial.requestPort({
-    filters: [{ usbVendorId: SERIAL_USB_ID.vendorId, usbProductId: SERIAL_USB_ID.productId }],
-  });
-  await port.open({ baudRate: SERIAL_BAUD, dataBits: 8, stopBits: 1, parity: "none" });
-  await port.setSignals({ dataTerminalReady: true, requestToSend: true });
-  await sleep(OPEN_SETTLE_MS);
-  return port;
+  return openSp404(await choosePort());
 }
 
 function parseHex(text: string): number[] {

@@ -11,6 +11,7 @@
     "dev:sp404": "npm run dev -w @synth-editors/sp404",
     "test": "vitest run",
     "test:e2e": "npm run e2e -w @synth-editors/tb3",
+    "test:e2e:sp404": "npm run e2e -w @synth-editors/sp404",
     "test:tb3": "npm run e2e:hw -w @synth-editors/tb3",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "package:tb3": "npm run package -w @synth-editors/tb3"

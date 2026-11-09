@@ -1,0 +1,66 @@
+// The desk: the banks picked in SHOW BANKS, each its loaded pads' strips and a bank master. Scrolls sideways
+// when more than two banks are shown.
+
+import type { MixerPad } from "../core/mixer";
+import type { PadMidiSettings } from "../core/padNotes";
+import { selectedPadNumber, soundingPad } from "../core/serialMessages";
+import { ChannelFader } from "../ui/controls";
+import { BANK_LETTERS, bankColourOf, bankOf } from "./banks";
+import type { BankView } from "./mixerState";
+import type { HitCounts } from "./padHits";
+import { Strip } from "./Strip";
+import type { Mixer } from "./useMixer";
+
+interface BankMasterProps {
+  bank: number;
+  view: BankView;
+  onChange: (volume: number) => void;
+  onMute: () => void;
+}
+
+function BankMaster({ bank, view, onChange, onMute }: BankMasterProps) {
+  const name = `BANK ${BANK_LETTERS[bank]}`;
+  return (
+    <div className="ws master" data-bank-master={BANK_LETTERS[bank]}>
+      <div className="wtop"><span className="wpad master">{name}</span></div>
+      <div className="nm1 master">BANK VOL</div>
+      <div className="spacer" />
+      <button className={`mute ${view.muted ? "on" : ""}`} aria-pressed={view.muted} aria-label={`Mute ${name}`}
+        onClick={onMute}>
+        MUTE
+      </button>
+      <ChannelFader value={view.volume} color="#fff" dim={view.muted} label={`${name} volume`} onChange={onChange} />
+      <div className="lv master">{view.muted ? `(${view.volume})` : view.volume}</div>
+    </div>
+  );
+}
+
+export interface DeskProps {
+  mixer: Mixer;
+  banks: readonly number[];
+  midi: PadMidiSettings;
+  hits: HitCounts; // pad → hit count; a change flashes the pad's number
+}
+
+export function Desk({ mixer, banks, midi, hits }: DeskProps) {
+  const selected = mixer.status ? selectedPadNumber(mixer.status) : undefined;
+  const sounding = mixer.status ? soundingPad(mixer.status) : undefined;
+  const padsOf = (bank: number): MixerPad[] => mixer.pads.filter((p) => bankOf(p.pad) === bank);
+  return (
+    <div className="wdesk">
+      {banks.map((bank) => (
+        <div className="wbank" key={bank} data-bank={BANK_LETTERS[bank]}>
+          <div className="btitle" style={{ background: bankColourOf(bank) }}>BANK {BANK_LETTERS[bank]}</div>
+          <div className="row">
+            {padsOf(bank).map((p) => (
+              <Strip key={p.pad} pad={p} midi={midi} selected={p.pad === selected} playing={p.pad === sounding}
+                hitSeq={hits[p.pad]} onValue={mixer.setValue} onMute={mixer.mute} />
+            ))}
+            <BankMaster bank={bank} view={mixer.banks[bank] ?? { volume: 127, muted: false }}
+              onChange={(v) => mixer.setBankVolume(bank, v)} onMute={() => mixer.muteBank(bank)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

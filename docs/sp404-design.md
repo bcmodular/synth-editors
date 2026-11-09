@@ -251,10 +251,10 @@ implement from their notes only and copy none of their code.**
 - Bank volume: global target `FFFF`, id `35 + bank`, value `127 − volume`.
 - Read a pad: `9E pad` returns a 327-byte block (name at 175–198; an empty pad has field 0 = 0).
 - Status: poll `FE 66 00` every 500 ms. The reply gives the project, the selected bank and pad, and the frame
-  count of the pad that's sounding (`FFFFFFFF` when none), but not *which* pad is sounding, and no set of
-  playing pads. Until a capture shows otherwise, the strip light follows the selected pad while something plays.
-- In the Electron main process (Node serial), exposed to the renderer through a small IPC API, like the TB-3
-  app's file access.
+  count of the pad that's sounding (`FFFFFFFF` when none). The sounding pad is the selected one (hitting a pad
+  selects it), so the strip light follows it; a pad still ringing after another is hit isn't reported.
+- Phase 0 uses **Web Serial in the renderer** (Electron grants it and main picks the SP-404's port), which needs
+  no native module. If it proves unreliable, move to Node serial in the main process behind a small IPC API.
 
 ## Files
 
@@ -272,8 +272,8 @@ Lock state isn't saved (as in TouchOSC).
 |------|------|
 | The serial protocol is reverse-engineered and may change between firmware versions (notes are for 5.52) | Phase 0 spike on the user's device; check the firmware version on connect and warn if it differs |
 | The serial port may clash with other software using it | Open it only while connected; clear error if busy |
-| Direct FX slots on BUS 1/2 may not hold the factory effects | Setting plus a note; test in Phase 0 |
-| The old controller switched effects off with CC 83 = 0, not CC 19 | Test both in Phase 0; keep whichever the device honours |
+| Direct FX slots on BUS 1/2 may not hold the factory effects | Setting plus a note (the user's device has the factory ones) |
+| The old controller switched effects off with CC 83 = 0, not CC 19 | Done: both work; the app uses CC 19 |
 | No serial pad mute | App-side mute (done) |
 | MIDI mode and note offset can't be read | App setting |
 | Effect pictures are approximations | Listed above; check by ear, adjust drawings |
@@ -281,10 +281,32 @@ Lock state isn't saved (as in TouchOSC).
 ## Phases
 
 ### Phase 0 — Spike (de-risk hardware)
+`npm run dev:sp404` opens the spike (`apps/sp404/src/spike/`). Every serial chunk, MIDI message and note goes to
+a capture file in `fixtures/local/sp404-captures/` (gitignored, as it holds sample names).
+
 - Electron + Vite + React shell for `apps/sp404`, sharing `packages/midi`.
 - Serial: open the port, read every pad block of the current project, print names; set one pad's level and pan;
   run the status poll.
 - MIDI: select an effect on each bus group, switch it on and off (CC 19 and CC 83 = 0), move a knob.
+
+**Findings so far** (first run, 2026-11-09; captured frames in `apps/sp404/src/core/serialCaptures.ts`):
+- Web Serial finds the port (`cu.usbmodem…`, USB ids reported in decimal, 1410:743). Electron's serial service
+  makes macOS ask for Bluetooth access; denying it is harmless.
+- Short requests and long set-parameter frames as built by `serialFrames.ts` are accepted; set-parameter is echoed
+  back unchanged. All 160 pad reads answered (36 loaded), about 1 ms each. Names are NUL-padded on loaded pads,
+  space-padded on empty ones.
+- USB split replies mid-header at least once; the frame splitter reassembled them.
+- Replies' destination byte (2) varies (`00`, `01`, `03`, `91`, `CA`, `E0`) and bytes 4–11 are junk: ignore both.
+- Status: byte 1 = project (0-based), 3 = selected bank, 5 = selected pad within the bank (0–15; hitting a pad
+  selects it, and it stays selected after it stops), 8–11 = frames played by that pad while it sounds, 12 = `04`
+  on a settings screen. Byte 7 is `01` for one poll after a set-parameter. Bytes 15–18 read `01 00 0B 33`
+  throughout.
+- Hitting pads often sends an unsolicited 147-byte `7D` project-settings frame too (113 in one session).
+- Changing bank on the device sends, unasked, a set-parameter echo `01 01 00 FF FF 00 00 00 00` and a 147-byte
+  `7D` project-settings frame.
+- On the device: pad level and bank volume changed as sent. On BUS 1, CC 83 = 2 loaded Resonator and 5 loaded
+  DJFX Looper (factory Direct FX). CC 19 = 0 and CC 83 = 0 both switch the effect off; the app uses CC 19. CC 16
+  moved the first parameter.
 
 ### Phase 1 — Core (no UI, fully tested)
 - Effects table: 46 effects with per-group CC 83 values, the six parameters (CC, name, tuning flag, display

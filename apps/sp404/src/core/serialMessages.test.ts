@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
+import {
+  bytes, ECHO_SET_LEVEL, PAD_BLOCK_EMPTY, PAD_BLOCK_LOADED, STATUS_C6_PLAYING, STATUS_C6_SELECTED, STATUS_IDLE,
+  STATUS_PLAYING,
+} from "./serialCaptures";
 import { splitFrames, type Frame } from "./serialFrames";
 import {
-  bankVolumeFrame, mixChangeFrame, PAD_BLOCK_SIZE, parsePadBlock, parseStatus, readPadFrame, setParamFrame,
-  statusFrame,
+  bankVolumeFrame, mixChangeFrame, PAD_BLOCK_SIZE, parsePadBlock, parseStatus, readPadFrame, selectedPadNumber,
+  setParamFrame, soundingPad, statusFrame,
 } from "./serialMessages";
 
 const hex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(" ");
 const payloadOf = (frame: Uint8Array) => hex(splitFrames(frame).frames[0]!.payload);
+const captured = (hex: string) => splitFrames(bytes(hex)).frames[0]!;
 const reply = (payload: Uint8Array): Frame => ({ kind: 0x13, source: 0xe0, destination: 0x60, channel: 5, payload });
 
 describe("requests", () => {
@@ -39,10 +44,12 @@ describe("requests", () => {
     expect(hex(statusFrame())).toBe("12 60 e0 05 fe 66 00 00 00 00 00 03");
   });
 
-  it.todo("matches set-level, bank-volume and status frames captured from the device");
+  it("is echoed back unchanged by the device", () => {
+    expect(hex(captured(ECHO_SET_LEVEL).payload)).toBe(payloadOf(setParamFrame(32, 0x69, 120)));
+  });
 });
 
-// A pad block laid out as 03-parameters.md describes it. TODO: replace with blocks captured from the device.
+// A pad block laid out as 03-parameters.md describes it (checked against captured blocks below).
 function padBlock(pad: number, fields: Record<number, number>, name: string): Uint8Array {
   const bytes = new Uint8Array(PAD_BLOCK_SIZE);
   const data = new DataView(bytes.buffer);
@@ -76,7 +83,15 @@ describe("pad blocks", () => {
     expect(parsePadBlock(reply(new Uint8Array(PAD_BLOCK_SIZE)))).toBeUndefined();
   });
 
-  it.todo("parses blocks captured from the device: a loaded pad with known settings and an empty pad");
+  it("parses blocks captured from the device", () => {
+    expect(parsePadBlock(captured(PAD_BLOCK_LOADED))).toEqual({
+      pad: 32,
+      empty: false,
+      name: "A01",
+      mix: { level: 127, muteGroup: 0, pan: 64, routing: 1, attack: 0, hold: 100, release: 0 },
+    });
+    expect(parsePadBlock(captured(PAD_BLOCK_EMPTY))).toMatchObject({ pad: 18, empty: true, name: "" });
+  });
 });
 
 function statusReply(bytes: Record<number, number>, frames: number): Uint8Array {
@@ -94,6 +109,19 @@ describe("status", () => {
     });
   });
 
+  it("numbers the selected pad within its bank: C6 is bank 2, pad 5 (pad 37)", () => {
+    const playing = parseStatus(captured(STATUS_C6_PLAYING))!;
+    expect(playing).toMatchObject({ selectedBank: 2, selectedPad: 5, playingFrames: 0x3000 });
+    expect(selectedPadNumber(playing)).toBe(37);
+    expect(soundingPad(playing)).toBe(37);
+  });
+
+  it("keeps the pad selected after it stops sounding", () => {
+    const stopped = parseStatus(captured(STATUS_C6_SELECTED))!;
+    expect(selectedPadNumber(stopped)).toBe(37);
+    expect(soundingPad(stopped)).toBeUndefined();
+  });
+
   it("reports nothing playing when the frame count is FFFFFFFF", () => {
     expect(parseStatus(reply(statusReply({}, 0xffffffff)))?.playingFrames).toBeUndefined();
   });
@@ -103,5 +131,12 @@ describe("status", () => {
     expect(parseStatus(reply(new Uint8Array(19)))).toBeUndefined();
   });
 
-  it.todo("parses status replies captured from the device (idle, pad selected, pad sounding)");
+  it("parses status replies captured from the device", () => {
+    expect(parseStatus(captured(STATUS_IDLE))).toEqual({
+      project: 2, selectedBank: 0, selectedPad: 0, playingFrames: undefined,
+    });
+    expect(parseStatus(captured(STATUS_PLAYING))).toEqual({
+      project: 2, selectedBank: 1, selectedPad: 1, playingFrames: 0x5000,
+    });
+  });
 });

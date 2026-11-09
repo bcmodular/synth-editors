@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { bytes, PAD_BLOCK_LOADED, STATUS_IDLE } from "./serialCaptures";
 import { longFrame, shortFrame, splitFrames } from "./serialFrames";
 
 const hex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(" ");
@@ -8,8 +9,7 @@ const concat = (...parts: Uint8Array[]) => {
   return out;
 };
 
-// Built from the header layout in SparkyMK2's 01-transport.md. TODO: check against bytes captured from the
-// device in Phase 0 (a status poll and a set-level, host and device sides).
+// Built from the header layout in SparkyMK2's 01-transport.md; the device accepted these frames in Phase 0.
 describe("building frames", () => {
   it("builds a 12-byte short frame with the length in byte 11", () => {
     expect(hex(shortFrame(5, [0xfe, 0x66, 0x00]))).toBe("12 60 e0 05 fe 66 00 00 00 00 00 03");
@@ -57,5 +57,13 @@ describe("splitting a received stream", () => {
     expect(skipped).toBe(2);
   });
 
-  it.todo("splits a stream captured from the device (status replies and a pad block)");
+  it("splits device frames packed together and split mid-header, as USB delivered them", () => {
+    const stream = concat(bytes(STATUS_IDLE), bytes(PAD_BLOCK_LOADED), bytes(STATUS_IDLE));
+    const first = splitFrames(stream.subarray(0, 10)); // the device's status reply arrived as 10 + 25 bytes
+    expect(first.frames).toEqual([]);
+    const { frames, rest } = splitFrames(concat(first.rest, stream.subarray(10)));
+    const shapes = frames.map((f) => [f.source, f.channel, f.payload.length]);
+    expect(shapes).toEqual([[0xe0, 5, 19], [0xe0, 5, 327], [0xe0, 5, 19]]);
+    expect(rest.length).toBe(0);
+  });
 });

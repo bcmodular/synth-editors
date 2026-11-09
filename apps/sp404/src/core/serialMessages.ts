@@ -105,14 +105,23 @@ export function parsePadBlock(frame: Frame): PadBlock | undefined {
 // Status reply: 7E project 00 bank ? pad ? ? frames:u32 … (19 bytes).
 const STATUS_SIZE = 19;
 const NOT_PLAYING = 0xffffffff;
+const PADS_IN_BANK = 16;
 
 export interface DeviceStatus {
   project: number; // 0-based
   selectedBank: number; // 0 = A
-  selectedPad: number; // byte 5 as sent (assumed 0–15 within the bank; to check against a capture)
-  // Frames played by the pad that's sounding, or undefined when none is. The notes don't say which pad.
+  selectedPad: number; // 0–15 within the bank; hitting a pad selects it (checked on the device)
+  // Frames played by the selected pad while it sounds, or undefined when nothing is playing.
   playingFrames: number | undefined;
 }
+
+// The selected pad as the mixer numbers it (bank × 16 + pad).
+export const selectedPadNumber = (s: DeviceStatus): number => s.selectedBank * PADS_IN_BANK + s.selectedPad;
+
+// The pad that's sounding, if any. The device only reports the last pad hit, so a pad still ringing after another
+// is hit isn't shown.
+export const soundingPad = (s: DeviceStatus): number | undefined =>
+  s.playingFrames === undefined ? undefined : selectedPadNumber(s);
 
 export function parseStatus(frame: Frame): DeviceStatus | undefined {
   const bytes = frame.payload;

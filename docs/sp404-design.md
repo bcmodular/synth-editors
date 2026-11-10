@@ -58,7 +58,8 @@ These match the TouchOSC version's behaviour, including the lock rules.
   Roland's MIDI note map): Mode A = bank A–J on channels 1–10, notes 36–51 in every bank; Mode B = banks A–E on
   one channel and F–J on the next (Pad MIDI Channels), notes 12–91 plus Note offset. Pad 13 is each bank's
   lowest note.
-- **Mix scenes**: 16, stored per SP-404 project, in the spirit of a Yamaha 02R. A scene stores the mixer values
+- **Mix scenes** (deferred, 2026-11-09: the SP-404 already keeps the mixer values in its projects; the model in
+  `mixer.ts` stays for later): 16, stored per SP-404 project, in the spirit of a Yamaha 02R. A scene stores the mixer values
   of the pads loaded when it was stored. On recall:
   - pads in the scene that are loaded now get the scene's values;
   - pads loaded now that aren't in the scene are left alone;
@@ -342,12 +343,17 @@ effects are still played from the device.
   with BANK VOL; status light for the sounding pad and shading for the selected one.
 - **Edits made on the device**: find out whether the SP-404 reports them. If it doesn't, re-read the selected
   pad's block when the selection changes.
-- **Mix scenes and recall safe**, saved per SP-404 project in a JSON file with autosave. This is the first piece
-  of the Phase 4 file store, which the FX library reuses.
+- **Mix scenes and recall safe**: deferred (the SP-404's projects keep the mixer values). The file store starts
+  with the FX library in Phase 4 instead.
+- **Settings**: MIDI mode, Pad MIDI Channels and Note offset, for the pad notes and lights.
 - **Tests**: e2e against a fake SP-404 serial port (a Web Serial stub in the page, as `fakeTb3.ts` stands in for
   the TB-3), built from the Phase 0 captures.
 
 ### Phase 3 — FX UI
+Status (2026-11-10): the FX row, modules, chooser, ON/OFF, every parameter's control (SYNC swaps rate and time
+controls), RESEND and all 46 drawings are built (`apps/sp404/src/fx/`). The control kinds come from the mockup
+through `scripts/gen-fx-layout.mjs`. FX state is kept in localStorage until the Phase 4 files. The preset column,
+DEF, GRAB, LOCK, morph and FX scenes are drawn but wait for Phase 4. Not yet checked on the device.
 - FX row with the five modules and FX scenes, in the Phase 2 shell.
 - Module frame (header, side column, morph) and the shared controls (switch, button row, button grid,
   note-value matrix, drop-down, stepped knob, handles).

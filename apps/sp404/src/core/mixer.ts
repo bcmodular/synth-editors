@@ -5,7 +5,7 @@ export type Routing = 0 | 1 | 2; // DRY, BUS 1, BUS 2
 // The values the SP-404 holds for a pad, as sent over serial.
 export interface PadMix {
   level: number; // 0–127
-  pan: number; // 13–115, centre 64
+  pan: number; // 14–114 (L50–R50), centre 64
   routing: Routing;
   muteGroup: number; // 0 = none, 1–10 = A–J
   attack: number;

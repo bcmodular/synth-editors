@@ -34,9 +34,9 @@ export function ChannelFader(p: ValueProps & { color: string; dim?: boolean; def
   );
 }
 
-// Pan as the device sends it: 13–115, centre 64, shown L50–R50.
-export const PAN_MIN = 13;
-export const PAN_MAX = 115;
+// Pan as the device sends it: 14–114, centre 64, shown L50–R50. The SP-404 resets 13 or 115 (L51/R51) to centre.
+export const PAN_MIN = 14;
+export const PAN_MAX = 114;
 export const PAN_CENTRE = 64;
 
 export function panText(raw: number): string {

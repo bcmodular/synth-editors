@@ -1,5 +1,5 @@
 // Value interaction: relative drag (Shift = fine), double-click reset, wheel steps. Adapted from the TB-3
-// app's hook, with a minimum (pan runs 13–115).
+// app's hook, with a minimum (pan runs 14–114).
 import { useEffect, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { getZoom } from "./zoom";

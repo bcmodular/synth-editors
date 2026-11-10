@@ -36,12 +36,13 @@ async function openSession(port: SerialPort, onState: (s: DeviceState) => void, 
 }
 
 // Whenever a serial device is plugged in (and once at start), offer the SP-404's port if it was granted before.
+// Only the SP-404's: other USB serial devices on the Mac answer too, but not in its protocol.
 function useGrantedPort(attach: (port: SerialPort) => void) {
   useEffect(() => {
     const serial = navigator.serial;
     if (!serial) return;
     const tryGranted = () => void serial.getPorts().then((ports) => {
-      const port = ports.find(isSp404Port) ?? ports[0];
+      const port = ports.find(isSp404Port);
       if (port) attach(port);
     });
     tryGranted();

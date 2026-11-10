@@ -61,7 +61,9 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionCheckHandler(
     (_wc, permission) => PERMISSIONS.has(permission) && !(NO_REAL_SERIAL && permission === "serial"),
   );
-  session.defaultSession.setDevicePermissionHandler((details) => !NO_REAL_SERIAL && details.deviceType === "serial");
+  session.defaultSession.setDevicePermissionHandler(
+    (details) => !NO_REAL_SERIAL && details.deviceType === "serial" && isSp404(details.device),
+  );
   registerSerialChooser();
   registerCaptureIpc();
   createWindow();

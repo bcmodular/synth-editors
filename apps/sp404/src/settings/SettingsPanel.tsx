@@ -1,13 +1,16 @@
-// Settings: how the SP-404 is set up for MIDI, which the app can't read from it. Opens from the top bar.
+// Settings: how the SP-404 is set up for MIDI, which the app can't read from it, and the scopes' audio and clock
+// inputs. Opens from the top bar.
 
 import { useRef } from "react";
 import { noteName, padNote, type MidiMode, type PadMidiSettings } from "../core/padNotes";
+import type { ScopeSet } from "../scope/useScopeSet";
 import { useDismiss } from "../ui/useDismiss";
 import { BASE_CHANNEL_RANGE, NOTE_OFFSET_RANGE, type Settings } from "./useSettings";
 
 export interface SettingsPanelProps {
   settings: Settings;
   midiInput?: string;
+  scope: ScopeSet;
   onChange: (s: Settings) => void;
   onClose: () => void;
 }
@@ -60,7 +63,56 @@ function ModeBFields({ midi, set }: { midi: PadMidiSettings; set: (p: Partial<Pa
   );
 }
 
-export function SettingsPanel({ settings, midiInput, onChange, onClose }: SettingsPanelProps) {
+interface InputMenuProps {
+  label: string;
+  value: string;
+  auto: string; // what "" means
+  names: readonly string[];
+  onChange: (name: string) => void;
+}
+
+// A remembered input by name; one that isn't connected now stays listed so the choice isn't lost.
+function InputMenu({ label, value, auto, names, onChange }: InputMenuProps) {
+  const listed = value && !names.includes(value) ? [value, ...names] : names;
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <select value={value} aria-label={label} onChange={(e) => onChange(e.target.value)}>
+        <option value="">{auto}</option>
+        {listed.map((n) => <option key={n} value={n}>{n}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function audioNote({ audio }: ScopeSet): string {
+  const s = audio.status;
+  if (s.kind === "on") return `Listening to ${s.name}: the SP-404's master out after VOLUME.`;
+  return s.kind === "error" ? s.message : "Opening the audio input…";
+}
+
+function clockNote({ clockIn }: ScopeSet): string {
+  const from = clockIn.inputName ? `Following ${clockIn.inputName}.` : "No clock input connected.";
+  return `${from} For clock from the SP-404's MIDI IN, turn on USB-MIDI Thru (System › MIDI); or route the clock to ` +
+    "the computer another way and choose that input here.";
+}
+
+function ScopeFields({ settings, scope, onChange }: Pick<SettingsPanelProps, "settings" | "scope" | "onChange">) {
+  const audioNames = scope.audio.inputs.map((i) => i.name).filter(Boolean);
+  return (
+    <>
+      <div className="lbl">SCOPES</div>
+      <InputMenu label="AUDIO IN" value={settings.audioIn} auto="First SP-404 input" names={audioNames}
+        onChange={(audioIn) => onChange({ ...settings, audioIn })} />
+      <div className="note">{audioNote(scope)}</div>
+      <InputMenu label="CLOCK IN" value={settings.clockIn} auto="The SP-404's USB MIDI" names={scope.clockIn.midiInputs}
+        onChange={(clockIn) => onChange({ ...settings, clockIn })} />
+      <div className="note">{clockNote(scope)}</div>
+    </>
+  );
+}
+
+export function SettingsPanel({ settings, midiInput, scope, onChange, onClose }: SettingsPanelProps) {
   const panel = useRef<HTMLDivElement>(null);
   useDismiss(panel, onClose);
   const midi = settings.padMidi;
@@ -86,6 +138,7 @@ export function SettingsPanel({ settings, midiInput, onChange, onClose }: Settin
         {midiInput ? `Listening to ${midiInput}.` : "The SP-404's MIDI isn't connected."} The pad lights need SEQ Note
         Out and PAD Note Out set to ON on the SP-404 (System › MIDI).
       </div>
+      <ScopeFields settings={settings} scope={scope} onChange={onChange} />
     </div>
   );
 }

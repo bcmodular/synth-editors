@@ -262,7 +262,8 @@ implement from their notes only and copy none of their code.**
 
 ## Scopes
 
-Status: design agreed 2026-11-10, not built. A meter, waveform and spectrum of what the SP-404 plays, from its
+Status: built 2026-11-10 (`apps/sp404/src/scope/`, `packages/audio/`); tested against Chromium's fake audio input,
+not yet on the SP-404. A meter, waveform and spectrum of what the SP-404 plays, from its
 USB audio, modelled on the TB-3's LIVE view ([tb3-live-waveform-design.md](tb3-live-waveform-design.md)).
 
 ### What the audio carries
@@ -282,63 +283,81 @@ Checked on this Mac on 2026-11-10 with the device connected:
 
 ### What it shows
 
-- **Meter, always on**, in the USB OUT column at the desk's right (reserved in Layout D): L and R bars.
-  - Peak: as the TB-3 meter (−48 to 0 dBFS, instant rise, 24 dB/s fall, 1.5 s hold, latching clip light,
-    highest peak since the click).
-  - **Short-term loudness**: a LUFS-S number (K-weighted, 3 s window, ITU-R BS.1770 / EBU R128) under the bars.
-- **SCOPE view**: a DESK / SCOPE switch at the top of the mixer area swaps the desk for a large scope view
-  (the left column and the meter stay). In it:
-  - **Spectrum**: 20 Hz–20 kHz on a log axis, about −90 to 0 dB, a 1/6-octave smoothed line with a fill below it
-    and a slow-falling peak-hold line (mixing-analyser style). L and R summed.
+- **Meter, always on**, in the USB OUT column at the desk's right (84 px): L and R bars.
+  - Peak: as the TB-3 meter (−48 to 0 dBFS, instant rise, 24 dB/s fall, 1.5 s hold, amber above −6), and a
+    latching clip light that shows the highest peak since it was last clicked.
+  - **Loudness** (K-weighted, ITU-R BS.1770 / EBU R128) under the bars: **LUFS-S** (3 s window) as the main
+    number, for mixing as you play, and **LUFS-I** (integrated, with the R128 gates) smaller below it, counting
+    since the last click on it (click resets). No target marker: the SP-404 is played live, not mastered to a
+    platform target; a target setting can come later if wanted.
+  - Peaks are sample peaks (dBFS), not true peak (dBTP, which needs 4× oversampling). Fine for monitoring; true
+    peak only if the meter is ever used for final masters.
+- **SCOPE view**: DESK / SCOPE buttons at the top of the mixer's left column swap the desk for the scope view (the
+  left column and the meter stay); the choice is remembered. In it:
+  - **Spectrum**: 20 Hz–20 kHz on a log axis, −110 to −20 dB (the analyser reads a band-averaged full-scale tone
+    at about −40), a 1/6-octave smoothed line with a fill below it and a peak line falling at 12 dB/s. Tilted
+    +4.5 dB per octave about 1 kHz so a typical mix reads roughly flat (as mixing analysers do). L and R summed.
   - **Waveform**: separate **L and R lanes**, scrolling min/max bands as in the TB-3 (newest on the right).
-  - **Beat grid** on the waveform from the SP-404's MIDI clock: bar and beat lines, and the span set in bars
-    (1, 2 or 4) instead of seconds. Without clock, a fixed 4 s span and no grid.
-  - **Stereo correlation**: a −1 … +1 bar (goniometer later if wanted).
-  - **HOLD**: freezes the waveform and spectrum; the meter keeps running.
+  - **Span**: 4 S, 1 BAR, 2 BARS or 4 BARS (remembered). Bars use the clock's tempo, four beats a bar; without
+    clock the span is 4 s. The waveform is rebuilt when the tempo moves the span by more than 2 %.
+  - **Beat grid** on both lanes from MIDI clock: beat lines faint, bar lines brighter and numbered (numbers only
+    once the clock has seen a Start, so they line up with the bar). The bar shows the tempo and the clock input.
+  - **Stereo correlation**: a −1 … +1 bar (amber below 0) and its value, averaged over 300 ms.
+  - **HOLD** freezes the waveform and spectrum; the meter keeps running. Letting go starts the waveform afresh.
+- The **KEYBOARD overlay** goes over the SCOPE view as it does over the desk (for now).
 
-### Audio input
+### Audio and clock inputs
 
-- The input opens **at launch**: the input chosen in Settings (new **AUDIO IN** menu, remembered by name), or the
-  first input whose name contains "SP-404". macOS asks for microphone permission once, on first launch.
-- No input or permission refused: the meter column shows why ("No SP-404 audio: choose one in Settings") and the
-  rest of the app works as before. Unplugging closes it; replugging reopens it, like the serial port.
+- The audio input opens **at launch**: Settings › SCOPES › **AUDIO IN** (remembered by name; "First SP-404 input"
+  by default, the first input whose name contains "SP-404"). macOS asks for microphone permission once.
+- No input or permission refused: the meter column says why ("No SP-404 audio: choose one in Settings") and the
+  rest of the app works as before. When the chosen input comes and goes (unplugging), it's closed and reopened.
+- **CLOCK IN** (remembered by name; "The SP-404's USB MIDI" by default) is any MIDI input. Whether the SP-404
+  passes clock to USB depends on its MIDI settings: **MIDI Sync Out** when the SP-404 makes the clock; **USB-MIDI
+  Thru** passes what arrives on its MIDI IN to USB (Soft Through passes it to the MIDI OUT jack). In the studio the
+  SP-404 is clocked from a Nome II on its MIDI IN with Soft Through on; the clock can also be sent to the computer
+  through the H12MIDI-Pro (filtered with HxMIDI Tools) and chosen here.
 - Nothing is played or stored: the app only listens.
 
 ### How it works
 
-- `getUserMedia` stereo with echo cancellation, noise suppression and auto gain off; an `AudioContext` at 48 kHz.
-- **AudioWorklet** for everything that must see every sample: per-channel peak, K-weighted mean square in 100 ms
-  blocks (two biquads: the BS.1770 shelf and high-pass), correlation, and the waveform min/max columns. It posts
-  small results to the page about 60 times a second, so a slow frame can't drop audio. (The TB-3 reads
-  `AnalyserNode`s each frame instead; that's fine for peaks but gappy for a 3 s loudness window.)
-- **AnalyserNode** (FFT 8192 ≈ 5.9 Hz per bin, so 20 Hz is resolved) for the spectrum, read only while the SCOPE
-  view is visible; the log binning, 1/6-octave smoothing and peak fall are a pure function in `core/`.
-- Canvas drawing outside React, one `requestAnimationFrame` loop. The meter redraws at the display rate; the
-  spectrum at 30 Hz is enough. CPU: the worklet and one 8192-point FFT per frame are small; drawing is the main
-  cost, and the SCOPE canvases stop when hidden.
-- Beat grid: MIDI clock (24 per quarter) and Start/Stop from the SP-404's MIDI input (already opened for the pad
-  lights), timestamped and mapped onto the audio clock.
-- Electron main allows audio-only `media` permission (as the TB-3's `main.cjs`), and the Mac build gets a
-  microphone usage description.
+- `getUserMedia` stereo with echo cancellation, noise suppression and auto gain off. As in the TB-3, an
+  `AudioContext` splits L and R into two `AnalyserNode`s and each animation frame reads the samples that arrived
+  since the last one; a third analyser (FFT 8192 ≈ 5.9 Hz per bin at 48 kHz, smoothing 0.6) gives the spectrum.
+  An AudioWorklet was considered for gap-free loudness; the frame reads hold up to 32768 samples (0.68 s), so
+  frames don't drop audio unless the window is hidden, and the worklet isn't needed.
+- Each frame (`scope/scopeEngine.ts`): peak meters, loudness and correlation always; the waveform lanes and the
+  spectrum (at most 30 times a second) only while the SCOPE view is on screen and HOLD is off.
+- Loudness (`packages/audio/loudness.ts`): two K-weighting biquads per channel, mean squares in 100 ms blocks;
+  LUFS-S is the last 30 blocks, LUFS-I uses 400 ms blocks every 100 ms gated at −70 LUFS and then 10 LU below
+  their mean, kept as a 0.1 LU histogram so memory doesn't grow.
+- Beat grid (`packages/audio/beatClock.ts`): clock (F8, 24 per beat), Start (FA), Continue (FB) and Stop (FC),
+  timestamped by Web MIDI and mapped onto the audio clock with `AudioContext.getOutputTimestamp()`. Tempo from the
+  last beat's clocks; none after 0.5 s without clock.
+- Canvas drawing outside React (`scope/scopePaint.ts`, `scope/scopeDraw.ts`); readouts are set as text on their
+  elements, so React doesn't re-render each frame.
+- Electron main allows audio-only `media` permission (as the TB-3's `main.cjs`). The Mac build will need a
+  microphone usage description when the SP-404 app is packaged (Phase 6).
 
-### Reuse from the TB-3
+### Shared with the TB-3
 
-- `levelMeter` and `waveColumns` (`apps/tb3/src/core/`) move to a shared **`packages/audio`** with their tests,
-  plus the input-opening code from `LiveWave.tsx` (device by name, constraints, permission errors). The TB-3 app
-  then imports them from there.
-- New in the package: LUFS-S, correlation, spectrum binning and smoothing, all pure and unit-tested, and the
-  worklet (thin, calling the pure pieces).
-- e2e: Chromium's fake audio input, as the TB-3's `live.e2e.ts`, checking the meter moves and the SCOPE view draws.
+- **`packages/audio`**: `levelMeter`, `waveColumns` and `liveDraw` moved from the TB-3 app with their tests, and
+  the input code from its `tb3Audio.ts` (`audioInput.ts`: list, pick by name, open, permission errors, plus the
+  spectrum analyser and the MIDI-to-audio clock mapping). The TB-3 imports them from there.
+- New in the package: loudness, correlation, spectrum view (log columns, 1/6-octave smoothing, tilt, peak fall)
+  and beat clock, all pure and unit-tested.
+- e2e (`apps/sp404/e2e/scope.e2e.ts`): Chromium's fake audio input and the fake SP-404's MIDI: the meter and
+  loudness move, SCOPE draws the spectrum, HOLD and the remembered view, and clock gives a tempo and beat lines.
 
 ### Open questions
 
-- Is there an SP-404 system setting that changes what USB out carries (for example before VOLUME, or a bus)? Not
-  found yet; check the System > USB menu.
-- Does the SP-404 send MIDI clock (System > MIDI, Clock Out / Sync), with patterns playing and when stopped?
 - How far apart are MIDI clock and USB audio (driver buffering)? Measure with a click pattern and offset the grid.
-- SCOPE view and the KEYBOARD overlay both cover the mixer: one at a time, or the overlay over the scope?
-- Does LUFS-S need a target marker (for example −14) or a selectable integrated (LUFS-I) readout with reset?
-- Windows: does the SP-404 need Roland's driver for USB audio there? Untested.
+- On the SP-404: does the meter read as expected against the device, and is the spectrum's dB range right for
+  real mixes?
+
+Settled 2026-11-10: USB out always carries the master audio (no setting changes it); the clock settings above; the
+KEYBOARD overlay goes over the SCOPE view; loudness is LUFS-S plus a resettable LUFS-I with no target marker; on
+Windows the SP-404 needs Roland's driver for USB audio.
 
 ## Files
 

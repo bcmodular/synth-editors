@@ -11,7 +11,11 @@ import { useDevice, type Device } from "./mixer/useDevice";
 import { useMixer } from "./mixer/useMixer";
 import { noActivity, type PadActivity } from "./mixer/padHits";
 import { usePadHits } from "./mixer/usePadHits";
+import { useMixerView } from "./mixer/useMixerView";
 import { useShownBanks } from "./mixer/useShownBanks";
+import { MeterColumn } from "./scope/MeterColumn";
+import { ScopeView } from "./scope/ScopeView";
+import { useScopeSet } from "./scope/useScopeSet";
 import { SettingsPanel } from "./settings/SettingsPanel";
 import { useSettings } from "./settings/useSettings";
 import { useFitZoom } from "./ui/useFitZoom";
@@ -68,6 +72,8 @@ export function Editor() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const midiHits = usePadHits(settings.padMidi);
   const activity = midiHits.inputName ? midiHits.activity : serialActivity(device.device.hit);
+  const [view, setView] = useMixerView();
+  const scope = useScopeSet(settings);
   return (
     <div className="ld" ref={setRoot}>
       <TopBar device={device} midiInput={midiHits.inputName} midiOutput={fx.outputName}
@@ -75,11 +81,16 @@ export function Editor() {
       <FxRow fx={fx} />
       <div className="mixer">
         <MixerSide projectLabel={projectLabel(device)} shown={banks.shown} loadedBanks={loadedBanks}
-          onToggleBank={banks.toggle} />
-        <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />
+          onToggleBank={banks.toggle} view={view} onView={setView} />
+        {view === "desk" ? (
+          <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />
+        ) : (
+          <ScopeView scopes={scope.scopes} />
+        )}
+        <MeterColumn scopes={scope.scopes} status={scope.audio.status} />
       </div>
       {settingsOpen && (
-        <SettingsPanel settings={settings} midiInput={midiHits.inputName} onChange={setSettings}
+        <SettingsPanel settings={settings} midiInput={midiHits.inputName} scope={scope} onChange={setSettings}
           onClose={() => setSettingsOpen(false)} />
       )}
     </div>

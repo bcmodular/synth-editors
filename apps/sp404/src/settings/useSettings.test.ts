@@ -14,4 +14,10 @@ describe("readSettings", () => {
     expect(readSettings(JSON.stringify({ padMidi: { mode: "C", baseChannel: 2.5 } })).padMidi)
       .toEqual({ mode: "B", baseChannel: 1, noteOffset: 0 });
   });
+
+  it("keeps the audio and clock inputs by name, empty meaning the SP-404's own", () => {
+    expect(readSettings(JSON.stringify({ audioIn: "Fake Audio", clockIn: "H12MIDI-Pro Port 1" })))
+      .toMatchObject({ audioIn: "Fake Audio", clockIn: "H12MIDI-Pro Port 1" });
+    expect(readSettings(JSON.stringify({ audioIn: 3 }))).toMatchObject({ audioIn: "", clockIn: "" });
+  });
 });

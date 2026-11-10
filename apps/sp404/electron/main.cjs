@@ -1,4 +1,4 @@
-// Electron main process for the SP-404 MK2 editor (Phase 0 spike): one window, Web MIDI and Web Serial
+// Electron main process for the SP-404 MK2 editor: one window, Web MIDI, Web Serial and audio input
 // granted to our own page, and a capture log the page appends to (exposed by preload.cjs).
 const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
 const fsp = require("node:fs/promises");
@@ -57,9 +57,16 @@ function registerCaptureIpc() {
 }
 
 app.whenReady().then(() => {
-  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(PERMISSIONS.has(permission)));
+  // Audio-only media is the scopes listening to the SP-404's USB audio (never the camera).
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
+    const types = details.mediaTypes ?? [];
+    const audioOnly = permission === "media" && types.length > 0 && types.every((t) => t === "audio");
+    callback(PERMISSIONS.has(permission) || audioOnly);
+  });
   session.defaultSession.setPermissionCheckHandler(
-    (_wc, permission) => PERMISSIONS.has(permission) && !(NO_REAL_SERIAL && permission === "serial"),
+    (_wc, permission, _origin, details) =>
+      (PERMISSIONS.has(permission) && !(NO_REAL_SERIAL && permission === "serial")) ||
+      (permission === "media" && details.mediaType === "audio"),
   );
   session.defaultSession.setDevicePermissionHandler(
     (details) => !NO_REAL_SERIAL && details.deviceType === "serial" && isSp404(details.device),

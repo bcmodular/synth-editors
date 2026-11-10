@@ -35,8 +35,10 @@ export async function start(init: FakeSp404Init = DEVICE, opts: { midiInput?: bo
   const env = Object.fromEntries(
     Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && e[0] !== "VITE_DEV_SERVER_URL"),
   );
+  // Chromium's fake audio input (a tone with beeps) stands in for the SP-404's USB audio.
+  const fakeAudio = ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"];
   const app = await electron.launch({
-    args: [APP_DIR, `--user-data-dir=${profile}`],
+    args: [APP_DIR, `--user-data-dir=${profile}`, ...fakeAudio],
     env: { ...env, SP404_NO_REAL_SERIAL: "1" },
   });
   const page = await app.firstWindow();

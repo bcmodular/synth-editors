@@ -2,12 +2,9 @@
 // (docs/tb3-live-waveform-design.md). Drawn each animation frame, outside React's renders.
 import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
-import { clearClip, formatDb, meterStep, silentMeter } from "../core/levelMeter";
-import type { Meter } from "../core/levelMeter";
-import { createWaveColumns, pushSamples, samplesPerColumn } from "../core/waveColumns";
-import type { WaveColumns } from "../core/waveColumns";
-import { drawMeter, drawWave, paletteOf, surfaceOf } from "../ui/liveDraw";
-import type { Palette } from "../ui/liveDraw";
+import { clearClip, createWaveColumns, drawMeter, drawWave, formatDb, meterStep, paletteOf, pushSamples, samplesPerColumn,
+  silentMeter, surfaceOf } from "@synth-editors/audio";
+import type { Meter, Palette, WaveColumns } from "@synth-editors/audio";
 import type { Listening } from "./tb3Audio";
 import type { AudioStatus, Tb3Audio } from "./useTb3Audio";
 

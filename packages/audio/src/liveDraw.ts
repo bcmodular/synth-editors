@@ -1,8 +1,8 @@
 // Canvas drawing for the LIVE waveform and level meter (docs/tb3-live-waveform-design.md).
-import { forEachColumn } from "../core/waveColumns";
-import type { WaveColumns } from "../core/waveColumns";
-import { meterFraction } from "../core/levelMeter";
-import type { Meter } from "../core/levelMeter";
+import { forEachColumn } from "./waveColumns";
+import type { WaveColumns } from "./waveColumns";
+import { meterFraction } from "./levelMeter";
+import type { Meter } from "./levelMeter";
 
 export interface Palette {
   well: string;

@@ -97,14 +97,19 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
 
 ### The TB-3's output, live
 
-![VCO MIX in LIVE: the last 4 seconds of the TB-3's output, with its level](images/vco-mix-live.png)
+![VCO MIX in LIVE: the last 4 seconds of the TB-3's left and right output, with its level](images/vco-mix-live.png)
 
 Click **LIVE** in VCO MIX to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
 so the TB-3 needs to be connected by USB, with Roland's TB-3 driver installed.
 
-- **The waveform** scrolls from right to left and shows the last 4 seconds. Each note is a burst whose
-  shape follows the envelopes; accents stand taller, filter sweeps and the LFO change the outline, and
-  silence is a flat line.
+- **The waveforms**, left (L) above right (R), scroll from right to left and show the last 4 seconds.
+  Each note is a burst whose shape follows the envelopes; accents stand taller, filter sweeps and the LFO
+  change the outline, and silence is a flat line. The TB-3's effects make the two sides differ; without
+  them they're the same. A wave that reaches further below the centre line than above it is the sound's
+  real shape (typical of a resonant filter), not a pan.
+- **The bar under the waveforms** shows how alike the two sides are. Right of centre means alike, and
+  all the way right is mono. Left of centre (amber) means the sides are out of phase, which can make
+  the sound thin or disappear when played in mono.
 - **The meter** on the right shows the left and right peak levels. The top turns amber above −6 dBFS,
   and a tick holds each peak for a moment.
 - **The red light** under the meter comes on if the level reaches full scale. It stays on until you

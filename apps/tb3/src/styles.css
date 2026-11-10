@@ -1063,6 +1063,21 @@ svg .handle:hover > .dot {
 .livewave canvas {
   display: block;
 }
+.wavelanes {
+  display: flex;
+  flex-direction: column;
+}
+.wavelanes .lane {
+  position: relative;
+}
+.wavelanes .lanelabel {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 10px;
+  color: var(--dim);
+  pointer-events: none;
+}
 .livestatus {
   position: absolute;
   inset: 0 42px 0 0;

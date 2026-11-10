@@ -2,11 +2,11 @@
 // Readouts are set as text on their elements, so React doesn't re-render 60 times a second.
 
 import {
-  clockBpm, correlationOf, drawMeter, drawWave, formatDb, formatLufs, integratedLufs, paletteOf, shortTermLufs,
-  surfaceOf,
+  clockBpm, correlationOf, drawCorrelation, drawMeter, drawWave, formatDb, formatLufs, integratedLufs, paletteOf,
+  shortTermLufs, surfaceOf,
 } from "@synth-editors/audio";
 import type { BeatClock, Listening, Palette } from "@synth-editors/audio";
-import { drawBeats, drawCorrelation, drawSpectrum } from "./scopeDraw";
+import { drawBeats, drawSpectrum } from "./scopeDraw";
 import { columnOfTime, type ScopeState, type Waves } from "./scopeEngine";
 
 export type PartName =

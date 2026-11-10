@@ -8,10 +8,14 @@ actually playing, next to the picture it draws from the settings.
 
 - **VCO MIX** gets **DRAWN / LIVE** buttons in its header. DRAWN is today's picture of the mixed oscillators,
   drawn from the settings. LIVE shows the TB-3's output instead.
-- **Waveform**: a scrolling readout of the last few seconds, newest on the right. Each pixel column is the lowest
-  and highest sample in its slice of time, drawn as a filled band around the centre line, the way a DAW draws a
-  recording as it comes in. Notes, accents, envelopes, filter sweeps and the LFO show as the shape of the band;
-  silence is a flat line. Left and right are mixed for the waveform.
+- **Waveform**: a scrolling readout of the last few seconds, newest on the right, in two lanes: L above R. Each
+  pixel column is the lowest and highest sample in its slice of time, drawn as a filled band around the centre
+  line, the way a DAW draws a recording as it comes in. Notes, accents, envelopes, filter sweeps and the LFO show
+  as the shape of the band; silence is a flat line. (The first version mixed L and R into one lane; a lopsided
+  band then looked like a pan. Logging the real TB-3 showed no DC offset and equal L/R levels: the lopsidedness
+  is the wave's own shape, and the effects decorrelate the sides.)
+- **Correlation**: a thin −1 … +1 bar under the lanes (shared with the SP-404's scopes), averaged over about
+  300 ms. Right of centre is alike, +1 mono; amber left of centre is out of phase.
 - **Span**: 4 s across the panel (about 11 ms per column at its width). Fixed at first; a TIME control can come
   later if 4 s turns out wrong.
 - **Level meter**: two thin bars, L and R, down the right edge of the panel, scaled −48 to 0 dBFS:
@@ -40,8 +44,9 @@ actually playing, next to the picture it draws from the settings.
   (they would change the level and shape). An `AudioContext` splits the two channels into two `AnalyserNode`s,
   which feed a silent gain node so the graph runs without playing anything.
 - Each animation frame reads the samples that arrived since the last frame (from the context's clock) and feeds
-  them to two pure, unit-tested pieces in `core/`:
-  - `waveColumns`: builds min/max columns from a stream of samples, in a ring of the panel's width.
+  them to pure, unit-tested pieces in `packages/audio` (shared with the SP-404 editor):
+  - `waveColumns`: builds min/max columns from a stream of samples, in a ring of the panel's width (one per side).
+  - `correlation`: L·R over √(L²·R²), fading with a 300 ms time constant.
   - `levelMeter`: peak, fall, hold and clip from each frame's samples, in dBFS.
 - A canvas draws both, outside React's render loop. Nothing is stored or sent.
 - The audio stops when LIVE is switched off or the window closes.

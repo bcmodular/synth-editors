@@ -1,5 +1,5 @@
 // Canvas drawing for the SCOPE view (docs/sp404-design.md › Scopes): the spectrum with its frequency and level
-// grid, the beat grid over a waveform lane, and the correlation bar. The waveform and meter come from
+// grid, and the beat grid over a waveform lane. The waveform, meter and correlation bar come from
 // packages/audio (shared with the TB-3).
 
 import { hzFraction, isBar } from "@synth-editors/audio";
@@ -84,15 +84,4 @@ export function drawBeats(s: Surface, beats: { beat: Beat; x: number }[], number
   g.globalAlpha = 1;
 }
 
-// −1 … +1 with the centre marked; the value as a block from the centre (amber below 0). NaN draws no block.
-export function drawCorrelation({ g, w, h, p }: Surface, value: number) {
-  g.fillStyle = p.well;
-  g.fillRect(0, 0, w, h);
-  g.fillStyle = p.axis;
-  g.fillRect(Math.round(w / 2), 0, 1, h);
-  if (Number.isNaN(value)) return;
-  const mid = w / 2;
-  const x = mid + value * (mid - 2);
-  g.fillStyle = value < 0 ? p.hot : p.trace;
-  g.fillRect(Math.min(mid, x), 3, Math.max(2, Math.abs(x - mid)), h - 6);
-}
+

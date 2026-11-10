@@ -8,9 +8,10 @@ let running: Tb3App | undefined;
 test.afterEach(async () => finish(running));
 
 const vcoMix = (page: Page) => page.locator(".vcosum");
-const level = (page: Page) => vcoMix(page).locator(".wavecanvas").evaluate((c) => Number((c as HTMLElement).dataset.level));
+const reading = (page: Page, name: "level" | "correlation") =>
+  vcoMix(page).locator(".wavelanes").evaluate((el, key) => Number((el as HTMLElement).dataset[key]), name);
 
-test("LIVE asks for an input when there's no TB-3 audio, then shows the chosen one's level", async () => {
+test("LIVE asks for an input when there's no TB-3 audio, then shows the chosen one's readings", async () => {
   const { page } = (running = await start());
   await vcoMix(page).getByRole("button", { name: "LIVE" }).click();
   await expect(vcoMix(page).locator(".livestatus")).toContainText("No TB-3 audio input");
@@ -23,7 +24,11 @@ test("LIVE asks for an input when there's no TB-3 audio, then shows the chosen o
   await page.getByRole("button", { name: "CLOSE" }).click();
 
   await expect(vcoMix(page).locator(".livestatus")).toHaveCount(0);
-  await expect.poll(() => level(page), { timeout: 5000 }).toBeGreaterThan(-48);
+  await expect.poll(() => reading(page, "level"), { timeout: 5000 }).toBeGreaterThan(-48);
+  await expect(vcoMix(page).locator(".lanelabel")).toHaveText(["L", "R"]);
+  const corr = await reading(page, "correlation");
+  expect(corr).toBeGreaterThanOrEqual(-1);
+  expect(corr).toBeLessThanOrEqual(1);
 });
 
 test("DRAWN goes back to the picture and LIVE is remembered", async () => {

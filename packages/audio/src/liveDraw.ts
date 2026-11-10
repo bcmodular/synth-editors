@@ -1,4 +1,4 @@
-// Canvas drawing for the LIVE waveform and level meter (docs/tb3-live-waveform-design.md).
+// Canvas drawing for the LIVE waveform, level meter and correlation bar (docs/tb3-live-waveform-design.md).
 import { forEachColumn } from "./waveColumns";
 import type { WaveColumns } from "./waveColumns";
 import { meterFraction } from "./levelMeter";
@@ -91,4 +91,17 @@ export function drawMeter(s: Surface, meters: [Meter, Meter]) {
   s.g.fillStyle = s.p.well;
   s.g.fillRect(0, 0, s.w, s.h);
   meters.forEach((m, i) => drawBar(s, m, { x: i * (bw + gap), bw }));
+}
+
+// −1 … +1 with the centre marked; the value as a block from the centre (amber below 0). NaN draws no block.
+export function drawCorrelation({ g, w, h, p }: Surface, value: number) {
+  g.fillStyle = p.well;
+  g.fillRect(0, 0, w, h);
+  g.fillStyle = p.axis;
+  g.fillRect(Math.round(w / 2), 0, 1, h);
+  if (Number.isNaN(value)) return;
+  const mid = w / 2;
+  const x = mid + value * (mid - 2);
+  g.fillStyle = value < 0 ? p.hot : p.trace;
+  g.fillRect(Math.min(mid, x), 3, Math.max(2, Math.abs(x - mid)), h - 6);
 }

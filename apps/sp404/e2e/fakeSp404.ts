@@ -147,7 +147,8 @@ export function fakeSp404Port(init: FakeSp404Init) {
 
 export type FakeSp404 = ReturnType<typeof fakeSp404Port>;
 
-// A stand-in for the SP-404's MIDI output: one input named like the device's, which the tests play notes on.
+// A stand-in for the SP-404's USB MIDI: an output that records what the app sends (the FX), and optionally an
+// input the tests play pad notes on.
 // Also self-contained, for the same reason as the serial fake.
 export function fakeSp404Midi(withInput: boolean) {
   type Listener = (e: { data: Uint8Array }) => void;
@@ -159,12 +160,19 @@ export function fakeSp404Midi(withInput: boolean) {
     addEventListener: (t: string, fn: Listener) => t === "midimessage" && listeners.add(fn),
     removeEventListener: (t: string, fn: Listener) => t === "midimessage" && listeners.delete(fn),
   };
+  const sent: number[][] = [];
+  const output = {
+    id: "fake-sp404-out", name: "SP-404MKII", manufacturer: "test", type: "output", state: "connected",
+    connection: "open", onstatechange: null,
+    open: async () => undefined, close: async () => undefined, clear: () => undefined,
+    send: (data: ArrayLike<number>) => void sent.push(Array.from(data)),
+  };
   const access = {
-    inputs: new Map(withInput ? [[input.id, input]] : []), outputs: new Map(), sysexEnabled: true,
+    inputs: new Map(withInput ? [[input.id, input]] : []), outputs: new Map([[output.id, output]]), sysexEnabled: true,
     onstatechange: null, addEventListener: () => undefined, removeEventListener: () => undefined,
   };
   Object.defineProperty(navigator, "requestMIDIAccess", { value: async () => access, configurable: true });
-  return { play: (...bytes: number[]) => listeners.forEach((fn) => fn({ data: Uint8Array.from(bytes) })) };
+  return { sent, play: (...bytes: number[]) => listeners.forEach((fn) => fn({ data: Uint8Array.from(bytes) })) };
 }
 
 // Page script for Playwright: replaces navigator.serial with one that offers the fake port, and Web MIDI with

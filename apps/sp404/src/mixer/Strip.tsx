@@ -5,6 +5,7 @@ import { memo } from "react";
 import type { MixerPad, MixField, Routing } from "../core/mixer";
 import { noteName, padNote, type PadMidiSettings } from "../core/padNotes";
 import { ChannelFader, PanKnob, panText } from "../ui/controls";
+import { ahrCorners } from "./AhrEditor";
 import { bankColour, padLabel } from "./banks";
 
 export interface StripProps {
@@ -15,6 +16,7 @@ export interface StripProps {
   hitSeq?: number; // changes on every hit of this pad, restarting the flash
   onValue: (pad: number, field: MixField, value: number) => void;
   onMute: (pad: number) => void;
+  onEditAhr: (pad: number) => void;
 }
 
 const ROUTES: { value: Routing; label: string; className: string }[] = [
@@ -24,15 +26,16 @@ const ROUTES: { value: Routing; label: string; className: string }[] = [
 ];
 const MUTE_GROUPS = ["–", ..."ABCDEFGHIJ"];
 
-// Attack, hold and release drawn as an envelope; hold runs 1–100, the others 0–127.
-function AhrThumb({ attack, hold, release }: { attack: number; hold: number; release: number }) {
-  const a = 1 + (attack / 127) * 24;
-  const h = a + (hold / 100) * 24;
-  const r = Math.min(71, h + (release / 127) * 24);
+// Attack, hold and release drawn as an envelope; click it to open the AHR editor.
+function AhrThumb({ pad, mix, onEdit }: { pad: number; mix: MixerPad["mix"]; onEdit: (pad: number) => void }) {
+  const { a, h, r } = ahrCorners(mix);
+  const x = (v: number) => (v / 360) * 72;
   return (
-    <svg className="ahr" viewBox="0 0 72 26" preserveAspectRatio="none" aria-hidden>
-      <polyline points={`1,24 ${a},3 ${h},3 ${r},24`} />
-    </svg>
+    <button className="ahr" aria-label={`${padLabel(pad)} envelope`} onClick={() => onEdit(pad)}>
+      <svg viewBox="0 0 72 26" preserveAspectRatio="none" aria-hidden>
+        <polyline points={`${x(8)},24 ${x(a)},3 ${x(h)},3 ${x(r)},24`} />
+      </svg>
+    </button>
   );
 }
 
@@ -77,7 +80,8 @@ function PadNumber({ pad, playing, hitSeq }: { pad: number; playing: boolean; hi
   );
 }
 
-export const Strip = memo(function Strip({ pad, midi, selected, playing, hitSeq, onValue, onMute }: StripProps) {
+export const Strip = memo(function Strip(props: StripProps) {
+  const { pad, midi, selected, playing, hitSeq, onValue, onMute, onEditAhr } = props;
   const { mix } = pad;
   const label = padLabel(pad.pad);
   return (
@@ -87,7 +91,7 @@ export const Strip = memo(function Strip({ pad, midi, selected, playing, hitSeq,
         <NoteLabel pad={pad.pad} midi={midi} />
       </div>
       <div className="nm1" title={pad.name}>{pad.name}</div>
-      <AhrThumb attack={mix.attack} hold={mix.hold} release={mix.release} />
+      <AhrThumb pad={pad.pad} mix={mix} onEdit={onEditAhr} />
       <MuteGroup pad={pad.pad} group={mix.muteGroup} onValue={onValue} />
       <RoutingButtons pad={pad.pad} routing={mix.routing} onValue={onValue} />
       <div className="wrow">

@@ -15,7 +15,7 @@ test("shows the loaded pads of the first two banks, with the device's values", a
   await expect(strip(r, "A1").locator(".nm1")).toHaveText("KICK 1");
   await expect(strip(r, "A1").locator(".lv")).toHaveText("110");
   await expect(strip(r, "A2").locator(".pv")).toHaveText("L24");
-  await expect(strip(r, "A2").getByRole("button", { name: "2" })).toHaveAttribute("aria-pressed", "true");
+  await expect(strip(r, "A2").getByRole("button", { name: "2", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(strip(r, "A5").getByLabel("A5 mute group")).toHaveValue("1");
   await expect(r.page.getByRole("slider", { name: "BANK B volume" })).toHaveAttribute("aria-valuenow", "100");
 });
@@ -102,10 +102,45 @@ test("flashes each pad's number from the SP-404's MIDI notes, several at once", 
 
 test("without the SP-404's MIDI, flashes the pad the status poll saw hit", async () => {
   const r = (running = await start(undefined, { midiInput: false }));
-  await expect(r.page.locator(".bar")).toContainText("MIDI ○");
+  await expect(r.page.locator(".bar")).toContainText("NO PAD NOTES IN");
   await control(r.page, "select", 0, 4); // A5 hit and already silent
   await expect(strip(r, "A5").locator(".wpad")).toHaveClass(/flash/);
   await expect(strip(r, "A5").locator(".wpad")).not.toHaveClass(/lit/);
   await control(r.page, "select", 0, 4, 0x1000); // retriggered and sounding
   await expect(strip(r, "A5").locator(".wpad")).toHaveClass(/lit/);
+});
+
+test("the AHR editor edits a pad's envelope by dragging its handles", async () => {
+  const r = (running = await start());
+  await strip(r, "A1").getByRole("button", { name: "A1 envelope" }).click();
+  const editor = r.page.getByRole("dialog", { name: "A1 envelope" });
+  await expect(editor).toBeVisible();
+  const attack = editor.getByRole("slider", { name: "A1 attack" });
+  const box = (await attack.boundingBox())!;
+  await r.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await r.page.mouse.down();
+  await r.page.mouse.move(box.x + 60, box.y + box.height / 2, { steps: 6 });
+  await r.page.mouse.up();
+  const value = Number(await attack.getAttribute("aria-valuenow"));
+  expect(value).toBeGreaterThan(0);
+  await expect.poll(async () => (await control<{ attack: number }>(r.page, "pad", 0)).attack).toBe(value);
+  await attack.dblclick(); // reset
+  await expect.poll(async () => (await control<{ attack: number }>(r.page, "pad", 0)).attack).toBe(0);
+  await r.page.keyboard.press("Escape");
+  await expect(editor).toBeHidden();
+});
+
+test("Settings changes the MIDI mode for the pad notes and lights, and remembers it", async () => {
+  const r = (running = await start());
+  await expect(strip(r, "A1").locator(".nt")).toHaveText("C1 · 1"); // Mode B: A1 = note 24
+  await r.page.getByRole("button", { name: "SETTINGS" }).click();
+  const settings = r.page.getByRole("dialog", { name: "Settings" });
+  await settings.getByRole("button", { name: "MODE A" }).click();
+  await expect(settings.getByLabel("Note offset")).toBeDisabled();
+  await expect(strip(r, "A1").locator(".nt")).toHaveText("C3 · 1"); // Mode A: A1 = note 48
+  await playMidi(r.page, 0x90, 48, 100);
+  await expect(strip(r, "A1").locator(".wpad")).toHaveClass(/flash/);
+  await r.page.keyboard.press("Escape");
+  await r.page.reload();
+  await expect(strip(r, "A1").locator(".nt")).toHaveText("C3 · 1");
 });

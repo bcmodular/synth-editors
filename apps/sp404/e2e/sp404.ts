@@ -65,3 +65,7 @@ export const control = <T>(page: Page, fn: string, ...args: number[]): Promise<T
 // A MIDI message from the fake SP-404's MIDI output.
 export const playMidi = (page: Page, ...bytes: number[]): Promise<void> =>
   page.evaluate((b) => (window as unknown as { __fakeSp404Midi: { play: (...x: number[]) => void } }).__fakeSp404Midi.play(...b), bytes);
+
+// MIDI messages the app sent to the fake SP-404, oldest first.
+export const midiSent = (page: Page): Promise<number[][]> =>
+  page.evaluate(() => (window as unknown as { __fakeSp404Midi: { sent: number[][] } }).__fakeSp404Midi.sent);

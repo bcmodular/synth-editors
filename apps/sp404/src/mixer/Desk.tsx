@@ -1,10 +1,12 @@
 // The desk: the banks picked in SHOW BANKS, each its loaded pads' strips and a bank master. Scrolls sideways
 // when more than two banks are shown.
 
+import { useState } from "react";
 import type { MixerPad } from "../core/mixer";
 import type { PadMidiSettings } from "../core/padNotes";
 import { selectedPadNumber, soundingPad } from "../core/serialMessages";
 import { ChannelFader } from "../ui/controls";
+import { AhrEditor } from "./AhrEditor";
 import { BANK_LETTERS, bankColourOf, bankOf } from "./banks";
 import type { BankView } from "./mixerState";
 import type { HitCounts } from "./padHits";
@@ -43,6 +45,8 @@ export interface DeskProps {
 }
 
 export function Desk({ mixer, banks, midi, hits }: DeskProps) {
+  const [editing, setEditing] = useState<number>();
+  const editingPad = mixer.pads.find((p) => p.pad === editing);
   const selected = mixer.status ? selectedPadNumber(mixer.status) : undefined;
   const sounding = mixer.status ? soundingPad(mixer.status) : undefined;
   const padsOf = (bank: number): MixerPad[] => mixer.pads.filter((p) => bankOf(p.pad) === bank);
@@ -54,13 +58,14 @@ export function Desk({ mixer, banks, midi, hits }: DeskProps) {
           <div className="row">
             {padsOf(bank).map((p) => (
               <Strip key={p.pad} pad={p} midi={midi} selected={p.pad === selected} playing={p.pad === sounding}
-                hitSeq={hits[p.pad]} onValue={mixer.setValue} onMute={mixer.mute} />
+                hitSeq={hits[p.pad]} onValue={mixer.setValue} onMute={mixer.mute} onEditAhr={setEditing} />
             ))}
             <BankMaster bank={bank} view={mixer.banks[bank] ?? { volume: 127, muted: false }}
               onChange={(v) => mixer.setBankVolume(bank, v)} onMute={() => mixer.muteBank(bank)} />
           </div>
         </div>
       ))}
+      {editingPad && <AhrEditor pad={editingPad} onValue={mixer.setValue} onClose={() => setEditing(undefined)} />}
     </div>
   );
 }

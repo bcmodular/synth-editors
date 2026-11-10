@@ -1,23 +1,23 @@
-// Listens to the SP-404's MIDI output (the input named SP-404, over the same USB cable) for pad hits.
+// Listens to the SP-404's MIDI output (the input named SP-404, over the same USB cable) for pads played.
 
 import { requestMidi } from "@synth-editors/midi";
 import { useEffect, useState } from "react";
-import type { PadMidiSettings, PadNumber } from "../core/padNotes";
-import { countHit, hitPad, type HitCounts } from "./padHits";
+import type { PadMidiSettings } from "../core/padNotes";
+import { applyPadNote, noActivity, padNoteOf, type PadActivity, type PadNote } from "./padHits";
 
 const isSp404 = (input: MIDIInput) => /SP-404/i.test(input.name ?? "") && input.state === "connected";
 
 interface Listeners {
-  onHit: (pad: PadNumber) => void;
+  onNote: (note: PadNote) => void;
   onInput: (name: string | undefined) => void;
 }
 
 // Follow the SP-404's MIDI input as it comes and goes; returns a function that stops listening.
-function listenForPadHits(access: MIDIAccess, settings: PadMidiSettings, { onHit, onInput }: Listeners): () => void {
+function listenForPadHits(access: MIDIAccess, settings: PadMidiSettings, { onNote, onInput }: Listeners): () => void {
   let input: MIDIInput | undefined;
   const onMessage = (e: MIDIMessageEvent) => {
-    const pad = e.data ? hitPad(e.data, settings) : undefined;
-    if (pad !== undefined) onHit(pad);
+    const note = e.data ? padNoteOf(e.data, settings) : undefined;
+    if (note) onNote(note);
   };
   const attach = () => {
     const next = [...access.inputs.values()].find(isSp404);
@@ -36,13 +36,13 @@ function listenForPadHits(access: MIDIAccess, settings: PadMidiSettings, { onHit
 }
 
 export function usePadHits(settings: PadMidiSettings) {
-  const [hits, setHits] = useState<HitCounts>({});
+  const [activity, setActivity] = useState<PadActivity>(noActivity);
   const [inputName, setInputName] = useState<string>();
 
   useEffect(() => {
     let stop: (() => void) | undefined;
     let cancelled = false;
-    const listeners: Listeners = { onHit: (pad) => setHits((h) => countHit(h, pad)), onInput: setInputName };
+    const listeners: Listeners = { onNote: (note) => setActivity((a) => applyPadNote(a, note)), onInput: setInputName };
     requestMidi().then((access) => {
       if (!cancelled) stop = listenForPadHits(access, settings, listeners);
     }, () => setInputName(undefined));
@@ -52,5 +52,5 @@ export function usePadHits(settings: PadMidiSettings) {
     };
   }, [settings]);
 
-  return { hits, inputName };
+  return { activity, inputName };
 }

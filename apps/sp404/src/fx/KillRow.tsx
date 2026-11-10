@@ -18,7 +18,7 @@ export function KillRow({ values, onValue }: KillRowProps) {
     setKept(kept.map((k, i) => (i !== band ? k : level === undefined ? (values[band] ?? 0) : undefined)));
   };
   return (
-    <div className="r2">
+    <div className="frow">
       <span className="lbl">APP</span>
       <div className="seg kill">
         {BANDS.map((name, band) => (

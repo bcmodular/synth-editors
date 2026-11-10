@@ -14,6 +14,7 @@
   --b2: #3ddc5a;
   --dry: #e8e8ea;
   --mute: #ff3b30;
+  --solo: #ffd23a;
   --error: #ff6b6b;
   color-scheme: dark;
   font-family: "DIN Condensed", "DIN Alternate", "Avenir Next Condensed", "Helvetica Neue", sans-serif;
@@ -241,26 +242,26 @@ select {
   gap: 5px;
 }
 
-.r2 {
+.frow {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.r2 > .lbl {
+.frow > .lbl {
   width: 56px;
   flex: none;
   overflow: hidden;
   font-size: 10px;
 }
 
-.r2.col {
+.frow.col {
   flex-direction: column;
   align-items: stretch;
   gap: 2px;
 }
 
-.r2.col > .lbl {
+.frow.col > .lbl {
   width: auto;
 }
 
@@ -700,9 +701,11 @@ button.big.on {
   width: 84px;
   flex: none;
   border-right: 1px solid var(--edge);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  /* Fixed rows: pad, name, envelope, mute group, routing, pan, MUTE, fader, level. The bank strip skips the middle
+     four but keeps the same rows, so its MUTE and fader line up with the pads'. */
+  display: grid;
+  grid-template-rows: 20px auto 26px 20px 23px 30px 22px minmax(80px, 1fr) auto;
+  row-gap: 5px;
   padding: 6px 6px 8px;
   position: relative;
 }
@@ -782,8 +785,27 @@ button.big.on {
   color: #fff;
 }
 
-.ws .spacer {
-  flex: 0 0 105px;
+.ws.master .ms {
+  grid-row: 7;
+}
+
+.ms {
+  display: flex;
+  gap: 3px;
+}
+
+.ms button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.ws.master .fader {
+  grid-row: 8;
+}
+
+.ws.master .lv {
+  grid-row: 9;
 }
 
 .ahr {
@@ -888,6 +910,7 @@ button.big.on {
 }
 
 .mg {
+  position: relative;
   height: 20px;
   border: 1px solid var(--rule);
   font-size: 11px;
@@ -904,7 +927,11 @@ button.big.on {
   border-color: #8a6d3a;
 }
 
+/* The select covers the whole box, so a click anywhere (the label too) opens it; its value shows on the right. */
 .mg select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   background: none;
   border: none;
   color: inherit;
@@ -913,6 +940,12 @@ button.big.on {
   appearance: none;
   padding: 0 5px;
   text-align: right;
+  text-align-last: right;
+}
+
+.mg select option {
+  background: #1d1e21;
+  color: #ddd;
 }
 
 .rtx {
@@ -923,14 +956,29 @@ button.big.on {
 }
 
 .rtx button {
-  flex: 1;
-  height: 20px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
   font-size: 11px;
   border: none;
   color: var(--dim);
   background: #000;
   cursor: pointer;
   padding: 0;
+}
+
+.rtx button.rd {
+  flex-grow: 1.4;
+}
+
+.rtx button + button {
+  border-left: 1px solid var(--rule);
+}
+
+/* The focus ring stays inside the button rather than spilling over its neighbours. */
+.rtx button:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: -2px;
 }
 
 .rtx button.on.rd {
@@ -984,7 +1032,8 @@ button.big.on {
   color: var(--dim);
 }
 
-.mute {
+.mute,
+.solo {
   height: 22px;
   flex: none;
   border: 1px solid var(--rule);
@@ -1001,8 +1050,15 @@ button.big.on {
   border-color: var(--mute);
 }
 
+.solo.on {
+  background: var(--solo);
+  color: #000;
+  border-color: var(--solo);
+}
+
 .fader {
   flex: 1 1 auto;
+  margin-top: 7px; /* the cap stands half out of the top at full level; keep it clear of MUTE and SOLO */
   min-height: 80px;
   width: 100%;
   position: relative;

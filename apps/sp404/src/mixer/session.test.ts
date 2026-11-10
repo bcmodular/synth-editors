@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fakeSp404Port, type FakeSp404 } from "../../e2e/fakeSp404";
 import { bankVolumeFrame, mixChangeFrame } from "../core/serialMessages";
 import { SerialLink } from "../serial/serialLink";
-import { Sp404Session, wasHit, type DeviceState } from "./session";
+import { POLL_MS, REREAD_EVERY, Sp404Session, wasHit, type DeviceState } from "./session";
 
 const until = (check: () => boolean) => vi.waitFor(() => expect(check()).toBe(true), { timeout: 2000 });
 
@@ -74,6 +74,28 @@ describe("Sp404Session", () => {
     fake.select(1, 1);
     await until(() => running!.last().pads.find((p) => p.pad === 17)?.mix.level === 55);
     expect(running.last().status).toMatchObject({ selectedBank: 1, selectedPad: 1 });
+  }, 5000);
+
+  it("re-reads the selected pad every few polls, picking up edits to it on the device", async () => {
+    const fake = fakeSp404Port(DEVICE);
+    running = open(fake);
+    await running.session.start();
+    fake.select(1, 1);
+    await until(() => running!.last().status?.selectedBank === 1);
+    fake.pad(17)!.pan = 30; // turned on the SP-404 itself, without selecting another pad
+    await until(() => running!.last().pads.find((p) => p.pad === 17)?.mix.pan === 30);
+  }, 5000);
+
+  it("doesn't re-read a pad over the app's own edit to it", async () => {
+    const fake = fakeSp404Port(DEVICE);
+    running = open(fake);
+    await running.session.start();
+    fake.select(1, 1);
+    await until(() => running!.last().status?.selectedBank === 1);
+    const block = running.last().pads.find((p) => p.pad === 17)!;
+    running.session.notePad({ ...block, mix: { ...block.mix, pan: 90 } }); // sent, but the device hasn't caught up
+    await new Promise((r) => setTimeout(r, POLL_MS * (REREAD_EVERY + 2)));
+    expect(running.last().pads.find((p) => p.pad === 17)?.mix.pan).toBe(90);
   }, 5000);
 });
 

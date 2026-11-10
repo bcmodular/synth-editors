@@ -63,12 +63,13 @@ function padBlock(pad: number, fields: Record<number, number>, name: string): Ui
 
 describe("pad blocks", () => {
   it("reads the pad, name and mixer values", () => {
-    const fields = { 0: 48000, 3: 110, 7: 2, 18: 40, 20: 1, 22: 5, 23: 100, 24: 64 };
+    const fields = { 0: 96512, 1: 512, 2: 96512, 3: 110, 7: 2, 18: 40, 20: 1, 22: 5, 23: 100, 24: 64 };
     expect(parsePadBlock(reply(padBlock(33, fields, "KICK 01")))).toEqual({
       pad: 33,
       empty: false,
       name: "KICK 01",
       mix: { level: 110, muteGroup: 2, pan: 40, routing: 1, attack: 5, hold: 100, release: 64 },
+      seconds: 0.5,
     });
   });
 
@@ -84,7 +85,7 @@ describe("pad blocks", () => {
   });
 
   it("parses blocks captured from the device", () => {
-    expect(parsePadBlock(captured(PAD_BLOCK_LOADED))).toEqual({
+    expect(parsePadBlock(captured(PAD_BLOCK_LOADED))).toMatchObject({
       pad: 32,
       empty: false,
       name: "A01",

@@ -45,13 +45,36 @@ test("dragging a fader sends the level, coalesced, ending on the value shown", a
 
 test("MUTE sends level 0 and shows the remembered level; a second press restores it", async () => {
   const r = (running = await start());
-  const mute = strip(r, "A1").getByRole("button", { name: "MUTE" });
+  const mute = strip(r, "A1").getByRole("button", { name: "Mute A1" });
   await mute.click();
   await expect(strip(r, "A1").locator(".lv")).toHaveText("(110)");
   await expect.poll(async () => (await control<{ level: number }>(r.page, "pad", 0)).level).toBe(0);
   await mute.click();
   await expect(strip(r, "A1").locator(".lv")).toHaveText("110");
   await expect.poll(async () => (await control<{ level: number }>(r.page, "pad", 0)).level).toBe(110);
+});
+
+test("SOLO silences every other pad, across banks; releasing it restores them", async () => {
+  const r = (running = await start());
+  const level = (pad: number) => async () => (await control<{ level: number }>(r.page, "pad", pad)).level;
+  await strip(r, "A1").getByRole("button", { name: "Solo A1" }).click();
+  await expect.poll(level(1)).toBe(0); // A2
+  await expect.poll(level(17)).toBe(0); // B2
+  expect(await level(0)()).toBe(110);
+  await expect(strip(r, "B2").locator(".lv")).toHaveText("(90)");
+  await strip(r, "A1").getByRole("button", { name: "Solo A1" }).click();
+  await expect.poll(level(17)).toBe(90);
+  await expect(strip(r, "B2").locator(".lv")).toHaveText("90");
+});
+
+test("bank SOLO silences the other banks; releasing it restores them", async () => {
+  const r = (running = await start());
+  const solo = r.page.getByRole("button", { name: "Solo BANK B" });
+  await solo.click();
+  await expect.poll(() => control<number>(r.page, "bankVolume", 0)).toBe(0);
+  expect(await control<number>(r.page, "bankVolume", 1)).toBe(100);
+  await solo.click();
+  await expect.poll(() => control<number>(r.page, "bankVolume", 0)).toBe(127);
 });
 
 test("routing, mute group and bank volume go to the device", async () => {
@@ -96,16 +119,29 @@ test("flashes each pad's number from the SP-404's MIDI notes, several at once", 
   await expect(strip(r, "A1").locator(".wpad")).toHaveClass(/flash/);
   await expect(strip(r, "A2").locator(".wpad")).toHaveClass(/flash/);
   await expect(strip(r, "A5").locator(".wpad")).not.toHaveClass(/flash/);
+  await playMidi(r.page, 0x80, 24, 0); // A1 off: still lit until its half-second sample ends
+  await expect(strip(r, "A1").locator(".wpad")).toHaveClass(/lit/);
+  await expect(strip(r, "A1").locator(".wpad")).not.toHaveClass(/lit/, { timeout: 2000 });
   await playMidi(r.page, 0x90, 29, 0); // velocity 0 is not a hit
   await expect(strip(r, "B2").locator(".wpad")).not.toHaveClass(/flash/);
+});
+
+test("a pad held past the end of its sample stays lit until its note-off", async () => {
+  const r = (running = await start());
+  await expect(r.page.locator(".bar")).toContainText("MIDI ● SP-404");
+  await playMidi(r.page, 0x90, 25, 100); // A2 on; its sample is half a second
+  await r.page.waitForTimeout(1000);
+  await expect(strip(r, "A2").locator(".wpad")).toHaveClass(/lit/);
+  await playMidi(r.page, 0x80, 25, 0);
+  await expect(strip(r, "A2").locator(".wpad")).not.toHaveClass(/lit/);
 });
 
 test("without the SP-404's MIDI, flashes the pad the status poll saw hit", async () => {
   const r = (running = await start(undefined, { midiInput: false }));
   await expect(r.page.locator(".bar")).toContainText("NO PAD NOTES IN");
-  await control(r.page, "select", 0, 4); // A5 hit and already silent
+  await control(r.page, "select", 0, 4); // A5 hit: lit for its sample's length, then dark
   await expect(strip(r, "A5").locator(".wpad")).toHaveClass(/flash/);
-  await expect(strip(r, "A5").locator(".wpad")).not.toHaveClass(/lit/);
+  await expect(strip(r, "A5").locator(".wpad")).not.toHaveClass(/lit/, { timeout: 2000 });
   await control(r.page, "select", 0, 4, 0x1000); // retriggered and sounding
   await expect(strip(r, "A5").locator(".wpad")).toHaveClass(/lit/);
 });

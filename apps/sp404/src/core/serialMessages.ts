@@ -60,7 +60,7 @@ export const PAD_BLOCK_SIZE = 327;
 const FIELDS_AT = 3;
 const NAME_AT = 175;
 const NAME_SIZE = 24;
-const FIELD = { size: 0, level: 3, muteGroup: 7, pan: 18, routing: 20, attack: 22, hold: 23, release: 24 } as const;
+const FIELD = { size: 0, start: 1, end: 2, level: 3, muteGroup: 7, pan: 18, routing: 20, attack: 22, hold: 23, release: 24 } as const;
 
 export interface PadBlock {
   pad: number;
@@ -68,7 +68,11 @@ export interface PadBlock {
   empty: boolean;
   name: string;
   mix: PadMix;
+  seconds: number; // how long the sample plays from its start to its end point, at normal speed
 }
+
+// Samples play from 48 kHz 16-bit stereo; fields 1 and 2 are the start and end points as byte offsets in the file.
+const BYTES_PER_SECOND = 48000 * 2 * 2;
 
 function decodeName(bytes: Uint8Array): string {
   const end = bytes.indexOf(0);
@@ -99,6 +103,7 @@ export function parsePadBlock(frame: Frame): PadBlock | undefined {
     empty: field(FIELD.size) === 0,
     name: decodeName(bytes.subarray(NAME_AT, NAME_AT + NAME_SIZE)),
     mix: decodeMix(field),
+    seconds: Math.max(0, field(FIELD.end) - field(FIELD.start)) / BYTES_PER_SECOND,
   };
 }
 

@@ -64,7 +64,7 @@ function place(p: FxParam, ctl: { kind: ControlKind; label?: string }, raw: numb
   return {
     area: "rows",
     node: (
-      <div className={`r2 ${wide ? "col" : ""}`}>
+      <div className={`frow ${wide ? "col" : ""}`}>
         <span className="lbl">{p.label}</span>
         {rowFor(kind, { label: p.label, options, index, onPick: set })}
       </div>
@@ -106,8 +106,8 @@ function Areas({ slots }: { slots: Slot[] }) {
   return (
     <>
       {rows.map((x, i) => <div key={`r${i}`} className="row-slot">{x.node}</div>)}
-      {readouts.length > 0 && <div className="r2 readouts">{readouts.map((x) => x.node)}</div>}
-      {big.length > 0 && <div className="r2">{big.map((x, i) => <span key={i} className="big-slot">{x.node}</span>)}</div>}
+      {readouts.length > 0 && <div className="frow readouts">{readouts.map((x) => x.node)}</div>}
+      {big.length > 0 && <div className="frow">{big.map((x, i) => <span key={i} className="big-slot">{x.node}</span>)}</div>}
       {knobs.length > 0 && (
         <div className="knobs" style={{ gridTemplateColumns: `repeat(${Math.max(4, knobs.length)}, 1fr)` }}>
           {knobs.map((x, i) => <span key={i} className="knob-slot">{x.node}</span>)}

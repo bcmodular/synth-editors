@@ -1,44 +1,41 @@
-// The desk's state and actions over the device link: pads and banks as the desk shows them (app-side mute laid
-// over the device's values), edits sent through the session's coalescing queue, and mute memory kept per project.
+// The desk's state and actions over the device link: pads and banks as the desk shows them (app-side MUTE and SOLO
+// laid over the device's values), edits sent through the session's coalescing queue, and the buttons kept per
+// project.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MixChange, MixField, MixerPad } from "../core/mixer";
 import { bankVolumeFrame, mixChangeFrame } from "../core/serialMessages";
 import {
-  editPad, setBankVolume as editBankVolume, setField, toggleBankMute, toggleMute, viewBank, viewPad,
-  type BankEdit, type BankMuteMemory, type BankView, type MuteMemory,
+  editPad, emptyMixMemory, readMixMemory, setBankButtons, setBankVolume as editBankVolume, setButtons, setField,
+  toggleMute, toggleSolo, viewBank, viewPad, type BankEdit, type BankView, type Buttons, type DeskPad, type MixMemory,
 } from "./mixerState";
 import type { Device } from "./useDevice";
 
-type Memory = Readonly<Record<number, number>>;
-
-// Mute memory for one project, kept in localStorage under `name`.
+// The buttons and remembered levels for one project, kept in localStorage under `name`.
 function useProjectMemory(name: string, project: number | undefined) {
   const key = project === undefined ? undefined : `sp404.${name}.${project}`;
-  const load = useCallback((): Memory => {
+  const load = useCallback((): MixMemory => {
     try {
-      return key ? (JSON.parse(localStorage.getItem(key) ?? "{}") as Memory) : {};
+      return key ? readMixMemory(JSON.parse(localStorage.getItem(key) ?? "{}")) : emptyMixMemory;
     } catch {
-      return {};
+      return emptyMixMemory;
     }
   }, [key]);
-  const [memory, setMemory] = useState<Memory>(load);
+  const [memory, setMemory] = useState<MixMemory>(load);
   useEffect(() => setMemory(load()), [load]);
-  const save = useCallback((next: Memory) => {
+  const save = useCallback((next: MixMemory) => {
     setMemory(next);
     if (key) localStorage.setItem(key, JSON.stringify(next));
   }, [key]);
   return [memory, save] as const;
 }
 
-export function useMixer({ device, session }: Device) {
-  const [padMemory, savePads] = useProjectMemory("mutes", device.project);
-  const [bankMemory, saveBanks] = useProjectMemory("bankMutes", device.project);
+type Session = Device["session"];
 
-  const pads: MixerPad[] = useMemo(() => device.pads.map((b) => viewPad(b, padMemory)), [device.pads, padMemory]);
-  const banks: BankView[] = useMemo(
-    () => device.bankVolumes.map((v, bank) => viewBank(v, bankMemory, bank)), [device.bankVolumes, bankMemory],
-  );
+// The pads: values sent as they change, MUTE and SOLO across the project.
+function usePads(device: Device["device"], session: Session) {
+  const [memory, save] = useProjectMemory("mutes", device.project);
+  const pads: DeskPad[] = useMemo(() => device.pads.map((b) => viewPad(b, memory)), [device.pads, memory]);
 
   const send = useCallback((changes: MixChange[]) => {
     for (const c of changes) session.current?.send(`${c.field}:${c.pad}`, mixChangeFrame(c));
@@ -47,28 +44,53 @@ export function useMixer({ device, session }: Device) {
   const edit = useCallback((pad: number, change: (p: MixerPad) => MixerPad) => {
     const block = device.pads.find((b) => b.pad === pad);
     if (!block) return;
-    const e = editPad(block, padMemory as MuteMemory, change);
+    const e = editPad(block, memory, change);
     session.current?.notePad(e.block);
-    savePads(e.memory);
+    save(e.memory);
     send(e.changes);
-  }, [device.pads, padMemory, savePads, send, session]);
+  }, [device.pads, memory, save, send, session]);
 
   const setValue = useCallback((pad: number, field: MixField, value: number) => edit(pad, setField(field, value)), [edit]);
-  const mute = useCallback((pad: number) => edit(pad, toggleMute), [edit]);
 
-  const applyBank = useCallback((bank: number, e: BankEdit) => {
-    saveBanks(e.memory);
-    if (e.send === undefined) return;
-    session.current?.noteBankVolume(bank, e.send);
-    session.current?.send(`bank:${bank}`, bankVolumeFrame(bank, e.send));
-  }, [saveBanks, session]);
+  const press = useCallback((buttons: Buttons) => {
+    const e = setButtons(device.pads, memory, buttons);
+    for (const block of e.blocks) session.current?.notePad(block);
+    save(e.memory);
+    send(e.changes);
+  }, [device.pads, memory, save, send, session]);
+  const mute = useCallback((pad: number) => press(toggleMute(memory, pad)), [press, memory]);
+  const solo = useCallback((pad: number) => press(toggleSolo(memory, pad)), [press, memory]);
+
+  return { pads, setValue, mute, solo };
+}
+
+// The bank volumes, with MUTE and SOLO across the banks.
+function useBanks(device: Device["device"], session: Session) {
+  const [memory, save] = useProjectMemory("bankMutes", device.project);
+  const banks: BankView[] = useMemo(
+    () => device.bankVolumes.map((v, bank) => viewBank(v, memory, bank)), [device.bankVolumes, memory],
+  );
+
+  const apply = useCallback((e: BankEdit) => {
+    save(e.memory);
+    for (const { bank, volume } of e.sends) {
+      session.current?.noteBankVolume(bank, volume);
+      session.current?.send(`bank:${bank}`, bankVolumeFrame(bank, volume));
+    }
+  }, [save, session]);
 
   const setBankVolume = useCallback((bank: number, volume: number) =>
-    applyBank(bank, editBankVolume(bankMemory as BankMuteMemory, bank, volume)), [applyBank, bankMemory]);
-  const muteBank = useCallback((bank: number) =>
-    applyBank(bank, toggleBankMute(bankMemory, bank, device.bankVolumes[bank] ?? 127)), [applyBank, bankMemory, device.bankVolumes]);
+    apply(editBankVolume(memory, bank, volume)), [apply, memory]);
+  const press = useCallback((buttons: Buttons) =>
+    apply(setBankButtons(device.bankVolumes, memory, buttons)), [apply, memory, device.bankVolumes]);
+  const muteBank = useCallback((bank: number) => press(toggleMute(memory, bank)), [press, memory]);
+  const soloBank = useCallback((bank: number) => press(toggleSolo(memory, bank)), [press, memory]);
 
-  return { pads, banks, status: device.status, setValue, mute, setBankVolume, muteBank };
+  return { banks, setBankVolume, muteBank, soloBank };
+}
+
+export function useMixer({ device, session }: Device) {
+  return { ...usePads(device, session), ...useBanks(device, session), status: device.status };
 }
 
 export type Mixer = ReturnType<typeof useMixer>;

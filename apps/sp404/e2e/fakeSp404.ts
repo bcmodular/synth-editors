@@ -83,7 +83,9 @@ export function fakeSp404Port(init: FakeSp404Init) {
     data.setUint16(1, pad, true);
     const d = pads.get(pad);
     if (d) {
-      data.setUint32(3, 48000, true);
+      data.setUint32(3, 96512, true); // file size, then start and end points: half a second of sample
+      data.setUint32(7, 512, true);
+      data.setUint32(11, 96512, true);
       for (const [field, key] of Object.values(FIELD_BY_ID)) data.setUint32(3 + 4 * field, d[key as keyof FakePad] as number, true);
       p.set(Array.from(d.name, (c) => c.charCodeAt(0)), 175);
     } else {

@@ -9,7 +9,7 @@ import { Desk } from "./mixer/Desk";
 import { MixerSide } from "./mixer/MixerSide";
 import { useDevice, type Device } from "./mixer/useDevice";
 import { useMixer } from "./mixer/useMixer";
-import type { HitCounts } from "./mixer/padHits";
+import { noActivity, type PadActivity } from "./mixer/padHits";
 import { usePadHits } from "./mixer/usePadHits";
 import { useShownBanks } from "./mixer/useShownBanks";
 import { SettingsPanel } from "./settings/SettingsPanel";
@@ -51,9 +51,9 @@ function projectLabel({ device: d, link }: Device): string {
   return d.projectName ? `${number} · ${d.projectName}` : number;
 }
 
-// Pad hits come from the SP-404's MIDI notes; without its MIDI input, from what the status poll saw.
-function serialHits(hit: { pad: number; seq: number } | undefined): HitCounts {
-  return hit ? { [hit.pad]: hit.seq } : {};
+// Pads played come from the SP-404's MIDI notes; without its MIDI input, the hits the status poll saw.
+function serialActivity(hit: { pad: number; seq: number } | undefined): PadActivity {
+  return hit ? { hits: { [hit.pad]: hit.seq }, held: [] } : noActivity;
 }
 
 export function Editor() {
@@ -67,7 +67,7 @@ export function Editor() {
   const [settings, setSettings] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const midiHits = usePadHits(settings.padMidi);
-  const hits = midiHits.inputName ? midiHits.hits : serialHits(device.device.hit);
+  const activity = midiHits.inputName ? midiHits.activity : serialActivity(device.device.hit);
   return (
     <div className="ld" ref={setRoot}>
       <TopBar device={device} midiInput={midiHits.inputName} midiOutput={fx.outputName}
@@ -76,7 +76,7 @@ export function Editor() {
       <div className="mixer">
         <MixerSide projectLabel={projectLabel(device)} shown={banks.shown} loadedBanks={loadedBanks}
           onToggleBank={banks.toggle} />
-        <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} hits={hits} />
+        <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />
       </div>
       {settingsOpen && (
         <SettingsPanel settings={settings} midiInput={midiHits.inputName} onChange={setSettings}

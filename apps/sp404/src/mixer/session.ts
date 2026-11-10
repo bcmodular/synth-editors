@@ -1,5 +1,6 @@
 // The pad mixer's link to the SP-404: loads the current project (settings and every pad block), polls status,
-// reloads when the project changes, re-reads the selected pad (to pick up edits made on the device), and drains
+// reloads when the project changes, re-reads the selected pad (when it changes, and every few polls, to pick up edits
+// made on the device), and drains
 // a coalescing write queue. Plain TypeScript over a SerialLink so it can be tested with fake streams.
 
 import { BANK_COUNT, PADS_PER_BANK } from "../core/padNotes";
@@ -14,7 +15,10 @@ import type { SerialLink } from "../serial/serialLink";
 // Fast enough to catch short hits; each poll is 12 bytes out and 35 back.
 export const POLL_MS = 150;
 // A settings frame from the device can carry bank volumes from before the user's last move; ignore them a while.
+// The same goes for re-reading a pad the app has just changed.
 const LOCAL_EDIT_HOLD_MS = 1500;
+// Edits on the device go to the selected pad; re-read it every this many polls (about half a second).
+export const REREAD_EVERY = 3;
 const PAD_COUNT = BANK_COUNT * PADS_PER_BANK;
 
 export interface DeviceState {
@@ -51,6 +55,8 @@ export class Sp404Session {
   private timer: ReturnType<typeof setInterval> | undefined;
   private loadingProject: Promise<void> | undefined;
   private bankEditAt = -Infinity;
+  private readonly padEditAt = new Map<number, number>();
+  private polls = 0;
   private readonly unlisten: () => void;
 
   constructor(private readonly link: SerialLink, private readonly onChange: (s: DeviceState) => void) {
@@ -76,6 +82,7 @@ export class Sp404Session {
 
   // Apply a pad's new values locally, so the next status poll or re-read doesn't fight the user's edit.
   notePad(block: PadBlock): void {
+    this.padEditAt.set(block.pad, Date.now());
     this.update({ pads: replace(this.state.pads, block) });
   }
 
@@ -130,15 +137,30 @@ export class Sp404Session {
     const status = await this.link.request(statusFrame(), parseStatus);
     if (!status) return;
     const before = this.state.status;
-    const hit = wasHit(before, status) ? { pad: selectedPadNumber(status), seq: (this.state.hit?.seq ?? 0) + 1 } : this.state.hit;
-    this.update({ status, hit });
+    this.update({ status, hit: this.hitAfter(before, status) });
     if (status.project !== this.state.project) return void this.load();
-    if (before && selectedPadNumber(before) !== selectedPadNumber(status)) await this.refreshPad(selectedPadNumber(status));
+    const pad = selectedPadNumber(status);
+    if (this.dueForReread(before, pad)) await this.refreshPad(pad);
   }
 
+  private hitAfter(before: DeviceStatus | undefined, status: DeviceStatus): DeviceState["hit"] {
+    if (!wasHit(before, status)) return this.state.hit;
+    return { pad: selectedPadNumber(status), seq: (this.state.hit?.seq ?? 0) + 1 };
+  }
+
+  // When the selection changes, and every few polls unless the app changed the pad itself a moment ago (the device
+  // may not have caught up).
+  private dueForReread(before: DeviceStatus | undefined, pad: number): boolean {
+    this.polls = (this.polls + 1) % REREAD_EVERY;
+    if (before !== undefined && selectedPadNumber(before) !== pad) return true;
+    return this.polls === 0 && Date.now() - (this.padEditAt.get(pad) ?? -Infinity) > LOCAL_EDIT_HOLD_MS;
+  }
+
+  // A reading taken while the app was changing the pad is out of date; keep the app's values.
   private async refreshPad(pad: number): Promise<void> {
+    const asked = Date.now();
     const block = await this.readPad(pad);
-    if (block) this.update({ pads: replace(this.state.pads, block) });
+    if (block && (this.padEditAt.get(pad) ?? -Infinity) < asked) this.update({ pads: replace(this.state.pads, block) });
   }
 
   private isCurrentProject(project: number): boolean {

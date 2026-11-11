@@ -64,7 +64,7 @@ test("SPECTROGRAM swaps the spectrum for a scrolling spectrogram, and is remembe
   await expect(page.getByRole("button", { name: "SPECTROGRAM" })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("MIDI clock from the SP-404 shows the tempo and draws beat lines", async () => {
+test("MIDI clock from the SP-404 shows the tempo", async () => {
   const { page } = (running = await start());
   await chooseFakeAudio(page);
   await page.getByRole("button", { name: "SCOPE" }).click();
@@ -74,7 +74,5 @@ test("MIDI clock from the SP-404 shows the tempo and draws beat lines", async ()
     midi.play(0xfa);
     setInterval(() => midi.play(0xf8), 60_000 / 120 / 24);
   });
-  await expect(page.locator(".clocktext")).toContainText("BPM", { timeout: 5000 });
-  const beats = () => page.getByLabel("Left waveform").evaluate((c) => Number((c as HTMLElement).dataset.beats));
-  await expect.poll(beats, { timeout: 5000 }).toBeGreaterThan(1);
+  await expect(page.locator(".clocktext")).toContainText(/1[12]\d\.\d BPM/, { timeout: 5000 });
 });

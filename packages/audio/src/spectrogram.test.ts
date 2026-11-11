@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  createSpectrogram, levelAt, levelOf, magmaColours, spectrogramPixels, spectrogramStep, spectrogramX,
+  createSpectrogram, levelAt, levelOf, magmaColours, spectrogramPixels, spectrogramStep,
 } from "./spectrogram";
 import { columnHz } from "./spectrumView";
 
@@ -48,14 +48,6 @@ describe("spectrogram", () => {
     expect(columnHz(row, sg.rows)).toBeGreaterThan(800);
     expect(columnHz(row, sg.rows)).toBeLessThan(1250);
     expect(levelAt(sg, 0, row)).toBe(0); // the oldest column is still empty
-  });
-
-  it("places an audio time across it, newest on the right", () => {
-    const sg = make();
-    spectrogramStep(sg, 10, RANGE);
-    expect(spectrogramX(sg, 10)).toBe(99);
-    expect(spectrogramX(sg, 8)).toBeCloseTo(49, 5);
-    expect(spectrogramX(sg, 5)).toBeUndefined();
   });
 
   it("colours quiet dark and loud pale, the highest frequency on top", () => {

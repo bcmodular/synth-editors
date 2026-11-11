@@ -25,9 +25,7 @@ export const SPANS: readonly Span[] = ["4s", 1, 2, 4];
 
 export interface Waves {
   lanes: [WaveColumns, WaveColumns];
-  rate: number;
   spanS: number;
-  now: number; // audio seconds at the newest column
 }
 
 export interface Spectrum {
@@ -89,7 +87,7 @@ function wavesFor(s: ScopeState, size: WaveSize): Waves {
   if (s.waves && fits(s.waves, size)) return s.waves;
   const per = samplesPerColumn(size.spanS, size.width, s.rate);
   const lanes: Waves["lanes"] = [createWaveColumns(size.width, per), createWaveColumns(size.width, per)];
-  return { lanes, rate: s.rate, spanS: size.spanS, now: 0 };
+  return { lanes, spanS: size.spanS };
 }
 
 function spectrumFor(s: ScopeState, width: number): Spectrum {
@@ -142,7 +140,6 @@ export function advanceScope(s: ScopeState, l: Listening, layout: ScopeLayout) {
     const w = (s.waves = wavesFor(s, { width: layout.waveWidth, spanS }));
     pushSamples(w.lanes[0], f.left);
     pushSamples(w.lanes[1], f.right);
-    w.now = f.now;
   }
   if (layout.spectrumWidth > 0) advanceSpectrum(s, l, { width: layout.spectrumWidth, now: f.now });
   if (layout.spectrogram.width > 0) advanceSpectrogram(s, l, layout.spectrogram, { spanS, now: f.now });
@@ -157,18 +154,11 @@ export function resetLoudness(s: ScopeState) {
 }
 
 // HOLD freezes the waveform, spectrum and spectrogram; letting go starts the waveform and spectrogram afresh, so
-// their columns stay in step with the clock.
+// they don't join across the gap.
 export function setHeld(s: ScopeState, held: boolean) {
   if (s.held && !held) {
     s.waves = null;
     s.spectrogram = null;
   }
   s.held = held;
-}
-
-// The screen column of an audio time on a waveform lane, or undefined when it's off the lane.
-export function columnOfTime(w: Waves, time: number): number | undefined {
-  const lane = w.lanes[0];
-  const x = lane.width - 1 - ((w.now - time) * w.rate) / lane.perColumn;
-  return x >= 0 && x < lane.width ? x : undefined;
 }

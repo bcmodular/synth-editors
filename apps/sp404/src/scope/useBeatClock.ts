@@ -1,4 +1,4 @@
-// MIDI clock for the beat grid (docs/sp404-design.md › Scopes), from the input chosen in Settings or else the
+// MIDI clock for the tempo (docs/sp404-design.md › Scopes), from the input chosen in Settings or else the
 // SP-404's own. The SP-404 passes on clock it receives on MIDI IN to USB with USB-MIDI Thru, or it can be routed to
 // the computer some other way (an interface such as the H12MIDI-Pro) and chosen here.
 

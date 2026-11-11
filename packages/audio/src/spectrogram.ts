@@ -1,6 +1,6 @@
 // A scrolling spectrogram (docs/sp404-design.md › Scopes): time left to right, frequency bottom to top on the
-// spectrum's log axis, level as colour. Columns are added at a steady rate for the span shown (so beat lines can
-// sit over it) rather than once per frame; each holds one level per row, 0 to 255, in a ring.
+// spectrum's log axis, level as colour. Columns are added at a steady rate for the span shown (so it scrolls with
+// the waveform lanes) rather than once per frame; each holds one level per row, 0 to 255, in a ring.
 
 import { planSpectrum, spectrumColumns } from "./spectrumView";
 import type { SpectrumPlan } from "./spectrumView";
@@ -20,7 +20,7 @@ export interface Spectrogram {
   readonly levels: Uint8Array; // width × rows, column by column
   head: number; // the column written next (the oldest)
   owed: number; // columns due but not yet written, fractional
-  now: number; // audio seconds at the newest column
+  now: number; // audio seconds at the newest column, for the time between steps
 }
 
 // The dB range spread over the 256 levels.
@@ -67,12 +67,6 @@ export function spectrogramStep(sg: Spectrogram, now: number, range: LevelRange)
 // The level at screen column x (0 = oldest, on the left) and row y (0 = lowest frequency).
 export const levelAt = (sg: Spectrogram, x: number, y: number) =>
   sg.levels[((sg.head + x) % sg.width) * sg.rows + y]!;
-
-// The screen column of an audio time, newest on the right, or undefined when it's off the spectrogram.
-export function spectrogramX(sg: Spectrogram, time: number): number | undefined {
-  const x = sg.width - 1 - ((sg.now - time) * sg.width) / sg.spanS;
-  return x >= 0 && x < sg.width ? x : undefined;
-}
 
 // Magma (from matplotlib, sampled at nine stops), dark for quiet to pale yellow for loud.
 const MAGMA: readonly (readonly [number, number, number])[] = [

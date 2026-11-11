@@ -1,7 +1,7 @@
 import type { Frame, Listening } from "@synth-editors/audio";
 import { describe, expect, it } from "vitest";
 import {
-  advanceScope, columnOfTime, emptyScope, setHeld, spanSeconds, SPECTRUM_FFT, type ScopeLayout,
+  advanceScope, emptyScope, setHeld, spanSeconds, SPECTRUM_FFT, type ScopeLayout,
 } from "./scopeEngine";
 
 const RATE = 48000;
@@ -22,7 +22,6 @@ function fakeListening(): Listening & { frames: number } {
     },
     spectrum: (into: Float32Array) => into.fill(-80).fill(-30, 160, 180),
     spectrogram: (into: Float32Array) => into.fill(-120).fill(-40, 40, 45),
-    audioTimeOf: (ms: number) => ms / 1000,
     stop: () => undefined,
   };
   return l;
@@ -56,10 +55,11 @@ describe("scopeEngine", () => {
     const s = emptyScope();
     const l = fakeListening();
     advanceScope(s, l, layout());
-    const frozenAt = s.waves!.now;
+    const frozen = s.waves!;
+    const frozenAt = s.meters[0].at;
     setHeld(s, true);
     advanceScope(s, l, layout());
-    expect(s.waves!.now).toBe(frozenAt);
+    expect(s.waves).toBe(frozen);
     expect(s.meters[0].at).toBeGreaterThan(frozenAt);
     setHeld(s, false);
     expect(s.waves).toBeNull();
@@ -88,15 +88,5 @@ describe("scopeEngine", () => {
     expect(spanSeconds(1, 90)).toBeCloseTo(2.667, 3);
     expect(spanSeconds(4, undefined)).toBe(4);
     expect(spanSeconds("4s", 120)).toBe(4);
-  });
-
-  it("places an audio time on the lane, newest on the right", () => {
-    const s = emptyScope();
-    const l = fakeListening();
-    for (let i = 0; i < 30; i++) advanceScope(s, l, layout());
-    const w = s.waves!;
-    expect(columnOfTime(w, w.now)).toBe(399);
-    expect(columnOfTime(w, w.now - 2)).toBeCloseTo(199, 5);
-    expect(columnOfTime(w, w.now - 5)).toBeUndefined();
   });
 });

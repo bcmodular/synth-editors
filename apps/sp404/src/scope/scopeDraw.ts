@@ -1,9 +1,9 @@
 // Canvas drawing for the SCOPE view (docs/sp404-design.md › Scopes): the spectrum with its frequency and level
-// grid, the spectrogram with its frequency grid, and the beat grid over a waveform lane or the spectrogram. The
-// waveform, meter and correlation bar come from packages/audio (shared with the TB-3).
+// grid, and the spectrogram with its frequency grid. The waveform, meter and correlation bar come from
+// packages/audio (shared with the TB-3).
 
-import { hzFraction, isBar, magmaColours, spectrogramPixels } from "@synth-editors/audio";
-import type { Beat, Spectrogram, Surface } from "@synth-editors/audio";
+import { hzFraction, magmaColours, spectrogramPixels } from "@synth-editors/audio";
+import type { Spectrogram, Surface } from "@synth-editors/audio";
 
 export const SPECTRUM_TOP_DB = -20; // the analyser reads a band-averaged full-scale tone near −40
 export const SPECTRUM_FLOOR_DB = -110;
@@ -107,22 +107,3 @@ export function drawSpectrogram(s: Surface, sg: Spectrogram | null) {
   }
   spectrogramGrid(s);
 }
-
-// Beat lines over a waveform lane or the spectrogram: bars brighter and numbered (when `numbered`).
-export function drawBeats(s: Surface, beats: { beat: Beat; x: number }[], numbered: boolean) {
-  const { g, h, p } = s;
-  g.font = LABEL_FONT;
-  for (const { beat, x } of beats) {
-    const bar = isBar(beat);
-    g.fillStyle = p.hold;
-    g.globalAlpha = bar ? 0.55 : 0.18;
-    g.fillRect(Math.round(x), 0, 1, h);
-    if (bar && numbered) {
-      g.globalAlpha = 0.7;
-      g.fillText(String(beat.beat / 4 + 1), Math.round(x) + 3, 11);
-    }
-  }
-  g.globalAlpha = 1;
-}
-
-

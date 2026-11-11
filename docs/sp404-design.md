@@ -301,15 +301,15 @@ Checked on this Mac on 2026-11-10 with the device connected:
     at about −40), a 1/6-octave smoothed line with a fill below it and a peak line falling at 12 dB/s. Tilted
     +4.5 dB per octave about 1 kHz so a typical mix reads roughly flat (as mixing analysers do). L and R summed.
   - **Spectrogram** in place of the spectrum (SPECTRUM / SPECTROGRAM buttons, remembered): the same log frequency
-    axis bottom to top, scrolling right to left over the waveform's span, so the beat lines (drawn over it too)
-    line up with the lanes below. Level −100 to −30 dB (tilted as the spectrum) in the magma colour map. Added
-    2026-11-11.
+    axis bottom to top, scrolling right to left over the waveform's span, so it lines up with the lanes below.
+    Level −100 to −30 dB (tilted as the spectrum) in the magma colour map. Added 2026-11-11.
   - **Waveform**: separate **L and R lanes**, scrolling min/max bands as in the TB-3 (newest on the right).
   - **Span**: 4 S, 1 BAR, 2 BARS or 4 BARS (remembered). Bars use the clock's tempo, four beats a bar; without
     clock the span is 4 s. The waveform is rebuilt when the tempo moves the span by more than 2 %.
-  - **Beat grid** on both lanes from MIDI clock: beat lines faint, bar lines brighter and numbered (numbers only
-    once the clock has seen a Start, so they line up with the bar). The bar shows the tempo and the clock input;
-    the tempo shown stays put until the reading moves by 0.3 BPM, so a steady clock doesn't flicker.
+  - **Tempo**: the bar shows the MIDI clock's tempo to a tenth of a BPM, and the clock input.
+  - **No beat or bar lines** (dropped 2026-11-11, after building them): joining a running clock, the app can't
+    know where a bar starts, so lines drawn from the first clock seen were off the beat by an arbitrary number of
+    clocks. They'd only be right after a Start, and a click-pattern offset would still be needed on top.
   - **Stereo correlation**: a −1 … +1 bar (amber below 0) and its value, averaged over 300 ms.
   - **HOLD** freezes the waveform, spectrum and spectrogram; the meter keeps running. Letting go starts the
     waveform and spectrogram afresh.
@@ -345,10 +345,15 @@ Checked on this Mac on 2026-11-10 with the device connected:
 - Loudness (`packages/audio/loudness.ts`): two K-weighting biquads per channel, mean squares in 100 ms blocks;
   LUFS-S is the last 30 blocks, LUFS-I uses 400 ms blocks every 100 ms gated at −70 LUFS and then 10 LU below
   their mean, kept as a 0.1 LU histogram so memory doesn't grow.
-- Beat grid (`packages/audio/beatClock.ts`): clock (F8, 24 per beat), Start (FA), Continue (FB) and Stop (FC),
-  timestamped by Web MIDI and mapped onto the audio clock with `AudioContext.getOutputTimestamp()`. Tempo from a
-  least-squares line through the last four beats' clock times (so USB MIDI jitter of a few ms moves it by under
-  0.15 BPM), held on screen within 0.3 BPM; none after 0.5 s without clock.
+- Tempo (`packages/audio/beatClock.ts`): clock (F8, 24 per beat), Start (FA), Continue (FB) and Stop (FC),
+  timestamped by Web MIDI. Tempo from a least-squares line through the last four beats' clock times; none after
+  0.5 s without clock. The shown value changes only when the reading moves 0.06 BPM from it: enough that a reading
+  on the edge between two tenths doesn't flicker, and never a tenth off. (A first version held within 0.3 BPM and
+  could stick at 165.2 for a 165 clock after a tempo change.)
+- Measured 2026-11-11 with the Nome II at 120 BPM through the SP-404's USB MIDI: 120.00 BPM over 12 s, clock
+  jitter 0.1 ms (s.d.), so a four-beat reading is good to ±0.01 BPM. The audio context reported 5.3 ms base and
+  11 ms output latency, and the SP-404 input 2.7 ms; hits arrived a steady 3.4 clocks after a 16th-note clock (as
+  timed), which can't be split into latency and phase without a Start.
 - Canvas drawing outside React (`scope/scopePaint.ts`, `scope/scopeDraw.ts`); readouts are set as text on their
   elements, so React doesn't re-render each frame.
 - Electron main allows audio-only `media` permission (as the TB-3's `main.cjs`). The Mac build will need a
@@ -358,16 +363,15 @@ Checked on this Mac on 2026-11-10 with the device connected:
 
 - **`packages/audio`**: `levelMeter`, `waveColumns` and `liveDraw` moved from the TB-3 app with their tests, and
   the input code from its `tb3Audio.ts` (`audioInput.ts`: list, pick by name, open, permission errors, plus the
-  spectrum analyser and the MIDI-to-audio clock mapping). The TB-3 imports them from there.
+  spectrum and spectrogram analysers). The TB-3 imports them from there.
 - New in the package: loudness, correlation, spectrum view (log columns, 1/6-octave smoothing, tilt, peak fall),
-  spectrogram and beat clock, all pure and unit-tested.
+  spectrogram and clock tempo, all pure and unit-tested.
 - e2e (`apps/sp404/e2e/scope.e2e.ts`): Chromium's fake audio input and the fake SP-404's MIDI: the meter and
   loudness move, SCOPE draws the spectrum, SPECTROGRAM draws the fake input's beeps and is remembered, HOLD and
-  the remembered view, and clock gives a tempo and beat lines.
+  the remembered view, and clock gives a tempo.
 
 ### Open questions
 
-- How far apart are MIDI clock and USB audio (driver buffering)? Measure with a click pattern and offset the grid.
 - On the SP-404: does the meter read as expected against the device, and are the spectrum's and spectrogram's dB
   ranges right for real mixes?
 

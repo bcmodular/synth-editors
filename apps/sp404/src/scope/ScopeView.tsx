@@ -1,5 +1,5 @@
 // The SCOPE view, in place of the desk (docs/sp404-design.md › Scopes): the spectrum or spectrogram of L + R, L and
-// R waveform lanes with a beat grid from MIDI clock, the stereo correlation, and HOLD.
+// R waveform lanes over a span in seconds or bars at the MIDI clock's tempo, the stereo correlation, and HOLD.
 
 import { SPANS, type Span } from "./scopeEngine";
 import type { Graph, Scopes } from "./useScopes";
@@ -21,7 +21,7 @@ function SpanButtons({ span, onSpan }: { span: Span; onSpan: (s: Span) => void }
 
 const GRAPHS: { graph: Graph; label: string; tip: string }[] = [
   { graph: "spectrum", label: "SPECTRUM", tip: "Spectrum of L + R: 1/6 octave, tilted +4.5 dB per octave, with peaks" },
-  { graph: "spectrogram", label: "SPECTROGRAM", tip: "Spectrogram of L + R over the waveform span, with beat lines" },
+  { graph: "spectrogram", label: "SPECTROGRAM", tip: "Spectrogram of L + R, scrolling over the waveform span" },
 ];
 
 function GraphButtons({ graph, onGraph }: { graph: Graph; onGraph: (g: Graph) => void }) {

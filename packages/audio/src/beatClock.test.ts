@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clockBpm, clockStep, isBar, newBeatClock, steadyBpm, type BeatClock } from "./beatClock";
+import { clockBpm, clockStep, newBeatClock, steadyBpm, type BeatClock } from "./beatClock";
 
 const TICK_MS = 60_000 / 120 / 24; // 120 BPM
 
@@ -9,15 +9,6 @@ function play(c: BeatClock, clocks: number, from: number): BeatClock {
 }
 
 describe("beatClock", () => {
-  it("marks a beat every 24 clocks from Start, bars every 4 beats", () => {
-    let c = clockStep(newBeatClock(), 0xfa, 0);
-    c = play(c, 24 * 5, 0);
-    expect(c.beats.map((b) => b.beat)).toEqual([0, 1, 2, 3, 4]);
-    expect(c.beats.filter(isBar).map((b) => b.beat)).toEqual([0, 4]);
-    expect(c.beats[1]!.at).toBeCloseTo(500);
-    expect(c.fromStart).toBe(true);
-  });
-
   it("reads the tempo, and none once the clock stops arriving", () => {
     const c = play(clockStep(newBeatClock(), 0xfa, 0), 48, 0);
     const last = 47 * TICK_MS;
@@ -33,26 +24,22 @@ describe("beatClock", () => {
     expect(Math.abs(bpm - 120)).toBeLessThan(0.15);
   });
 
-  it("keeps the shown tempo through small changes and follows real ones", () => {
+  it("keeps the shown tempo on the edge between tenths and follows real changes", () => {
     expect(steadyBpm(undefined, 119.96)).toBe(120);
-    expect(steadyBpm(120, 120.2)).toBe(120);
-    expect(steadyBpm(120, 119.8)).toBe(120);
+    expect(steadyBpm(120, 120.051)).toBe(120); // on the edge: no flicker to 120.1
+    expect(steadyBpm(120, 119.948)).toBe(120);
+    expect(steadyBpm(165.2, 165.0)).toBe(165); // never stuck a tenth or more off
     expect(steadyBpm(120, 121.04)).toBe(121);
     expect(steadyBpm(120, undefined)).toBeUndefined();
   });
 
-  it("counts from the first clock when it never saw Start, and Stop / Continue keep the count", () => {
+  it("Start reads the tempo afresh; Stop and Continue keep it", () => {
     let c = play(newBeatClock(), 30, 0);
-    expect(c.fromStart).toBe(false);
     c = clockStep(c, 0xfc, 1000);
     expect(c.running).toBe(false);
     c = clockStep(c, 0xfb, 1100);
     expect(c.running).toBe(true);
-    expect(c.clocks).toBe(30);
-  });
-
-  it("drops beats older than 30 s", () => {
-    const c = play(clockStep(newBeatClock(), 0xfa, 0), 24 * 70, 0); // 35 s at 120 BPM
-    expect(c.beats[0]!.at).toBeGreaterThanOrEqual(c.lastAt! - 30_000);
+    expect(c.recent).toHaveLength(30);
+    expect(clockStep(c, 0xfa, 1200).recent).toEqual([]);
   });
 });

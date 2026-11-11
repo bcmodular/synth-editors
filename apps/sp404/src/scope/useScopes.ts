@@ -58,14 +58,14 @@ export function useScopes(audio: ScopeAudio, clockIn: ClockIn) {
   useFrames(() => {
     const s = state.current;
     const l = audio.listening.current;
-    const clock = clockIn.clock.current;
-    const bpm = (bpmShown.current = steadyBpm(bpmShown.current, clockBpm(clock, performance.now())));
+    const reading = clockBpm(clockIn.clock.current, performance.now());
+    const bpm = (bpmShown.current = steadyBpm(bpmShown.current, reading));
     if (l) advanceScope(s, l, { ...sizesOf(parts.current), span: spanNow.current, bpm });
     const root = parts.current.meter;
     if (!root) return;
     const p = paletteFor(root);
     paintMeter(s, parts.current, p);
-    paintScope(s, parts.current, p, { clock, bpm, clockInput: clockIn.inputName, listening: l });
+    paintScope(s, parts.current, p, { bpm, clockInput: clockIn.inputName });
   });
 
   // A ref callback per part, made once.

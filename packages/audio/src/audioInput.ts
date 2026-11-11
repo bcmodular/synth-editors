@@ -25,8 +25,6 @@ export interface Listening {
   spectrum?(into: Float32Array): void;
   // The same for the spectrogram, unsmoothed, when opened with `spectrogramSize`.
   spectrogram?(into: Float32Array): void;
-  // Seconds on the audio clock for a performance.now() time in ms (MIDI timestamps).
-  audioTimeOf(performanceMs: number): number;
   stop(): void;
 }
 
@@ -132,15 +130,6 @@ function buildGraph(ctx: AudioContext, stream: MediaStream, opts: ListenOptions)
   return { pair, spectrum, spectrogram };
 }
 
-// Audio-clock seconds for a performance.now() time, from the context's own pairing of the two clocks.
-function audioClock(ctx: AudioContext) {
-  return (performanceMs: number) => {
-    const t = ctx.getOutputTimestamp?.();
-    if (!t?.contextTime || !t.performanceTime) return ctx.currentTime + (performanceMs - performance.now()) / 1000;
-    return t.contextTime + (performanceMs - t.performanceTime) / 1000;
-  };
-}
-
 export async function listen(input: AudioInput, opts: ListenOptions = {}): Promise<Listening> {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: { deviceId: { exact: input.id }, channelCount: { ideal: 2 }, ...RAW },
@@ -160,7 +149,6 @@ export async function listen(input: AudioInput, opts: ListenOptions = {}): Promi
     },
     spectrum: reader(spectrum),
     spectrogram: reader(spectrogram),
-    audioTimeOf: audioClock(ctx),
     stop: () => {
       stream.getTracks().forEach((t) => t.stop());
       void ctx.close();

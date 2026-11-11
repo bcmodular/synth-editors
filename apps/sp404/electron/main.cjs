@@ -3,6 +3,7 @@
 const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
 const fsp = require("node:fs/promises");
 const path = require("node:path");
+const { keepWindowState, loadWindowState } = require("./windowState.cjs");
 
 const PERMISSIONS = new Set(["midi", "midiSysex", "serial"]);
 // The SP-404 MK2's vendor serial port. Electron reports USB ids as strings; accept hex or decimal.
@@ -17,14 +18,17 @@ let win = null;
 let captureFile = null;
 
 function createWindow() {
+  const remember = !NO_REAL_SERIAL; // the tests leave the user's window position alone
+  const { maximized, ...bounds } = loadWindowState(remember);
   win = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    ...bounds,
     title: "SP-404 MK2 Editor",
     backgroundColor: "#121214",
     autoHideMenuBar: process.platform !== "darwin",
     webPreferences: { preload: path.join(__dirname, "preload.cjs") },
   });
+  if (maximized) win.maximize();
+  keepWindowState(win, remember);
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   if (devUrl) win.loadURL(devUrl);
   else win.loadFile(path.join(__dirname, "..", "dist", "index.html"));

@@ -95,9 +95,9 @@ test("lights the sounding pad and shades the selected one", async () => {
   const r = (running = await start());
   await control(r.page, "select", 0, 1, 0x3000);
   await expect(strip(r, "A2")).toHaveClass(/sel/);
-  await expect(strip(r, "A2")).toHaveClass(/play/);
+  await expect(strip(r, "A2").locator(".wpad")).toHaveClass(/lit/);
   await control(r.page, "select", 0, 1);
-  await expect(strip(r, "A2")).not.toHaveClass(/play/);
+  await expect(strip(r, "A2").locator(".wpad")).not.toHaveClass(/lit/, { timeout: 3000 });
   await expect(strip(r, "A2")).toHaveClass(/sel/);
 });
 

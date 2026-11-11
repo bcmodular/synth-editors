@@ -272,7 +272,8 @@ implement from their notes only and copy none of their code.**
   been saved keeps a rename only while it's current.
 - Status: poll `FE 66 00` every 500 ms. The reply gives the project, the selected bank and pad, and the frame
   count of the pad that's sounding (`FFFFFFFF` when none). The sounding pad is the selected one (hitting a pad
-  selects it), so the strip light follows it; a pad still ringing after another is hit isn't reported.
+  selects it), so its pad number lights; a pad still ringing after another is hit isn't reported. (A white line
+  over the strip did the same at first; it was dropped, 2026-11-11, as it came and went with the selection.)
 - Phase 0 uses **Web Serial in the renderer** (Electron grants it and main picks the SP-404's port), which needs
   no native module. If it proves unreliable, move to Node serial in the main process behind a small IPC API.
 

@@ -759,16 +759,6 @@ button.big.on {
   background: #1c1d20;
 }
 
-.ws.play::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 2px;
-  background: #fff;
-}
-
 .ws .wtop {
   display: flex;
   align-items: center;
@@ -1315,7 +1305,7 @@ button.wpad:active {
 .mx-right {
   width: 84px;
   flex: none;
-  background: color-mix(in srgb, var(--cap) 7%, #111113); /* a hint of the accent: it sits over the desk */
+  background: color-mix(in srgb, var(--cap) 16%, #111113); /* a tint of the accent: it sits over the desk */
   border-left: 1px solid var(--edge);
   padding: 8px 8px 10px;
   display: flex;

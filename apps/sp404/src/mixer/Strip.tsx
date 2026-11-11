@@ -146,7 +146,7 @@ export const Strip = memo(function Strip(props: StripProps) {
   const { mix } = pad;
   const label = padLabel(pad.pad);
   return (
-    <div className={`ws ${selected ? "sel" : ""} ${playing ? "play" : ""}`} data-pad={label}
+    <div className={`ws ${selected ? "sel" : ""}`} data-pad={label}
       style={{ ["--bc" as string]: bankColour(pad.pad) }}>
       <div className="wtop">
         <PadNumber pad={pad.pad} playing={playing} hitSeq={hitSeq} held={held} seconds={pad.seconds}

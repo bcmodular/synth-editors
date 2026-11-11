@@ -90,14 +90,18 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
   pitch offsets of the saw, square, and ring + sine oscillators.
 - **VCO MIX**: with **DRAWN** selected, a picture of the mixed waveform, drawn from the settings to
   show the shape of the mix. With **LIVE** selected, the TB-3's actual output: see below.
-- **CROSS MOD**: how much the square, saw and noise sources modulate the saw (left column) and
-  the square (right column). The diagram in the middle shows which paths are active: green for
-  positive amounts, amber for negative ones.
+- **CROSS MOD**: how much the square, saw and noise sources modulate the saw (top group, → SAW) and
+  the square (bottom group, → SQR). The diagram beside each group shows which paths are active: green
+  for positive amounts, amber for negative ones.
 - **RING MOD**: the ring modulator's source depths and overall depth.
 
 ### The TB-3's output, live
 
 ![VCO MIX in LIVE: the last 4 seconds of the TB-3's left and right output, with its level](images/vco-mix-live.png)
+
+![VCO MIX's SPECTRUM: the TB-3's frequencies, with a peak line](images/vco-mix-spectrum.png)
+
+![VCO MIX's SPECTROGRAM: frequencies over the last 4 seconds](images/vco-mix-spectrogram.png)
 
 Click **LIVE** in VCO MIX to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
 so the TB-3 needs to be connected by USB, with Roland's TB-3 driver installed.
@@ -107,7 +111,12 @@ so the TB-3 needs to be connected by USB, with Roland's TB-3 driver installed.
   change the outline, and silence is a flat line. The TB-3's effects make the two sides differ; without
   them they're the same. A wave that reaches further below the centre line than above it is the sound's
   real shape (typical of a resonant filter), not a pan.
-- **The bar under the waveforms** shows how alike the two sides are. Right of centre means alike, and
+- **SPECTRUM** (next to DRAWN and LIVE) shows the sound's frequencies instead, low on the left to high on
+  the right, with a fainter line holding the recent peaks. Filter sweeps, resonance peaks and distortion
+  show here more plainly than in the waveform.
+- **SPECTROGRAM** shows the frequencies over the last 4 seconds: time runs left to right, frequency bottom
+  to top, and brighter colours are louder. Each note is a column; a filter envelope shows as a sweep down.
+- **The bar under the graph** shows how alike the two sides are. Right of centre means alike, and
   all the way right is mono. Left of centre (amber) means the sides are out of phase, which can make
   the sound thin or disappear when played in mono.
 - **The meter** on the right shows the left and right peak levels. The top turns amber above −6 dBFS,
@@ -121,7 +130,7 @@ Privacy & Security → Microphone.
 
 The editor finds the TB-3's audio by itself. If it can't, LIVE says so; choose the input under
 **AUDIO IN (LIVE)** in the MIDI settings. The editor only listens: the TB-3's sound still reaches your
-speakers the way it always has. Whether DRAWN or LIVE is selected is remembered.
+speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIVE graph, is remembered.
 
 ### Filter, amp and LFO
 

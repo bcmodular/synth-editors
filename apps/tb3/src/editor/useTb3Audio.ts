@@ -1,16 +1,19 @@
-// The LIVE waveform's audio (docs/tb3-live-waveform-design.md): DRAWN or LIVE, which input, and the
-// open stream while LIVE is on. The input opens only when LIVE is on, so people who never use it
+// The LIVE view's audio (docs/tb3-live-waveform-design.md): DRAWN or LIVE, which graph LIVE shows, which input,
+// and the open stream while LIVE is on. The input opens only when LIVE is on, so people who never use it
 // never see a microphone prompt.
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { listAudioInputs, listAudioInputsWithNames, listen, pickInput } from "./tb3Audio";
 import type { AudioInput, Listening } from "./tb3Audio";
+import { LISTEN_OPTIONS } from "./liveEngine";
+import type { LiveGraph } from "./liveEngine";
 import { load, save } from "./storage";
 
 export type VcoView = "drawn" | "live";
 export type AudioStatus = { kind: "off" | "starting" } | { kind: "on"; name: string } | { kind: "error"; message: string };
 
 const VIEW_KEY = "tb3.vcoView";
+const GRAPH_KEY = "tb3.liveGraph";
 const INPUT_KEY = "audio.tb3In";
 const NO_INPUT = "No TB-3 audio input: choose one in MIDI settings";
 
@@ -25,7 +28,7 @@ async function open(name: string | null, onInputs: (list: AudioInput[]) => void)
   onInputs(list);
   const input = pickInput(list, name);
   if (!input) throw new Error(NO_INPUT);
-  return listen(input);
+  return listen(input, LISTEN_OPTIONS);
 }
 
 // The computer's audio inputs, kept up to date as devices come and go.
@@ -84,13 +87,15 @@ function useSetting<T extends string>(key: string, read: (v: string | null) => T
 
 const readView = (v: string | null): VcoView => (v === "live" ? "live" : "drawn");
 const readName = (v: string | null) => v ?? "";
+const readGraph = (v: string | null): LiveGraph => (v === "spectrum" || v === "spectrogram" ? v : "wave");
 
 export function useTb3Audio() {
   const [view, setView] = useSetting(VIEW_KEY, readView);
+  const [graph, setGraph] = useSetting(GRAPH_KEY, readGraph);
   const [inputName, chooseInput] = useSetting(INPUT_KEY, readName);
   const { inputs, setInputs } = useAudioInputs();
   const { status, listening } = useListening(view === "live", inputName || null, setInputs);
-  return { view, setView, inputs, inputName, chooseInput, status, listening };
+  return { view, setView, graph, setGraph, inputs, inputName, chooseInput, status, listening };
 }
 
 export type Tb3Audio = ReturnType<typeof useTb3Audio>;

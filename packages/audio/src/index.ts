@@ -6,5 +6,7 @@ export * from "./levelMeter";
 export * from "./liveDraw";
 export * from "./loudness";
 export * from "./spectrogram";
+export * from "./spectrumDraw";
+export * from "./spectrumTrace";
 export * from "./spectrumView";
 export * from "./waveColumns";

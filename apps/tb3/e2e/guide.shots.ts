@@ -271,7 +271,7 @@ function fakeTb3Audio() {
   navigator.mediaDevices.getUserMedia = async () => out.stream;
 }
 
-// VCO MIX's LIVE view on the stand-in audio above.
+// VCO MIX's LIVE view on the stand-in audio above: the waveforms, spectrum and spectrogram.
 async function shootLive(page: Page) {
   const vcoMix = page.locator(".vcosum");
   await page.evaluate(fakeTb3Audio);
@@ -279,6 +279,13 @@ async function shootLive(page: Page) {
   await expect(vcoMix.locator(".livestatus")).toHaveCount(0);
   await page.waitForTimeout(4200); // fill the panel
   await shot(page, "vco-mix-live", [vcoMix]);
+  await vcoMix.getByRole("button", { name: "SPECTRUM" }).click();
+  await page.waitForTimeout(1500);
+  await shot(page, "vco-mix-spectrum", [vcoMix]);
+  await vcoMix.getByRole("button", { name: "SPECTROGRAM" }).click();
+  await page.waitForTimeout(4200);
+  await shot(page, "vco-mix-spectrogram", [vcoMix]);
+  await vcoMix.getByRole("button", { name: "WAVE" }).click();
   await vcoMix.getByRole("button", { name: "DRAWN" }).click();
 }
 

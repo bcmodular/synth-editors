@@ -9,10 +9,12 @@ import { EnvelopeEditor } from "../ui/EnvelopeEditor";
 import type { Stage } from "../ui/EnvelopeEditor";
 import { HFader } from "../ui/Fader";
 import { Section, Segmented, Stepper } from "../ui/controls";
+import type { SegOption } from "../ui/controls";
 import { WaveView } from "../ui/WaveView";
 import { XmodMatrix } from "../ui/XmodMatrix";
 import { useEditor } from "./EditorContext";
 import { LiveWave } from "./LiveWave";
+import type { LiveGraph } from "./liveEngine";
 import type { Tb3Audio } from "./useTb3Audio";
 import { Assignable, ParamH, ParamLed, ParamV, useParam } from "./Param";
 
@@ -46,19 +48,32 @@ const raw = (patch: Patch, id: string) => getRaw(patch, paramById(id));
 const level = (patch: Patch, id: string, sw: string) => (raw(patch, sw) ? raw(patch, id) : 0);
 const offset = (patch: Patch, id: string) => raw(patch, id) - (paramById(id).center ?? 0);
 
-// DRAWN: the mix pictured from the settings. LIVE: the TB-3's actual output.
+// DRAWN: the mix pictured from the settings. LIVE: the TB-3's actual output, as a waveform, spectrum or spectrogram.
+const VIEWS: SegOption[] = [
+  { label: "DRAWN", value: 0 },
+  { label: "LIVE", value: 1 },
+];
+const GRAPHS: readonly LiveGraph[] = ["wave", "spectrum", "spectrogram"];
+const GRAPH_OPTIONS: SegOption[] = GRAPHS.map((g, i) => ({ label: g.toUpperCase(), value: i }));
+
 function ViewSwitch(p: { audio: Tb3Audio }) {
+  const live = p.audio.view === "live";
   return (
-    <Segmented
-      options={[
-        { label: "DRAWN", value: 0 },
-        { label: "LIVE", value: 1 },
-      ]}
-      value={p.audio.view === "live" ? 1 : 0}
-      onChange={(v) => p.audio.setView(v ? "live" : "drawn")}
-    />
+    <>
+      {live && (
+        <Segmented
+          options={GRAPH_OPTIONS}
+          value={GRAPHS.indexOf(p.audio.graph)}
+          onChange={(i) => p.audio.setGraph(GRAPHS[i]!)}
+        />
+      )}
+      <Segmented options={VIEWS} value={live ? 1 : 0} onChange={(v) => p.audio.setView(v ? "live" : "drawn")} />
+    </>
   );
 }
+
+const MIX_W = 640;
+const MIX_H = 236;
 
 export function VcoSumSection(p: { audio: Tb3Audio }) {
   const { patch } = useEditor();
@@ -78,9 +93,9 @@ export function VcoSumSection(p: { audio: Tb3Audio }) {
   return (
     <Section title="VCO MIX" className="vcosum" extra={<ViewSwitch audio={p.audio} />}>
       {p.audio.view === "live" ? (
-        <LiveWave audio={p.audio} width={370} height={236} />
+        <LiveWave audio={p.audio} width={MIX_W} height={MIX_H} />
       ) : (
-        <WaveView ys={ys} width={370} height={236} />
+        <WaveView ys={ys} width={MIX_W} height={MIX_H} />
       )}
     </Section>
   );

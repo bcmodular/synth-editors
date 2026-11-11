@@ -18,6 +18,11 @@ actually playing, next to the picture it draws from the settings.
   300 ms. Right of centre is alike, +1 mono; amber left of centre is out of phase.
 - **Span**: 4 s across the panel (about 11 ms per column at its width). Fixed at first; a TIME control can come
   later if 4 s turns out wrong.
+- **Spectrum and spectrogram**: a WAVE / SPECTRUM / SPECTROGRAM switch beside DRAWN / LIVE swaps the lanes for
+  the SP-404 scopes' spectrum (L + R, 1/6-octave smoothed on a log axis, with a falling peak line) or spectrogram
+  (the last 4 s, frequency up, level as colour), drawn by the shared `packages/audio` code. The correlation bar and
+  meter stay. The choice is remembered. The waveforms keep filling while hidden, so switching back shows the last
+  4 s; the spectrum and spectrogram only run while shown.
 - **Level meter**: two thin bars, L and R, down the right edge of the panel, scaled −48 to 0 dBFS:
   - The bar is the peak level, with an instant rise and a fall of 24 dB a second, so it's readable.
   - A peak-hold tick stays at the highest level for 1.5 s.
@@ -36,7 +41,7 @@ actually playing, next to the picture it draws from the settings.
   microphone).
 - If there's no audio input, or permission is refused, LIVE shows why in the panel (e.g. "No TB-3 audio input:
   choose one in MIDI settings") and DRAWN still works.
-- DRAWN or LIVE is remembered, and LIVE reopens the input at launch.
+- DRAWN or LIVE and the LIVE graph are remembered, and LIVE reopens the input at launch.
 
 ## How it works
 

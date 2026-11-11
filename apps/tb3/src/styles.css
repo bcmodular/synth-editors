@@ -76,7 +76,7 @@ select {
   grid-template-columns: 230px 300px 260px 1fr;
 }
 .osc {
-  grid-template-columns: 300px 370px 520px 1fr;
+  grid-template-columns: 300px 640px 250px 1fr;
 }
 .shape {
   grid-template-columns: 530px 530px 1fr;
@@ -412,6 +412,19 @@ select {
 }
 .xd {
   text-align: center;
+}
+.xstack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.xgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.xgroup .xd {
+  width: 110px;
 }
 .hf.cell {
   height: 24px;

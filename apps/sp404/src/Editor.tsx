@@ -89,7 +89,7 @@ export function Editor() {
         <MeterColumn scopes={scope.scopes} status={scope.audio.status} />
       </div>
       {settingsOpen && (
-        <SettingsPanel settings={settings} midiInput={midiHits.inputName} scope={scope} onChange={setSettings}
+        <SettingsPanel settings={settings} midiInput={midiHits.inputName} scope={scope} fx={fx} onChange={setSettings}
           onClose={() => setSettingsOpen(false)} />
       )}
     </div>

@@ -4,6 +4,8 @@
 import { useRef } from "react";
 import { noteName, padNote, type MidiMode, type PadMidiSettings } from "../core/padNotes";
 import type { ScopeSet } from "../scope/useScopeSet";
+import type { Fx } from "../fx/useFx";
+import { LibraryFields } from "./LibraryFields";
 import { useDismiss } from "../ui/useDismiss";
 import { BASE_CHANNEL_RANGE, NOTE_OFFSET_RANGE, type Settings } from "./useSettings";
 
@@ -11,6 +13,7 @@ export interface SettingsPanelProps {
   settings: Settings;
   midiInput?: string;
   scope: ScopeSet;
+  fx: Fx;
   onChange: (s: Settings) => void;
   onClose: () => void;
 }
@@ -112,7 +115,7 @@ function ScopeFields({ settings, scope, onChange }: Pick<SettingsPanelProps, "se
   );
 }
 
-export function SettingsPanel({ settings, midiInput, scope, onChange, onClose }: SettingsPanelProps) {
+export function SettingsPanel({ settings, midiInput, scope, fx, onChange, onClose }: SettingsPanelProps) {
   const panel = useRef<HTMLDivElement>(null);
   useDismiss(panel, onClose);
   const midi = settings.padMidi;
@@ -127,6 +130,7 @@ export function SettingsPanel({ settings, midiInput, scope, onChange, onClose }:
       <ModeButtons mode={midi.mode} onMode={(mode) => set({ mode })} />
       <ModeBFields midi={midi} set={set} />
       <div className="note">{bankASummary(midi)}</div>
+      <LibraryFields fx={fx} />
       <div className="lbl">FX</div>
       <div className="note">
         On BUS 1 and 2, effects 1–5 are the SP-404's Direct FX slots. The app assumes they hold the factory effects

@@ -43,8 +43,11 @@ export function effectChangeMessages(bus: Bus, state: BusFx): MidiMessage[] {
   return [controlChange(bus, CC_FX_SELECT, select), fxOnMessage(bus, state.on), ...knobMessages(bus, state, () => true)];
 }
 
+const cleared = (prev: BusFx | undefined, next: BusFx) => next.fxId === 0 && Boolean(prev?.fxId);
+
 // The fewest messages that take the device from `prev` to `next` (prev undefined = unknown, send all).
 export function busDiffMessages(bus: Bus, prev: BusFx | undefined, next: BusFx): MidiMessage[] {
+  if (cleared(prev, next)) return [fxOnMessage(bus, false)]; // a bus with no effect is switched off
   if (!prev || prev.fxId !== next.fxId) return effectChangeMessages(bus, next);
   const on = prev.on === next.on ? [] : [fxOnMessage(bus, next.on)];
   return [...on, ...knobMessages(bus, next, (i) => prev.values[i] !== next.values[i])];

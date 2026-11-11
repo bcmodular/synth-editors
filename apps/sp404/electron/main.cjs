@@ -1,8 +1,10 @@
-// Electron main process for the SP-404 MK2 editor: one window, Web MIDI, Web Serial and audio input
-// granted to our own page, and a capture log the page appends to (exposed by preload.cjs).
+// Electron main process for the SP-404 MK2 editor: one window (its position remembered), Web MIDI, Web Serial and
+// audio input granted to our own page, the FX library file, and a capture log the page appends to (exposed by
+// preload.cjs).
 const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
 const fsp = require("node:fs/promises");
 const path = require("node:path");
+const { registerLibraryIpc } = require("./library.cjs");
 const { keepWindowState, loadWindowState } = require("./windowState.cjs");
 
 const PERMISSIONS = new Set(["midi", "midiSysex", "serial"]);
@@ -77,6 +79,7 @@ app.whenReady().then(() => {
   );
   registerSerialChooser();
   registerCaptureIpc();
+  registerLibraryIpc(() => win);
   createWindow();
 });
 

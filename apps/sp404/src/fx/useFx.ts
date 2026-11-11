@@ -1,46 +1,41 @@
-// The FX buses for the editor: state (kept between runs), and every change sent to the SP-404 as the fewest MIDI
-// messages (a new effect sends its whole block; a knob sends one CC). Nothing comes back from the device, so
-// RESEND pushes every bus again (after the SP-404 has been switched off, say).
+// The FX buses for the editor (docs/sp404-design.md › FX): the state and its MIDI (useFxStore), the library's playing
+// modes (useFxPlay), and the plain edits: choosing an effect, a parameter, ON/OFF, Exclude tuning. Nothing comes back
+// from the device, so RESEND pushes every bus again (after the SP-404 has been switched off, say).
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { BUSES, type Bus, type FxId } from "../core/fxTypes";
-import { busDiffMessages, effectChangeMessages } from "../core/midi";
-import { MidiSender } from "./midiSender";
-import { choose, readFxState, setParam, toggleOn, type FxState } from "./fxState";
-import { useMidiOut } from "./useMidiOut";
-
-const KEY = "sp404.fx";
+import { effectChangeMessages } from "../core/midi";
+import { setExclude } from "./fxLibrary";
+import { choose, readFxState, setParam, toggleOn } from "./fxState";
+import { useFxPlay } from "./useFxPlay";
+import { useFxStore } from "./useFxStore";
 
 export function useFx() {
-  const output = useMidiOut();
-  const [state, setState] = useState<FxState>(() => readFxState(localStorage.getItem(KEY)));
-  const current = useRef(state);
-  const sender = useRef<MidiSender | null>(null);
+  const store = useFxStore();
+  const play = useFxPlay(store);
+  const { apply } = store;
 
-  useEffect(() => {
-    sender.current = output ? new MidiSender((m) => output.send(m)) : null;
-    return () => sender.current?.stop();
-  }, [output]);
-
-  const apply = useCallback((bus: Bus, change: (s: FxState) => FxState) => {
-    const before = current.current;
-    const after = change(before);
-    if (after === before) return;
-    current.current = after;
-    setState(after);
-    localStorage.setItem(KEY, JSON.stringify(after));
-    sender.current?.send(busDiffMessages(bus, before.buses[bus], after.buses[bus]));
-  }, []);
-
-  const chooseEffect = useCallback((bus: Bus, fxId: FxId) => apply(bus, (s) => choose(s, bus, fxId)), [apply]);
+  const chooseEffect = useCallback((bus: Bus, fxId: FxId) => {
+    play.endMorph(bus); // a morph's target is a preset of the old effect
+    apply((s) => choose(s, bus, fxId));
+  }, [apply, play]);
   const setValue = useCallback((bus: Bus, index: number, raw: number) =>
-    apply(bus, (s) => setParam(s, bus, index, raw)), [apply]);
-  const toggle = useCallback((bus: Bus) => apply(bus, (s) => toggleOn(s, bus)), [apply]);
+    apply((s) => setParam(s, bus, index, raw)), [apply]);
+  const toggle = useCallback((bus: Bus) => apply((s) => toggleOn(s, bus)), [apply]);
+  const toggleExclude = useCallback((bus: Bus) => apply((s) => setExclude(s, bus, !s.exclude[bus])), [apply]);
   const resendAll = useCallback(() => {
-    for (const bus of BUSES) sender.current?.send(effectChangeMessages(bus, current.current.buses[bus]));
-  }, []);
+    for (const bus of BUSES) store.send(effectChangeMessages(bus, store.current.current.buses[bus]));
+  }, [store]);
+  // Replace the library from an imported file's text; the buses keep what they're playing.
+  const importJson = useCallback((json: string) => {
+    const imported = readFxState(json);
+    store.replace({ ...imported, buses: store.current.current.buses });
+  }, [store]);
 
-  return { buses: state.buses, outputName: output?.name ?? undefined, chooseEffect, setValue, toggle, resendAll };
+  return {
+    state: store.state, buses: store.state.buses, outputName: store.outputName, play, chooseEffect, setValue, toggle,
+    toggleExclude, resendAll, importJson,
+  };
 }
 
 export type Fx = ReturnType<typeof useFx>;

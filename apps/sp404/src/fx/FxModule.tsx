@@ -1,14 +1,16 @@
-// One FX bus module (358 × 520): bus number, the effect's name on an LCD (click to choose), ON/OFF; the effect's
-// view and controls; the preset column (Phase 4) and morph (Phase 4).
+// One FX bus module (358 × 520): bus number (in DEL mode, click to clear the bus), the effect's name on an LCD (click
+// to choose), ON/OFF; the effect's view and controls; the preset column and the morph row.
 
 import { useRef, useState } from "react";
 import { effectById, effectsForBus } from "../core/fx";
 import type { Bus, FxDef, FxId } from "../core/fxTypes";
-import type { BusFx } from "../core/midi";
 import { useDismiss } from "../ui/useDismiss";
 import { FX_LAYOUT } from "./fxLayout";
 import { FxControls } from "./FxControls";
 import { FxView } from "./FxView";
+import { MorphRow } from "./MorphRow";
+import { PresetColumn } from "./PresetColumn";
+import type { Fx } from "./useFx";
 import { VIEWS } from "./views";
 
 export const BUS_ACCENT: Record<Bus, string> = { 1: "#ff8a2a", 2: "#3ddc5a", 3: "#4aa3ff", 4: "#4aa3ff", 5: "#d8a2ff" };
@@ -17,10 +19,7 @@ const BUS_NUMBER: Record<Bus, string> = { 1: "1", 2: "2", 3: "3", 4: "4", 5: "IN
 
 export interface FxModuleProps {
   bus: Bus;
-  state: BusFx;
-  onChoose: (bus: Bus, fxId: FxId) => void;
-  onValue: (bus: Bus, index: number, raw: number) => void;
-  onToggle: (bus: Bus) => void;
+  fx: Fx;
 }
 
 // The effects this bus can load, by category, in the designs' order.
@@ -52,47 +51,48 @@ function Chooser({ bus, current, onPick, onClose }: { bus: Bus; current: FxId; o
   );
 }
 
-function PresetColumn() {
+// The bus number: in DEL mode it clears the bus (unloads its effect).
+function BusNumber({ bus, fx }: { bus: Bus; fx: Fx }) {
+  const clearing = fx.play.mode === "delete";
   return (
-    <div className="pcol" title="Presets, defaults, GRAB and LOCK arrive with the library (Phase 4)">
-      <span className="lbl">PRESETS</span>
-      <div className="presets">{Array.from({ length: 8 }, (_, i) => <span key={i}>{i + 1}</span>)}</div>
-      <span className="btn dis">DEF</span>
-      <span className="btn dis">GRAB</span>
-      <span className="btn dis">LOCK</span>
-    </div>
+    <button className={`num ${clearing ? "clear" : ""}`} disabled={!clearing} onClick={() => fx.play.pressBus(bus)}
+      aria-label={clearing ? `Clear ${BUS_LABEL[bus]}` : BUS_LABEL[bus]} title={clearing ? "Clear this bus" : undefined}>
+      {BUS_NUMBER[bus]}
+    </button>
   );
 }
 
-export function FxModule({ bus, state, onChoose, onValue, onToggle }: FxModuleProps) {
+export function FxModule({ bus, fx: lib }: FxModuleProps) {
   const [choosing, setChoosing] = useState(false);
+  const state = lib.buses[bus];
   const fx = effectById(state.fxId);
+  const onValue = (i: number, raw: number) => lib.setValue(bus, i, raw);
   return (
-    <div className="bus" style={{ ["--acc" as string]: BUS_ACCENT[bus] }} data-bus={bus}>
+    <div className={`bus ${lib.play.locks.has(bus) ? "locked" : ""}`} style={{ ["--acc" as string]: BUS_ACCENT[bus] }}
+      data-bus={bus}>
       <div className="hd">
-        <div className="num">{BUS_NUMBER[bus]}</div>
+        <BusNumber bus={bus} fx={lib} />
         <button className="name" aria-label={`${BUS_LABEL[bus]} effect`} onClick={() => setChoosing(true)}>
           {fx ? fx.name.toUpperCase() : "CHOOSE AN EFFECT"}
         </button>
         <button className={`ring ${state.on ? "" : "off"}`} disabled={!fx} aria-pressed={state.on}
-          aria-label={`${BUS_LABEL[bus]} on`} onClick={() => onToggle(bus)}>
+          aria-label={`${BUS_LABEL[bus]} on`} onClick={() => lib.toggle(bus)}>
           {state.on ? "ON" : "OFF"}
         </button>
       </div>
       <div className="lbl">{BUS_LABEL[bus]}</div>
       <div className="body">
         <div className="mcol">
-          <FxView fx={fx} values={state.values} onValue={(i, raw) => onValue(bus, i, raw)} />
-          {fx && <FxControls fx={fx} values={state.values} hasView={VIEWS[fx.id] !== undefined}
-            onValue={(i, raw) => onValue(bus, i, raw)} />}
+          <FxView fx={fx} values={state.values} onValue={onValue} />
+          {fx && <FxControls fx={fx} values={state.values} hasView={VIEWS[fx.id] !== undefined} onValue={onValue} />}
         </div>
-        <PresetColumn />
+        <PresetColumn bus={bus} fx={lib} />
       </div>
-      <div className="morph dis"><span className="lbl">MORPH</span><div className="tr" /><span className="exp">EXP</span></div>
+      <MorphRow bus={bus} fx={lib} />
       {choosing && (
         <Chooser bus={bus} current={state.fxId} onClose={() => setChoosing(false)}
           onPick={(id) => {
-            onChoose(bus, id);
+            lib.chooseEffect(bus, id);
             setChoosing(false);
           }} />
       )}

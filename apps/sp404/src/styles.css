@@ -166,8 +166,17 @@ select {
   display: grid;
   place-items: center;
   border: 1px solid var(--rule);
+  background: none;
+  font: inherit;
   font-size: 13px;
   color: #fff;
+  padding: 0;
+}
+
+.bus .num.clear {
+  border-color: var(--mute);
+  color: var(--mute);
+  cursor: pointer;
 }
 
 .bus .name {
@@ -462,15 +471,71 @@ button.big.on {
   flex: 1;
 }
 
-.presets span {
+/* Preset slots and scenes: empty is dark, stored is lit in the accent's outline, the one the values match ("on")
+   is filled; STORE and DEL modes outline what a press would change. */
+.presets button,
+.fxrow .scenes button {
   flex: 1;
+  min-height: 0;
   background: #26272b;
   border: 1px solid #000;
   border-radius: 2px;
+  font: inherit;
   font-size: 12px;
   color: #555;
   display: grid;
   place-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.presets button.stored,
+.fxrow .scenes button.stored {
+  color: #e8e8ea;
+  background: #303136;
+  border-color: color-mix(in srgb, var(--acc, var(--cap)) 70%, #000);
+}
+
+.presets button.on,
+.fxrow .scenes button.on {
+  background: var(--acc, var(--cap));
+  border-color: var(--acc, var(--cap));
+  color: #000;
+}
+
+.presets button.target {
+  outline: 2px dashed #d8a2ff;
+  outline-offset: -3px;
+}
+
+.mode-store .presets button,
+.fxrow .scenes.mode-store button {
+  border-color: var(--cap);
+}
+
+.mode-delete .presets button.stored,
+.fxrow .scenes.mode-delete button.stored {
+  border-color: var(--mute);
+  color: var(--mute);
+}
+
+.pcol.nofx .presets button {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.pcol .btn.def.stored {
+  color: #e8e8ea;
+}
+
+.pcol .btn.lock.on {
+  background: var(--mute);
+  border-color: var(--mute);
+  color: #000;
+}
+
+.bus.locked .hd .name {
+  box-shadow: inset 0 0 0 1px var(--mute);
 }
 
 .dis {
@@ -486,17 +551,54 @@ button.big.on {
 
 .morph .tr {
   flex: 1;
-  height: 8px;
+  height: 10px;
   background: var(--well);
   border: 1px solid var(--edge);
+  position: relative;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.morph .tr.dis {
+  cursor: default;
+}
+
+.morph .tr .fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #d8a2ff;
+}
+
+.morph.on .tr {
+  border-color: #d8a2ff;
 }
 
 .exp {
+  font: inherit;
   font-size: 9px;
   color: #d8a2ff;
+  background: none;
   border: 1px solid #d8a2ff;
   padding: 0 3px;
   letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.exp.on {
+  background: #d8a2ff;
+  color: #000;
+}
+
+.exp:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.morph .keep {
+  font-size: 9px;
+  padding: 1px 4px;
 }
 
 .fxrow .side {
@@ -524,14 +626,38 @@ button.big.on {
   gap: 4px;
 }
 
-.fxrow .scenes span {
-  background: #26272b;
-  border: 1px solid #000;
-  border-radius: 2px;
+.fxrow .scenes button {
   font-size: 14px;
-  color: var(--dim);
-  display: grid;
-  place-items: center;
+}
+
+.settings .libbtns {
+  display: flex;
+  gap: 6px;
+}
+
+.settings .libbtns .btn {
+  flex: 1;
+}
+
+.fxrow .modes {
+  display: flex;
+  gap: 4px;
+}
+
+.fxrow .modes .btn {
+  flex: 1;
+}
+
+.fxrow .modes .btn.store.on {
+  background: var(--cap);
+  border-color: var(--cap);
+  color: #000;
+}
+
+.fxrow .modes .btn.del.on {
+  background: var(--mute);
+  border-color: var(--mute);
+  color: #000;
 }
 
 .chooser {

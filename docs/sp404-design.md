@@ -45,6 +45,39 @@ levels (the SP-404 has no MIDI or serial control for them). The BCR2000 is dropp
 
 These match the TouchOSC version's behaviour, including the lock rules.
 
+#### Playing the library in the app (built 2026-11-11, Phase 4)
+
+- **Preset slot**: empty → press to store; stored → press to recall (Exclude tuning respected). A stored slot is
+  outlined in the bus colour; the slot whose values the bus matches right now is filled ("on"), so editing a knob
+  turns it off.
+- **STORE** and **DEL** under the FX scenes are global modes that stay on until pressed again. STORE: a press stores
+  over a stored preset or scene, and DEF stores the effect's defaults. DEL: a press deletes a stored preset or
+  scene, and the bus number (its badge turns red) clears the bus (unloads the effect and switches it off, keeping
+  its values in the recent list).
+- **DEF**: recalls the effect's stored defaults, else its starting values (DEF reads brighter once defaults exist).
+- **GRAB** (per module): while on, holding a stored preset plays it and letting go puts the bus back. Shift held
+  does the same without GRAB, and Shift-hold on a scene previews the scene.
+- **LOCK** (per module, remembered between runs, not in the library file): red; the LCD gets a red edge.
+- **Morph**: EXP turns it on; pressing a stored preset makes it the target (dashed outline) and the blend starts
+  from the bus's values at that moment; the track (drag or wheel, 0–100) sets the amount. EXP again turns morph
+  off and keeps the blend. Choosing another effect or clearing the bus ends the morph.
+- **KEEP TUNING** in the morph row (only for effects with tuning parameters) is Exclude tuning.
+- **FX scenes**: empty → press to store all five buses; stored → press to recall (locked buses stay as they are);
+  the scene every bus matches is filled.
+
+#### FX library file
+
+- One JSON file, `fx-library.json` in the app's user data folder (`~/Library/Application Support/@synth-editors/
+  sp404/` on the Mac), written whole a moment after each change (temp file, then renamed). It holds the buses,
+  each bus's presets, defaults and recent values, Exclude tuning and the 16 scenes, marked
+  `{"kind": "sp404-fx-library", "version": 1}`. The first run reads the old localStorage state and moves it to the
+  file.
+- Settings › FX LIBRARY: where it is, **EXPORT…** (a copy, through the save dialog), **IMPORT…** (replaces the
+  library after asking; the buses keep what they're playing; a file that isn't an FX library is refused) and
+  **SHOW FILE**.
+- To talk about: several library files (sets) to switch between, recent files, and whether an import should load
+  the buses too (TouchOSC's did, with every bus off).
+
 ### Pad mixer
 
 - One strip per loaded pad. Empty pads are hidden. Strips are grouped by bank, each group ending in a
@@ -398,11 +431,12 @@ Windows the SP-404 needs Roland's driver for USB audio.
 
 Same approach as the TB-3 app: JSON files with a version field, autosave, no `.tosc` import.
 
-- **FX library**: presets, defaults, recent values and FX scenes for all buses, plus Exclude tuning per bus.
+- **FX library**: presets, defaults, recent values and FX scenes for all buses, plus Exclude tuning per bus. Built:
+  see FX › FX library file.
 - **Mix scenes**: one file per SP-404 project, keyed by project number.
 - **Settings**: ports, MIDI mode and note offset, Direct FX assumption, Launchpad brightness, CC learn assignments.
 
-Lock state isn't saved (as in TouchOSC).
+Lock state isn't in the library file (as in TouchOSC); the app remembers it between runs on its own.
 
 ## Open risks
 
@@ -494,6 +528,10 @@ DEF, GRAB, LOCK, morph and FX scenes are drawn but wait for Phase 4. Not yet che
 - The 46 effect views, in category order, each with an e2e test against a fake SP-404 MIDI port.
 
 ### Phase 4 — Library
+Status (2026-11-11): built (see FX › Playing the library and FX library file): `fx/fxLibrary.ts` and `fx/fxMorph.ts`
+(pure, on `core/fxModel.ts`), `fx/useFxStore.ts` (state, MIDI, autosave), `fx/useFxPlay.ts` (modes and presses),
+`fx/PresetColumn.tsx`, `fx/MorphRow.tsx`, the scenes in `fx/FxRow.tsx`, `electron/library.cjs`, Settings › FX
+LIBRARY. e2e in `e2e/library.e2e.ts`. Not yet tried on the device.
 - Presets, defaults, recent values, FX scenes, GRAB, LOCK, morph; files with autosave.
 
 ### Phase 5 — Controllers

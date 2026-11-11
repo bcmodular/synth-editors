@@ -4,7 +4,7 @@
 import { clockBpm, steadyBpm } from "@synth-editors/audio";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { advanceScope, clearPeaks, emptyScope, resetLoudness, setHeld, SPANS, type Span } from "./scopeEngine";
-import { paintMeter, paintScope, paletteFor, type PartName, type Parts } from "./scopePaint";
+import { meterPaletteFor, paintMeter, paintScope, paletteFor, type PartName, type Parts } from "./scopePaint";
 import type { ClockIn } from "./useBeatClock";
 import type { ScopeAudio } from "./useScopeAudio";
 
@@ -64,7 +64,7 @@ export function useScopes(audio: ScopeAudio, clockIn: ClockIn) {
     const root = parts.current.meter;
     if (!root) return;
     const p = paletteFor(root);
-    paintMeter(s, parts.current, p);
+    paintMeter(s, parts.current, meterPaletteFor(root));
     paintScope(s, parts.current, p, { bpm, clockInput: clockIn.inputName });
   });
 

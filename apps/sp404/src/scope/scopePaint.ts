@@ -78,3 +78,15 @@ export function paintScope(s: ScopeState, parts: Parts, p: Palette, f: ScopeFram
 
 let palette: Palette | null = null;
 export const paletteFor = (el: Element) => (palette ??= paletteOf(el));
+
+// The meter keeps the traditional green, amber near full scale, whatever the app's accent.
+let meterPalette: Palette | null = null;
+export function meterPaletteFor(el: Element): Palette {
+  const css = getComputedStyle(el);
+  meterPalette ??= {
+    ...paletteFor(el),
+    meter: css.getPropertyValue("--meter").trim() || "#3ddc5a",
+    hot: css.getPropertyValue("--meter-hot").trim() || "#ffb020",
+  };
+  return meterPalette;
+}

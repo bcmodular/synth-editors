@@ -11,7 +11,9 @@
   --lcd: #1c1209;
   --lcdtxt: #ffb36b;
   --led: var(--cap); /* the scopes' traces and meter (packages/audio paletteOf) */
-  --alt: #ff3b30; /* the meter near full scale, and negative correlation */
+  --alt: #ff3b30; /* negative correlation */
+  --meter: #3ddc5a; /* the level meter stays green, amber near full scale, as meters are */
+  --meter-hot: #ffb020;
   --well: #222327;
   --b1: #ff8a2a;
   --b2: #3ddc5a;
@@ -604,6 +606,7 @@ button.big.on {
   flex: 1;
   display: flex;
   min-height: 0;
+  margin-top: 10px; /* half a bank header: a clear gap below the FX, taken from the faders */
   background: #111113;
   position: relative;
 }
@@ -690,6 +693,12 @@ button.big.on {
   color: var(--cap);
 }
 
+.showbanks .btn.on {
+  background: var(--bc);
+  border-color: var(--bc);
+  color: #000;
+}
+
 .btn.na {
   opacity: 0.3;
   cursor: default;
@@ -715,6 +724,7 @@ button.big.on {
 .wbank .btitle {
   height: 20px;
   flex: none;
+  margin: 0 -4px; /* across the bank's padding, to its side bars */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1305,6 +1315,7 @@ button.wpad:active {
 .mx-right {
   width: 84px;
   flex: none;
+  background: color-mix(in srgb, var(--cap) 7%, #111113); /* a hint of the accent: it sits over the desk */
   border-left: 1px solid var(--edge);
   padding: 8px 8px 10px;
   display: flex;

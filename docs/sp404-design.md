@@ -114,7 +114,10 @@ One window drawn at **1920 × 1080** and scaled to fit with CSS `zoom`, as in th
   project name is clicked to rename (the device only renames the current project).
 - **Colours**: the app's accent (buttons that are on, LCD readouts, the scopes' traces and meter) is the orange of
   the SP-404 MK2's button LEDs, in place of the green the first build used. Bus 2's green stays: it's the device's
-  own colour for BUS 2.
+  own colour for BUS 2, and so does the level meter's, as meters are (amber near full scale); the meter column
+  has a faint orange tint, as it sits over the desk. SHOW BANKS buttons that are on, and the bank headers (which
+  run out to the bank's side bars), are in the bank colour. The mixer sits 10 px below the FX (half a bank
+  header), taken from the faders.
 - **Strip** (84 px), top to bottom: pad label in the bank colour (hold to audition) and MIDI note · sample name
   (one line, click to rename) · AHR thumbnail (click to edit; the editor has RESET: attack 0, hold 100, release 0)
   · MUTE GRP · routing DRY / 1 / 2 in the device colours (white / orange / green) · pan knob and value · MUTE ·

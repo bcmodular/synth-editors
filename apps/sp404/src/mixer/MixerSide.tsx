@@ -3,7 +3,7 @@
 
 import { PROJECT_NAME } from "../core/serialNames";
 import { NameEdit } from "../ui/NameEdit";
-import { BANK_LETTERS } from "./banks";
+import { BANK_LETTERS, bankColourOf } from "./banks";
 import type { MixerView } from "./useMixerView";
 
 // The project as shown: a status line while there's no project to name, else its number and a name to edit.
@@ -52,7 +52,8 @@ export function MixerSide({ project, shown, loadedBanks, onToggleBank, view, onV
           const loaded = loadedBanks.has(bank);
           return (
             <button key={letter} className={`btn ${shown.has(bank) ? "on" : ""} ${loaded ? "" : "na"}`} disabled={!loaded}
-              aria-pressed={shown.has(bank)} onClick={() => onToggleBank(bank)}>
+              aria-pressed={shown.has(bank)} onClick={() => onToggleBank(bank)}
+              style={{ ["--bc" as string]: bankColourOf(bank) }}>
               {letter}
             </button>
           );

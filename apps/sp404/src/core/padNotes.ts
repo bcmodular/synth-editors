@@ -84,6 +84,13 @@ export function padFromNote(channel: number, note: number, settings: PadMidiSett
   return bank * PADS_PER_BANK + stepInBank(step);
 }
 
+export const AUDITION_VELOCITY = 100;
+
+// Note on and note off for a pad's note, to play it on the SP-404 from the editor.
+export const noteOnMessage = ({ channel, note }: PadNote, velocity = AUDITION_VELOCITY): number[] =>
+  [0x90 | (channel - 1), note, velocity];
+export const noteOffMessage = ({ channel, note }: PadNote): number[] => [0x80 | (channel - 1), note, 0];
+
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 // Note name with middle C (60) = C4, as in Roland's MIDI note map.

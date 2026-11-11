@@ -741,6 +741,17 @@ button.big.on {
   background: var(--bc);
 }
 
+button.wpad {
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+  touch-action: none;
+}
+
+button.wpad:active {
+  filter: brightness(1.35);
+}
+
 /* Lit while the pad sounds; a white flash on each hit fades back to the bank colour. */
 .ws .wpad.lit {
   background: #fff;

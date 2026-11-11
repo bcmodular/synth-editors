@@ -58,6 +58,9 @@ These match the TouchOSC version's behaviour, including the lock rules.
   Roland's MIDI note map): Mode A = bank A–J on channels 1–10, notes 36–51 in every bank; Mode B = banks A–E on
   one channel and F–J on the next (Pad MIDI Channels), notes 12–91 plus Note offset. Pad 13 is each bank's
   lowest note.
+- **Audition**: holding a strip's pad number (or Space / Enter on it) sends the pad's note on to the SP-404 over
+  USB MIDI at velocity 100, and letting go sends the note off, so gated and looped pads stop as on the device. The
+  note follows the pad MIDI settings above (`mixer/usePadAudition.ts`). Added 2026-11-11.
 - **Mix scenes** (deferred, 2026-11-09: the SP-404 already keeps the mixer values in its projects; the model in
   `mixer.ts` stays for later): 16, stored per SP-404 project, in the spirit of a Yamaha 02R. A scene stores the mixer values
   of the pads loaded when it was stored. On recall:

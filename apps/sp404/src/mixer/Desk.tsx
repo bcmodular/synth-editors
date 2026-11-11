@@ -12,6 +12,7 @@ import { MuteSolo } from "./MuteSolo";
 import type { PadActivity } from "./padHits";
 import { Strip } from "./Strip";
 import type { Mixer } from "./useMixer";
+import { usePadAudition } from "./usePadAudition";
 
 interface BankMasterProps {
   bank: number;
@@ -46,6 +47,7 @@ export interface DeskProps {
 
 export function Desk({ mixer, banks, midi, activity }: DeskProps) {
   const [editing, setEditing] = useState<number>();
+  const audition = usePadAudition(midi);
   const editingPad = mixer.pads.find((p) => p.pad === editing);
   const selected = mixer.status ? selectedPadNumber(mixer.status) : undefined;
   const sounding = mixer.status ? soundingPad(mixer.status) : undefined;
@@ -58,7 +60,8 @@ export function Desk({ mixer, banks, midi, activity }: DeskProps) {
           <div className="row">
             {padsOf(bank).map((p) => (
               <Strip key={p.pad} pad={p} midi={midi} selected={p.pad === selected} playing={p.pad === sounding}
-                hitSeq={activity.hits[p.pad]} held={activity.held.includes(p.pad)} onValue={mixer.setValue} onMute={mixer.mute} onSolo={mixer.solo} onEditAhr={setEditing} />
+                hitSeq={activity.hits[p.pad]} held={activity.held.includes(p.pad)} onValue={mixer.setValue} onMute={mixer.mute} onSolo={mixer.solo} onEditAhr={setEditing}
+                audition={audition} />
             ))}
             <BankMaster bank={bank} view={mixer.banks[bank] ?? NO_BANK}
               onChange={(v) => mixer.setBankVolume(bank, v)} onMute={() => mixer.muteBank(bank)}

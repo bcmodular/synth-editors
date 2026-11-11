@@ -2,6 +2,7 @@
 // pan, MUTE and SOLO, and the level fader.
 
 import { memo, useEffect, useState } from "react";
+import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { MixerPad, MixField, Routing } from "../core/mixer";
 import { noteName, padNote, type PadMidiSettings } from "../core/padNotes";
 import { ChannelFader, PanKnob, panText } from "../ui/controls";
@@ -9,6 +10,7 @@ import { ahrCorners } from "./AhrEditor";
 import { bankColour, padLabel } from "./banks";
 import type { DeskPad } from "./mixerState";
 import { MuteSolo } from "./MuteSolo";
+import type { Audition } from "./usePadAudition";
 
 export interface StripProps {
   pad: DeskPad;
@@ -21,6 +23,7 @@ export interface StripProps {
   onMute: (pad: number) => void;
   onSolo: (pad: number) => void;
   onEditAhr: (pad: number) => void;
+  audition: Audition;
 }
 
 const ROUTES: { value: Routing; label: string; className: string }[] = [
@@ -95,28 +98,55 @@ interface PadNumberProps {
   hitSeq?: number;
   held: boolean;
   seconds: number;
+  audition: Audition;
 }
 
-// The pad number lights while the pad sounds and flashes on each hit (the key restarts the animation).
-function PadNumber({ pad, playing, hitSeq, held, seconds }: PadNumberProps) {
+const PRESS_KEYS = new Set([" ", "Enter"]);
+
+// Press and hold to play the pad (note on, then note off on letting go), by pointer or by Space / Enter.
+function auditionHandlers(pad: number, { press, release }: Audition) {
+  const up = () => release(pad);
+  return {
+    onPointerDown: (e: ReactPointerEvent<HTMLElement>) => {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      press(pad);
+    },
+    onPointerUp: up,
+    onPointerCancel: up,
+    onLostPointerCapture: up,
+    onKeyDown: (e: KeyboardEvent) => {
+      if (PRESS_KEYS.has(e.key) && !e.repeat) press(pad);
+    },
+    onKeyUp: (e: KeyboardEvent) => {
+      if (PRESS_KEYS.has(e.key)) up();
+    },
+    onBlur: up,
+  };
+}
+
+// The pad number lights while the pad sounds and flashes on each hit (the key restarts the animation). Holding it
+// plays the pad.
+function PadNumber({ pad, playing, hitSeq, held, seconds, audition }: PadNumberProps) {
   const flashing = hitSeq !== undefined;
   const lit = useLitAfterHit(hitSeq, held, seconds) || playing;
   return (
-    <span key={hitSeq ?? "idle"} className={`wpad ${lit ? "lit" : ""} ${flashing ? "flash" : ""}`}
-      style={{ ["--bc" as string]: bankColour(pad) }}>
+    <button key={hitSeq ?? "idle"} className={`wpad ${lit ? "lit" : ""} ${flashing ? "flash" : ""}`}
+      style={{ ["--bc" as string]: bankColour(pad) }} aria-label={`Play ${padLabel(pad)}`}
+      title="Hold to play the pad on the SP-404" {...auditionHandlers(pad, audition)}>
       {padLabel(pad)}
-    </span>
+    </button>
   );
 }
 
 export const Strip = memo(function Strip(props: StripProps) {
-  const { pad, midi, selected, playing, hitSeq, held, onValue, onMute, onSolo, onEditAhr } = props;
+  const { pad, midi, selected, playing, hitSeq, held, onValue, onMute, onSolo, onEditAhr, audition } = props;
   const { mix } = pad;
   const label = padLabel(pad.pad);
   return (
     <div className={`ws ${selected ? "sel" : ""} ${playing ? "play" : ""}`} data-pad={label}>
       <div className="wtop">
-        <PadNumber pad={pad.pad} playing={playing} hitSeq={hitSeq} held={held} seconds={pad.seconds} />
+        <PadNumber pad={pad.pad} playing={playing} hitSeq={hitSeq} held={held} seconds={pad.seconds}
+          audition={audition} />
         <NoteLabel pad={pad.pad} midi={midi} />
       </div>
       <div className="nm1" title={pad.name}>{pad.name}</div>

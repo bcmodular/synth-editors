@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { noteName, padFromNote, padNote, type PadMidiSettings } from "./padNotes";
+import {
+  DEFAULT_PAD_MIDI, noteName, noteOffMessage, noteOnMessage, padFromNote, padNote, type PadMidiSettings,
+} from "./padNotes";
 
 // Pad number from bank letter and the pad's label on the device (1–16).
 const pad = (bank: string, label: number) => (bank.charCodeAt(0) - 65) * 16 + label - 1;
@@ -103,5 +105,15 @@ describe("padFromNote", () => {
     expect(padFromNote(3, 12, MODE_B)).toBeUndefined();
     expect(padFromNote(1, 35, MODE_A)).toBeUndefined(); // EXT SOURCE in Mode A
     expect(padFromNote(11, 36, MODE_A)).toBeUndefined();
+  });
+});
+
+describe("audition messages", () => {
+  it("plays a pad's note on its channel, and stops it", () => {
+    const a1 = padNote(0, DEFAULT_PAD_MIDI)!; // Mode B, channel 1: pad 1 is note 24
+    expect(noteOnMessage(a1)).toEqual([0x90, 24, 100]);
+    expect(noteOffMessage(a1)).toEqual([0x80, 24, 0]);
+    const f1 = padNote(5 * 16, { mode: "A", baseChannel: 1, noteOffset: 0 })!; // bank F on channel 6
+    expect(noteOnMessage(f1, 127)).toEqual([0x95, 48, 127]);
   });
 });

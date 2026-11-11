@@ -1,6 +1,6 @@
 // The pad mixer against the fake SP-404: what it shows from the device, and what it sends back.
 import { expect, test } from "@playwright/test";
-import { control, finish, playMidi, start, writes, type Sp404App } from "./sp404";
+import { control, finish, midiSent, playMidi, start, writes, type Sp404App } from "./sp404";
 
 let running: Sp404App | undefined;
 test.afterEach(async () => finish(running));
@@ -179,4 +179,21 @@ test("Settings changes the MIDI mode for the pad notes and lights, and remembers
   await r.page.keyboard.press("Escape");
   await r.page.reload();
   await expect(strip(r, "A1").locator(".nt")).toHaveText("C3 · 1");
+});
+
+test("holding a pad's number plays it on the SP-404: note on, then note off on letting go", async () => {
+  const r = (running = await start());
+  const a1 = r.page.getByRole("button", { name: "Play A1" });
+  const box = (await a1.boundingBox())!;
+  await r.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await r.page.mouse.down();
+  await expect.poll(() => midiSent(r.page)).toContainEqual([0x90, 24, 100]); // Mode B, channel 1: A1 is note 24
+  expect(await midiSent(r.page)).not.toContainEqual([0x80, 24, 0]);
+  await r.page.mouse.up();
+  await expect.poll(() => midiSent(r.page)).toContainEqual([0x80, 24, 0]);
+  await a1.focus();
+  await r.page.keyboard.down("Space");
+  await r.page.keyboard.up("Space");
+  const notes = (await midiSent(r.page)).filter((m) => (m[0]! & 0xe0) === 0x80);
+  expect(notes).toEqual([[0x90, 24, 100], [0x80, 24, 0], [0x90, 24, 100], [0x80, 24, 0]]);
 });

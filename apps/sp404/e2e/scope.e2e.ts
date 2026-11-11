@@ -32,7 +32,7 @@ test("SCOPE swaps the desk for the spectrum and waveforms; HOLD and DESK work; t
   await chooseFakeAudio(page);
   await page.getByRole("button", { name: "SCOPE" }).click();
   await expect(page.locator(".wdesk")).toHaveCount(0);
-  const spectrum = page.getByLabel("Spectrum");
+  const spectrum = page.getByLabel("Spectrum", { exact: true });
   await expect.poll(() => spectrum.evaluate((c) => Number((c as HTMLElement).dataset.peak)), { timeout: 5000 })
     .toBeGreaterThan(-100);
   await page.getByRole("button", { name: "HOLD" }).click();
@@ -41,6 +41,27 @@ test("SCOPE swaps the desk for the spectrum and waveforms; HOLD and DESK work; t
   await expect(page.locator(".scope")).toHaveCount(1);
   await page.getByRole("button", { name: "DESK" }).click();
   await expect(page.locator(".ws[data-pad]").first()).toBeVisible();
+});
+
+test("SPECTROGRAM swaps the spectrum for a scrolling spectrogram, and is remembered", async () => {
+  const { page } = (running = await start());
+  await chooseFakeAudio(page);
+  await page.getByRole("button", { name: "SCOPE" }).click();
+  await page.getByRole("button", { name: "SPECTROGRAM" }).click();
+  await expect(page.getByLabel("Spectrum", { exact: true })).toHaveCount(0);
+  // The fake input beeps: look for its bright magma in the right half of what's drawn.
+  const bright = () => page.getByLabel("Spectrogram").evaluate((c) => {
+    const canvas = c as HTMLCanvasElement;
+    const half = Math.floor(canvas.width / 2);
+    const px = canvas.getContext("2d")!.getImageData(half, 0, canvas.width - half, canvas.height).data;
+    let n = 0;
+    for (let i = 0; i < px.length; i += 4) if (px[i]! > 200) n++;
+    return n;
+  });
+  await expect.poll(bright, { timeout: 8000 }).toBeGreaterThan(0);
+  await page.reload();
+  await expect(page.getByLabel("Spectrogram")).toBeVisible();
+  await expect(page.getByRole("button", { name: "SPECTROGRAM" })).toHaveAttribute("aria-pressed", "true");
 });
 
 test("MIDI clock from the SP-404 shows the tempo and draws beat lines", async () => {

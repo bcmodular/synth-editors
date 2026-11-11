@@ -1,4 +1,3 @@
-import { newBeatClock } from "@synth-editors/audio";
 import type { Frame, Listening } from "@synth-editors/audio";
 import { describe, expect, it } from "vitest";
 import {
@@ -22,6 +21,7 @@ function fakeListening(): Listening & { frames: number } {
       return { left, right, mix: left, now: (start + FRAME) / RATE };
     },
     spectrum: (into: Float32Array) => into.fill(-80).fill(-30, 160, 180),
+    spectrogram: (into: Float32Array) => into.fill(-120).fill(-40, 40, 45),
     audioTimeOf: (ms: number) => ms / 1000,
     stop: () => undefined,
   };
@@ -29,7 +29,7 @@ function fakeListening(): Listening & { frames: number } {
 }
 
 const layout = (p: Partial<ScopeLayout> = {}): ScopeLayout =>
-  ({ waveWidth: 400, spectrumWidth: 300, span: "4s", clock: newBeatClock(), ...p });
+  ({ waveWidth: 400, spectrumWidth: 300, spectrogram: { width: 0, rows: 0 }, span: "4s", bpm: undefined, ...p });
 
 describe("scopeEngine", () => {
   it("meters each side and fills the waveform lanes and the spectrum", () => {
@@ -63,6 +63,24 @@ describe("scopeEngine", () => {
     expect(s.meters[0].at).toBeGreaterThan(frozenAt);
     setHeld(s, false);
     expect(s.waves).toBeNull();
+  });
+
+  it("scrolls the spectrogram at the span's rate (bars at the tempo), and starts afresh after HOLD", () => {
+    const s = emptyScope();
+    const l = fakeListening();
+    const shown = layout({ spectrumWidth: 0, spectrogram: { width: 200, rows: 80 }, span: 2, bpm: 120 });
+    for (let i = 0; i <= 60; i++) advanceScope(s, l, shown); // a second of frames
+    const sg = s.spectrogram!;
+    expect(sg.spanS).toBe(4); // 2 bars at 120 BPM
+    expect(sg.head + sg.owed).toBeCloseTo(50, 5); // 200 columns over 4 s, for 1 s
+    expect(Math.max(...sg.levels)).toBeGreaterThan(100);
+    expect(s.spectrum).toBeNull();
+    const head = sg.head;
+    setHeld(s, true);
+    advanceScope(s, l, shown);
+    expect(s.spectrogram!.head).toBe(head);
+    setHeld(s, false);
+    expect(s.spectrogram).toBeNull();
   });
 
   it("spans bars at the clock's tempo, else 4 s", () => {

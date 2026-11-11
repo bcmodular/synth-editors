@@ -5,13 +5,13 @@ import { explainAudioError, listAudioInputs, listAudioInputsWithNames, listen, p
 import type { AudioInput, Listening } from "@synth-editors/audio";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
-import { SPECTRUM_FFT } from "./scopeEngine";
+import { SPECTROGRAM_FFT, SPECTRUM_FFT } from "./scopeEngine";
 
 export type AudioStatus = { kind: "starting" } | { kind: "on"; name: string } | { kind: "error"; message: string };
 
 const SP404_AUDIO = /SP-404/i;
 const NO_INPUT = "No SP-404 audio: choose one in Settings";
-const SPECTRUM_SMOOTHING = 0.6;
+const LISTEN = { spectrumSize: SPECTRUM_FFT, spectrumSmoothing: 0.6, spectrogramSize: SPECTROGRAM_FFT };
 
 // The computer's audio inputs, kept up to date as devices come and go; `named` once their names can be read.
 function useAudioInputs() {
@@ -44,7 +44,7 @@ function startAudio(named: boolean, picked: AudioInput | undefined, o: Opening) 
   if (!named) return void listAudioInputsWithNames().then((list) => !o.isCancelled() && o.take(list, true), fail);
   if (!picked) return o.setStatus({ kind: "error", message: NO_INPUT });
   o.setStatus({ kind: "starting" });
-  listen(picked, { spectrumSize: SPECTRUM_FFT, spectrumSmoothing: SPECTRUM_SMOOTHING }).then((l) => {
+  listen(picked, LISTEN).then((l) => {
     if (o.isCancelled()) return l.stop();
     o.listening.current = l;
     o.setStatus({ kind: "on", name: l.name });

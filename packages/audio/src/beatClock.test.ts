@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clockBpm, clockStep, isBar, newBeatClock, type BeatClock } from "./beatClock";
+import { clockBpm, clockStep, isBar, newBeatClock, steadyBpm, type BeatClock } from "./beatClock";
 
 const TICK_MS = 60_000 / 120 / 24; // 120 BPM
 
@@ -23,6 +23,22 @@ describe("beatClock", () => {
     const last = 47 * TICK_MS;
     expect(clockBpm(c, last)).toBeCloseTo(120, 3);
     expect(clockBpm(c, last + 1000)).toBeUndefined();
+  });
+
+  it("reads a jittery clock steadily", () => {
+    let c = clockStep(newBeatClock(), 0xfa, 0);
+    const jitter = [3, -2, 0, 4, -4, 1, -3, 2]; // ms either way, as USB MIDI arrives
+    for (let i = 0; i < 24 * 8; i++) c = clockStep(c, 0xf8, i * TICK_MS + jitter[i % jitter.length]!);
+    const bpm = clockBpm(c, c.lastAt!)!;
+    expect(Math.abs(bpm - 120)).toBeLessThan(0.15);
+  });
+
+  it("keeps the shown tempo through small changes and follows real ones", () => {
+    expect(steadyBpm(undefined, 119.96)).toBe(120);
+    expect(steadyBpm(120, 120.2)).toBe(120);
+    expect(steadyBpm(120, 119.8)).toBe(120);
+    expect(steadyBpm(120, 121.04)).toBe(121);
+    expect(steadyBpm(120, undefined)).toBeUndefined();
   });
 
   it("counts from the first clock when it never saw Start, and Stop / Continue keep the count", () => {

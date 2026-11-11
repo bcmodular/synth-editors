@@ -23,6 +23,8 @@ export interface Listening {
   read(): Frame;
   // The spectrum of L + R in dB per bin (fftSize / 2 bins), when opened with `spectrumSize`.
   spectrum?(into: Float32Array): void;
+  // The same for the spectrogram, unsmoothed, when opened with `spectrogramSize`.
+  spectrogram?(into: Float32Array): void;
   // Seconds on the audio clock for a performance.now() time in ms (MIDI timestamps).
   audioTimeOf(performanceMs: number): number;
   stop(): void;
@@ -31,6 +33,7 @@ export interface Listening {
 export interface ListenOptions {
   spectrumSize?: number; // FFT size for `spectrum`, a power of two (32 to 32768)
   spectrumSmoothing?: number; // the analyser's smoothingTimeConstant, 0 to 1
+  spectrogramSize?: number; // FFT size for `spectrogram`: smaller than the spectrum's, for sharper timing
 }
 
 const isAudioInput = (d: MediaDeviceInfo) => d.kind === "audioinput" && d.deviceId !== "default";
@@ -84,19 +87,29 @@ function mixOf(left: Float32Array, right: Float32Array) {
 interface Graph {
   pair: [AnalyserNode, AnalyserNode];
   spectrum?: AnalyserNode;
+  spectrogram?: AnalyserNode;
 }
 
-function spectrumAnalyser(ctx: AudioContext, source: AudioNode, silent: AudioNode, opts: ListenOptions) {
-  if (!opts.spectrumSize) return undefined;
+interface Ends {
+  source: AudioNode;
+  silent: AudioNode;
+}
+
+// A mono analyser of L + R for frequency reads, when a size is asked for.
+function fftAnalyser(ctx: AudioContext, { source, silent }: Ends, fft: { size?: number; smoothing: number }) {
+  if (!fft.size) return undefined;
   const a = ctx.createAnalyser();
-  a.fftSize = opts.spectrumSize;
-  a.smoothingTimeConstant = opts.spectrumSmoothing ?? 0.5;
+  a.fftSize = fft.size;
+  a.smoothingTimeConstant = fft.smoothing;
   a.channelCount = 1;
   a.channelCountMode = "explicit"; // L and R are mixed down
   source.connect(a);
   a.connect(silent);
   return a;
 }
+
+const reader = (a: AnalyserNode | undefined) =>
+  a && ((into: Float32Array) => a.getFloatFrequencyData(into as Float32Array<ArrayBuffer>));
 
 function buildGraph(ctx: AudioContext, stream: MediaStream, opts: ListenOptions): Graph {
   const source = ctx.createMediaStreamSource(stream);
@@ -112,9 +125,11 @@ function buildGraph(ctx: AudioContext, stream: MediaStream, opts: ListenOptions)
     a.connect(silent);
     return a;
   }) as [AnalyserNode, AnalyserNode];
-  const spectrum = spectrumAnalyser(ctx, source, silent, opts);
+  const ends = { source, silent };
+  const spectrum = fftAnalyser(ctx, ends, { size: opts.spectrumSize, smoothing: opts.spectrumSmoothing ?? 0.5 });
+  const spectrogram = fftAnalyser(ctx, ends, { size: opts.spectrogramSize, smoothing: 0 });
   silent.connect(ctx.destination);
-  return { pair, spectrum };
+  return { pair, spectrum, spectrogram };
 }
 
 // Audio-clock seconds for a performance.now() time, from the context's own pairing of the two clocks.
@@ -132,7 +147,7 @@ export async function listen(input: AudioInput, opts: ListenOptions = {}): Promi
   });
   const ctx = new AudioContext();
   await ctx.resume(); // made after an await, away from the click: it may start suspended
-  const { pair, spectrum } = buildGraph(ctx, stream, opts);
+  const { pair, spectrum, spectrogram } = buildGraph(ctx, stream, opts);
   const readL = channelReader(ctx, pair[0]);
   const readR = channelReader(ctx, pair[1]);
   return {
@@ -143,7 +158,8 @@ export async function listen(input: AudioInput, opts: ListenOptions = {}): Promi
       const right = readR();
       return { left, right, mix: mixOf(left, right), now: ctx.currentTime };
     },
-    spectrum: spectrum && ((into) => spectrum.getFloatFrequencyData(into as Float32Array<ArrayBuffer>)),
+    spectrum: reader(spectrum),
+    spectrogram: reader(spectrogram),
     audioTimeOf: audioClock(ctx),
     stop: () => {
       stream.getTracks().forEach((t) => t.stop());

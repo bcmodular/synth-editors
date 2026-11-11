@@ -2,15 +2,16 @@
 // Readouts are set as text on their elements, so React doesn't re-render 60 times a second.
 
 import {
-  clockBpm, correlationOf, drawCorrelation, drawMeter, drawWave, formatDb, formatLufs, integratedLufs, paletteOf,
-  shortTermLufs, surfaceOf,
+  correlationOf, drawCorrelation, drawMeter, drawWave, formatDb, formatLufs, integratedLufs, paletteOf,
+  shortTermLufs, spectrogramX, surfaceOf,
 } from "@synth-editors/audio";
 import type { BeatClock, Listening, Palette } from "@synth-editors/audio";
-import { drawBeats, drawSpectrum } from "./scopeDraw";
-import { columnOfTime, type ScopeState, type Waves } from "./scopeEngine";
+import { drawBeats, drawSpectrogram, drawSpectrum } from "./scopeDraw";
+import { columnOfTime, type ScopeState } from "./scopeEngine";
 
 export type PartName =
-  | "meter" | "peak" | "clip" | "lufsS" | "lufsI" | "spectrum" | "waveL" | "waveR" | "correlation" | "corrText" | "clock";
+  | "meter" | "peak" | "clip" | "lufsS" | "lufsI" | "spectrum" | "spectrogram" | "waveL" | "waveR" | "correlation"
+  | "corrText" | "clock";
 export type Parts = Partial<Record<PartName, HTMLElement | null>>;
 
 const canvasOf = (parts: Parts, name: PartName) => parts[name] as HTMLCanvasElement | null | undefined;
@@ -35,17 +36,26 @@ export function paintMeter(s: ScopeState, parts: Parts, p: Palette) {
   meter.dataset.level = String(Math.max(l.db, r.db)); // for tests
 }
 
-// The beats on screen for a lane, by column.
-function beatsOn(w: Waves, clock: BeatClock, l: Listening) {
+type ColumnOf = (audioTime: number) => number | undefined;
+
+// The beats on screen, by column, for a view that places audio times with `columnOf`.
+function beatsOn(columnOf: ColumnOf, clock: BeatClock, l: Listening) {
   return clock.beats.flatMap((beat) => {
-    const x = columnOfTime(w, l.audioTimeOf(beat.at));
+    const x = columnOf(l.audioTimeOf(beat.at));
     return x === undefined ? [] : [{ beat, x }];
   });
 }
 
-function paintLanes(s: ScopeState, parts: Parts, ctx: { p: Palette; clock: BeatClock; l: Listening | null }) {
+interface PaintContext {
+  p: Palette;
+  clock: BeatClock;
+  l: Listening | null;
+}
+
+function paintLanes(s: ScopeState, parts: Parts, ctx: PaintContext) {
   const lanes = [canvasOf(parts, "waveL"), canvasOf(parts, "waveR")];
-  const beats = s.waves && ctx.l ? beatsOn(s.waves, ctx.clock, ctx.l) : [];
+  const w = s.waves;
+  const beats = w && ctx.l ? beatsOn((t) => columnOfTime(w, t), ctx.clock, ctx.l) : [];
   lanes.forEach((canvas, i) => {
     if (!canvas) return;
     const surf = surface(canvas, ctx.p);
@@ -55,29 +65,43 @@ function paintLanes(s: ScopeState, parts: Parts, ctx: { p: Palette; clock: BeatC
   });
 }
 
-function clockText(clock: BeatClock, inputName: string | undefined) {
-  const bpm = clockBpm(clock, performance.now());
+function paintSpectrogram(s: ScopeState, canvas: HTMLCanvasElement, ctx: PaintContext) {
+  const surf = surface(canvas, ctx.p);
+  const sg = s.spectrogram;
+  drawSpectrogram(surf, sg);
+  if (sg && ctx.l) drawBeats(surf, beatsOn((t) => spectrogramX(sg, t), ctx.clock, ctx.l), true);
+}
+
+function paintSpectrum(s: ScopeState, canvas: HTMLCanvasElement, p: Palette) {
+  drawSpectrum(surface(canvas, p), s.spectrum?.line ?? null, s.spectrum?.peaks ?? null);
+  canvas.dataset.peak = String(s.spectrum ? Math.max(...s.spectrum.line) : -Infinity); // for tests
+}
+
+function clockText(bpm: number | undefined, inputName: string | undefined) {
   if (!inputName) return "NO CLOCK INPUT";
   return bpm ? `${bpm.toFixed(1)} BPM · ${inputName}` : `NO CLOCK · ${inputName}`;
 }
 
 export interface ScopeFrame {
   clock: BeatClock;
+  bpm: number | undefined; // the steadied tempo
   clockInput: string | undefined;
   listening: Listening | null;
 }
 
 export function paintScope(s: ScopeState, parts: Parts, p: Palette, f: ScopeFrame) {
+  const ctx = { p, clock: f.clock, l: f.listening };
   const spectrum = canvasOf(parts, "spectrum");
-  if (!spectrum) return;
-  drawSpectrum(surface(spectrum, p), s.spectrum?.line ?? null, s.spectrum?.peaks ?? null);
-  spectrum.dataset.peak = String(s.spectrum ? Math.max(...s.spectrum.line) : -Infinity); // for tests
-  paintLanes(s, parts, { p, clock: f.clock, l: f.listening });
+  const spectrogram = canvasOf(parts, "spectrogram");
+  if (spectrum) paintSpectrum(s, spectrum, p);
+  else if (spectrogram) paintSpectrogram(s, spectrogram, ctx);
+  else return;
+  paintLanes(s, parts, ctx);
   const corr = s.correlation ? correlationOf(s.correlation) : NaN;
   const bar = canvasOf(parts, "correlation");
   if (bar) drawCorrelation(surface(bar, p), corr);
   setText(parts.corrText, Number.isNaN(corr) ? "–" : corr.toFixed(2).replace("-", "−"));
-  setText(parts.clock, clockText(f.clock, f.clockInput));
+  setText(parts.clock, clockText(f.bpm, f.clockInput));
 }
 
 let palette: Palette | null = null;

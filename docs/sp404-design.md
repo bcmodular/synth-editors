@@ -297,13 +297,19 @@ Checked on this Mac on 2026-11-10 with the device connected:
   - **Spectrum**: 20 Hz–20 kHz on a log axis, −110 to −20 dB (the analyser reads a band-averaged full-scale tone
     at about −40), a 1/6-octave smoothed line with a fill below it and a peak line falling at 12 dB/s. Tilted
     +4.5 dB per octave about 1 kHz so a typical mix reads roughly flat (as mixing analysers do). L and R summed.
+  - **Spectrogram** in place of the spectrum (SPECTRUM / SPECTROGRAM buttons, remembered): the same log frequency
+    axis bottom to top, scrolling right to left over the waveform's span, so the beat lines (drawn over it too)
+    line up with the lanes below. Level −100 to −30 dB (tilted as the spectrum) in the magma colour map. Added
+    2026-11-11.
   - **Waveform**: separate **L and R lanes**, scrolling min/max bands as in the TB-3 (newest on the right).
   - **Span**: 4 S, 1 BAR, 2 BARS or 4 BARS (remembered). Bars use the clock's tempo, four beats a bar; without
     clock the span is 4 s. The waveform is rebuilt when the tempo moves the span by more than 2 %.
   - **Beat grid** on both lanes from MIDI clock: beat lines faint, bar lines brighter and numbered (numbers only
-    once the clock has seen a Start, so they line up with the bar). The bar shows the tempo and the clock input.
+    once the clock has seen a Start, so they line up with the bar). The bar shows the tempo and the clock input;
+    the tempo shown stays put until the reading moves by 0.3 BPM, so a steady clock doesn't flicker.
   - **Stereo correlation**: a −1 … +1 bar (amber below 0) and its value, averaged over 300 ms.
-  - **HOLD** freezes the waveform and spectrum; the meter keeps running. Letting go starts the waveform afresh.
+  - **HOLD** freezes the waveform, spectrum and spectrogram; the meter keeps running. Letting go starts the
+    waveform and spectrogram afresh.
 - The **KEYBOARD overlay** goes over the SCOPE view as it does over the desk (for now).
 
 ### Audio and clock inputs
@@ -323,17 +329,23 @@ Checked on this Mac on 2026-11-10 with the device connected:
 
 - `getUserMedia` stereo with echo cancellation, noise suppression and auto gain off. As in the TB-3, an
   `AudioContext` splits L and R into two `AnalyserNode`s and each animation frame reads the samples that arrived
-  since the last one; a third analyser (FFT 8192 ≈ 5.9 Hz per bin at 48 kHz, smoothing 0.6) gives the spectrum.
+  since the last one; a third analyser (FFT 8192 ≈ 5.9 Hz per bin at 48 kHz, smoothing 0.6) gives the spectrum,
+  and a fourth (FFT 2048 ≈ 43 ms, no smoothing) the spectrogram: short enough that drum hits stay sharp, at the
+  cost of blocky rows below about 100 Hz.
   An AudioWorklet was considered for gap-free loudness; the frame reads hold up to 32768 samples (0.68 s), so
   frames don't drop audio unless the window is hidden, and the worklet isn't needed.
 - Each frame (`scope/scopeEngine.ts`): peak meters, loudness and correlation always; the waveform lanes and the
-  spectrum (at most 30 times a second) only while the SCOPE view is on screen and HOLD is off.
+  spectrum (at most 30 times a second) or spectrogram only while the SCOPE view is on screen and HOLD is off.
+- Spectrogram (`packages/audio/spectrogram.ts`): one level (0–255) per row in a ring of columns, one column per
+  screen pixel. Columns are added by elapsed audio time (width ÷ span per second), not once per frame, so the
+  scroll is steady and audio times map to columns as on the waveform lanes. Drawn through an offscreen canvas.
 - Loudness (`packages/audio/loudness.ts`): two K-weighting biquads per channel, mean squares in 100 ms blocks;
   LUFS-S is the last 30 blocks, LUFS-I uses 400 ms blocks every 100 ms gated at −70 LUFS and then 10 LU below
   their mean, kept as a 0.1 LU histogram so memory doesn't grow.
 - Beat grid (`packages/audio/beatClock.ts`): clock (F8, 24 per beat), Start (FA), Continue (FB) and Stop (FC),
-  timestamped by Web MIDI and mapped onto the audio clock with `AudioContext.getOutputTimestamp()`. Tempo from the
-  last beat's clocks; none after 0.5 s without clock.
+  timestamped by Web MIDI and mapped onto the audio clock with `AudioContext.getOutputTimestamp()`. Tempo from a
+  least-squares line through the last four beats' clock times (so USB MIDI jitter of a few ms moves it by under
+  0.15 BPM), held on screen within 0.3 BPM; none after 0.5 s without clock.
 - Canvas drawing outside React (`scope/scopePaint.ts`, `scope/scopeDraw.ts`); readouts are set as text on their
   elements, so React doesn't re-render each frame.
 - Electron main allows audio-only `media` permission (as the TB-3's `main.cjs`). The Mac build will need a
@@ -344,16 +356,17 @@ Checked on this Mac on 2026-11-10 with the device connected:
 - **`packages/audio`**: `levelMeter`, `waveColumns` and `liveDraw` moved from the TB-3 app with their tests, and
   the input code from its `tb3Audio.ts` (`audioInput.ts`: list, pick by name, open, permission errors, plus the
   spectrum analyser and the MIDI-to-audio clock mapping). The TB-3 imports them from there.
-- New in the package: loudness, correlation, spectrum view (log columns, 1/6-octave smoothing, tilt, peak fall)
-  and beat clock, all pure and unit-tested.
+- New in the package: loudness, correlation, spectrum view (log columns, 1/6-octave smoothing, tilt, peak fall),
+  spectrogram and beat clock, all pure and unit-tested.
 - e2e (`apps/sp404/e2e/scope.e2e.ts`): Chromium's fake audio input and the fake SP-404's MIDI: the meter and
-  loudness move, SCOPE draws the spectrum, HOLD and the remembered view, and clock gives a tempo and beat lines.
+  loudness move, SCOPE draws the spectrum, SPECTROGRAM draws the fake input's beeps and is remembered, HOLD and
+  the remembered view, and clock gives a tempo and beat lines.
 
 ### Open questions
 
 - How far apart are MIDI clock and USB audio (driver buffering)? Measure with a click pattern and offset the grid.
-- On the SP-404: does the meter read as expected against the device, and is the spectrum's dB range right for
-  real mixes?
+- On the SP-404: does the meter read as expected against the device, and are the spectrum's and spectrogram's dB
+  ranges right for real mixes?
 
 Settled 2026-11-10: USB out always carries the master audio (no setting changes it); the clock settings above; the
 KEYBOARD overlay goes over the SCOPE view; loudness is LUFS-S plus a resettable LUFS-I with no target marker; on

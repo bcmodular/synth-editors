@@ -1,9 +1,9 @@
 // Canvas drawing for the SCOPE view (docs/sp404-design.md › Scopes): the spectrum with its frequency and level
-// grid, and the beat grid over a waveform lane. The waveform, meter and correlation bar come from
-// packages/audio (shared with the TB-3).
+// grid, the spectrogram with its frequency grid, and the beat grid over a waveform lane or the spectrogram. The
+// waveform, meter and correlation bar come from packages/audio (shared with the TB-3).
 
-import { hzFraction, isBar } from "@synth-editors/audio";
-import type { Beat, Surface } from "@synth-editors/audio";
+import { hzFraction, isBar, magmaColours, spectrogramPixels } from "@synth-editors/audio";
+import type { Beat, Spectrogram, Surface } from "@synth-editors/audio";
 
 export const SPECTRUM_TOP_DB = -20; // the analyser reads a band-averaged full-scale tone near −40
 export const SPECTRUM_FLOOR_DB = -110;
@@ -67,7 +67,48 @@ export function drawSpectrum(s: Surface, line: Float32Array | null, peaks: Float
   g.globalAlpha = 1;
 }
 
-// Beat lines over a waveform lane: bars brighter and numbered (when `numbered`).
+const MAGMA = magmaColours();
+const SPECTROGRAM_GRID_HZ = [100, 1000, 10000];
+
+// An offscreen canvas the spectrogram's pixels go into (one pixel per column and row), then drawn scaled.
+let pixels: { canvas: HTMLCanvasElement; image: ImageData } | null = null;
+function pixelsFor({ width, rows }: Spectrogram) {
+  if (pixels?.image.width === width && pixels.image.height === rows) return pixels;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = rows;
+  return (pixels = { canvas, image: new ImageData(width, rows) });
+}
+
+function spectrogramGrid({ g, w, h, p }: Surface) {
+  g.font = LABEL_FONT;
+  for (const hz of SPECTROGRAM_GRID_HZ) {
+    const y = Math.round(h * (1 - hzFraction(hz)));
+    g.fillStyle = p.hold;
+    g.globalAlpha = 0.15;
+    g.fillRect(0, y, w, 1);
+    g.globalAlpha = 0.6;
+    g.fillText(hzLabel(hz), 3, y - 3);
+  }
+  g.globalAlpha = 1;
+}
+
+// The spectrogram scaled to the canvas, with lines at 100 Hz, 1 kHz and 10 kHz.
+export function drawSpectrogram(s: Surface, sg: Spectrogram | null) {
+  const { g, w, h, p } = s;
+  g.fillStyle = p.well;
+  g.fillRect(0, 0, w, h);
+  if (sg) {
+    const px = pixelsFor(sg);
+    spectrogramPixels(sg, MAGMA, px.image.data);
+    px.canvas.getContext("2d")!.putImageData(px.image, 0, 0);
+    g.imageSmoothingEnabled = true;
+    g.drawImage(px.canvas, 0, 0, w, h);
+  }
+  spectrogramGrid(s);
+}
+
+// Beat lines over a waveform lane or the spectrogram: bars brighter and numbered (when `numbered`).
 export function drawBeats(s: Surface, beats: { beat: Beat; x: number }[], numbered: boolean) {
   const { g, h, p } = s;
   g.font = LABEL_FONT;

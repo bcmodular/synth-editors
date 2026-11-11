@@ -9,6 +9,7 @@ import type { Frame } from "../core/serialFrames";
 import {
   parsePadBlock, parseStatus, readPadFrame, selectedPadNumber, statusFrame, type DeviceStatus, type PadBlock,
 } from "../core/serialMessages";
+import { cleanName, isRenameEcho, PAD_NAME, PROJECT_NAME, renameFrame, type Rename } from "../core/serialNames";
 import { parseProjectNotice, parseProjectSettings, projectSettingsFrame } from "../core/serialProject";
 import type { SerialLink } from "../serial/serialLink";
 
@@ -89,6 +90,30 @@ export class Sp404Session {
   noteBankVolume(bank: number, volume: number): void {
     this.bankEditAt = Date.now();
     this.update({ bankVolumes: this.state.bankVolumes.map((v, i) => (i === bank ? volume : v)) });
+  }
+
+  // Rename a pad's sample: shown at once, sent, and then read back so the strip shows what the device kept.
+  async renamePad(pad: number, name: string): Promise<void> {
+    const block = this.state.pads.find((p) => p.pad === pad);
+    if (!block) return;
+    this.notePad({ ...block, name: cleanName(name, PAD_NAME) });
+    await this.rename({ pad, name });
+    const stored = await this.readPad(pad);
+    if (stored) this.update({ pads: replace(this.state.pads, stored) });
+  }
+
+  // Rename the current project (the only one the device will rename), then read back the name it kept.
+  async renameProject(name: string): Promise<void> {
+    const project = this.state.project;
+    if (project === undefined) return;
+    this.update({ projectName: cleanName(name, PROJECT_NAME) });
+    await this.rename({ project, name });
+    const settings = await this.link.request(projectSettingsFrame(project), parseProjectSettings);
+    if (settings?.project === project) this.update({ projectName: settings.name });
+  }
+
+  private rename(r: Rename): Promise<true | undefined> {
+    return this.link.request(renameFrame(r), (f) => isRenameEcho(f, r) || undefined);
   }
 
   load(): Promise<void> {

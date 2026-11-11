@@ -9,7 +9,8 @@ const strip = (r: Sp404App, label: string) => r.page.locator(`.ws[data-pad="${la
 
 test("shows the loaded pads of the first two banks, with the device's values", async () => {
   const r = (running = await start());
-  await expect(r.page.locator(".mx-left .project")).toHaveText("06 · LIVE SET");
+  await expect(r.page.locator(".mx-left .project .num")).toHaveText("06");
+  await expect(r.page.getByRole("button", { name: "Rename project name" })).toHaveText("LIVE SET");
   await expect(r.page.locator(".wbank")).toHaveCount(2);
   await expect(r.page.locator(".ws[data-pad]")).toHaveCount(4); // A1, A2, A5, B2
   await expect(strip(r, "A1").locator(".nm1")).toHaveText("KICK 1");
@@ -196,4 +197,24 @@ test("holding a pad's number plays it on the SP-404: note on, then note off on l
   await r.page.keyboard.up("Space");
   const notes = (await midiSent(r.page)).filter((m) => (m[0]! & 0xe0) === 0x80);
   expect(notes).toEqual([[0x90, 24, 100], [0x80, 24, 0], [0x90, 24, 100], [0x80, 24, 0]]);
+});
+
+test("clicking a sample or project name renames it on the device", async () => {
+  const r = (running = await start());
+  await strip(r, "A1").getByRole("button", { name: "Rename A1 sample name" }).click();
+  const field = r.page.getByLabel("A1 sample name", { exact: true });
+  await field.fill("Kick Two");
+  await field.press("Enter");
+  await expect(strip(r, "A1").locator(".nm1")).toHaveText("Kick Two");
+  expect(await control(r.page, "pad", 0)).toMatchObject({ name: "Kick Two" });
+  await r.page.getByRole("button", { name: "Rename project name" }).click();
+  const project = r.page.getByLabel("project name", { exact: true });
+  await project.fill("Night Set");
+  await project.press("Escape");
+  await expect(r.page.getByRole("button", { name: "Rename project name" })).toHaveText("LIVE SET");
+  await r.page.getByRole("button", { name: "Rename project name" }).click();
+  await project.fill("Night Set");
+  await project.press("Enter");
+  await expect(r.page.getByRole("button", { name: "Rename project name" })).toHaveText("Night Set");
+  expect(await control(r.page, "projectName")).toBe("Night Set");
 });

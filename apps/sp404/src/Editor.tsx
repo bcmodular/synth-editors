@@ -6,7 +6,7 @@ import { FxRow } from "./fx/FxRow";
 import { useFx } from "./fx/useFx";
 import { bankOf } from "./mixer/banks";
 import { Desk } from "./mixer/Desk";
-import { MixerSide } from "./mixer/MixerSide";
+import { MixerSide, type ProjectView } from "./mixer/MixerSide";
 import { useDevice, type Device } from "./mixer/useDevice";
 import { useMixer } from "./mixer/useMixer";
 import { noActivity, type PadActivity } from "./mixer/padHits";
@@ -48,11 +48,10 @@ function TopBar({ device, midiInput, midiOutput, onSettings }: TopBarProps) {
   );
 }
 
-function projectLabel({ device: d, link }: Device): string {
-  if (link !== "on") return "Not connected";
-  if (d.loading) return "Reading pads…";
-  const number = String((d.project ?? 0) + 1).padStart(2, "0");
-  return d.projectName ? `${number} · ${d.projectName}` : number;
+function projectView({ device: d, link }: Device, onRename: (name: string) => void): ProjectView {
+  if (link !== "on") return { status: "Not connected" };
+  if (d.loading) return { status: "Reading pads…" };
+  return { number: String((d.project ?? 0) + 1).padStart(2, "0"), name: d.projectName, onRename };
 }
 
 // Pads played come from the SP-404's MIDI notes; without its MIDI input, the hits the status poll saw.
@@ -80,7 +79,7 @@ export function Editor() {
         onSettings={() => setSettingsOpen(true)} />
       <FxRow fx={fx} />
       <div className="mixer">
-        <MixerSide projectLabel={projectLabel(device)} shown={banks.shown} loadedBanks={loadedBanks}
+        <MixerSide project={projectView(device, mixer.renameProject)} shown={banks.shown} loadedBanks={loadedBanks}
           onToggleBank={banks.toggle} view={view} onView={setView} />
         {view === "desk" ? (
           <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />

@@ -55,13 +55,13 @@ export function Desk({ mixer, banks, midi, activity }: DeskProps) {
   return (
     <div className="wdesk">
       {banks.map((bank) => (
-        <div className="wbank" key={bank} data-bank={BANK_LETTERS[bank]}>
+        <div className="wbank" key={bank} data-bank={BANK_LETTERS[bank]} style={{ ["--bc" as string]: bankColourOf(bank) }}>
           <div className="btitle" style={{ background: bankColourOf(bank) }}>BANK {BANK_LETTERS[bank]}</div>
           <div className="row">
             {padsOf(bank).map((p) => (
               <Strip key={p.pad} pad={p} midi={midi} selected={p.pad === selected} playing={p.pad === sounding}
                 hitSeq={activity.hits[p.pad]} held={activity.held.includes(p.pad)} onValue={mixer.setValue} onMute={mixer.mute} onSolo={mixer.solo} onEditAhr={setEditing}
-                audition={audition} />
+                onRename={mixer.renamePad} audition={audition} />
             ))}
             <BankMaster bank={bank} view={mixer.banks[bank] ?? NO_BANK}
               onChange={(v) => mixer.setBankVolume(bank, v)} onMute={() => mixer.muteBank(bank)}
@@ -69,7 +69,8 @@ export function Desk({ mixer, banks, midi, activity }: DeskProps) {
           </div>
         </div>
       ))}
-      {editingPad && <AhrEditor pad={editingPad} onValue={mixer.setValue} onClose={() => setEditing(undefined)} />}
+      {editingPad && <AhrEditor pad={editingPad} onValue={mixer.setValue} onValues={mixer.setValues}
+        onClose={() => setEditing(undefined)} />}
     </div>
   );
 }

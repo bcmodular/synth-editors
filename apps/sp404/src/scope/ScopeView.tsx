@@ -43,7 +43,6 @@ export function ScopeView({ scopes }: { scopes: Scopes }) {
     <div className="scope" aria-label="Scopes">
       <div className="scopebar">
         <GraphButtons graph={graph} onGraph={scopes.setGraph} />
-        <span className="lbl">L + R</span>
         <span className="sp" />
         <span ref={part("clock")} className="clocktext" />
         <SpanButtons span={scopes.span} onSpan={scopes.setSpan} />

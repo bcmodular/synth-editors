@@ -49,7 +49,7 @@ These match the TouchOSC version's behaviour, including the lock rules.
 
 - One strip per loaded pad. Empty pads are hidden. Strips are grouped by bank, each group ending in a
   **bank volume** fader.
-- Per pad: sample name (read-only), level (0–127), pan (L50–R50), routing (DRY / BUS 1 / BUS 2), mute group
+- Per pad: sample name (click to rename), level (0–127), pan (L50–R50), routing (DRY / BUS 1 / BUS 2), mute group
   (– or A–J), AHR envelope (Attack, Hold, Release), **MUTE** and the pad's MIDI note.
 - **MUTE is app-side**: the SP-404 has no pad-mute parameter over serial, so MUTE sets the level to 0 and a
   second press restores the level it had. The strip shows the remembered level in brackets.
@@ -110,10 +110,15 @@ One window drawn at **1920 × 1080** and scaled to fit with CSS `zoom`, as in th
   then the FX scenes column (~107 px: two columns of 8 tall buttons, STORE and DEL).
 - **Mixer**: mix scenes, recall safe, project and SHOW BANKS on the left; the desk; the USB output meter on the
   right. The desk shows the banks picked in SHOW BANKS (banks with no samples are greyed out). Two banks fit
-  without scrolling; more scroll sideways.
-- **Strip** (84 px), top to bottom: pad label in the bank colour and MIDI note · sample name (one line) · AHR
-  thumbnail (click to edit) · MUTE GRP · routing DRY / 1 / 2 in the device colours (white / orange / green) · pan
-  knob and value · MUTE · level fader in the bank colour (~260 px) and value.
+  without scrolling; more scroll sideways. A thin bar in the bank colour runs down each side of a bank. The
+  project name is clicked to rename (the device only renames the current project).
+- **Colours**: the app's accent (buttons that are on, LCD readouts, the scopes' traces and meter) is the orange of
+  the SP-404 MK2's button LEDs, in place of the green the first build used. Bus 2's green stays: it's the device's
+  own colour for BUS 2.
+- **Strip** (84 px), top to bottom: pad label in the bank colour (hold to audition) and MIDI note · sample name
+  (one line, click to rename) · AHR thumbnail (click to edit; the editor has RESET: attack 0, hold 100, release 0)
+  · MUTE GRP · routing DRY / 1 / 2 in the device colours (white / orange / green) · pan knob and value · MUTE ·
+  level fader (~260 px) and value. The sample name, the envelope and the level value are in the bank colour.
 - **Bank master** (76 px): BANK VOL fader in white.
 - **Keyboard overlay**: covers the mixer, not the FX.
 
@@ -257,6 +262,11 @@ implement from their notes only and copy none of their code.**
   attack `7D`, hold `7E` (1–100), release `7F`.
 - Bank volume: global target `FFFF`, id `35 + bank`, value `127 − volume`.
 - Read a pad: `9E pad` returns a 327-byte block (name at 175–198; an empty pad has field 0 = 0).
+- Rename (`core/serialNames.ts`): `02 pad:u16 name` for a pad's sample, `35 project name` for the project; the
+  device echoes both, then the app reads the pad or settings back to show what it kept. `35` renames whichever
+  project is current. Names are sent as printable ASCII, space padded to 23 characters (pad) or 32 (project): the
+  field sizes, not yet checked against what the device's screen shows. SparkyMK2 notes that a slot that has never
+  been saved keeps a rename only while it's current.
 - Status: poll `FE 66 00` every 500 ms. The reply gives the project, the selected bank and pad, and the frame
   count of the pad that's sounding (`FFFFFFFF` when none). The sounding pad is the selected one (hitting a pad
   selects it), so the strip light follows it; a pad still ringing after another is hit isn't reported.
@@ -286,7 +296,8 @@ Checked on this Mac on 2026-11-10 with the device connected:
 
 ### What it shows
 
-- **Meter, always on**, in the USB OUT column at the desk's right (84 px): L and R bars.
+- **Meter, always on**, in the column at the desk's right (84 px, no title, so the bars run to the top): L and R
+  bars.
   - Peak: as the TB-3 meter (−48 to 0 dBFS, instant rise, 24 dB/s fall, 1.5 s hold, amber above −6), and a
     latching clip light that shows the highest peak since it was last clicked.
   - **Loudness** (K-weighted, ITU-R BS.1770 / EBU R128) under the bars: **LUFS-S** (3 s window) as the main
@@ -306,7 +317,7 @@ Checked on this Mac on 2026-11-10 with the device connected:
   - **Waveform**: separate **L and R lanes**, scrolling min/max bands as in the TB-3 (newest on the right).
   - **Span**: 4 S, 1 BAR, 2 BARS or 4 BARS (remembered). Bars use the clock's tempo, four beats a bar; without
     clock the span is 4 s. The waveform is rebuilt when the tempo moves the span by more than 2 %.
-  - **Tempo**: the bar shows the MIDI clock's tempo to a tenth of a BPM, and the clock input.
+  - **Tempo**: the bar shows the MIDI clock's tempo to a tenth of a BPM; the clock input is in its tooltip.
   - **No beat or bar lines** (dropped 2026-11-11, after building them): joining a running clock, the app can't
     know where a bar starts, so lines drawn from the first clock seen were off the beat by an arbitrary number of
     clocks. They'd only be right after a Start, and a click-pattern offset would still be needed on top.

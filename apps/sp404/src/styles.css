@@ -6,9 +6,12 @@
   --edge: #2c2d32;
   --txt: #d4d5da;
   --dim: #8a8d96;
-  --lcd: #0d1f12;
-  --lcdtxt: #8ff0a4;
-  --cap: #3ddc5a;
+  /* The accent is the orange of the SP-404 MK2's button LEDs; the LCD readouts take a paler shade of it. */
+  --cap: #ff7a1a;
+  --lcd: #1c1209;
+  --lcdtxt: #ffb36b;
+  --led: var(--cap); /* the scopes' traces and meter (packages/audio paletteOf) */
+  --alt: #ff3b30; /* the meter near full scale, and negative correlation */
   --well: #222327;
   --b1: #ff8a2a;
   --b2: #3ddc5a;
@@ -623,11 +626,42 @@ button.big.on {
 }
 
 .mx-left .project {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   background: var(--lcd);
   color: var(--lcdtxt);
   border: 1px solid #000;
   padding: 4px;
   font-size: 13px;
+}
+
+.mx-left .project .nameedit {
+  flex: 1;
+  min-width: 0;
+}
+
+/* A name that's clicked to rename (ui/NameEdit.tsx): it looks like the readout it sits in. */
+.nameedit {
+  display: block;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+}
+
+.nameedit.editing {
+  width: 100%;
+  outline: 1px solid var(--cap);
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .mx-left .hint {
@@ -673,8 +707,9 @@ button.big.on {
 .wbank {
   display: flex;
   flex-direction: column;
-  border-right: 2px solid #000;
-  padding-right: 6px;
+  border-left: 2px solid var(--bc);
+  border-right: 2px solid var(--bc);
+  padding: 0 4px;
 }
 
 .wbank .btitle {
@@ -781,8 +816,9 @@ button.wpad:active {
 }
 
 .ws .nm1 {
+  width: 100%;
   background: var(--lcd);
-  color: var(--lcdtxt);
+  color: var(--bc, var(--lcdtxt));
   font-size: 12.5px;
   padding: 3px 4px;
   border: 1px solid #000;
@@ -859,7 +895,7 @@ button.wpad:active {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 8px;
 }
 
 .ahr-head .h {
@@ -872,6 +908,10 @@ button.wpad:active {
   padding: 3px 8px;
 }
 
+.ahr-head .sp {
+  flex: 1;
+}
+
 .ahr-editor svg {
   background: #0d0d0f;
   border: 1px solid var(--edge);
@@ -882,7 +922,7 @@ button.wpad:active {
 }
 
 .ahr-editor .env {
-  fill: #8ff0a41a;
+  fill: #ffb36b1a;
   stroke: var(--lcdtxt);
   stroke-width: 2;
 }
@@ -915,7 +955,7 @@ button.wpad:active {
 
 .ahr polyline {
   fill: none;
-  stroke: var(--lcdtxt);
+  stroke: var(--bc, var(--lcdtxt));
   stroke-width: 1.3;
   vector-effect: non-scaling-stroke;
 }
@@ -1122,18 +1162,18 @@ button.wpad:active {
 }
 
 .fader.muted .fill {
-  background: #2f6a3a;
+  background: #6a3c1a;
   box-shadow: none;
 }
 
 .fader.muted .knobcap {
-  border-top-color: #2f6a3a;
+  border-top-color: #6a3c1a;
 }
 
 .lv {
   text-align: center;
   font-size: 13px;
-  color: var(--lcdtxt);
+  color: var(--bc, var(--lcdtxt));
 }
 
 .lv.master {

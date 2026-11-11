@@ -75,6 +75,11 @@ export const setField = (field: MixField, value: number) => (p: MixerPad): Mixer
   ...p, mix: { ...p.mix, [field]: value },
 });
 
+// Several values at once, as one edit (e.g. resetting the envelope).
+export const setFields = (values: Partial<MixerPad["mix"]>) => (p: MixerPad): MixerPad => ({
+  ...p, mix: { ...p.mix, ...values },
+});
+
 export interface ButtonsEdit {
   blocks: PadBlock[];
   memory: MixMemory;

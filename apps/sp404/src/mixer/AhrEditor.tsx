@@ -14,6 +14,7 @@ export const AHR_RANGES = {
   release: { min: 0, max: 127, reset: 0 },
 } as const;
 type AhrField = keyof typeof AHR_RANGES;
+const AHR_RESET = { attack: AHR_RANGES.attack.reset, hold: AHR_RANGES.hold.reset, release: AHR_RANGES.release.reset };
 
 const W = 360;
 const H = 140;
@@ -53,20 +54,24 @@ function Handle({ field, x, y, value, label, onChange }: HandleProps) {
 export interface AhrEditorProps {
   pad: MixerPad;
   onValue: (pad: number, field: MixField, value: number) => void;
+  onValues: (pad: number, values: Partial<MixerPad["mix"]>) => void;
   onClose: () => void;
 }
 
-export function AhrEditor({ pad, onValue, onClose }: AhrEditorProps) {
+export function AhrEditor({ pad, onValue, onValues, onClose }: AhrEditorProps) {
   const panel = useRef<HTMLDivElement>(null);
   useDismiss(panel, onClose);
   const { attack, hold, release } = pad.mix;
   const { a, h, r } = ahrCorners(pad.mix);
   const label = padLabel(pad.pad);
   const set = (field: AhrField) => (v: number) => onValue(pad.pad, field, v);
+  const reset = () => onValues(pad.pad, AHR_RESET);
   return (
     <div className="ahr-editor" ref={panel} role="dialog" aria-label={`${label} envelope`}>
       <div className="ahr-head">
         <span className="h">{label} · {pad.name}</span>
+        <span className="sp" />
+        <button className="btn" onClick={reset} title="Attack 0, hold 100, release 0">RESET</button>
         <button className="btn" onClick={onClose} aria-label="Close envelope">CLOSE</button>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H}>

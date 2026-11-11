@@ -1,6 +1,6 @@
 // A stand-in SP-404 MK2 serial port, built from the Phase 0 captures. It answers status polls (FE), project
-// settings (FD) and pad reads (9E) from an in-memory project, applies set-parameter writes (01) and echoes them
-// as the device does, and records every frame it's sent.
+// settings (FD) and pad reads (9E) from an in-memory project, applies set-parameter writes (01) and renames of a
+// pad (02) or the project (35), echoing them as the device does, and records every frame it's sent.
 //
 // The e2e harness injects this function into the page as source text, and the unit tests call it directly, so
 // it must not use anything from outside its own body.
@@ -29,6 +29,7 @@ export interface FakeSent {
   id?: number; // set-parameter id
   target?: number;
   value?: number;
+  name?: string; // a rename
 }
 
 export function fakeSp404Port(init: FakeSp404Init) {
@@ -39,7 +40,7 @@ export function fakeSp404Port(init: FakeSp404Init) {
   const pads = new Map(init.pads.map((p) => [p.pad, { level: 127, pan: 64, routing: 1, muteGroup: 0, attack: 0,
     hold: 100, release: 0, ...p } as Required<FakePad>]));
   const state = {
-    project: init.project, bank: 0, pad: 0, playingFrames: 0xffffffff,
+    project: init.project, projectName: init.projectName, bank: 0, pad: 0, playingFrames: 0xffffffff,
     bankVolumes: init.bankVolumes ? [...init.bankVolumes] : Array<number>(10).fill(127),
   };
   const sent: FakeSent[] = [];
@@ -72,7 +73,7 @@ export function fakeSp404Port(init: FakeSp404Init) {
       data.setUint32(3 + 4 * (23 + w), even | (odd << 16), true);
     }
     p.fill(0x20, 115, 146);
-    p.set(Array.from(init.projectName, (c) => c.charCodeAt(0)), 115);
+    p.set(Array.from(state.projectName, (c) => c.charCodeAt(0)), 115);
     return p;
   }
 
@@ -109,9 +110,23 @@ export function fakeSp404Port(init: FakeSp404Init) {
     reply(payload.slice());
   }
 
+  const text = (bytes: Uint8Array) => String.fromCharCode(...bytes).trimEnd();
+
+  // 02 pad:u16 name renames a pad's sample; 35 project name renames the current project, whatever it says.
+  function rename(payload: Uint8Array) {
+    const pad = payload[0] === 0x02 ? payload[1]! | (payload[2]! << 8) : undefined;
+    const name = text(payload.subarray(pad === undefined ? 2 : 3));
+    sent.push({ command: payload[0]!, target: pad ?? payload[1], name });
+    const target = pad === undefined ? undefined : pads.get(pad);
+    if (target) target.name = name;
+    if (pad === undefined) state.projectName = name;
+    reply(payload.slice());
+  }
+
   function handle(payload: Uint8Array) {
     const command = payload[0]!;
     if (command === 0x01) return setParam(payload);
+    if (command === 0x02 || command === 0x35) return rename(payload);
     sent.push({ command });
     if (command === 0xfe) reply(statusReply());
     else if (command === 0xfd) reply(settingsReply(payload[1]!));
@@ -144,6 +159,7 @@ export function fakeSp404Port(init: FakeSp404Init) {
     },
     pad: (n: number) => pads.get(n),
     bankVolume: (bank: number) => state.bankVolumes[bank],
+    projectName: () => state.projectName,
   };
 }
 

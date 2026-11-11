@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { MixChange, MixField, MixerPad } from "../core/mixer";
 import { bankVolumeFrame, mixChangeFrame } from "../core/serialMessages";
 import {
-  editPad, emptyMixMemory, readMixMemory, setBankButtons, setBankVolume as editBankVolume, setButtons, setField,
+  editPad, emptyMixMemory, readMixMemory, setBankButtons, setBankVolume as editBankVolume, setButtons, setField, setFields,
   toggleMute, toggleSolo, viewBank, viewPad, type BankEdit, type BankView, type Buttons, type DeskPad, type MixMemory,
 } from "./mixerState";
 import type { Device } from "./useDevice";
@@ -51,6 +51,7 @@ function usePads(device: Device["device"], session: Session) {
   }, [device.pads, memory, save, send, session]);
 
   const setValue = useCallback((pad: number, field: MixField, value: number) => edit(pad, setField(field, value)), [edit]);
+  const setValues = useCallback((pad: number, values: Partial<MixerPad["mix"]>) => edit(pad, setFields(values)), [edit]);
 
   const press = useCallback((buttons: Buttons) => {
     const e = setButtons(device.pads, memory, buttons);
@@ -61,7 +62,7 @@ function usePads(device: Device["device"], session: Session) {
   const mute = useCallback((pad: number) => press(toggleMute(memory, pad)), [press, memory]);
   const solo = useCallback((pad: number) => press(toggleSolo(memory, pad)), [press, memory]);
 
-  return { pads, setValue, mute, solo };
+  return { pads, setValue, setValues, mute, solo };
 }
 
 // The bank volumes, with MUTE and SOLO across the banks.
@@ -89,8 +90,15 @@ function useBanks(device: Device["device"], session: Session) {
   return { banks, setBankVolume, muteBank, soloBank };
 }
 
+// Renaming pads' samples and the current project.
+function useNames(session: Session) {
+  const renamePad = useCallback((pad: number, name: string) => void session.current?.renamePad(pad, name), [session]);
+  const renameProject = useCallback((name: string) => void session.current?.renameProject(name), [session]);
+  return { renamePad, renameProject };
+}
+
 export function useMixer({ device, session }: Device) {
-  return { ...usePads(device, session), ...useBanks(device, session), status: device.status };
+  return { ...usePads(device, session), ...useBanks(device, session), ...useNames(session), status: device.status };
 }
 
 export type Mixer = ReturnType<typeof useMixer>;

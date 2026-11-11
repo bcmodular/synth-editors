@@ -5,7 +5,9 @@ import { memo, useEffect, useState } from "react";
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { MixerPad, MixField, Routing } from "../core/mixer";
 import { noteName, padNote, type PadMidiSettings } from "../core/padNotes";
+import { PAD_NAME } from "../core/serialNames";
 import { ChannelFader, PanKnob, panText } from "../ui/controls";
+import { NameEdit } from "../ui/NameEdit";
 import { ahrCorners } from "./AhrEditor";
 import { bankColour, padLabel } from "./banks";
 import type { DeskPad } from "./mixerState";
@@ -23,6 +25,7 @@ export interface StripProps {
   onMute: (pad: number) => void;
   onSolo: (pad: number) => void;
   onEditAhr: (pad: number) => void;
+  onRename: (pad: number, name: string) => void;
   audition: Audition;
 }
 
@@ -139,17 +142,19 @@ function PadNumber({ pad, playing, hitSeq, held, seconds, audition }: PadNumberP
 }
 
 export const Strip = memo(function Strip(props: StripProps) {
-  const { pad, midi, selected, playing, hitSeq, held, onValue, onMute, onSolo, onEditAhr, audition } = props;
+  const { pad, midi, selected, playing, hitSeq, held, onValue, onMute, onSolo, onEditAhr, onRename, audition } = props;
   const { mix } = pad;
   const label = padLabel(pad.pad);
   return (
-    <div className={`ws ${selected ? "sel" : ""} ${playing ? "play" : ""}`} data-pad={label}>
+    <div className={`ws ${selected ? "sel" : ""} ${playing ? "play" : ""}`} data-pad={label}
+      style={{ ["--bc" as string]: bankColour(pad.pad) }}>
       <div className="wtop">
         <PadNumber pad={pad.pad} playing={playing} hitSeq={hitSeq} held={held} seconds={pad.seconds}
           audition={audition} />
         <NoteLabel pad={pad.pad} midi={midi} />
       </div>
-      <div className="nm1" title={pad.name}>{pad.name}</div>
+      <NameEdit className="nm1" value={pad.name} field={PAD_NAME} label={`${label} sample name`}
+        onRename={(name) => onRename(pad.pad, name)} />
       <AhrThumb pad={pad.pad} mix={mix} onEdit={onEditAhr} />
       <MuteGroup pad={pad.pad} group={mix.muteGroup} onValue={onValue} />
       <RoutingButtons pad={pad.pad} routing={mix.routing} onValue={onValue} />

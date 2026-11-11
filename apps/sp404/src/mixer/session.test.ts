@@ -58,6 +58,20 @@ describe("Sp404Session", () => {
     expect(fake.pad(0)?.level).toBe(40);
   });
 
+  it("renames a pad's sample and the project, showing what the device kept", async () => {
+    const fake = fakeSp404Port(DEVICE);
+    running = open(fake);
+    await running.session.start();
+    await running.session.renamePad(17, "  Sub Bass \u00e9  ");
+    expect(fake.pad(17)?.name).toBe("Sub Bass");
+    expect(running.last().pads.find((p) => p.pad === 17)?.name).toBe("Sub Bass");
+    await running.session.renameProject("Night Set");
+    expect(fake.projectName()).toBe("Night Set");
+    expect(running.last().projectName).toBe("Night Set");
+    const renames = fake.sent.filter((m) => m.name !== undefined);
+    expect(renames.map((m) => [m.command, m.target, m.name])).toEqual([[0x02, 17, "Sub Bass"], [0x35, 2, "Night Set"]]);
+  });
+
   it("reloads when the device switches project", async () => {
     const fake = fakeSp404Port(DEVICE);
     running = open(fake);

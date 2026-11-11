@@ -13,8 +13,7 @@ export function MeterColumn({ scopes, status }: { scopes: Scopes; status: AudioS
   const { part } = scopes;
   const text = statusText(status);
   return (
-    <div className="mx-right" title={status.kind === "on" ? `Listening to ${status.name} (after VOLUME)` : undefined}>
-      <div className="lbl">USB OUT</div>
+    <div className="mx-right" title={status.kind === "on" ? `USB OUT: ${status.name}, after VOLUME` : undefined}>
       <div className="meterwrap">
         <canvas ref={part("meter")} className="metercanvas" aria-label="USB OUT level" />
         {text && <p className="audiostatus" role="status">{text}</p>}

@@ -1,11 +1,26 @@
 // The mixer's left column: DESK / SCOPE, the project, and SHOW BANKS (banks with no samples are greyed out).
 // Mix scenes and recall safe join it later.
 
+import { PROJECT_NAME } from "../core/serialNames";
+import { NameEdit } from "../ui/NameEdit";
 import { BANK_LETTERS } from "./banks";
 import type { MixerView } from "./useMixerView";
 
+// The project as shown: a status line while there's no project to name, else its number and a name to edit.
+export type ProjectView = { status: string } | { number: string; name: string; onRename: (name: string) => void };
+
+function Project({ project }: { project: ProjectView }) {
+  if ("status" in project) return <div className="project">{project.status}</div>;
+  return (
+    <div className="project">
+      <span className="num">{project.number}</span>
+      <NameEdit value={project.name} field={PROJECT_NAME} label="project name" onRename={project.onRename} />
+    </div>
+  );
+}
+
 export interface MixerSideProps {
-  projectLabel: string;
+  project: ProjectView;
   shown: ReadonlySet<number>;
   loadedBanks: ReadonlySet<number>;
   onToggleBank: (bank: number) => void;
@@ -25,12 +40,12 @@ function ViewSwitch({ view, onView }: { view: MixerView; onView: (view: MixerVie
   );
 }
 
-export function MixerSide({ projectLabel, shown, loadedBanks, onToggleBank, view, onView }: MixerSideProps) {
+export function MixerSide({ project, shown, loadedBanks, onToggleBank, view, onView }: MixerSideProps) {
   return (
     <div className="mx-left">
       <ViewSwitch view={view} onView={onView} />
       <div className="lbl">PROJECT</div>
-      <div className="project">{projectLabel}</div>
+      <Project project={project} />
       <div className="lbl">SHOW BANKS</div>
       <div className="showbanks">
         {[...BANK_LETTERS].map((letter, bank) => {
@@ -43,7 +58,6 @@ export function MixerSide({ projectLabel, shown, loadedBanks, onToggleBank, view
           );
         })}
       </div>
-      <div className="hint">Banks with no samples are greyed out. Two banks fit without scrolling.</div>
     </div>
   );
 }

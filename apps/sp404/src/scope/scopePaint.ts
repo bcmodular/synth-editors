@@ -20,6 +20,10 @@ function setText(el: HTMLElement | null | undefined, text: string) {
   if (el && el.textContent !== text) el.textContent = text;
 }
 
+function setTitle(el: HTMLElement | null | undefined, title: string) {
+  if (el && el.title !== title) el.title = title;
+}
+
 function surface(canvas: HTMLCanvasElement, p: Palette) {
   return surfaceOf(canvas, { w: canvas.offsetWidth, h: canvas.offsetHeight }, p);
 }
@@ -49,7 +53,7 @@ function paintSpectrum(s: ScopeState, canvas: HTMLCanvasElement, p: Palette) {
 
 function clockText(bpm: number | undefined, inputName: string | undefined) {
   if (!inputName) return "NO CLOCK INPUT";
-  return bpm ? `${bpm.toFixed(1)} BPM · ${inputName}` : `NO CLOCK · ${inputName}`;
+  return bpm ? `${bpm.toFixed(1)} BPM` : "NO CLOCK";
 }
 
 export interface ScopeFrame {
@@ -69,6 +73,7 @@ export function paintScope(s: ScopeState, parts: Parts, p: Palette, f: ScopeFram
   if (bar) drawCorrelation(surface(bar, p), corr);
   setText(parts.corrText, Number.isNaN(corr) ? "–" : corr.toFixed(2).replace("-", "−"));
   setText(parts.clock, clockText(f.bpm, f.clockInput));
+  setTitle(parts.clock, f.clockInput ? `MIDI clock from ${f.clockInput}` : "Choose a clock input in Settings");
 }
 
 let palette: Palette | null = null;

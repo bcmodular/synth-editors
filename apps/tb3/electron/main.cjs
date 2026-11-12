@@ -8,6 +8,9 @@ const path = require("node:path");
 const MIDI_PERMISSIONS = new Set(["midi", "midiSysex"]);
 const LIBRARY_EXTS = new Set([".syx", ".tb3set"]);
 
+// End-to-end tests set this to keep the window off screen and out of the Dock, painting as if it were shown.
+const HIDDEN = process.env.E2E_HIDDEN === "1";
+
 let win = null;
 
 function createWindow() {
@@ -19,7 +22,8 @@ function createWindow() {
     title: "TB-3 Editor",
     backgroundColor: "#121214",
     autoHideMenuBar: process.platform !== "darwin", // Windows: no menu bar over the editor (Alt shows it)
-    webPreferences: { preload: path.join(__dirname, "preload.cjs") },
+    show: !HIDDEN,
+    webPreferences: { preload: path.join(__dirname, "preload.cjs"), backgroundThrottling: !HIDDEN },
   });
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   if (devUrl) {
@@ -133,6 +137,7 @@ function registerLibraryIpc() {
 }
 
 app.whenReady().then(() => {
+  if (HIDDEN) app.dock?.hide();
   // MIDI, and audio input for VCO MIX's LIVE view (never the camera).
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
     const types = details.mediaTypes ?? [];

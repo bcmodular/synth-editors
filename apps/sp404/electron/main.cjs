@@ -15,6 +15,8 @@ const CAPTURE_DIR = path.resolve(__dirname, "..", "..", "..", "fixtures", "local
 
 // End-to-end tests set this so the app can never reach a real SP-404: no serial port is offered or granted.
 const NO_REAL_SERIAL = process.env.SP404_NO_REAL_SERIAL === "1";
+// They also set this to keep the window off screen and out of the Dock, painting as if it were shown.
+const HIDDEN = process.env.E2E_HIDDEN === "1";
 
 let win = null;
 let captureFile = null;
@@ -27,7 +29,8 @@ function createWindow() {
     title: "SP-404 MK2 Editor",
     backgroundColor: "#121214",
     autoHideMenuBar: process.platform !== "darwin",
-    webPreferences: { preload: path.join(__dirname, "preload.cjs") },
+    show: !HIDDEN,
+    webPreferences: { preload: path.join(__dirname, "preload.cjs"), backgroundThrottling: !HIDDEN },
   });
   if (maximized) win.maximize();
   keepWindowState(win, remember);
@@ -63,6 +66,7 @@ function registerCaptureIpc() {
 }
 
 app.whenReady().then(() => {
+  if (HIDDEN) app.dock?.hide();
   // Audio-only media is the scopes listening to the SP-404's USB audio (never the camera).
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
     const types = details.mediaTypes ?? [];

@@ -39,7 +39,7 @@ export async function start(init: FakeSp404Init = DEVICE, opts: { midiInput?: bo
   const fakeAudio = ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"];
   const app = await electron.launch({
     args: [APP_DIR, `--user-data-dir=${profile}`, ...fakeAudio],
-    env: { ...env, SP404_NO_REAL_SERIAL: "1" },
+    env: { ...env, SP404_NO_REAL_SERIAL: "1", E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1" },
   });
   const page = await app.firstWindow();
   await page.addInitScript({ content: fakeSerialScript(init, opts.midiInput ?? true) });

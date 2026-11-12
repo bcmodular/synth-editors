@@ -28,6 +28,7 @@ npm run test:e2e                                  # Playwright against a fake TB
 TB3_PORT="H12MIDI-Pro Port 4" npm run test:tb3    # Playwright against the real TB-3 (restores its sound afterwards)
 ```
 
+The e2e tests run with the window hidden and out of the Dock; `E2E_SHOW=1` shows it, to watch a test.
 A change is done when all four pass (the last only if the TB-3 is connected). The user often has `npm run dev:tb3`
 open and tests on the hardware as work goes along, so keep the app runnable between commits.
 

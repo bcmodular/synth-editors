@@ -66,7 +66,9 @@ async function launchElectron(profile: string) {
   );
   // Chromium's fake audio input (a tone with beeps) stands in for the TB-3's USB audio.
   const fakeAudio = ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"];
-  const app = await electron.launch({ args: [APP_DIR, `--user-data-dir=${profile}`, ...fakeAudio], env });
+  // No window on screen (E2E_SHOW=1 shows it, to watch a test).
+  const hidden = { E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1" };
+  const app = await electron.launch({ args: [APP_DIR, `--user-data-dir=${profile}`, ...fakeAudio], env: { ...env, ...hidden } });
   const page = await app.firstWindow();
   await page.waitForLoadState("domcontentloaded");
   return { app, page };

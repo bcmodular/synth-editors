@@ -24,6 +24,7 @@ import { MorphBlock, PatchBlock, SetBlock } from "./editor/PatchesBlock";
 import { AssignBlock, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
 import { useFitZoom } from "./editor/useFitZoom";
+import { useLaunchpad } from "./editor/useLaunchpad";
 import { useLibrary, walk } from "./editor/useLibrary";
 import { useSession } from "./editor/useSession";
 import type { Session } from "./editor/useSession";
@@ -55,6 +56,7 @@ function EditorApp() {
   const audio = useTb3Audio();
   const session = useSession(midi.tb3, setError);
   sessionRef.current = session;
+  useLaunchpad(midi, session);
   const library = useLibrary();
   const folders = useMemo(
     () => ["", ...Array.from(walk(library.tree), (e) => (e.kind === "dir" ? e.path : null)).filter((f) => f !== null)],

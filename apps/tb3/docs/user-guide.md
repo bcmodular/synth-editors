@@ -41,8 +41,8 @@ The ports, channel and library folder are remembered.
 [The TB-3's output, live](#the-tb-3s-output-live). Leave it on Automatic to use the TB-3's own USB audio.
 
 **SHOW LOG** in the MIDI settings lists the messages going to and from the TB-3, which helps when
-something isn't getting through. The LAUNCHPAD ports are for Launchpad support in a later version
-and don't do anything yet.
+something isn't getting through. The LAUNCHPAD ports are for a Launchpad Pro: see
+[Launchpad Pro](#launchpad-pro).
 
 ## Editing the sound
 
@@ -288,6 +288,35 @@ TB-3 stops playing or falls behind during a morph, turn RATE down.
 Morph is **experimental**. A fast move between very different patches can leave some settings on
 the TB-3 out of step with the editor. If that happens, click SYNC TO TB-3 to resend the whole
 patch.
+
+## Launchpad Pro
+
+A Launchpad Pro (the first model, Mk1) plays the set's slots and drives morph, as on the TouchOSC
+panel. Set **LAUNCHPAD IN** and **LAUNCHPAD OUT** in the MIDI settings to its ports (usually its
+*Standalone* port). The editor switches it to Programmer layout and
+lights it from then on. Other Launchpad models aren't supported.
+
+The **top two rows** are the 16 slots: slots 1–8 along the top row, 9–16 along the row below. A pad
+does what clicking its slot does: it recalls a filled slot, or stores the patch in the editor in an
+empty one. Filled slots are dim green and the active slot bright green; empty slots are dark. A pad
+brightens while you hold it.
+
+The buttons down the side:
+
+| Button | Does |
+|--------|------|
+| **Delete** | Hold it and press pads to clear their slots. The filled slots turn red while it's held. |
+| **Shift** | GRAB: hold it, then hold a pad to audition that slot. Releasing the pad goes back to the active patch. Filled slots turn white. |
+| **Quantise** | MORPH: press to start picking a target (filled slots turn orange), and again to stop. Press a pad to make it the target (bright orange), then press harder or softer on it to set AMOUNT. |
+| **Click** | SYNC FROM TB-3. It lights green while the editor reads the TB-3. |
+| **User** | Cycles the Launchpad's brightness: very dim, night, normal, day. The choice is remembered. |
+
+The morph amount follows the pressure on the target pad, so letting go returns to the patch you started
+from. To keep a blend, hold the pad, then store it in a slot or SAVE AS… with the mouse. Pressing the
+target pad again doesn't restart the morph.
+
+The Launchpad sends pressure only when its aftertouch is set to *polyphonic* or *channel* in its setup
+menu. With aftertouch off, the pads still pick the target and AMOUNT works from the screen.
 
 ## Undo
 

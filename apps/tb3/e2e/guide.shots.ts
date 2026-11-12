@@ -142,6 +142,9 @@ async function shootFirstLaunch(page: Page, tb3: Locator) {
   await tb3.getByRole("button", { name: "MIDI", exact: true }).click();
   await shot(page, "midi-settings", [tb3, page.locator(".popover.settings")]);
   await page.getByRole("button", { name: "CLOSE" }).click();
+  await tb3.getByRole("button", { name: "CC", exact: true }).click();
+  await shot(page, "cc-settings", [tb3, page.locator(".ccsettings")]);
+  await page.getByRole("button", { name: "CLOSE" }).click();
 
   await tb3.getByRole("button", { name: "SYNC FROM TB-3" }).click();
   await expect(side(page, "patch")).toContainText("Synced from TB-3");

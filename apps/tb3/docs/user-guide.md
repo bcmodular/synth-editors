@@ -42,7 +42,8 @@ The ports, channel and library folder are remembered.
 
 **SHOW LOG** in the MIDI settings lists the messages going to and from the TB-3, which helps when
 something isn't getting through. The LAUNCHPAD ports are for a Launchpad Pro: see
-[Launchpad Pro](#launchpad-pro).
+[Launchpad Pro](#launchpad-pro). **KEYS IN** is for a keyboard controller such as a Launchkey: see
+[Keyboard and knobs](#keyboard-and-knobs).
 
 ## Editing the sound
 
@@ -317,6 +318,36 @@ target pad again doesn't restart the morph.
 
 The Launchpad sends pressure only when its aftertouch is set to *polyphonic* or *channel* in its setup
 menu. With aftertouch off, the pads still pick the target and AMOUNT works from the screen.
+
+## Keyboard and knobs
+
+A keyboard controller, such as a Launchkey, plays the TB-3 and its knobs can drive the editor. Set **KEYS IN** in
+the MIDI settings to its port.
+
+- **Notes and pitch bend** go straight to the TB-3 on TB-3 CHANNEL, whatever channel the keyboard sends on.
+- **Knobs and faders** (MIDI CCs) drive what they're assigned to. A CC that isn't assigned goes to the TB-3 as it
+  is.
+
+![CC assignments](images/cc-settings.png)
+
+**CC** in the TB-3 block lists the assignments. It starts with the Launchkey's knobs from the TouchOSC panel:
+CC 74 CUTOFF, 71 RESONANCE, 16 ACCENT, 17 the EFFECT knob, 12 and 13 the XY pad, 104 GLOBAL TUNE, 105 MORPH
+AMOUNT and 1 (the mod wheel) XY MOD. **DEFAULTS** goes back to these.
+
+To assign a knob, click **LEARN**, click a parameter (they're highlighted), then move the knob. Each row's own
+**LEARN** gives that row a new knob, and **×** forgets it. Esc stops learning. A knob drives one thing, and each
+thing has one knob: learning replaces the old assignment.
+
+Nothing is sent back to the controller, so after a slot recall or a mouse edit a knob's position can disagree
+with the value it drives. Each row's mode decides what happens then:
+
+| Mode | The value… | Use it for |
+|------|------------|------------|
+| **pickup** | stays put until the knob reaches it, then follows. | Knobs and faders (the default). |
+| **relative** | moves by the knob's turns, never jumping. | Encoders set to send relative steps (centred on 64) in the controller's settings. |
+| **jump** | follows the knob at once. | The EFFECT knob, XY pad and XY MOD, whose values the editor can't know. |
+
+MORPH AMOUNT only moves while a morph target is picked. The assignments are remembered.
 
 ## Undo
 

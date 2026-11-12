@@ -608,6 +608,27 @@ svg .eqfill.cut {
   gap: 8px;
   width: 320px;
 }
+.ccsettings {
+  width: 440px;
+}
+.cclist {
+  border-collapse: collapse;
+  width: 100%;
+}
+.cclist td {
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.cclist .ccnum,
+.cclist .ccch {
+  color: var(--dim);
+}
+.cclist .cctarget {
+  width: 100%;
+}
+.ccsettings .status {
+  white-space: normal;
+}
 .port {
   display: flex;
   flex-direction: column;

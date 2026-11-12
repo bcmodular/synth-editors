@@ -83,7 +83,7 @@ those blocks through a typed parameter table. This replaces the TouchOSC split b
   unsaved edits kept across launches.
 - To do: [docs/tb3-phase3-todo.md](docs/tb3-phase3-todo.md).
 
-### Phase 4 — Controllers
+### Phase 4 — Controllers (done: docs/tb3-phase4-design.md)
 - Launchpad: top two rows → 16 slots with mode colours; side buttons for morph, delete (hold),
   grab (hold), sync, brightness; pad pressure → morph amount.
 - Launchkey: note / pitch-bend pass-through, CC learn with seeded defaults.

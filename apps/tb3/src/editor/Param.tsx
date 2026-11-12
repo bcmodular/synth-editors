@@ -1,5 +1,5 @@
 // Patch-bound controls: look up the ParamDef, read/write the patch, format with def.display,
-// and take part in parameter-assign mode (click to assign).
+// and take part in parameter-assign mode and CC learn (click to pick).
 import type { ReactNode } from "react";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
@@ -7,6 +7,7 @@ import type { ParamDef } from "../core/params";
 import { HFader, VFader } from "../ui/Fader";
 import { LedButton } from "../ui/controls";
 import { useEditor } from "./EditorContext";
+import type { Editor } from "./EditorContext";
 
 export function useParam(id: string) {
   const ed = useEditor();
@@ -21,29 +22,36 @@ const SWALLOW_MS = 400;
 let swallowUntil = 0;
 const swallowing = () => performance.now() < swallowUntil;
 
-// In assign mode, clicks on an assignable param pick it instead of editing it.
+type Blockable = { stopPropagation(): void; preventDefault(): void };
+const block = (e: Blockable) => {
+  e.stopPropagation();
+  e.preventDefault();
+};
+
+// What a click on `def` does now: picks it (assign mode, if it's assignable; CC learn, any param), or nothing.
+function picking(ed: Editor, def: ParamDef) {
+  if (ed.learning) return { armed: true, pick: ed.learnTo, verb: "Learn a CC for" };
+  if (ed.armed === null) return { armed: false, pick: null, verb: "" };
+  return { armed: true, pick: def.assignId === undefined ? null : ed.assignTo, verb: "Assign" };
+}
+
+// In assign mode, clicks on an assignable param pick it instead of editing it; in CC learn, any param.
 export function Assignable(p: { def: ParamDef; className?: string; children: ReactNode }) {
-  const ed = useEditor();
-  const armed = ed.armed !== null;
-  const active = armed && p.def.assignId !== undefined;
-  const block = (e: { stopPropagation(): void; preventDefault(): void }) => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
+  const { armed, pick, verb } = picking(useEditor(), p.def);
+  const blocking = (e: Blockable) => (armed || swallowing()) && block(e);
   return (
     <div
-      className={`${p.className ?? ""} ${active ? "assignable" : ""}`}
+      className={`${p.className ?? ""} ${pick ? "assignable" : ""}`}
       onPointerDownCapture={(e) => {
-        if (active) {
-          block(e);
-          swallowUntil = performance.now() + SWALLOW_MS;
-          ed.assignTo(p.def);
-        } else if (armed || swallowing()) block(e);
+        if (!pick) return blocking(e);
+        block(e);
+        swallowUntil = performance.now() + SWALLOW_MS;
+        pick(p.def);
       }}
-      onClickCapture={(e) => (armed || swallowing()) && block(e)}
-      onDoubleClickCapture={(e) => (armed || swallowing()) && block(e)}
+      onClickCapture={blocking}
+      onDoubleClickCapture={blocking}
       onWheelCapture={(e) => armed && e.stopPropagation()}
-      title={active ? `Assign ${p.def.name}` : undefined}
+      title={pick ? `${verb} ${p.def.name}` : undefined}
     >
       {p.children}
     </div>

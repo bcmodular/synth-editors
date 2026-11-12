@@ -1,6 +1,6 @@
 # TB-3 — Phase 4: controllers (design)
 
-Status: **Launchpad implemented**; Launchkey and CC learn next.
+Status: **implemented**.
 
 ## Launchpad Pro Mk1
 
@@ -35,9 +35,28 @@ The editor drives a Launchpad Pro (original model) on the LAUNCHPAD IN / OUT por
 - **Sending**: the LEDs are worked out from the session each render (`launchpadView.ts`, pure) and only changed
   LEDs are sent, in one multi-LED SysEx (`ledsRgb`). The Launchpad isn't behind the TB-3's pacer.
 - **Code**: `launchpadView.ts` (state → LEDs), `launchpadControl.ts` (input → session actions), `useLaunchpad.ts`
-  (ports, setup, brightness). e2e: `e2e/fakeLaunchpad.ts` adds a fake Launchpad beside the fake TB-3.
+  (ports, setup, brightness). e2e: `e2e/fakeController.ts` adds a fake Launchpad beside the fake TB-3.
 
-## Launchkey and CC learn (next)
+## Keyboard controller and CC learn
 
-See PLAN.md: notes and pitch bend from the Launchkey pass through to the TB-3's channel; CC learn with seeded
-Launchkey defaults and relative / pickup / jump modes, in a `packages/cc-learn` shared with the SP-404 editor.
+A keyboard (the Launchkey MK4 on the TouchOSC panel) on **KEYS IN**, as in `touchosc-controllers/tb-3/lua/root.lua`.
+
+- **Pass-through**: note on/off and pitch bend go to the TB-3, rechannelled to TB-3 CHANNEL, through the pacer like
+  every send. Unassigned CCs pass through the same way. Other messages (clock, aftertouch, SysEx) are dropped.
+- **Targets** (`ccTargets.ts`): a patch parameter (`param:<id>`, edited as from its fader, so on screen, sent as DT1
+  and in the undo history), GLOBAL TUNE (`tuning`), the morph AMOUNT (`morph`, only with a target), or one of the
+  TB-3's performance CCs (`tb3cc:<n>`: EFFECT knob 17, PAD X 12, PAD Y 13, XY MOD 1), sent on as that CC.
+- **Seeded defaults** from the TouchOSC panel: 74 cutoff, 71 resonance, 16 accent, 17 / 12 / 13 / 1 the TB-3 CCs, 104
+  tuning, 105 morph. Seeds match any channel; learned CCs keep the channel they came on.
+- **Modes** (`packages/cc-learn`): relative (binary offset around 64, Novation's relative encoders; one step is
+  max/127 raw, at least 1), pickup (soft takeover: ignored until the knob is within a step of the value or crosses
+  it; it lets go when anything else changes the value) and jump. Parameters, tuning and morph default to pickup;
+  the TB-3 CCs have no known value, so they're jump only.
+- **Learning**: the CC popover's LEARN arms picking, reusing ASSIGN's click capture (every parameter is clickable);
+  the next CC from KEYS IN is assigned to the picked target, replacing that CC's and that target's old assignment.
+  A row's LEARN skips the picking. Esc cancels. EFX parameters aren't learnable yet (they aren't `ParamDef`s).
+- **Storage**: `cc.assignments` in the app's local storage (global, not per set). Feedback to the controller: none,
+  as decided in PLAN.md.
+- **Code**: `packages/cc-learn` (assignments, `ccValue`), `ccTargets.ts`, `launchkeyControl.ts` (input → sends and
+  targets, pure), `useCcLearn.ts` (state), `useLaunchkey.ts` (port, target read/write), `CcSettings.tsx`. e2e:
+  `e2e/keys.e2e.ts` with `e2e/fakeController.ts`.

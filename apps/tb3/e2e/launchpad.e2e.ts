@@ -2,10 +2,11 @@
 // LEDs, pads recalling slots, DELETE held, MORPH and pad pressure.
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { installFakeLaunchpad } from "./fakeLaunchpad";
+import { controllerSent, installFakeController, pressController } from "./fakeController";
 import { finish, openTestSet, sideButton, slot, start } from "./tb3";
 import type { Tb3App } from "./tb3";
 
+const LP = "Launchpad Pro";
 const PROGRAMMER = [0xf0, 0x00, 0x20, 0x29, 0x02, 0x10, 0x2c, 0x03, 0xf7];
 
 let running: Tb3App | undefined;
@@ -15,7 +16,7 @@ async function withLaunchpad(): Promise<Page> {
   running = undefined;
   running = await start();
   const { page } = running;
-  await page.addInitScript(installFakeLaunchpad);
+  await page.addInitScript(installFakeController, LP);
   await page.evaluate(() => {
     localStorage.setItem("port.lpIn", "Launchpad Pro");
     localStorage.setItem("port.lpOut", "Launchpad Pro");
@@ -27,11 +28,9 @@ async function withLaunchpad(): Promise<Page> {
   return page;
 }
 
-type WithFake = { __fakeLaunchpad: { sent: number[][]; press(bytes: number[]): void } };
 
-const press = (page: Page, bytes: number[]) =>
-  page.evaluate((b) => (window as unknown as WithFake).__fakeLaunchpad.press(b), bytes);
-const sent = (page: Page) => page.evaluate(() => (window as unknown as WithFake).__fakeLaunchpad.sent);
+const press = (page: Page, bytes: number[]) => pressController(page, LP, bytes);
+const sent = (page: Page) => controllerSent(page, LP);
 
 // The colour each LED was last set to, from every LED message sent.
 async function leds(page: Page) {

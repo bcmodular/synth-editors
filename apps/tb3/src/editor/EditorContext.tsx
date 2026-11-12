@@ -1,5 +1,5 @@
 // Editor state shared by every section: the current patch, setters that also send to the TB-3,
-// and parameter-assign mode.
+// parameter-assign mode and CC learn's parameter picking.
 import { createContext, useContext } from "react";
 import type { EfxNum } from "../core/efx";
 import type { Patch } from "../core/patch";
@@ -23,6 +23,8 @@ export interface Editor {
   armed: AssignSlotId | null;
   arm: (slot: AssignSlotId | null) => void;
   assignTo: (def: ParamDef) => void;
+  learning: boolean; // CC learn: the next parameter clicked gets the next CC
+  learnTo: (def: ParamDef) => void;
 }
 
 export const EditorContext = createContext<Editor | null>(null);

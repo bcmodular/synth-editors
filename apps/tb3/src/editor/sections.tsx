@@ -176,7 +176,7 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
       width={290}
       height={130}
       disabled={!ed.patch}
-      readOnly={ed.armed !== null}
+      readOnly={ed.armed !== null || ed.learning}
       wrapValue={(k, node) => (
         <Assignable def={paramById(ids[k])} className="inline">
           {node}

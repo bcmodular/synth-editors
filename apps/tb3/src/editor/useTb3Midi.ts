@@ -16,8 +16,8 @@ import { createPacer } from "./pacer";
 import type { Tb3Sender } from "./pacer";
 import { load, save } from "./storage";
 
-export type PortRole = "tb3In" | "tb3Out" | "lpIn" | "lpOut";
-const ROLES: PortRole[] = ["tb3In", "tb3Out", "lpIn", "lpOut"];
+export type PortRole = "tb3In" | "tb3Out" | "lpIn" | "lpOut" | "keysIn";
+const ROLES: PortRole[] = ["tb3In", "tb3Out", "lpIn", "lpOut", "keysIn"];
 const LOG_LIMIT = 200;
 const SYNC_TIMEOUT_MS = 2000;
 const BLOCK_KEYS = new Set(PATCH_BLOCKS.map((b) => addrKey(b.addr)));

@@ -24,6 +24,10 @@ import { MorphBlock, PatchBlock, SetBlock } from "./editor/PatchesBlock";
 import { AssignBlock, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
 import { useFitZoom } from "./editor/useFitZoom";
+import { paramTarget } from "./editor/ccTargets";
+import { useCcLearn } from "./editor/useCcLearn";
+import type { CcLearn } from "./editor/useCcLearn";
+import { useLaunchkey } from "./editor/useLaunchkey";
 import { useLaunchpad } from "./editor/useLaunchpad";
 import { useLibrary, walk } from "./editor/useLibrary";
 import { useSession } from "./editor/useSession";
@@ -34,6 +38,23 @@ import { useTb3Midi } from "./editor/useTb3Midi";
 import { useUndoKeys } from "./editor/useUndoKeys";
 import { DialogHost } from "./ui/Dialog";
 import { TooltipLayer } from "./ui/Tooltip";
+
+// Esc backs out of one thing at a time: CC learn, slot modes, then assign mode.
+function useEscape(learn: CcLearn, session: Session, disarm: (() => void) | null) {
+  const { learning, cancel } = learn;
+  useEffect(() => {
+    const steps: [boolean, () => void][] = [
+      [learning !== null, cancel],
+      [session.mode !== null, () => session.setMode(null)],
+      [disarm !== null, () => disarm?.()],
+    ];
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") steps.find(([on]) => on)?.[1]();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [learning, cancel, session, disarm]);
+}
 
 export function App() {
   return (
@@ -57,6 +78,7 @@ function EditorApp() {
   const session = useSession(midi.tb3, setError);
   sessionRef.current = session;
   useLaunchpad(midi, session);
+  const ccLearn = useCcLearn();
   const library = useLibrary();
   const folders = useMemo(
     () => ["", ...Array.from(walk(library.tree), (e) => (e.kind === "dir" ? e.path : null)).filter((f) => f !== null)],
@@ -71,16 +93,7 @@ function EditorApp() {
     }
   }, []);
 
-  // Esc backs out of one thing at a time: slot modes, then assign mode.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      if (session.mode) session.setMode(null);
-      else if (armed) setArmed(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [armed, session]);
+  useEscape(ccLearn, session, armed ? () => setArmed(null) : null);
 
   useUndoKeys(session);
 
@@ -95,6 +108,7 @@ function EditorApp() {
     return undefined;
   };
 
+  const { listenFor } = ccLearn;
   const editor = useMemo<Editor>(() => {
     const setParamDef = (def: ParamDef, raw: number) =>
       session.edit((p) => setRaw(p, def, raw), def.id, encodeParam(def, raw), def.name);
@@ -117,14 +131,26 @@ function EditorApp() {
         setParamDef(paramById(armed), def.assignId);
         setArmed(null);
       },
+      learning: ccLearn.learning === "pick",
+      learnTo: (def) => listenFor(paramTarget(def.id)),
     };
-  }, [patch, armed, session]);
+  }, [patch, armed, session, ccLearn.learning, listenFor]);
 
   const changeTuning = (v: number) => {
     setTuning(v);
     session.push("global_tuning", globalTuningCc(midi.channel - 1, v));
   };
 
+  useLaunchkey(midi, ccLearn, {
+    patch: session.activePatch,
+    setParam: editor.setParam,
+    tuning,
+    setTuning: changeTuning,
+    morph: session.morphTarget === null ? null : session.morphAmount,
+    setMorph: session.setMorph,
+  });
+
+  const auditioning = session.previewKey ? "auditioning" : "";
   if (!midi.access && !midi.error)
     return (
       <main className="app">
@@ -134,7 +160,7 @@ function EditorApp() {
 
   return (
     <EditorContext.Provider value={editor}>
-      <main ref={setMainEl} className={`app ${armed ? "assigning" : ""} ${session.previewKey ? "auditioning" : ""}`}>
+      <main ref={setMainEl} className={`app ${editor.armed || editor.learning ? "assigning" : ""} ${auditioning}`}>
         <aside className="side">
           <PatchBlock session={session} actions={actions} hasLibrary={Boolean(library.root)} />
           <SetBlock session={session} actions={actions} findPatch={findPatch} />
@@ -153,6 +179,7 @@ function EditorApp() {
             <Tb3Block
               midi={midi}
               audio={audio}
+              ccLearn={ccLearn}
               hasPatch={Boolean(session.activePatch)}
               onSyncTo={session.sendAll}
               history={session}

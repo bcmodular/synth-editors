@@ -17,6 +17,7 @@
   "devDependencies": {
     "@playwright/test": "^1.65.0",
     "@synth-editors/audio": "*",
+    "@synth-editors/cc-learn": "*",
     "@synth-editors/launchpad": "*",
     "@synth-editors/midi": "*",
     "@types/react": "^19.3.0",

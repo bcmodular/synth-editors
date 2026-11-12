@@ -7,8 +7,10 @@ import { paramById } from "../core/params";
 import { HFader } from "../ui/Fader";
 import { Section } from "../ui/controls";
 import { KEYS } from "../ui/platform";
+import { CcSettings } from "./CcSettings";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { ParamH } from "./Param";
+import type { CcLearn } from "./useCcLearn";
 import type { Tb3Audio } from "./useTb3Audio";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
 
@@ -47,11 +49,13 @@ function UndoButtons(p: { history: UndoControls }) {
 export function Tb3Block(p: {
   midi: Tb3Midi;
   audio: Tb3Audio;
+  ccLearn: CcLearn;
   onSyncTo: () => void;
   hasPatch: boolean;
   history: UndoControls;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<"midi" | "cc" | null>(null);
+  const toggle = (which: "midi" | "cc") => setOpen((o) => (o === which ? null : which));
   const { sync } = p.midi;
   const status = p.midi.error
     ? `MIDI unavailable: ${p.midi.error}`
@@ -69,7 +73,10 @@ export function Tb3Block(p: {
       extra={
         <span className="row tight">
           <UndoButtons history={p.history} />
-          <button className="btn" onClick={() => setOpen((o) => !o)}>
+          <button className={`btn ${open === "cc" ? "sel" : ""}`} title="Controller CCs" onClick={() => toggle("cc")}>
+            CC
+          </button>
+          <button className={`btn ${open === "midi" ? "sel" : ""}`} onClick={() => toggle("midi")}>
             MIDI
           </button>
         </span>
@@ -82,7 +89,10 @@ export function Tb3Block(p: {
         SYNC TO TB-3
       </button>
       <span className={`status ${sync.kind === "error" || p.midi.error ? "err" : ""}`}>{status}</span>
-      {open && <MidiSettings midi={p.midi} audio={p.audio} onClose={() => setOpen(false)} />}
+      {open === "midi" && <MidiSettings midi={p.midi} audio={p.audio} onClose={() => setOpen(null)} />}
+      {open === "cc" && (
+        <CcSettings learn={p.ccLearn} hasKeys={Boolean(p.midi.ports.keysIn)} onClose={() => setOpen(null)} />
+      )}
     </Section>
   );
 }
@@ -109,6 +119,7 @@ function MidiSettings(p: { midi: Tb3Midi; audio: Tb3Audio; onClose: () => void }
       {select("tb3Out", "TB-3 OUT", m.outputs)}
       {select("lpIn", "LAUNCHPAD IN", m.inputs)}
       {select("lpOut", "LAUNCHPAD OUT", m.outputs)}
+      {select("keysIn", "KEYS IN", m.inputs)}
       <label className="port">
         <span className="lbl">TB-3 CHANNEL</span>
         <select value={m.channel} onChange={(e) => m.setChannel(Number(e.target.value))}>

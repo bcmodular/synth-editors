@@ -1,4 +1,4 @@
-// The FX library (Phase 4) against the fake SP-404's MIDI: presets, DEF, STORE and DEL, LOCK, GRAB, morph, FX
+// The FX library (Phase 4) against the fake SP-404's MIDI: presets, DEF, DEL, LOCK, GRAB (the mode and the bus's), morph, FX
 // scenes, and the library file in the app's (throwaway) user data folder.
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -41,26 +41,35 @@ test("an empty preset stores, a stored one recalls (sending only what changed) a
   await expect(preset(r, 1)).toHaveClass(/\bon\b/);
 });
 
-test("STORE stores over a stored slot and DEF; DEF recalls; DEL deletes and clears a bus", async () => {
+test("DEF recalls the effect's start values; DEL deletes and clears a bus", async () => {
   const r = (running = await start());
   await withDrive(r);
   await preset(r, 2).click();
   await turnCutoff(r, 5);
-  await r.page.getByRole("button", { name: "STORE" }).click();
-  await preset(r, 2).click(); // overwrite
-  await module(r, 1).getByRole("button", { name: "DEF" }).click(); // store defaults at 75
-  await r.page.getByRole("button", { name: "STORE" }).click();
-  await turnCutoff(r, -10);
   const before = await count(r);
   await module(r, 1).getByRole("button", { name: "DEF" }).click();
-  await expect.poll(() => sentSince(r, before)).toEqual([[0xb0, 16, 75]]);
-  await expect(preset(r, 2)).toHaveClass(/\bon\b/); // the overwritten preset matches
+  await expect.poll(() => sentSince(r, before)).toEqual([[0xb0, 16, 70]]);
+  await expect(preset(r, 2)).toHaveClass(/\bon\b/); // stored at the start values
   await r.page.getByRole("button", { name: "DEL" }).click();
   await preset(r, 2).click();
   await expect(preset(r, 2)).not.toHaveClass(/stored/);
   await r.page.getByRole("button", { name: "Clear BUS 1" }).click();
   await expect(module(r, 1).locator(".name")).toHaveText("CHOOSE AN EFFECT");
   await expect.poll(async () => (await midiSent(r.page)).at(-1)).toEqual([0xb0, 19, 0]);
+});
+
+test("the bus's GRAB turns the effect on while held, then puts ON/OFF back", async () => {
+  const r = (running = await start());
+  await withDrive(r);
+  const on = r.page.getByRole("button", { name: "BUS 1 on" });
+  if ((await on.getAttribute("aria-pressed")) === "true") await on.click();
+  await expect(on).toHaveAttribute("aria-pressed", "false");
+  const box = (await r.page.getByRole("button", { name: "BUS 1 grab" }).boundingBox())!;
+  await r.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await r.page.mouse.down();
+  await expect(on).toHaveAttribute("aria-pressed", "true");
+  await r.page.mouse.up();
+  await expect(on).toHaveAttribute("aria-pressed", "false");
 });
 
 test("LOCK keeps presets from being stored and the bus from scene recall; presets still recall", async () => {
@@ -85,7 +94,7 @@ test("with GRAB on, holding a stored preset plays it until let go", async () => 
   await withDrive(r);
   await preset(r, 1).click();
   await turnCutoff(r, 6);
-  await module(r, 1).getByRole("button", { name: "BUS 1 grab" }).click();
+  await r.page.getByRole("button", { name: "GRAB", exact: true }).click(); // the mode, in the top bar
   const before = await count(r);
   const box = (await preset(r, 1).boundingBox())!;
   await r.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);

@@ -66,13 +66,18 @@ test("the effect chooser only offers what the bus can load, and the choice is re
   await expect(module(r, 1).locator(".name")).toHaveText("RESONATOR");
 });
 
-test("RESEND pushes every bus with an effect", async () => {
+test("SYNC ALL FX pushes every bus with an effect, and a bus's SYNC that bus", async () => {
   const r = (running = await start());
   await chooseEffect(r, 4, "BUS 4 · MASTER", "Filter + Drive");
   await expect.poll(async () => (await midiSent(r.page)).length).toBe(8);
-  await r.page.getByRole("button", { name: "RESEND" }).click();
+  await r.page.getByRole("button", { name: "SYNC ALL FX" }).click();
   await expect.poll(async () => (await midiSent(r.page)).length).toBe(16);
   expect((await midiSent(r.page))[8]).toEqual([0xb3, 83, 10]);
+  await r.page.getByRole("button", { name: "BUS 4 sync" }).click();
+  await expect.poll(async () => (await midiSent(r.page)).length).toBe(24);
+  await r.page.getByRole("button", { name: "BUS 1 sync" }).click(); // no effect: nothing to send
+  await r.page.waitForTimeout(200);
+  expect((await midiSent(r.page)).length).toBe(24);
 });
 
 test("dragging a handle in a drawing sends both of its parameters", async () => {

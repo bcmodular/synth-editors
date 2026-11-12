@@ -1,5 +1,6 @@
 // The FX row, in the SP-404's signal order: INPUT FX, the pad buses BUS 1 and BUS 2, then the master chain BUS 3 →
-// BUS 4. The last column holds the 16 FX scenes, the STORE and DEL modes, and RESEND.
+// BUS 4. The last column holds the 16 FX scenes and SYNC ALL FX. The DEL and GRAB modes are in the top bar
+// (FxModes).
 
 import type { PointerEvent } from "react";
 import type { Bus } from "../core/fxTypes";
@@ -20,15 +21,16 @@ function Group({ title, buses, fx }: { title: string; buses: Bus[]; fx: Fx }) {
   );
 }
 
-const SCENE_TIP = "A scene is all five buses. Empty: press to store. Stored: press to recall (locked buses stay), "
-  + "hold Shift to preview";
+const SCENE_TIP = "A scene is all five buses. Empty: press to store. Stored: press to recall (locked buses stay); "
+  + "hold with GRAB on (or Shift) to preview";
 
 function Scene({ slot, fx }: { slot: number; fx: Fx }) {
   const { play, state } = fx;
   const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
     if (e.button !== 0) return;
+    e.preventDefault(); // no focus, so no focus ring after Shift
     e.currentTarget.setPointerCapture(e.pointerId);
-    play.pressScene(slot, e.shiftKey);
+    play.pressScene(slot, play.grab || e.shiftKey);
   };
   const on = currentScene(state) === slot ? "on" : "";
   return (
@@ -39,20 +41,22 @@ function Scene({ slot, fx }: { slot: number; fx: Fx }) {
   );
 }
 
-function ModeButtons({ fx }: { fx: Fx }) {
-  const { mode, setMode } = fx.play;
+// The library's modes, in the top bar: DEL (red) and GRAB (white). Each stays on until pressed again.
+export function FxModes({ fx }: { fx: Fx }) {
+  const { mode, setMode, grab, toggleGrab } = fx.play;
   return (
-    <div className="modes">
-      <button className={`btn store ${mode === "store" ? "on" : ""}`} aria-pressed={mode === "store"}
-        title="STORE: presets, DEF and scenes store when pressed, over what's there" onClick={() => setMode("store")}>
-        STORE
-      </button>
-      <button className={`btn del ${mode === "delete" ? "on" : ""}`} aria-pressed={mode === "delete"}
+    <>
+      <button className={`pill mode del ${mode === "delete" ? "on" : ""}`} aria-pressed={mode === "delete"}
         title="DEL: pressing a stored preset or scene deletes it; a bus number clears the bus"
         onClick={() => setMode("delete")}>
         DEL
       </button>
-    </div>
+      <button className={`pill mode grab ${grab ? "on" : ""}`} aria-pressed={grab}
+        title="GRAB: hold a stored preset or scene to hear it; letting go puts back what was there (or hold Shift)"
+        onClick={toggleGrab}>
+        GRAB
+      </button>
+    </>
   );
 }
 
@@ -63,10 +67,9 @@ function SceneColumn({ fx }: { fx: Fx }) {
       <div className={`scenes mode-${fx.play.mode}`} title={SCENE_TIP}>
         {fx.state.scenes.map((_, i) => <Scene key={i} slot={i} fx={fx} />)}
       </div>
-      <ModeButtons fx={fx} />
-      <button className="btn" disabled={!fx.outputName} onClick={fx.resendAll}
+      <button className="btn sync" disabled={!fx.outputName} onClick={fx.syncAll}
         title="Send every bus to the SP-404 again (after it was switched off, say)">
-        RESEND
+        SYNC ALL FX
       </button>
     </div>
   );

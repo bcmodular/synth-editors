@@ -32,7 +32,8 @@ levels (the SP-404 has no MIDI or serial control for them). The BCR2000 is dropp
 - **Presets**: 8 per effect per bus. Empty slot = store, stored slot = recall.
 - **Exclude tuning**: per bus. When on, preset recall skips the effect's tuning parameters (Resonator
   ROOT and CHORD, Hyper-Reso NOTE and SCALE, and so on; marked in the effects table).
-- **Defaults (DEF)**: a stored baseline per effect per bus. DEF recalls it; storing replaces it.
+- **Defaults (DEF)**: a stored baseline per effect per bus. DEF recalls it; storing replaces it (how to store it
+  in the app is still open, 2026-11-12).
 - **Recent values**: per bus, the app remembers the last parameter values of each effect used on it. Switching
   back to an effect brings its values back.
 - **GRAB**: preview mode. Hold a stored preset (or scene) to hear it; letting go restores what was there.
@@ -50,18 +51,23 @@ These match the TouchOSC version's behaviour, including the lock rules.
 - **Preset slot**: empty → press to store; stored → press to recall (Exclude tuning respected). A stored slot is
   outlined in the bus colour; the slot whose values the bus matches right now is filled ("on"), so editing a knob
   turns it off.
-- **STORE** and **DEL** under the FX scenes are global modes that stay on until pressed again. STORE: a press stores
-  over a stored preset or scene, and DEF stores the effect's defaults. DEL: a press deletes a stored preset or
-  scene, and the bus number (its badge turns red) clears the bus (unloads the effect and switches it off, keeping
-  its values in the recent list).
+- **DEL** (red) and **GRAB** (white) in the top bar are global modes that stay on until pressed again (2026-11-12:
+  STORE is gone; to replace a preset, delete it and store again). DEL: a press deletes a stored preset or scene,
+  and the bus number (its badge turns red) clears the bus (unloads the effect and switches it off, keeping its
+  values in the recent list). GRAB: holding a stored preset or scene plays it and letting go puts the buses back;
+  Shift held does the same without GRAB.
 - **DEF**: recalls the effect's stored defaults, else its starting values (DEF reads brighter once defaults exist).
-- **GRAB** (per module): while on, holding a stored preset plays it and letting go puts the bus back. Shift held
-  does the same without GRAB, and Shift-hold on a scene previews the scene.
-- **LOCK** (per module, remembered between runs, not in the library file): red; the LCD gets a red edge.
+  Storing defaults has no control for now.
+- **SYNC** (orange, per module) sends the bus to the SP-404 again; **SYNC ALL FX** under the scenes sends every bus.
+- **GRAB** (per module, in the bus colour) is the momentary FX grab: the effect is on while held, and letting go
+  puts ON/OFF back as it was.
+- **LOCK** (per module, remembered between runs, not in the library file): red, filled when on; the LCD gets a red
+  edge.
+- The module header takes the bus colour: the number badge, the effect name and its LCD, and the label below.
 - **Morph**: EXP turns it on; pressing a stored preset makes it the target (dashed outline) and the blend starts
   from the bus's values at that moment; the track (drag or wheel, 0–100) sets the amount. EXP again turns morph
   off and keeps the blend. Choosing another effect or clearing the bus ends the morph.
-- **KEEP TUNING** in the morph row (only for effects with tuning parameters) is Exclude tuning.
+- **KEEP TUNING** at the left of the morph row (only for effects with tuning parameters) is Exclude tuning.
 - **FX scenes**: empty → press to store all five buses; stored → press to recall (locked buses stay as they are);
   the scene every bus matches is filled.
 
@@ -140,7 +146,7 @@ One window drawn at **1920 × 1080** and scaled to fit with CSS `zoom`, as in th
 - **Top bar**: link status for MIDI, USB (with the project) and the Launchpad; KEYBOARD opens the overlay.
 - **FX row** follows the device's signal path: INPUT FX, then BUS 1 and BUS 2 (labelled SERIAL or PARALLEL,
   as set on the SP-404 and shown read-only), an arrow, then BUS 3 → BUS 4 (master). Five modules at 358 px,
-  then the FX scenes column (~107 px: two columns of 8 tall buttons, STORE and DEL).
+  then the FX scenes column (~107 px: two columns of 8 tall buttons, SYNC ALL FX).
 - **Mixer**: mix scenes, recall safe, project and SHOW BANKS on the left; the desk; the USB output meter on the
   right. The desk shows the banks picked in SHOW BANKS (banks with no samples are greyed out). Two banks fit
   without scrolling; more scroll sideways. A thin bar in the bank colour runs down each side of a bank. The
@@ -170,15 +176,16 @@ Every module is 358 × 520 px:
 │ │                                   │  …  8     │
 │ └───────────────────────────────────┘           │
 │ switches / button rows / drop-downs  │ DEF      │
-│ knobs (one per continuous parameter) │ GRAB     │
+│ knobs (one per continuous parameter) │ SYNC     │
+│                                      │ GRAB     │
 │                                      │ LOCK     │
 │ MORPH ━━━━━━━━━━━━━━━━━━━━━ EXP                 │
 └─────────────────────────────────────────────────┘
 ```
 
 - The accent colour is the bus's: BUS 1 orange, BUS 2 green, BUS 3/4 blue, INPUT lilac.
-- The **side column** (50 px) holds the 8 presets top to bottom, matching a Launchpad column, then DEF, GRAB
-  and LOCK, as in the TouchOSC layout.
+- The **side column** (50 px) holds the 8 presets top to bottom, matching a Launchpad column, then DEF, SYNC,
+  GRAB and LOCK, as in the TouchOSC layout.
 - No CC or knob numbers on the controls.
 
 ### Control rules

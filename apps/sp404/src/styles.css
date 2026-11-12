@@ -160,17 +160,22 @@ select {
   gap: 8px;
 }
 
+/* The header takes the bus's colour: the number, the effect's name and its LCD, and the label under them. */
 .bus .num {
   width: 22px;
   height: 22px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--rule);
-  background: none;
+  border: 1px solid var(--acc);
+  background: color-mix(in srgb, var(--acc) 22%, #000);
   font: inherit;
   font-size: 13px;
-  color: #fff;
+  color: var(--acc);
   padding: 0;
+}
+
+.bus > .lbl {
+  color: var(--acc);
 }
 
 .bus .num.clear {
@@ -183,8 +188,8 @@ select {
   flex: 1;
   min-width: 0;
   text-align: left;
-  background: var(--lcd);
-  color: var(--lcdtxt);
+  background: color-mix(in srgb, var(--acc) 14%, #000);
+  color: var(--acc);
   padding: 4px 7px;
   font-size: 15px;
   letter-spacing: 0.05em;
@@ -472,7 +477,7 @@ button.big.on {
 }
 
 /* Preset slots and scenes: empty is dark, stored is lit in the accent's outline, the one the values match ("on")
-   is filled; STORE and DEL modes outline what a press would change. */
+   is filled; DEL mode outlines what a press would delete. */
 .presets button,
 .fxrow .scenes button {
   flex: 1;
@@ -508,11 +513,6 @@ button.big.on {
   outline-offset: -3px;
 }
 
-.mode-store .presets button,
-.fxrow .scenes.mode-store button {
-  border-color: var(--cap);
-}
-
 .mode-delete .presets button.stored,
 .fxrow .scenes.mode-delete button.stored {
   border-color: var(--mute);
@@ -526,6 +526,43 @@ button.big.on {
 
 .pcol .btn.def.stored {
   color: #e8e8ea;
+}
+
+/* SYNC is orange, LOCK red; the bus's GRAB is in its colour, filled while held. */
+.btn.sync {
+  border-color: color-mix(in srgb, var(--cap) 70%, #000);
+  color: var(--cap);
+}
+
+.btn.sync:active:not(:disabled) {
+  background: var(--cap);
+  color: #000;
+}
+
+.btn.sync:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pcol .btn.fxgrab {
+  border-color: color-mix(in srgb, var(--acc) 70%, #000);
+  color: var(--acc);
+  touch-action: none;
+}
+
+.pcol .btn.fxgrab.on {
+  background: var(--acc);
+  color: #000;
+}
+
+.pcol .btn.fxgrab:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pcol .btn.lock {
+  border-color: color-mix(in srgb, var(--mute) 60%, #000);
+  color: var(--mute);
 }
 
 .pcol .btn.lock.on {
@@ -597,8 +634,15 @@ button.big.on {
 }
 
 .morph .keep {
-  font-size: 9px;
-  padding: 1px 4px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-color: color-mix(in srgb, var(--acc) 70%, #000);
+  color: var(--acc);
+}
+
+.morph .keep.on {
+  background: var(--acc);
+  color: #000;
 }
 
 .fxrow .side {
@@ -639,24 +683,24 @@ button.big.on {
   flex: 1;
 }
 
-.fxrow .modes {
-  display: flex;
-  gap: 4px;
+/* The library's modes in the top bar: DEL red, GRAB white, filled while on. */
+.bar .mode.del {
+  border-color: var(--mute);
+  color: var(--mute);
 }
 
-.fxrow .modes .btn {
-  flex: 1;
+.bar .mode.grab {
+  border-color: #fff;
+  color: #fff;
 }
 
-.fxrow .modes .btn.store.on {
-  background: var(--cap);
-  border-color: var(--cap);
+.bar .mode.del.on {
+  background: var(--mute);
   color: #000;
 }
 
-.fxrow .modes .btn.del.on {
-  background: var(--mute);
-  border-color: var(--mute);
+.bar .mode.grab.on {
+  background: #fff;
   color: #000;
 }
 
@@ -1600,4 +1644,10 @@ button.wpad:active {
 .scope .corr .v {
   width: 40px;
   color: var(--txt);
+}
+
+/* Keyboard focus shows as a thin orange ring inside the button, not Chromium's blue one. */
+button:focus-visible {
+  outline: 1px solid var(--cap);
+  outline-offset: -2px;
 }

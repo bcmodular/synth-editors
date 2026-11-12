@@ -1,21 +1,20 @@
-// Playing the FX library (docs/sp404-design.md › FX): the STORE and DEL modes, LOCK and GRAB per bus, morph per bus,
-// and what pressing a preset, DEF or a scene does in each. Holding a stored preset or scene with GRAB on (or Shift
-// held) previews it, and letting go puts back what was there.
+// Playing the FX library (docs/sp404-design.md › FX): the DEL and GRAB modes, LOCK per bus, morph per bus, and what
+// pressing a preset, DEF or a scene does. Holding a stored preset or scene with GRAB on (or Shift held) previews it,
+// and letting go puts back what was there.
 
 import { useCallback, useRef, useState } from "react";
 import type { Bus } from "../core/fxTypes";
 import {
-  clearBus, deletePresetAt, deleteSceneAt, recallDefaults, recallPresetAt, recallSceneAt, slotsOn, storeDefaultsOn,
-  storePresetAt, storeSceneAt, type Locks, type SlotRef,
+  clearBus, deletePresetAt, deleteSceneAt, recallDefaults, recallPresetAt, recallSceneAt, slotsOn, storePresetAt,
+  storeSceneAt, type Locks, type SlotRef,
 } from "./fxLibrary";
 import { applyMorph, morphTarget, startMorph, type BusMorph } from "./fxMorph";
 import type { Buses } from "../core/fxModel";
 import type { FxState } from "./fxState";
 import type { Change, FxStore } from "./useFxStore";
 
-// STORE: a press stores (over a stored slot too, and DEF stores defaults). DEL: a press deletes (a bus number
-// clears its bus). Both stay on until pressed again.
-export type FxMode = "play" | "store" | "delete";
+// DEL: a press deletes (a bus number clears its bus), until DEL is pressed again.
+export type FxMode = "play" | "delete";
 
 const LOCKS_KEY = "sp404.fxLocks";
 
@@ -35,16 +34,14 @@ const toggled = <T>(set: ReadonlySet<T>, item: T): Set<T> => {
 
 type Morphs = Partial<Record<Bus, BusMorph>>;
 
-// What a press on a preset slot does, given the mode and whether the slot is stored.
+// What a press on a preset slot does: in DEL mode delete it; else recall it, or store into it while it's empty.
 function presetChange(mode: FxMode, ref: SlotRef, locks: Locks): Change {
   if (mode === "delete") return (s) => deletePresetAt(s, ref, locks);
-  if (mode === "store") return (s) => storePresetAt(s, ref, locks);
   return (s) => (slotsOn(s, ref.bus)[ref.slot] ? recallPresetAt(s, ref) : storePresetAt(s, ref, locks));
 }
 
 function sceneChange(mode: FxMode, slot: number, locks: Locks): Change {
   if (mode === "delete") return (s) => deleteSceneAt(s, slot);
-  if (mode === "store") return (s) => storeSceneAt(s, slot);
   return (s) => (s.scenes[slot] ? recallSceneAt(s, slot, locks) : storeSceneAt(s, slot));
 }
 
@@ -93,19 +90,19 @@ function useMorphs(store: FxStore) {
   return { morphs, toggleMorph, target, amount, end };
 }
 
-// The global STORE / DEL mode, and LOCK and GRAB per bus (locks are remembered between runs).
+// The DEL and GRAB modes, and LOCK per bus (locks are remembered between runs).
 function useModes() {
   const [mode, setModeShown] = useState<FxMode>("play");
   const [locks, setLocks] = useState<Set<Bus>>(readLocks);
-  const [grabs, setGrabs] = useState<Set<Bus>>(new Set());
+  const [grab, setGrab] = useState(false);
   const setMode = useCallback((next: FxMode) => setModeShown((m) => (m === next ? "play" : next)), []);
   const toggleLock = useCallback((bus: Bus) => setLocks((l) => {
     const next = toggled(l, bus);
     localStorage.setItem(LOCKS_KEY, JSON.stringify([...next]));
     return next;
   }), []);
-  const toggleGrab = useCallback((bus: Bus) => setGrabs((g) => toggled(g, bus)), []);
-  return { mode, setMode, locks, toggleLock, grabs, toggleGrab };
+  const toggleGrab = useCallback(() => setGrab((g) => !g), []);
+  return { mode, setMode, locks, toggleLock, grab, toggleGrab };
 }
 
 type Modes = ReturnType<typeof useModes>;
@@ -135,9 +132,7 @@ function usePresses(store: FxStore, { mode, locks }: Modes, preview: Preview, mo
     store.apply(sceneChange(mode, slot, locks));
   }, [mode, locks, preview, store]);
 
-  const pressDefaults = useCallback((bus: Bus) => {
-    store.apply(mode === "store" ? (s) => storeDefaultsOn(s, bus, locks) : (s) => recallDefaults(s, bus));
-  }, [mode, locks, store]);
+  const pressDefaults = useCallback((bus: Bus) => store.apply((s) => recallDefaults(s, bus)), [store]);
 
   // A bus number in DEL mode clears the bus.
   const pressBus = useCallback((bus: Bus) => {

@@ -57,11 +57,13 @@ export function setParam(state: FxState, bus: Bus, index: number, raw: number): 
   return { ...state, buses: { ...state.buses, [bus]: { ...b, values } } };
 }
 
-export function toggleOn(state: FxState, bus: Bus): FxState {
+export function setOn(state: FxState, bus: Bus, on: boolean): FxState {
   const b = state.buses[bus];
-  if (!b.fxId) return state;
-  return { ...state, buses: { ...state.buses, [bus]: { ...b, on: !b.on } } };
+  if (!b.fxId || b.on === on) return state;
+  return { ...state, buses: { ...state.buses, [bus]: { ...b, on } } };
 }
+
+export const toggleOn = (state: FxState, bus: Bus): FxState => setOn(state, bus, !state.buses[bus].on);
 
 // ---- reading a saved state (the library file, or localStorage from before it)
 

@@ -2,8 +2,8 @@
 // 1920 × 1080 and zoomed to fit.
 
 import { useMemo, useState } from "react";
-import { FxRow } from "./fx/FxRow";
-import { useFx } from "./fx/useFx";
+import { FxModes, FxRow } from "./fx/FxRow";
+import { useFx, type Fx } from "./fx/useFx";
 import { bankOf } from "./mixer/banks";
 import { Desk } from "./mixer/Desk";
 import { MixerSide, type ProjectView } from "./mixer/MixerSide";
@@ -22,13 +22,14 @@ import { useFitZoom } from "./ui/useFitZoom";
 
 interface TopBarProps {
   device: Device;
+  fx: Fx;
   midiInput?: string;
-  midiOutput?: string;
   onSettings: () => void;
 }
 
-function TopBar({ device, midiInput, midiOutput, onSettings }: TopBarProps) {
+function TopBar({ device, fx, midiInput, onSettings }: TopBarProps) {
   const { link, device: d, error, connect } = device;
+  const midiOutput = fx.outputName;
   const project = d.project === undefined ? "" : ` · PROJECT ${String(d.project + 1).padStart(2, "0")}`;
   const usb = link === "on" ? `USB ●${project}` : link === "connecting" ? "USB …" : "USB ○";
   return (
@@ -43,6 +44,7 @@ function TopBar({ device, midiInput, midiOutput, onSettings }: TopBarProps) {
       <span className="pill">LAUNCHPAD</span>
       {error && <span className="error" role="alert">{error}</span>}
       <span className="sp" />
+      <FxModes fx={fx} />
       <button className="pill" onClick={onSettings}>SETTINGS</button>
     </div>
   );
@@ -75,8 +77,7 @@ export function Editor() {
   const scope = useScopeSet(settings);
   return (
     <div className="ld" ref={setRoot}>
-      <TopBar device={device} midiInput={midiHits.inputName} midiOutput={fx.outputName}
-        onSettings={() => setSettingsOpen(true)} />
+      <TopBar device={device} fx={fx} midiInput={midiHits.inputName} onSettings={() => setSettingsOpen(true)} />
       <FxRow fx={fx} />
       <div className="mixer">
         <MixerSide project={projectView(device, mixer.renameProject)} shown={banks.shown} loadedBanks={loadedBanks}

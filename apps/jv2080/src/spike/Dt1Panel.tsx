@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PATCH_BLOCKS } from "../core/patch";
 import { addOffset, addrHex, dt1, type Address } from "../core/sysex";
-import type { JvLink } from "./useJvLink";
+import type { JvLink } from "../link/useJvLink";
 
 interface TestParam {
   label: string;

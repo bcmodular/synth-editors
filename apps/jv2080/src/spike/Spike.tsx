@@ -4,13 +4,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { emptyPatch, patchComplete, patchName, patchToDt1s, placeDt1 } from "../core/patch";
 import { parseDt1 } from "../core/sysex";
+import "./spike.css";
 import { Dt1Panel } from "./Dt1Panel";
 import { LogPanel } from "./LogPanel";
 import { PatchView } from "./PatchView";
 import { PortsPanel } from "./PortsPanel";
 import { ProgramPanel } from "./ProgramPanel";
-import { readPatch, sendPaced } from "./readPatch";
-import { useJvLink } from "./useJvLink";
+import { readPatch, sendPaced } from "../link/readPatch";
+import type { JvLink } from "../link/useJvLink";
 
 function download(messages: number[][], name: string) {
   const blob = new Blob([new Uint8Array(messages.flat())], { type: "application/octet-stream" });
@@ -21,8 +22,7 @@ function download(messages: number[][], name: string) {
   URL.revokeObjectURL(a.href);
 }
 
-export function Spike() {
-  const link = useJvLink();
+export function Spike({ link }: { link: JvLink }) {
   const patch = useRef(emptyPatch());
   const [, setVersion] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -46,7 +46,7 @@ export function Spike() {
 
   return (
     <main className="spike">
-      <h1>JV-2080 · Phase 1 spike</h1>
+      <h1>JV-2080 · hardware spike</h1>
       <PortsPanel link={link} />
       <section>
         <h2>Temporary patch</h2>

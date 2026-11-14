@@ -140,3 +140,10 @@ export function setPatchName(patch: Patch, name: string): Patch {
   common.splice(0, NAME_LENGTH, ...chars);
   return [common, ...patch.slice(1)];
 }
+
+// A DT1 applied to a patch (eg. an edit made on the JV's panel), or the same patch if it falls outside it.
+export function applyDt1(patch: Patch, addr: Address, data: readonly number[]): Patch {
+  const buffer = emptyPatch();
+  buffer.blocks = patch.map((b) => [...b]);
+  return placeDt1(buffer, addr, data) ? buffer.blocks : patch;
+}

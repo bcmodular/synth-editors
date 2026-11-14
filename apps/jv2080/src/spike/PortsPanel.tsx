@@ -1,5 +1,5 @@
 import type { PortInfo } from "@synth-editors/midi";
-import type { JvLink } from "./useJvLink";
+import type { JvLink } from "../link/useJvLink";
 
 function PortSelect({ ports, value, onChange }: { ports: PortInfo[]; value: string; onChange: (v: string) => void }) {
   return (

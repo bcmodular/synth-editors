@@ -131,6 +131,10 @@ Follows the TB-3's split:
    tests against `.syx` dumps captured from the JV (`fixtures/local/jv2080/`, skipped when absent). The spike's
    readout now uses the core tables (wave names, enum labels).
 3. **Editor** — common row, four tone columns, envelope editor, sync from / to the JV, bank browser.
+   *Started:* the editor is the app's main view (the spike is behind SPIKE). It reads the JV's patch when the ports
+   are set, edits send DT1s (coalesced per address), edits from the JV's panel come back in, SYNC FROM / TO JV and the
+   bank browser work. Controls are copied from the TB-3 (`src/ui`, as the SP-404 does) until the shared-package
+   question is decided. Still to do: envelope graphs (envelopes are rows of faders for now), fit zoom, undo.
 4. **Library** — sidebar: patch files, sets, audition, GRAB / DELETE.
 5. **Controllers and packaging** — CC learn, Launchpad (optional), packaged build.
 

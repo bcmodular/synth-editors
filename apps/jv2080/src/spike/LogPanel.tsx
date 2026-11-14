@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { LogLine } from "./useJvLink";
+import type { LogLine } from "../link/useJvLink";
 
 export function LogPanel({ log, onClear }: { log: LogLine[]; onClear: () => void }) {
   const end = useRef<HTMLDivElement>(null);

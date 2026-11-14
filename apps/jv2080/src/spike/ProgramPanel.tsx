@@ -2,8 +2,8 @@
 // JV answers an RQ1 with the new patch.
 
 import { useState } from "react";
-import { sleep } from "./readPatch";
-import type { JvLink } from "./useJvLink";
+import { sleep } from "../link/readPatch";
+import type { JvLink } from "../link/useJvLink";
 
 const BANKS: readonly { name: string; msb: number; lsb: number }[] = [
   { name: "USER", msb: 80, lsb: 0 },

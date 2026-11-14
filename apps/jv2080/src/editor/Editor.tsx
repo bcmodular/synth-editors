@@ -1,6 +1,6 @@
 // The patch editor: top strip, common row and the four tone columns.
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { JvLink } from "../link/useJvLink";
 import { CommonRow } from "./CommonRow";
 import { EditorContext } from "./EditorContext";
@@ -21,7 +21,8 @@ export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void })
     void syncFromJv();
   }, [ready, syncFromJv]);
 
-  const api = useMemo(() => (patch ? { patch, setValue } : null), [patch, setValue]);
+  const resync = useCallback(() => void syncFromJv(), [syncFromJv]);
+  const api = useMemo(() => (patch ? { patch, setValue, resync } : null), [patch, setValue, resync]);
   return (
     <main className="editor">
       <TopStrip link={link} session={session} onSpike={onSpike} />

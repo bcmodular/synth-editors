@@ -517,3 +517,75 @@ input {
   color: var(--dim);
   word-spacing: normal;
 }
+
+/* The EFX chooser (editor/EffectChooser.tsx), after the SP-404's: one row per group in its colour (--grp). */
+.editor {
+  position: relative;
+}
+.chooser {
+  --cell: 112px;
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  transform: translateX(-50%);
+  z-index: 30;
+  background: #121214;
+  border: 1px solid var(--rule);
+  box-shadow: 0 12px 40px #000c;
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ch-title {
+  font-size: var(--text-3xl);
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  padding-bottom: 6px;
+}
+.ch-row {
+  display: grid;
+  grid-template-columns: 190px repeat(6, var(--cell));
+  grid-auto-rows: 72px;
+  gap: 5px;
+}
+.ch-group {
+  align-self: center;
+  color: var(--grp);
+  font-size: var(--text-xl);
+  letter-spacing: 0.06em;
+}
+.ch-fx {
+  position: relative;
+  background: color-mix(in srgb, var(--grp) 14%, #0b0b0c);
+  border: 1px solid color-mix(in srgb, var(--grp) 45%, #000);
+  color: var(--grp);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  padding: 0 6px;
+  cursor: pointer;
+}
+.ch-fx:hover {
+  background: color-mix(in srgb, var(--grp) 28%, #0b0b0c);
+}
+.ch-fx.on {
+  background: var(--grp);
+  color: #000;
+}
+.ch-n {
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  font-size: 11px;
+  opacity: 0.7;
+}
+.ch-empty {
+  border: 1px dashed #26272b;
+}
+.efx-type {
+  color: var(--grp, #fff);
+  border-color: color-mix(in srgb, var(--grp, #888) 60%, #000);
+  font-weight: 600;
+}

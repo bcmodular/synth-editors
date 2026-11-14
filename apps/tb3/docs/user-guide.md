@@ -1,7 +1,7 @@
 # TB-3 Editor user guide
 
 TB-3 Editor is an editor and patch librarian for the Roland TB-3. It shows every tone parameter
-on one screen and sends changes to the TB-3 as you make them. It keeps sets of 16 patches and a
+on one screen and sends changes to the TB-3 as you make them. It keeps sets of 64 patches and a
 library of patch files on your computer. You can audition any patch without losing your edits,
 and it has an undo history.
 
@@ -9,14 +9,14 @@ To install it, see the [README](../README.md).
 
 ![The whole editor](images/overview.png)
 
-The sidebar on the left handles patches: the **PATCH** being edited, the **SET** of 16 slots,
+The sidebar on the left handles patches: the **PATCH** being edited, the **SET** of 64 slots,
 **MORPH** and the **LIBRARY**. The rest of the window is the sound itself. The top strip has the
 TB-3 connection, performance controls and the pad assignments. Below it, the rows follow the
 signal path: oscillators, then filter, amp and LFO, then the effects.
 
 The layout scales to fit the window, so make the window any size you like.
 
-Keys are given for the Mac. On Windows, use Ctrl for ⌘ and Alt for Option.
+Keys are given for the Mac. On Windows, use Ctrl for ⌘.
 
 ## Getting started
 
@@ -39,6 +39,11 @@ The ports, channel and library folder are remembered.
 
 **AUDIO IN (LIVE)** picks the audio input for VCO MIX's live waveform: see
 [The TB-3's output, live](#the-tb-3s-output-live). Leave it on Automatic to use the TB-3's own USB audio.
+
+**QUIET SWITCH** mutes the TB-3 for the moment it takes to switch patches. Switching while a
+pattern plays can pop or screech, because for a few milliseconds the TB-3 plays a mixture of the
+old patch and the new one. With QUIET SWITCH on, you hear a short gap instead. It's on to start
+with; if you turn it off, that's remembered.
 
 **SHOW LOG** in the MIDI settings lists the messages going to and from the TB-3, which helps when
 something isn't getting through. The LAUNCHPAD ports are for a Launchpad Pro: see
@@ -179,7 +184,7 @@ library or GRAB a slot. It also shows the prompts for the DELETE, GRAB and morph
 
 ### Sets and slots
 
-A **set** is 16 slots, each holding a patch and a name. A set is saved as one `.tb3set` file.
+A **set** is 64 slots, in 8 rows of 8 as on the Launchpad, each holding a patch and a name. A set is saved as one `.tb3set` file.
 Each slot keeps its own copy of the patch, so renaming, moving or deleting library files never
 breaks a set.
 
@@ -189,20 +194,27 @@ breaks a set.
 - **Double-click** a slot to rename it.
 - **Drag a patch** from the library onto a slot to copy it in. If the slot is full, you're
   asked first.
+- **Drag a slot** onto another to swap them, or onto an empty slot to move it. The active slot
+  follows its patch, and nothing is sent to the TB-3. You can undo it.
+- **Option-drag a slot** (Ctrl-drag on Windows) to copy it. Onto a filled slot, you're asked before it's
+  replaced. You can undo it.
 - **Right-click** a slot for Store or Replace with the patch in the editor, Rename, Save as .syx,
-  and Clear.
+  Revert to saved, and Clear.
 
 ![A slot's menu](images/slot-menu.png)
 
 Slot colours:
 
 - **Grey**: empty.
-- **Dotted green**: filled.
+- **Dotted outline in the row's colour**: filled. The rows run cyan, blue, violet, pink, then
+  repeat, so neighbouring rows always differ. The Launchpad uses the same colours.
 - **Solid green**: active.
 - **Amber corner**: edited since the set was last saved.
 
 Each slot keeps its own edits, so you can move between slots without losing work. Edits are
-written to the file when you save the set.
+written to the file when you save the set. **Revert to saved** in a slot's menu puts that slot back
+as it is in the saved set (its patch and name, or empty, or back after a Clear). If it's the active
+slot, the TB-3 plays the saved version. You can undo it.
 
 **DELETE** and **GRAB** are modes. Click the button to turn the mode on, and click it again or
 press Esc to turn it off.
@@ -214,7 +226,7 @@ press Esc to turn it off.
 
 - **GRAB**: hold a slot to audition it. The TB-3 plays it and the editor shows it while you hold;
   when you let go, both go back to the patch you were editing, unsaved edits included. Holding
-  Option and pressing a slot does the same without turning the mode on.
+  Shift and pressing a slot does the same without turning the mode on.
 
   ![Holding slot 4 in GRAB mode](images/mode-grab.png)
 
@@ -223,6 +235,7 @@ The **FILE** line names the open set, with **●** when it has unsaved changes:
 - **NEW** starts an empty set.
 - **SAVE** writes the set back to its file.
 - **SAVE AS…** asks for a name and a folder.
+- **REVERT** puts every slot back as the set was last opened or saved. You can undo it.
 
 If you open or start another set while the current one has unsaved changes, you're asked whether
 to save them, discard them or cancel.
@@ -297,9 +310,10 @@ panel. Set **LAUNCHPAD IN** and **LAUNCHPAD OUT** in the MIDI settings to its po
 *Standalone* port). The editor switches it to Programmer layout and
 lights it from then on. Other Launchpad models aren't supported.
 
-The **top two rows** are the 16 slots: slots 1–8 along the top row, 9–16 along the row below. A pad
-does what clicking its slot does: it recalls a filled slot, or stores the patch in the editor in an
-empty one. Filled slots are dim green and the active slot bright green; empty slots are dark. A pad
+The **8 × 8 grid** is the 64 slots, laid out as on screen: slots 1–8 along the top row, 9–16 along
+the row below, down to 57–64 at the bottom. A pad does what clicking its slot does: it recalls a
+filled slot, or stores the patch in the editor in an empty one. Filled slots are dim in their row's
+colour and the active slot bright green; empty slots are dark. A pad
 brightens while you hold it.
 
 The buttons down the side:

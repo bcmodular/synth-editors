@@ -75,7 +75,7 @@ function EditorApp() {
   const sessionRef = useRef<Session | null>(null);
   const midi = useTb3Midi((p) => sessionRef.current?.fromTb3(p));
   const audio = useTb3Audio();
-  const session = useSession(midi.tb3, setError);
+  const session = useSession(midi.tb3, setError, midi.quietSwitch);
   sessionRef.current = session;
   useLaunchpad(midi, session);
   const ccLearn = useCcLearn();

@@ -1,5 +1,5 @@
 // Persistence: the whole session, unsaved edits included, survives quitting. Also the morph rate.
-import { patchFromHex, patchToHex } from "../core/patchSet";
+import { padSlots, patchFromHex, patchToHex } from "../core/patchSet";
 import { freshSession } from "./sessionState";
 import type { SessionState } from "./sessionState";
 
@@ -31,8 +31,8 @@ export const toStored = (s: SessionState): StoredSession => ({
 export const fromStored = (s: StoredSession): SessionState => ({
   ...freshSession(),
   setPath: s.setPath,
-  slots: s.slots.map((x) => x && { name: x.name, patch: patchFromHex(x.hex) }),
-  savedKeys: s.savedKeys,
+  slots: padSlots(s.slots.map((x) => x && { name: x.name, patch: patchFromHex(x.hex) }), null),
+  savedKeys: padSlots(s.savedKeys, ""),
   active: s.active,
   buffer: s.buffer ? patchFromHex(s.buffer) : null,
   bufferName: s.bufferName ?? null,

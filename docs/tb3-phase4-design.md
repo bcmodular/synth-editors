@@ -9,10 +9,12 @@ The editor drives a Launchpad Pro (original model) on the LAUNCHPAD IN / OUT por
 
 - **Setup**: on choosing the output, the editor sends Programmer layout and all LEDs off. Leaving the port, or
   closing the window, turns the LEDs off again.
-- **Slots**: pads 81–88 are slots 1–8 and 71–78 are slots 9–16 (`packages/launchpad`'s `padToSlot`). A pad press
-  is a click on the slot: recall a filled one, store the editor's patch in an empty one.
-- **Colours**, matching the screen rather than the TouchOSC panel's blue: filled slots green at the idle level,
-  the active slot green at full. While a mode is on, filled slots take its colour: DELETE red, GRAB white, morph
+- **Slots**: the 8 × 8 grid is the 64 slots, read like a page: 81–88 are slots 1–8, 71–78 are 9–16, down to 11–18
+  for 57–64 (`packages/launchpad`'s `padToSlot`). A pad press is a click on the slot: recall a filled one, store
+  the editor's patch in an empty one.
+- **Colours**, matching the screen: filled slots in their row's colour at the idle level (`editor/slotColours.ts`:
+  cyan, blue, violet, pink, repeating; the Launchpad RGB values are set apart from the screen's, to be tuned by eye
+  on its LEDs), the active slot green at full. While a mode is on, filled slots take its colour: DELETE red, GRAB white, morph
   target picking orange. The morph target is orange at full. A held pad goes to the press level; an empty held
   pad is dim grey.
 - **Side buttons** (Programmer layout CCs, named as printed):

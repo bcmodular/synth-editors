@@ -230,13 +230,13 @@ export const blockKeys = (keys: readonly string[]) => [...keys].sort();
 export const allBlocks = () => blockKeys(PATCH_BLOCKS.map((b) => addrKey(b.addr)));
 
 // UI handles.
-export const slot = (page: Page, i: number) => page.locator(".slots16 .slot").nth(i);
+export const slot = (page: Page, i: number) => page.locator(".slotgrid .slot").nth(i);
 export const sideButton = (page: Page, section: string, label: string) =>
   page.locator(`.side .${section}`).getByRole("button", { name: label, exact: true });
 
 export async function openTestSet(page: Page) {
   await page.locator(".librow.set", { hasText: "Test set" }).dblclick();
-  await expect(page.locator(".slots16 .slot.filled")).toHaveCount(3);
+  await expect(page.locator(".slotgrid .slot.filled")).toHaveCount(3);
 }
 
 // Edit a patch param from its fader (one wheel notch towards the middle of its range, so it always

@@ -8,7 +8,7 @@ import type { Patch } from "../core/patch";
 import type { Slot, Slots } from "../core/patchSet";
 import { persistSession, restoreSession } from "./sessionPersist";
 import * as rules from "./sessionState";
-import type { MorphState, SessionState } from "./sessionState";
+import type { MorphState, Move, SessionState } from "./sessionState";
 import { useLatest } from "./useLatest";
 import type { Latest } from "./useLatest";
 import { useTb3Link } from "./useTb3Link";
@@ -196,6 +196,19 @@ function useSetEdits(session: SessionStore, morphs: MorphStore, undo: UndoStore)
     [apply, filled, morphs, ref],
   );
 
+  const swap = useCallback(
+    (move: Move) => {
+      apply(rules.swapLabel(ref.current, move), rules.swapSlots(ref.current, move));
+      morphs.commit(rules.morphAfterSwap(morphs.ref.current, move));
+    },
+    [apply, morphs, ref],
+  );
+
+  const copy = useCallback(
+    (move: Move) => apply(`Copy slot ${move.from + 1} to ${move.to + 1}`, rules.copySlot(ref.current, move)),
+    [apply, ref],
+  );
+
   const openSet = useCallback(
     (path: string | null, slots: Slots) => {
       commit(rules.openSet(ref.current, path, slots));
@@ -205,20 +218,46 @@ function useSetEdits(session: SessionStore, morphs: MorphStore, undo: UndoStore)
     [commit, forget, morphs, ref],
   );
 
-  return { store, loadIntoSlot, clear, rename, openSet, markSaved };
+  return { store, loadIntoSlot, clear, swap, copy, rename, openSet, markSaved };
 }
 
 type UndoStore = ReturnType<typeof useUndo>;
 
-export function useSession(tb3: Tb3Sender, onError: (msg: string) => void) {
+// Revert to saved, for a slot or the whole set: an undoable step. If the active patch changes it
+// is sent (unless auditioning, when the release sends it) and any morph starts afresh.
+function useRevert(session: SessionStore, morphs: MorphStore, link: Link, undo: UndoStore) {
+  const { ref, commit } = session;
+  const { previewing, remember } = undo;
+  const { sendPatch } = link;
+  const apply = useCallback(
+    (label: string, next: SessionState | null) => {
+      if (!next) return;
+      const before = rules.currentPatch(ref.current);
+      remember(label);
+      commit(next);
+      morphs.commit(rules.morphAfterRevert(morphs.ref.current, next.slots));
+      const cur = rules.currentPatch(next);
+      if (cur === before) return; // a revert never leaves the editor without a patch
+      morphs.commit(rules.restartMorph(morphs.ref.current));
+      if (!previewing.current) sendPatch(cur!);
+    },
+    [commit, morphs, previewing, ref, remember, sendPatch],
+  );
+  const revertSlot = useCallback((i: number) => apply(`Revert slot ${i + 1}`, rules.revertSlot(ref.current, i)), [apply, ref]);
+  const revertSet = useCallback(() => apply("Revert set", rules.revertSet(ref.current)), [apply, ref]);
+  return { revertSlot, revertSet };
+}
+
+// `quietSwitch`: mute the TB-3 while switching patches (patchSwitch.ts).
+export function useSession(tb3: Tb3Sender, onError: (msg: string) => void, quietSwitch = false) {
   const session = usePersistedSession();
   const morphs = useLatest<MorphState>(rules.noMorph);
-  const link = useTb3Link(tb3);
+  const link = useTb3Link(tb3, quietSwitch);
   const active = useCallback(() => rules.currentPatch(session.ref.current), [session.ref]);
   const { previewing, shown, preview, endPreview } = usePreview(link, active);
   const [mode, setMode] = useState<SlotMode>(null);
   const { state } = session;
-  const { modified, dirty } = useMemo(() => rules.saveStatus(state), [state]);
+  const { modified, changed, dirty } = useMemo(() => rules.saveStatus(state), [state]);
   const { sendAll: sendAllOf } = link;
   const sendAll = useCallback(() => {
     const cur = active();
@@ -228,6 +267,7 @@ export function useSession(tb3: Tb3Sender, onError: (msg: string) => void) {
   const patchActions = usePatchActions(session, morphs, link, undo);
   const setEdits = useSetEdits(session, morphs, undo);
   const morphActions = useMorph(session, morphs, link, undo);
+  const revertActions = useRevert(session, morphs, link, undo);
 
   return {
     state,
@@ -237,6 +277,7 @@ export function useSession(tb3: Tb3Sender, onError: (msg: string) => void) {
     previewKey: shown?.key ?? null,
     previewName: shown?.name ?? null,
     modified,
+    changed, // differs from the saved set, so Revert to saved applies
     dirty,
     mode,
     setMode,
@@ -256,6 +297,7 @@ export function useSession(tb3: Tb3Sender, onError: (msg: string) => void) {
     ...patchActions,
     ...setEdits,
     ...morphActions,
+    ...revertActions,
   };
 }
 

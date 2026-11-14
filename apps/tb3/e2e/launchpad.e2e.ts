@@ -45,7 +45,7 @@ const ledOf = async (page: Page, led: number) => (await leds(page))[led] ?? [0, 
 test("lights the slots and recalls one from its pad", async () => {
   const page = await withLaunchpad();
   expect((await sent(page))[0]).toEqual(PROGRAMMER);
-  await expect.poll(() => ledOf(page, 82)).toEqual([2, 19, 4]); // slot 2, filled
+  await expect.poll(() => ledOf(page, 82)).toEqual([0, 12, 19]); // slot 2, filled: row 1 cyan
   expect(await ledOf(page, 84)).toEqual([0, 0, 0]); // slot 4, empty
   await press(page, [0x90, 82, 100]);
   await press(page, [0x80, 82, 0]);
@@ -56,12 +56,12 @@ test("lights the slots and recalls one from its pad", async () => {
 test("DELETE held clears slots from their pads", async () => {
   const page = await withLaunchpad();
   await press(page, [0xb0, 50, 127]);
-  await expect(page.locator(".slots16")).toHaveClass(/delete/);
+  await expect(page.locator(".slotgrid")).toHaveClass(/delete/);
   await press(page, [0x90, 83, 100]);
   await press(page, [0x80, 83, 0]);
   await press(page, [0xb0, 50, 0]);
-  await expect(page.locator(".slots16 .slot.filled")).toHaveCount(2);
-  await expect(page.locator(".slots16")).not.toHaveClass(/delete/);
+  await expect(page.locator(".slotgrid .slot.filled")).toHaveCount(2);
+  await expect(page.locator(".slotgrid")).not.toHaveClass(/delete/);
   await expect.poll(() => ledOf(page, 83)).toEqual([0, 0, 0]);
 });
 

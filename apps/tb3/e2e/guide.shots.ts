@@ -77,7 +77,18 @@ const FILES: Record<string, string> = {
   "FX/Ring Bells.syx": "Ring Bells",
 };
 
-const SET_SLOTS = ["Squelch Lead", "Rubber Line", "Night Drive", "Sub Pulse", "Round Low", "Noise Sweep", "Ring Bells"];
+// The demo set: slot index → patch, spread over the first four rows so each row colour shows.
+const SET_SLOTS: Record<number, string> = {
+  0: "Squelch Lead",
+  1: "Rubber Line",
+  2: "Night Drive",
+  3: "Sub Pulse",
+  4: "Round Low",
+  8: "Noise Sweep",
+  9: "Ring Bells",
+  16: "Acid Test",
+  26: "Rubber Line",
+};
 
 // The demo library, in a folder of its own so the tree's top node reads "TB-3 Library".
 async function writeLibrary(dir: string) {
@@ -87,7 +98,7 @@ async function writeLibrary(dir: string) {
   }
   await writeFile(path.join(dir, "FX", "Half a patch.syx"), patchToBytes(PATCHES["Ring Bells"]!).slice(0, 40));
   const slots: (Slot | null)[] = [...emptySlots()];
-  SET_SLOTS.forEach((name, i) => (slots[i] = { name, patch: PATCHES[name]! }));
+  for (const [i, name] of Object.entries(SET_SLOTS)) slots[Number(i)] = { name, patch: PATCHES[name]! };
   await mkdir(path.join(dir, "Sets"), { recursive: true });
   await writeFile(path.join(dir, "Sets", "Live set.tb3set"), setToJson(slots));
   await writeFile(path.join(dir, "Sets", "Practice.tb3set"), setToJson(emptySlots()));
@@ -154,7 +165,7 @@ async function shootFirstLaunch(page: Page, tb3: Locator) {
 // A set open, slot 2 active, unsaved edits in slot 3: the editor rows, distortion types, assign.
 async function shootEditor(page: Page) {
   await libRow(page, "Live set").dblclick();
-  await expect(page.locator(".slots16 .slot.filled")).toHaveCount(SET_SLOTS.length);
+  await expect(page.locator(".slotgrid .slot.filled")).toHaveCount(Object.keys(SET_SLOTS).length);
   await slot(page, 2).click();
   await page.locator(".vcf .hrow").first().locator(".hf").hover();
   await page.mouse.wheel(0, -100);

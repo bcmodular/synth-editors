@@ -14,4 +14,14 @@ describe("session persistence", () => {
     const stored = { ...toStored(freshSession()), bufferName: undefined };
     expect(fromStored(stored).bufferName).toBeNull();
   });
+
+  it("fills out sessions stored with 16 slots to 64", () => {
+    const stored = toStored(storeSlot(loadBuffer(freshSession(), demoPatch(), "demo.syx"), 3)!);
+    const old = { ...stored, slots: stored.slots.slice(0, 16), savedKeys: stored.savedKeys.slice(0, 16) };
+    const back = fromStored(old);
+    expect(back.slots).toHaveLength(64);
+    expect(back.savedKeys).toHaveLength(64);
+    expect(back.slots[3]!.name).toBe("demo.syx");
+    expect(back.slots[40]).toBeNull();
+  });
 });

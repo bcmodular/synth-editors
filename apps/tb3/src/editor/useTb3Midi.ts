@@ -64,6 +64,11 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
     setPorts((prev) => ({ ...prev, [role]: name }));
   };
 
+  const [quietSwitch, setQuietState] = useState(() => load("tb3.quietSwitch") !== "0"); // on unless turned off
+  const setQuietSwitch = (on: boolean) => {
+    save("tb3.quietSwitch", on ? "1" : "0");
+    setQuietState(on);
+  };
   const setChannel = (ch: number) => {
     save("tb3.channel", String(ch));
     setChannelState(ch);
@@ -153,6 +158,8 @@ export function useTb3Midi(onPatch: (p: Patch) => void) {
     choosePort,
     channel,
     setChannel,
+    quietSwitch, // mute the TB-3 while switching patches
+    setQuietSwitch,
     log,
     sync,
     connected: Boolean(tb3Out),

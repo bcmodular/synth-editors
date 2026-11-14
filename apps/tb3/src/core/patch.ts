@@ -134,6 +134,38 @@ export function diffRuns(a: Patch, b: Patch): ByteRun[] {
   return runs;
 }
 
+// Unchanged bytes up to this many between two changed runs are resent rather than starting another message: at the
+// pacer's spacing (editor/pacer.ts) a DT1's 14 bytes of framing and 2 ms base gap cost as much as about 38 data bytes.
+const MERGE_GAP = 38;
+
+function mergedRuns(runs: ByteRun[], y: readonly number[]): ByteRun[] {
+  const out: ByteRun[] = [];
+  for (const run of runs) {
+    const prev = out.at(-1);
+    const end = run.offset + run.data.length;
+    if (prev && run.offset - (prev.offset + prev.data.length) <= MERGE_GAP) prev.data = y.slice(prev.offset, end);
+    else out.push({ ...run, data: [...run.data] });
+  }
+  return out;
+}
+
+const EFX_KEYS: readonly BlockKey[] = Object.values(EFX_BLOCK);
+
+// The quickest DT1s that turn `a` into `b`, for switching patches: each block's changed runs, merged across short
+// unchanged stretches, so the TB-3 spends as little time as possible on a mixture of the two. An EFX block goes
+// whole when its type changes, as the TB-3 resets that effect's slots on a type change.
+export function switchRuns(a: Patch, b: Patch): ByteRun[] {
+  return PATCH_BLOCKS.flatMap((blk) => {
+    const key = addrKey(blk.addr);
+    const x = a.blocks[key]!;
+    const y = b.blocks[key]!;
+    if (EFX_KEYS.includes(key) && x[0] !== y[0]) return [{ key, offset: 0, data: [...y], whole: true }];
+    const runs: ByteRun[] = [];
+    blockRuns(key, x, y, runs);
+    return mergedRuns(runs, y);
+  });
+}
+
 export function runToSysex(run: ByteRun): number[] {
   const [a0, a1, a2, a3] = blockDef(run.key).addr;
   return dt1([a0, a1, a2, a3 + run.offset], run.data); // blocks are < 0x80 bytes: no carry

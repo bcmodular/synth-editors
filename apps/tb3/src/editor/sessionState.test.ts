@@ -8,6 +8,7 @@ import { demoPatch } from "./demoPatch";
 import {
   chooseMorphTarget,
   clearMorph,
+  copySlot,
   currentName,
   currentPatch,
   deleteSlot,
@@ -16,6 +17,8 @@ import {
   loadBuffer,
   markSaved,
   morphAfterDelete,
+  morphAfterRevert,
+  morphAfterSwap,
   morphStep,
   noMorph,
   openSet,
@@ -23,8 +26,11 @@ import {
   renameSlot,
   replaceSlot,
   restartMorph,
+  revertSet,
+  revertSlot,
   saveStatus,
   storeSlot,
+  swapSlots,
 } from "./sessionState";
 import type { SessionState } from "./sessionState";
 
@@ -196,5 +202,109 @@ describe("morph", () => {
     const m = chooseMorphTarget(1);
     expect(morphAfterDelete(m, 1).target).toBeNull();
     expect(morphAfterDelete(m, 2)).toBe(m);
+  });
+});
+
+describe("revert to saved", () => {
+  const edited = (s: SessionState) => editCurrent(s, (p) => setRaw(p, cutoff, 77))!.session;
+  const keys = (s: SessionState) => s.slots.map(slotKey);
+
+  it("puts an edited active slot back, and it stays active", () => {
+    const r = revertSlot(edited(session()), 0)!;
+    expect(r.active).toBe(0);
+    expect(getRaw(currentPatch(r)!, cutoff)).toBe(10);
+    expect(saveStatus(r).dirty).toBe(false);
+  });
+
+  it("brings back a deleted slot, and the name from before a rename", () => {
+    const deleted = deleteSlot(session({ active: null }), 1);
+    expect(saveStatus(deleted).changed[1]).toBe(true);
+    expect(revertSlot(deleted, 1)!.slots[1]!.name).toBe("B");
+    expect(revertSlot(renameSlot(session(), 1, "Bee")!, 1)!.slots[1]!.name).toBe("B");
+  });
+
+  it("empties a slot stored since; if active, its patch stays in the editor as the buffer", () => {
+    const stored = storeSlot(session(), 5)!;
+    const r = revertSlot(stored, 5)!;
+    expect(r.slots[5]).toBeNull();
+    expect(r.active).toBeNull();
+    expect(currentPatch(r)).toBe(A);
+  });
+
+  it("is null for a slot that matches the saved set", () => {
+    expect(revertSlot(session(), 0)).toBeNull();
+    expect(revertSlot(session(), 7)).toBeNull();
+  });
+
+  it("puts every slot back for the set", () => {
+    const s = renameSlot(deleteSlot(edited(session()), 1), 0, "Aa")!;
+    const r = revertSet(s)!;
+    expect(keys(r)).toEqual(keys(session()));
+    expect(r.active).toBe(0);
+    expect(currentPatch(r)).toEqual(A);
+    expect(revertSet(session())).toBeNull();
+  });
+
+  it("for the set, an active slot stored since moves to the buffer", () => {
+    const r = revertSet(storeSlot(session(), 5)!)!;
+    expect(r.slots[5]).toBeNull();
+    expect(r.active).toBeNull();
+    expect(currentPatch(r)).toBe(A);
+  });
+
+  it("drops a morph target that is now empty", () => {
+    const m = chooseMorphTarget(5);
+    expect(morphAfterRevert(m, session().slots).target).toBeNull();
+    const kept = chooseMorphTarget(1);
+    expect(morphAfterRevert(kept, session().slots)).toBe(kept);
+  });
+});
+
+describe("swapping slots", () => {
+  it("swaps two filled slots, and the active slot follows its patch", () => {
+    const r = swapSlots(session(), { from: 0, to: 1 })!;
+    expect(r.slots[0]!.name).toBe("B");
+    expect(r.slots[1]!.name).toBe("A");
+    expect(r.active).toBe(1);
+    expect(currentPatch(r)).toBe(A);
+    expect(saveStatus(r).modified.slice(0, 2)).toEqual([true, true]);
+  });
+
+  it("moves onto an empty slot", () => {
+    const r = swapSlots(session({ active: null }), { from: 1, to: 40 })!;
+    expect(r.slots[1]).toBeNull();
+    expect(r.slots[40]!.name).toBe("B");
+    expect(r.active).toBeNull();
+  });
+
+  it("is null onto itself or from an empty slot", () => {
+    expect(swapSlots(session(), { from: 1, to: 1 })).toBeNull();
+    expect(swapSlots(session(), { from: 5, to: 1 })).toBeNull();
+  });
+
+  it("the morph target follows its patch", () => {
+    expect(morphAfterSwap(chooseMorphTarget(1), { from: 1, to: 9 }).target).toBe(9);
+    expect(morphAfterSwap(chooseMorphTarget(9), { from: 1, to: 9 }).target).toBe(1);
+    expect(morphAfterSwap(chooseMorphTarget(3), { from: 1, to: 9 }).target).toBe(3);
+  });
+});
+
+describe("copying slots", () => {
+  it("copies into an empty slot, leaving the source", () => {
+    const r = copySlot(session(), { from: 1, to: 20 })!;
+    expect(r.slots[20]).toEqual(r.slots[1]);
+    expect(r.active).toBe(0);
+  });
+
+  it("copies over a filled slot; over the active one, its patch stays in the editor", () => {
+    const r = copySlot(session(), { from: 1, to: 0 })!;
+    expect(r.slots[0]!.name).toBe("B");
+    expect(r.active).toBeNull();
+    expect(currentPatch(r)).toBe(A);
+  });
+
+  it("is null from an empty slot or onto itself", () => {
+    expect(copySlot(session(), { from: 5, to: 1 })).toBeNull();
+    expect(copySlot(session(), { from: 1, to: 1 })).toBeNull();
   });
 });

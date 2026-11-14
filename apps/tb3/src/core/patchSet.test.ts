@@ -10,6 +10,7 @@ import {
   patchToHex,
   setFromJson,
   setToJson,
+  slotFromKey,
   slotKey,
 } from "./patchSet";
 import { PATCH_BLOCKS, addrKey } from "./sysex";
@@ -48,20 +49,30 @@ describe("patch files", () => {
 });
 
 describe("sets", () => {
-  it("round-trips 16 slots, empty ones included", () => {
+  it("round-trips 64 slots, empty ones included", () => {
     const slots = [...emptySlots()];
     slots[0] = { name: "Acid 1", patch: synthetic(1) };
-    slots[15] = { name: "Last", patch: synthetic(2) };
+    slots[63] = { name: "Last", patch: synthetic(2) };
     const back = setFromJson(setToJson(slots));
-    expect(back).toHaveLength(16);
+    expect(back).toHaveLength(64);
     expect(back[0]).toEqual(slots[0]);
-    expect(back[15]).toEqual(slots[15]);
-    expect(back.slice(1, 15).every((s) => s === null)).toBe(true);
+    expect(back[63]).toEqual(slots[63]);
+    expect(back.slice(1, 63).every((s) => s === null)).toBe(true);
+  });
+
+  it("opens a 16-slot version 1 set as the first two rows", () => {
+    const v1 = { format: "tb3set", version: 1, slots: Array(16).fill(null) };
+    v1.slots[15] = JSON.parse(setToJson([{ name: "Old", patch: synthetic(3) }])).slots[0];
+    const back = setFromJson(JSON.stringify(v1));
+    expect(back).toHaveLength(64);
+    expect(back[15]!.name).toBe("Old");
+    expect(back.slice(16).every((s) => s === null)).toBe(true);
   });
 
   it("rejects other JSON and wrong shapes", () => {
     expect(() => setFromJson('{"format":"other"}')).toThrow(/not a TB-3 set/);
-    expect(() => setFromJson('{"format":"tb3set","version":2,"slots":[]}')).toThrow(/version/);
+    expect(() => setFromJson('{"format":"tb3set","version":3,"slots":[]}')).toThrow(/version/);
+    expect(() => setFromJson('{"format":"tb3set","version":2,"slots":[]}')).toThrow(/64 slots/);
     expect(() => setFromJson('{"format":"tb3set","version":1,"slots":[]}')).toThrow(/16 slots/);
   });
 
@@ -71,5 +82,12 @@ describe("sets", () => {
     expect(slotKey(a)).not.toBe(slotKey({ name: "B", patch: synthetic(1) }));
     expect(slotKey(a)).not.toBe(slotKey({ name: "A", patch: synthetic(2) }));
     expect(slotKey(null)).toBe("");
+  });
+
+  it("gets a slot back from its key", () => {
+    const a = { name: "A", patch: synthetic(1) };
+    expect(slotKey(slotFromKey(slotKey(a)))).toBe(slotKey(a));
+    expect(slotFromKey(slotKey(a))!.name).toBe("A");
+    expect(slotFromKey("")).toBeNull();
   });
 });

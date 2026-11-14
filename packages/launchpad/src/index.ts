@@ -29,18 +29,18 @@ export function ledsRgb(leds: Iterable<readonly [number, Rgb]>): number[] {
 }
 
 // Programmer layout pad numbering: row * 10 + column, bottom-left = 11, top-right = 88.
-// The top two rows map to 16 preset slots: 81–88 → 1–8, 71–78 → 9–16.
+// The 8 × 8 grid maps to 64 preset slots, reading like a page: 81–88 → 1–8, 71–78 → 9–16, … 11–18 → 57–64.
+const onGrid = (n: number) => n >= 1 && n <= 8;
+
 export function padToSlot(note: number): number | undefined {
   const row = Math.floor(note / 10);
   const col = note % 10;
-  if (col < 1 || col > 8) return undefined;
-  if (row === 8) return col;
-  if (row === 7) return col + 8;
-  return undefined;
+  return onGrid(row) && onGrid(col) ? (8 - row) * 8 + col : undefined;
 }
 
 export function slotToPad(slot: number): number {
-  return slot <= 8 ? 80 + slot : 70 + (slot - 8);
+  const i = slot - 1;
+  return (8 - Math.floor(i / 8)) * 10 + (i % 8) + 1;
 }
 
 export type LaunchpadEvent =

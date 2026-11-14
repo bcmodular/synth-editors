@@ -49,12 +49,12 @@ const pad = (note: number, velocity: number) => ({ type: "pad", note, velocity }
 const button = (cc: number, value: number) => ({ type: "button", cc, value }) as const;
 
 describe("launchpadHandler", () => {
-  it("recalls a filled slot, stores into an empty one and ignores other pads", () => {
+  it("recalls a filled slot, stores into an empty one and ignores notes outside the grid", () => {
     const { s, deps, handle } = setup();
     handle(pad(82, 100));
     handle(pad(82, 0));
     handle(pad(83, 100));
-    handle(pad(11, 100));
+    handle(pad(19, 100)); // outside the grid
     expect(s.calls).toEqual(["recall 1", "store 2"]);
     expect(deps.onHeld).toHaveBeenLastCalledWith(new Set([2]));
   });

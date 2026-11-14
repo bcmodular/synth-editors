@@ -3,7 +3,7 @@
 // to React and the TB-3; the undo history snapshots and restores exactly this state.
 import { morph } from "../core/patch";
 import type { Patch } from "../core/patch";
-import { SLOT_COUNT, emptySlots, slotKey } from "../core/patchSet";
+import { SLOT_COUNT, emptySlots, slotFromKey, slotKey } from "../core/patchSet";
 import type { Slot, Slots } from "../core/patchSet";
 
 export interface SessionState {
@@ -85,6 +85,23 @@ export const replaceSlot = (s: SessionState, i: number, slot: Slot | null): Sess
 
 export const deleteSlot = (s: SessionState, i: number): SessionState => replaceSlot(s, i, null);
 
+// A slot dragged onto another.
+export interface Move {
+  from: number;
+  to: number;
+}
+
+// Where slot index `x` ends up after a swap.
+const swapIndex = (x: number | null, { from, to }: Move) => (x === from ? to : x === to ? from : x);
+
+// The two slots swap (onto an empty slot, the patch moves). The active slot follows its patch. Null when there is
+// nothing to move.
+export function swapSlots(s: SessionState, move: Move): SessionState | null {
+  if (move.from === move.to || !s.slots[move.from]) return null;
+  const slots = s.slots.map((_, k) => s.slots[swapIndex(k, move)!] ?? null);
+  return { ...s, slots, active: swapIndex(s.active, move) };
+}
+
 // Null when there is no slot to rename or the name is blank.
 export function renameSlot(s: SessionState, i: number, name: string): SessionState | null {
   const slot = s.slots[i];
@@ -108,10 +125,27 @@ export const markSaved = (s: SessionState, path: string): SessionState => ({
   savedKeys: s.slots.map(slotKey),
 });
 
-// Which slots differ from the saved set, and whether anything does.
-export function saveStatus(s: SessionState): { modified: boolean[]; dirty: boolean } {
+// Which slots differ from the saved set, and whether anything does. `changed` includes slots
+// emptied since (DELETE), which `modified` (the amber corner) leaves out.
+export function saveStatus(s: SessionState): { modified: boolean[]; changed: boolean[]; dirty: boolean } {
   const changed = s.slots.map((slot, i) => slotKey(slot) !== s.savedKeys[i]);
-  return { modified: changed.map((c, i) => c && s.slots[i] !== null), dirty: changed.some(Boolean) };
+  return { modified: changed.map((c, i) => c && s.slots[i] !== null), changed, dirty: changed.some(Boolean) };
+}
+
+// Revert to saved: slot `i`, or every slot, back to how the set was last opened or saved. The
+// active slot stays active and shows its saved patch; if it was empty then, what it held moves to
+// the buffer, as with DELETE. Null when there is nothing to revert.
+export function revertSlot(s: SessionState, i: number): SessionState | null {
+  if (slotKey(s.slots[i] ?? null) === s.savedKeys[i]) return null;
+  const saved = slotFromKey(s.savedKeys[i] ?? "");
+  return saved ? { ...s, slots: withSlot(s.slots, i, saved) } : replaceSlot(s, i, null);
+}
+
+export function revertSet(s: SessionState): SessionState | null {
+  if (!saveStatus(s).dirty) return null;
+  const slots = s.savedKeys.map(slotFromKey);
+  const emptied = s.active !== null && !slots[s.active];
+  return { ...s, ...(emptied ? keepActiveInBuffer(s, s.active!) : {}), slots };
 }
 
 // --- Morph -----------------------------------------------------------------------------------
@@ -132,6 +166,23 @@ export const chooseMorphTarget = (i: number): MorphState => ({ target: i, amount
 
 // Deleting the target slot drops it as the target.
 export const morphAfterDelete = (m: MorphState, i: number): MorphState => (m.target === i ? { ...m, target: null } : m);
+
+// After a swap the target follows its patch.
+// ⌘-drag: slot `from` is copied over slot `to` (Replace, so an active target's patch stays in the editor).
+export function copySlot(s: SessionState, { from, to }: Move): SessionState | null {
+  const slot = s.slots[from];
+  return slot && from !== to ? replaceSlot(s, to, slot) : null;
+}
+
+// The undo step's name: a swap, or a move onto an empty slot.
+export const swapLabel = (s: SessionState, { from, to }: Move): string =>
+  s.slots[to] ? `Swap slots ${from + 1} and ${to + 1}` : `Move slot ${from + 1} to ${to + 1}`;
+
+export const morphAfterSwap = (m: MorphState, move: Move): MorphState => ({ ...m, target: swapIndex(m.target, move) });
+
+// After a revert: a target slot left empty is dropped as the target.
+export const morphAfterRevert = (m: MorphState, slots: Slots): MorphState =>
+  m.target !== null && !slots[m.target] ? { ...m, target: null } : m;
 
 // Move the fader to `amount`: the active patch becomes the blend. Null without a target or patch.
 export function morphStep(

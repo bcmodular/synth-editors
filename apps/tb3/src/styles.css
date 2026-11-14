@@ -54,6 +54,12 @@ input {
   color: inherit;
 }
 
+/* No focus ring on buttons: the editor is driven by mouse and hardware, and Chromium rings the last clicked button
+   as soon as any key is pressed (Shift to audition, ⌘Z to undo). Text fields and selects keep theirs. */
+button:focus-visible {
+  outline: none;
+}
+
 /* Values, readouts and names: a step heavier than the labels. */
 .v,
 .hf > em,
@@ -701,14 +707,16 @@ svg .eqfill.cut {
   color: var(--dim);
   user-select: text;
 }
-.slots16 {
+.slotgrid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 3px;
 }
+/* The 64 slots, 8 × 8 as on the Launchpad. Filled slots take their row's colour (--row, editor/slotColours.ts),
+   the active slot green. */
 .slot {
   position: relative;
-  height: 26px;
+  height: 22px;
   background: var(--well);
   border: 1px solid var(--edge);
   color: #55575e;
@@ -716,13 +724,13 @@ svg .eqfill.cut {
   align-items: center;
   justify-content: center;
   padding: 2px 0 0;
-  font-size: var(--text-l);
+  font-size: var(--text-m);
   cursor: default;
 }
 .slot.filled {
-  color: var(--val);
-  background: #1d2420;
-  border: 1px dotted var(--led);
+  color: var(--row);
+  background: color-mix(in srgb, var(--row) 12%, var(--well));
+  border: 1px dotted var(--row);
   cursor: pointer;
 }
 .slot.filled:hover {
@@ -755,23 +763,23 @@ svg .eqfill.cut {
   border-color: var(--alt);
   background: #3a2d10;
 }
-.slots16.armed .slot {
+.slotgrid.armed .slot {
   cursor: pointer;
   border-style: dashed;
 }
 /* DELETE and GRAB (as on the TouchOSC panel): the mode's colour on its button and the filled slots */
 .btn.mode-delete.sel,
-.slots16.delete .slot.filled {
+.slotgrid.delete .slot.filled {
   border-color: #e70000;
   color: #ff6a5a;
 }
 /* Grab is white like every audition (morph keeps amber) */
 .btn.mode-grab.sel,
-.slots16.grab .slot.filled {
+.slotgrid.grab .slot.filled {
   border-color: #e8e8e8;
   color: #fff;
 }
-.slots16 .slot.preview {
+.slotgrid .slot.preview {
   background: #ffffff2e;
 }
 .btn.mode-delete.sel {
@@ -780,8 +788,8 @@ svg .eqfill.cut {
 .btn.mode-grab.sel {
   background: #ffffff1f;
 }
-.slots16.delete .slot:not(.filled),
-.slots16.grab .slot:not(.filled) {
+.slotgrid.delete .slot:not(.filled),
+.slotgrid.grab .slot:not(.filled) {
   cursor: default;
 }
 .btn.blink {
@@ -803,6 +811,12 @@ svg .eqfill.cut {
 .nowline .lbl {
   width: 62px;
   flex: none;
+}
+/* The set's file buttons, on their own row under its name. */
+.setbtns {
+  display: flex;
+  gap: 6px;
+  padding-left: 68px;
 }
 .setline .v,
 .nowline .v {

@@ -1,26 +1,30 @@
 // What the TB-3 holds, and how it is brought in line. The TB-3's state is tracked in `sent`: every
-// recall, preview and morph sends only the blocks that differ from it. Edits send single params
+// recall, preview and morph sends only the bytes that differ from it (patchSwitch.ts). Edits send single params
 // through the edit queue. Morph sends go through the rate-limited pump (morphPump.ts).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { blocksToSysex, diffBlocks, patchToSysex, runToSysex } from "../core/patch";
+import { patchToSysex, runToSysex } from "../core/patch";
 import type { Patch } from "../core/patch";
 import { createEditQueue } from "./editQueue";
 import { PUMP_MS, emptyBucket, pumpStep } from "./morphPump";
 import { persistRate, restoreRate } from "./sessionPersist";
 import type { Tb3Sender } from "./pacer";
+import { switchMessages } from "./patchSwitch";
 
-export function useTb3Link(tb3: Tb3Sender) {
+// `quiet`: mute the TB-3 while switching patches (MIDI settings › QUIET SWITCH).
+export function useTb3Link(tb3: Tb3Sender, quiet: boolean) {
+  const quietRef = useRef(quiet);
+  quietRef.current = quiet;
   const queue = useMemo(() => createEditQueue(tb3.send), [tb3]);
   const sent = useRef<Patch | null>(null); // what the TB-3 holds; null = unknown
   const pumpTarget = useRef<Patch | null>(null); // latest morph blend still to reach the TB-3
 
-  // Bring the TB-3 in line with `target`, sending only the blocks that differ.
+  // Bring the TB-3 in line with `target`, sending only what differs (everything when that's unknown).
   const sendPatch = useCallback(
     (target: Patch) => {
       queue.flush();
       pumpTarget.current = null; // a full send supersedes any morph catch-up
-      const keys = sent.current ? diffBlocks(sent.current, target) : null;
-      (keys ? blocksToSysex(target, keys) : patchToSysex(target)).forEach(tb3.send);
+      const from = sent.current;
+      (from ? switchMessages(from, target, quietRef.current) : patchToSysex(target)).forEach(tb3.send);
       sent.current = target;
     },
     [queue, tb3],

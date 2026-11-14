@@ -23,6 +23,7 @@ import {
   setEfxRaw,
   setEfxType,
   setRaw,
+  switchRuns,
 } from "./patch";
 import type { Patch } from "./patch";
 import { PATCH_BLOCKS, addrKey, dt1, parseDt1 } from "./sysex";
@@ -294,5 +295,35 @@ describe("morphRuns", () => {
     const runs = morphRuns(base, setRaw(base, def, (getRaw(base, def) + 9) % 128));
     expect(runs.length).toBeGreaterThan(0);
     expect(runs.every((r) => !r.whole)).toBe(true);
+  });
+});
+
+describe("switchRuns", () => {
+  const efx1 = "10001000";
+
+  it("sends only changed bytes, merging nearby changes into one message, and rebuilds the target", () => {
+    const base = synthetic();
+    const cutoff = paramById("vcf_cutoff");
+    const reso = paramById("vcf_resonance");
+    const target = setRaw(setRaw(base, cutoff, (getRaw(base, cutoff) + 37) % 256), reso, (getRaw(base, reso) + 9) % 256);
+    const runs = switchRuns(base, target);
+    expect(runs).toHaveLength(1); // cutoff and resonance sit a few bytes apart in the VCF block
+    expect(diffRuns(runs.reduce(applyRun, base), target)).toEqual([]);
+    expect(switchRuns(target, target)).toEqual([]);
+  });
+
+  it("keeps changes far apart in one block as separate messages", () => {
+    const base = synthetic();
+    const target = setEfxRaw(setEfxRaw(base, 1, 0x02, (getEfxRaw(base, 1, 0x02) + 1) % 16), 1, 0x50, 3);
+    const runs = switchRuns(base, target);
+    expect(runs.map((r) => r.offset)).toEqual([0x02, 0x50]);
+    expect(diffRuns(runs.reduce(applyRun, base), target)).toEqual([]);
+  });
+
+  it("sends an EFX block whole when its type changes", () => {
+    const base = synthetic();
+    const target = setEfxType(base, 1, (getEfxType(base, 1) + 1) % efxTypes(1).length);
+    const runs = switchRuns(base, target);
+    expect(runs).toEqual([{ key: efx1, offset: 0, data: target.blocks[efx1], whole: true }]);
   });
 });

@@ -1,10 +1,11 @@
-// Sidebar PATCH (what the editor shows, save as .syx), SET (the open set's 16 slots and its
-// file buttons) and MORPH (target slot, amount, send rate).
+// Sidebar PATCH (what the editor shows, save as .syx), SET (the open set's 64 slots, 8 × 8 as on the
+// Launchpad, and its file buttons) and MORPH (target slot, amount, send rate).
 //   click a filled slot: recall · click an empty slot: store the patch in the editor there
 //   DELETE, then click: clear · GRAB (or Option), then hold: audition · double-click: rename
-//   right-click: menu · drop a patch from the browser: load into slot
-import { useState } from "react";
-import type { DragEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
+//   right-click: menu · drop a patch from the browser: load into slot · drag a slot onto another: swap
+//   (⌘-drag: copy, asking before replacing a filled slot)
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, DragEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { Patch } from "../core/patch";
 import { nameFromPath } from "../core/patchSet";
 import { HFader } from "../ui/Fader";
@@ -12,9 +13,11 @@ import { ContextMenu } from "../ui/Dialog";
 import { askName, confirmed, menuAt, useDialog } from "../ui/dialogs";
 import type { MenuState } from "../ui/dialogs";
 import { Section } from "../ui/controls";
-import { KEYS } from "../ui/platform";
-import { PATCH_DRAG_TYPE } from "./dragTypes";
+import { copyHeld } from "../ui/platform";
+import { PATCH_DRAG_TYPE, SLOT_DRAG_TYPE } from "./dragTypes";
+import { rowColour } from "./slotColours";
 import { MORPH_RATES } from "./useSession";
+import type { Move } from "./sessionState";
 import type { Session } from "./useSession";
 import type { SetActions } from "./useSetActions";
 
@@ -75,8 +78,8 @@ export function PatchBlock(p: { session: Session; actions: SetActions; hasLibrar
 
 const classes = (...names: (string | false | null | undefined)[]) => names.filter(Boolean).join(" ");
 
-// Option or GRAB: slots audition on pointer down instead of reacting to clicks.
-const auditions = (s: Session, e: { altKey: boolean }) => e.altKey || s.mode === "grab";
+// Shift or GRAB: slots audition on pointer down instead of reacting to clicks.
+const auditions = (s: Session, e: { shiftKey: boolean }) => e.shiftKey || s.mode === "grab";
 const startsAudition = (s: Session, e: ReactPointerEvent) => e.button === 0 && auditions(s, e);
 
 // A click on slot `i`, by mode. DELETE stays on, like the TouchOSC panel; picking a target ends.
@@ -111,13 +114,61 @@ const slotClass = (s: Session, i: number, dropOn: number | null) =>
     dropOn === i && "drop",
   );
 
+// Dragging onto slot `i`: a library patch copies in (asking before replacing a filled slot), another slot swaps
+// with it, or with Option (Ctrl) held copies over it, asking the same way. A filled slot drags only while no mode is on.
+function useSlotDrag(
+  s: Session,
+  findPatch: (path: string) => Patch | undefined,
+  replaceOk: (i: number) => Promise<boolean>,
+) {
+  const { slots } = s.state;
+  const [dropOn, setDropOn] = useState<number | null>(null);
+
+  // Another slot: swap, or with the copy key held copy over (asking first if this one is filled).
+  const dropSlot = async (move: Move, e: DragEvent) => {
+    if (!copyHeld(e)) return s.swap(move);
+    if (move.from !== move.to && (await replaceOk(move.to))) s.copy(move);
+  };
+
+  const dropPatch = async (i: number, e: DragEvent) => {
+    const path = e.dataTransfer.getData(PATCH_DRAG_TYPE);
+    const patch = findPatch(path);
+    if (patch && (await replaceOk(i))) s.loadIntoSlot(i, { name: nameFromPath(path), patch });
+  };
+
+  const dragOver = (e: DragEvent) => {
+    const slot = e.dataTransfer.types.includes(SLOT_DRAG_TYPE);
+    if (!slot && !e.dataTransfer.types.includes(PATCH_DRAG_TYPE)) return false;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = slot && !copyHeld(e) ? "move" : "copy";
+    return true;
+  };
+
+  const dragProps = (i: number) => ({
+    draggable: Boolean(slots[i]) && !s.mode,
+    onDragStart: (e: DragEvent) => {
+      e.dataTransfer.setData(SLOT_DRAG_TYPE, String(i));
+      e.dataTransfer.effectAllowed = "copyMove";
+    },
+    onDragOver: (e: DragEvent) => dragOver(e) && setDropOn(i),
+    onDragLeave: () => setDropOn((d) => (d === i ? null : d)),
+    onDrop: (e: DragEvent) => {
+      setDropOn(null);
+      e.preventDefault();
+      const from = e.dataTransfer.getData(SLOT_DRAG_TYPE);
+      void (from ? dropSlot({ from: Number(from), to: i }, e) : dropPatch(i, e));
+    },
+  });
+
+  return { dropOn, dragProps };
+}
+
 // What a slot does, beyond plain clicks: renaming, Replace (with a confirm), dropping library
 // patches on it, and its context menu.
 function useSlotActions(s: Session, actions: SetActions, findPatch: (path: string) => Patch | undefined) {
   const { slots } = s.state;
   const ask = useDialog();
   const [menu, setMenu] = useState<MenuState | null>(null);
-  const [dropOn, setDropOn] = useState<number | null>(null);
 
   const replaceOk = async (i: number) =>
     !slots[i] || (await confirmed(ask, `Replace slot ${i + 1}?`, `“${slots[i]!.name}” will be replaced.`));
@@ -131,28 +182,14 @@ function useSlotActions(s: Session, actions: SetActions, findPatch: (path: strin
     if (name) s.rename(i, name);
   };
 
+  const { dropOn, dragProps } = useSlotDrag(s, findPatch, replaceOk);
+
   const audition = (i: number, e: ReactPointerEvent) => {
     const slot = slots[i];
     if (!slot || !startsAudition(s, e)) return;
     e.preventDefault();
     s.preview(slot.patch, `slot:${i}`, slot.name);
     window.addEventListener("pointerup", () => s.endPreview(), { once: true });
-  };
-
-  const drop = async (i: number, e: DragEvent) => {
-    setDropOn(null);
-    const path = e.dataTransfer.getData(PATCH_DRAG_TYPE);
-    const patch = path ? findPatch(path) : undefined;
-    if (!patch) return;
-    e.preventDefault();
-    if (await replaceOk(i)) s.loadIntoSlot(i, { name: nameFromPath(path), patch });
-  };
-
-  const dragOver = (i: number, e: DragEvent) => {
-    if (!e.dataTransfer.types.includes(PATCH_DRAG_TYPE)) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-    setDropOn(i);
   };
 
   const openMenu = (i: number, e: ReactMouseEvent) => {
@@ -166,6 +203,7 @@ function useSlotActions(s: Session, actions: SetActions, findPatch: (path: strin
         },
         { label: "Rename…", onClick: () => void rename(i), disabled: !slot },
         { label: "Save as .syx…", onClick: () => slot && actions.savePatchAs(slot.patch, slot.name), disabled: !slot },
+        { label: "Revert to saved", onClick: () => s.revertSlot(i), disabled: !s.changed[i] },
         { label: "Clear", onClick: () => s.clear(i), disabled: !slot },
       ]),
     );
@@ -176,13 +214,11 @@ function useSlotActions(s: Session, actions: SetActions, findPatch: (path: strin
     closeMenu: () => setMenu(null),
     dropOn,
     slotProps: (i: number) => ({
+      ...dragProps(i),
       onClick: (e: ReactMouseEvent) => auditions(s, e) || SLOT_CLICKS[s.mode ?? "none"](s, i),
       onPointerDown: (e: ReactPointerEvent) => audition(i, e),
       onDoubleClick: () => slots[i] && !s.mode && void rename(i),
       onContextMenu: (e: ReactMouseEvent) => openMenu(i, e),
-      onDragOver: (e: DragEvent) => dragOver(i, e),
-      onDragLeave: () => setDropOn((d) => (d === i ? null : d)),
-      onDrop: (e: DragEvent) => void drop(i, e),
     }),
   };
 }
@@ -191,22 +227,34 @@ function SetFileLine(p: { session: Session; actions: SetActions }) {
   const { setPath } = p.session.state;
   const { dirty } = p.session;
   return (
-    <div className="setline">
-      <span className="lbl">FILE</span>
-      <span className="v" title={setPath ?? undefined}>
-        {setPath ? nameFromPath(setPath) : "Unsaved set"}
-        {dirty ? " ●" : ""}
-      </span>
-      <button className="btn mini" onClick={p.actions.newSet}>
-        NEW
-      </button>
-      <button className="btn mini" disabled={!dirty} onClick={p.actions.saveSet}>
-        SAVE
-      </button>
-      <button className="btn mini" onClick={p.actions.saveSetAs}>
-        SAVE AS…
-      </button>
-    </div>
+    <>
+      <div className="setline">
+        <span className="lbl">FILE</span>
+        <span className="v" title={setPath ?? undefined}>
+          {setPath ? nameFromPath(setPath) : "Unsaved set"}
+          {dirty ? " ●" : ""}
+        </span>
+      </div>
+      <div className="setbtns">
+        <button className="btn mini" onClick={p.actions.newSet}>
+          NEW
+        </button>
+        <button className="btn mini" disabled={!dirty} onClick={p.actions.saveSet}>
+          SAVE
+        </button>
+        <button className="btn mini" onClick={p.actions.saveSetAs}>
+          SAVE AS…
+        </button>
+        <button
+          className="btn mini"
+          disabled={!dirty}
+          title="Put every slot back as the set was last opened or saved (undoable)"
+          onClick={p.session.revertSet}
+        >
+          REVERT
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -241,14 +289,20 @@ export function SetBlock(p: {
             session={s}
             mode="grab"
             label="GRAB"
-            title={`Then hold a slot to audition it (or ${KEYS.alt}-hold a slot)`}
+            title="Then hold a slot to audition it (or Shift-hold a slot)"
           />
         </span>
       }
     >
-      <div className={`slots16 ${s.mode ? `armed ${s.mode}` : ""}`}>
+      <div className={`slotgrid ${s.mode ? `armed ${s.mode}` : ""}`}>
         {s.state.slots.map((_, i) => (
-          <button key={i} className={slotClass(s, i, dropOn)} title={slotTitle(s, i)} {...slotProps(i)}>
+          <button
+            key={i}
+            className={slotClass(s, i, dropOn)}
+            style={{ "--row": rowColour(i).screen } as CSSProperties}
+            title={slotTitle(s, i)}
+            {...slotProps(i)}
+          >
             {i + 1}
           </button>
         ))}

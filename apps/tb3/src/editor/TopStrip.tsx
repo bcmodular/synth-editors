@@ -130,6 +130,14 @@ function MidiSettings(p: { midi: Tb3Midi; audio: Tb3Audio; onClose: () => void }
           ))}
         </select>
       </label>
+      <button
+        className={`btn ${m.quietSwitch ? "on" : ""}`}
+        title="Mute the TB-3 while switching patches, so a switch during a pattern is a short gap rather than a pop"
+        onClick={() => m.setQuietSwitch(!m.quietSwitch)}
+      >
+        <span className="l" />
+        QUIET SWITCH
+      </button>
       <AudioInputChoice audio={p.audio} />
       <div className="row">
         <button className="btn" onClick={() => setShowLog((s) => !s)}>

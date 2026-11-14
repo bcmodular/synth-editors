@@ -1,14 +1,14 @@
-// What the Launchpad Pro shows (docs/tb3-phase4-design.md): the 16 slots on its top two rows and the side buttons'
+// What the Launchpad Pro shows (docs/tb3-phase4-design.md): the 64 slots on its 8 × 8 grid and the side buttons'
 // lights, as LED number → colour. Pure, so the hook (useLaunchpad.ts) only sends what changed.
 import { BRIGHTNESS_PROFILES, scaleRgb, slotToPad } from "@synth-editors/launchpad";
 import type { Brightness, ProfileName, Rgb } from "@synth-editors/launchpad";
+import { SLOT_COUNT } from "../core/patchSet";
+import { rowColour } from "./slotColours";
 import type { SlotMode } from "./useSession";
 
 // Side buttons (Programmer layout CCs, named as printed on the Launchpad).
 export const LP_BUTTON = { morph: 40, delete: 50, sync: 70, grab: 80, brightness: 98 } as const; // Quantise, Delete,
 // Click, Shift, User
-
-export const SLOT_COUNT = 16;
 
 const OFF: Rgb = [0, 0, 0];
 const GREEN: Rgb = [6, 63, 14];
@@ -34,10 +34,16 @@ function slotLevel(v: LaunchpadView, i: number, b: Brightness): number {
   return v.held.has(i) ? Math.max(b.press, selected) : selected;
 }
 
+// Filled slots take their row's colour, the active one green; while a mode is on, the mode's colour.
+function hue(v: LaunchpadView, i: number): Rgb {
+  if (v.mode) return MODE_COLOUR[v.mode];
+  return v.active === i ? GREEN : rowColour(i).pad;
+}
+
 function slotColour(v: LaunchpadView, i: number, b: Brightness): Rgb {
   if (!v.filled[i]) return v.held.has(i) ? scaleRgb(GREY, b.emptyPress) : OFF;
   if (v.target === i) return scaleRgb(ORANGE, b.on);
-  return scaleRgb(v.mode ? MODE_COLOUR[v.mode] : GREEN, slotLevel(v, i, b));
+  return scaleRgb(hue(v, i), slotLevel(v, i, b));
 }
 
 const SIDE: readonly [number, Rgb, (v: LaunchpadView) => boolean][] = [

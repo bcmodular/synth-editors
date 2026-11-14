@@ -13,7 +13,7 @@ the TB-3 holds, preview, store, morph, recovery), `editor/useLibrary.ts` + `elec
   set files, in any number of subfolders.
 - **Patch file**: a `.syx` dump of the 11 TB-3 blocks (the same format as Phase 1's
   `patchFromSysex` / `patchToSysex`). The name is the filename without its extension.
-- **Set**: 16 slots, each either empty or a self-contained patch plus a name. A set is a
+- **Set**: 64 slots (8 rows of 8, as on the Launchpad; 16 until Phase 4), each either empty or a self-contained patch plus a name. A set is a
   "mega-patch". Loading a file into a slot **copies** it, so the set never refers back to library
   files, and renaming, moving or deleting files can't break a set.
 - **Active patch**: what the editor shows and the TB-3 plays. It's either one of the slots or the
@@ -28,7 +28,8 @@ A permanent sidebar on the left holds, top to bottom:
   unsaved-edits mark. Under it, the AUDITION line names the patch being auditioned while ▶ or an
   a GRAB is held, so both show at once; it also carries the DELETE / GRAB / morph target prompts.
   SAVE AS… writes that patch as a `.syx`.
-- **SET**: DELETE and GRAB, the 16 slots, and the set file line (NEW / SAVE / SAVE AS…).
+- **SET**: DELETE and GRAB, the 64 slots, and the set file line (the set's name, then NEW / SAVE /
+  SAVE AS… / REVERT on a row of their own).
 - **MORPH**: target, amount and send rate.
 - **LIBRARY**: fills the rest of the sidebar's height.
  (The first build had the library as an overlay that slid down from the PATCHES
@@ -57,9 +58,27 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 
 ## Slots (the SET block)
 
-- An 8 × 2 grid as now. Hovering shows the slot name. States: empty (grey), filled (dotted green
-  outline, green number), active (solid green), modified (unsaved edits: amber corner).
-- **Click a filled slot**: recall it. The changed blocks go to the TB-3 and it becomes active.
+- An 8 × 8 grid, row for row as on the Launchpad. Hovering shows the slot name. States: empty
+  (grey), filled (dotted outline and number in the row's colour), active (solid green), modified
+  (unsaved edits: amber corner). Row colours (`editor/slotColours.ts`): cyan, blue, violet, pink,
+  repeating, so neighbours differ; they avoid green (active), red, white and orange (the modes) and
+  amber.
+- **Drag a slot onto another**: the two swap; onto an empty slot it moves. The active slot and the
+  morph target follow their patches, nothing is sent, and it's an undo step ("Swap slots 3 and 7",
+  "Move slot 2 to 41"). Not while a mode is on. **Option-drag** (Ctrl on Windows: each platform's copy key, as macOS
+  cancels a ⌘-drag) copies instead (`copySlot`, as a
+  Replace: asks first over a filled slot, and over the active slot its patch stays in the editor); undo step
+  "Copy slot 2 to 21".
+- **Click a filled slot**: recall it. The changed bytes go to the TB-3 and it becomes active.
+- **Switching sends** (recall, audition, undo; `editor/patchSwitch.ts`, `core/patch.ts` `switchRuns`): only the
+  changed bytes of each block, with runs a short way apart merged into one DT1 (the pacer makes each message's
+  framing cost about as much as 38 data bytes), so the switch is as short as it can be. An EFX block whose type
+  changes goes whole, as the TB-3 resets that effect's slots. Switching while a pattern plays could pop or
+  screech: until the last message arrives the TB-3 plays a mixture of the two patches. **QUIET SWITCH** (MIDI
+  settings, on by default, remembered) sends MASTER VOLUME 0 first and the new volume last, leaving the
+  volume out of the messages between, so the mixture is a short silence instead. Timing switches to the gaps
+  between notes was considered and left for now: a note-off doesn't mean silence (the VCA envelope may still be
+  releasing), and an external sequencer (OXI One) can play off the grid at any tempo.
 - **Click an empty slot**: store the patch in the editor there; it becomes the active slot. This is
   how the unslotted buffer gets into the set, as on the TouchOSC panel. A full slot is replaced
   from its right-click menu (asking first), or DELETE it and click it.
@@ -74,12 +93,20 @@ header. After trying it, the library moved into the sidebar so it's always to ha
   where they are held rather than toggled.
 - **Double-click a slot**: rename it. The name is stored in the set; library files aren't touched.
 - **Right-click a slot**: Store / Replace with the patch in the editor; Rename; Save as .syx…;
-  Clear.
+  Revert to saved; Clear.
+- **Revert to saved** (a slot's menu, or REVERT on the FILE line for every slot): back to the set as
+  last opened or saved, rebuilt from the saved slot keys (`sessionState.revertSlot` / `revertSet`).
+  The active slot stays active and its saved patch is sent; a slot that was empty then is emptied,
+  and if it was active, what it held stays in the editor as the buffer, as with DELETE. A morph
+  target left empty is dropped. Undoable; enabled only where something differs from the saved set,
+  including a slot cleared since.
 
 ## Sets
 
 - File format: one JSON file, `Name.tb3set`:
-  `{ "format": "tb3set", "version": 1, "slots": [ { "name": "Acid 1", "blocks": "<hex of the 11 blocks>" } | null, … 16 ] }`.
+  `{ "format": "tb3set", "version": 2, "slots": [ { "name": "Acid 1", "blocks": "<hex of the 11 blocks>" } | null, … 64 ] }`.
+  Version 1 sets had 16 slots; they open as the first two rows and save as version 2. Sessions kept
+  from before are filled out to 64 the same way.
   The hex is the same 11-block dump as a `.syx`, so a slot round-trips byte for byte.
 - **New set / Save set / Save set as…** (the FILE line in SET). The set's name shows on the FILE
   line, marked when it has unsaved changes.
@@ -115,7 +142,8 @@ header. After trying it, the library moved into the sidebar so it's always to ha
 ## Undo history
 
 - **What can be undone**: DELETE, Replace (a library patch dropped on a slot, or Replace from a
-  slot's menu), STORE into an empty slot, rename, morph CLEAR and parameter edits; and in the
+  slot's menu), STORE into an empty slot, swapping or moving slots, rename, Revert to saved (a slot or the set), morph CLEAR
+  and parameter edits; and in the
   library, renaming, moving and new folders. Not undoable: recall, loading a file, SYNC from the
   TB-3 and auditioning, since they only change which patch is shown; Move to Trash (the Trash puts
   things back, and it still asks first). Morph fader moves aren't undoable either while morph is

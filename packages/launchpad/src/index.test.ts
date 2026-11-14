@@ -5,9 +5,12 @@ describe("launchpad", () => {
   it("maps the top two rows to slots and back", () => {
     expect(padToSlot(81)).toBe(1);
     expect(padToSlot(78)).toBe(16);
-    expect(padToSlot(61)).toBeUndefined();
+    expect(padToSlot(61)).toBe(17);
+    expect(padToSlot(11)).toBe(57);
+    expect(padToSlot(18)).toBe(64);
+    expect(padToSlot(10)).toBeUndefined(); // the bottom-left side button
     expect(padToSlot(89)).toBeUndefined(); // the right-hand side button
-    for (let s = 1; s <= 16; s++) expect(padToSlot(slotToPad(s))).toBe(s);
+    for (let s = 1; s <= 64; s++) expect(padToSlot(slotToPad(s))).toBe(s);
   });
 
   it("parses pads, pressure, channel pressure and buttons", () => {

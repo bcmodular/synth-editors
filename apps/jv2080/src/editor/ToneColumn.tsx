@@ -1,13 +1,19 @@
-// One tone's column: wave, pitch, filter, amp envelope and LFOs (level, pan and sends are in the mixer). Envelopes are rows of times and levels for now;
-// the graph editor comes later in Phase 3.
+// One tone's column: wave, pitch, filter, amp envelope and LFOs (level, pan and sends are in the mixer). Envelopes
+// are graphs; the other values are knobs.
 
+import { useState } from "react";
+import type { EnvelopeSpec } from "../core/envelope";
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
 import { WAVE_GROUPS, waveCount, waveGroupBytes, waveGroupOf, waveName, type WaveGroup } from "../core/waves";
 import { Section, Segmented } from "../ui/controls";
+import { EnvelopeGraph } from "../ui/EnvelopeGraph";
+import { useSize } from "../ui/useSize";
 import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
-import { ParamChoice, ParamFader, ParamSelect } from "./ParamControls";
+import { ParamChoice, ParamFader, ParamKnob, ParamSelect } from "./ParamControls";
+
+const ENV_HEIGHT = 80;
 
 interface ToneProps {
   tone: number; // 0–3
@@ -47,14 +53,25 @@ function Wave({ tone }: ToneProps) {
   );
 }
 
-// Envelope times and levels as two rows of small faders.
-function Envelope({ tone, prefix, levels }: ToneProps & { prefix: string; levels: number }) {
+// An envelope as a graph the width of the column (ui/EnvelopeGraph.tsx).
+function Envelope({ tone, prefix, levels, bipolar }: ToneProps & { prefix: string; levels: number; bipolar?: boolean }) {
+  const { patch, setValue } = useEditor();
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const { width } = useSize(box);
+  const raw = (id: string) => getParam(patch, param(id), tone);
+  const spec: EnvelopeSpec = {
+    times: [1, 2, 3, 4].map((i) => raw(`${prefix}Time${i}`)),
+    levels: Array.from({ length: levels }, (_, i) => raw(`${prefix}Level${i + 1}`)),
+    levelMax: bipolar ? 126 : 127,
+    center: bipolar ? 63 : undefined,
+  };
   return (
-    <div className="env">
-      {[1, 2, 3, 4].map((i) => <ParamFader key={`t${i}`} def={`${prefix}Time${i}`} tone={tone} label={`T${i}`} />)}
-      {Array.from({ length: levels }, (_, i) => (
-        <ParamFader key={`l${i}`} def={`${prefix}Level${i + 1}`} tone={tone} label={`L${i + 1}`} />
-      ))}
+    <div className="envbox" ref={setBox}>
+      {width > 0 && (
+        <EnvelopeGraph spec={spec} width={width} height={ENV_HEIGHT}
+          onTime={(stage, v) => setValue(param(`${prefix}Time${stage + 1}`), v, tone)}
+          onLevel={(stage, v) => setValue(param(`${prefix}Level${stage + 1}`), v, tone)} />
+      )}
     </div>
   );
 }
@@ -79,15 +96,19 @@ export function ToneColumn({ tone }: ToneProps) {
       <h3>WAVE</h3>
       <Wave tone={tone} />
       <h3>PITCH</h3>
-      <ParamFader def="coarseTune" tone={tone} />
-      <ParamFader def="fineTune" tone={tone} />
-      <ParamFader def="pitchEnvDepth" tone={tone} label="Env Depth" />
-      <Envelope tone={tone} prefix="pitchEnv" levels={4} />
+      <div className="knobrow">
+        <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
+        <ParamKnob def="fineTune" tone={tone} label="FINE" />
+        <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV DEPTH" />
+      </div>
+      <Envelope tone={tone} prefix="pitchEnv" levels={4} bipolar />
       <h3>FILTER</h3>
       <ParamChoice def="filterType" tone={tone} label="Type" />
-      <ParamFader def="cutoff" tone={tone} />
-      <ParamFader def="resonance" tone={tone} />
-      <ParamFader def="filterEnvDepth" tone={tone} label="Env Depth" />
+      <div className="knobrow">
+        <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
+        <ParamKnob def="resonance" tone={tone} label="RESO" />
+        <ParamKnob def="filterEnvDepth" tone={tone} label="ENV DEPTH" />
+      </div>
       <Envelope tone={tone} prefix="filterEnv" levels={4} />
       <h3>AMP</h3>
       <Envelope tone={tone} prefix="ampEnv" levels={3} />

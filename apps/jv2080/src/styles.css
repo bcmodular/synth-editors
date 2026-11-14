@@ -317,13 +317,56 @@ input {
 .wave .pick {
   flex: 1 1 0;
 }
-.env {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px 6px;
+/* Envelope graphs (ui/EnvelopeGraph.tsx), in the section's colour. */
+.envbox {
+  width: 100%;
 }
-.env .prow > .lbl {
-  flex-basis: 16px;
+.envg {
+  display: block;
+  touch-action: none;
+}
+.envg .well {
+  fill: #0d0e10;
+  stroke: var(--edge);
+}
+.envg .axis {
+  stroke: #3a3b40;
+}
+.envg .area {
+  fill: color-mix(in srgb, var(--led) 18%, transparent);
+}
+.envg .shape,
+.envg .hold {
+  fill: none;
+  stroke: var(--led);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.envg .hold {
+  stroke-dasharray: 4 3;
+  stroke-width: 1.5;
+}
+.envg .dot {
+  fill: #0d0e10;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.envg .handle.on .dot {
+  fill: var(--led);
+}
+.envg .hit {
+  fill: transparent;
+  cursor: move;
+}
+.envg .readout {
+  fill: #fff;
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+.knobrow {
+  display: flex;
+  justify-content: space-around;
+  padding: 2px 0;
 }
 .lfo-head > .prow {
   flex: 1 1 0;
@@ -688,4 +731,61 @@ input {
   font-size: var(--text-s);
   color: var(--dim);
   word-spacing: normal;
+}
+
+/* Effect drawings (editor/ChorusReverbViews.tsx), in the section's colour. */
+.fxdraw {
+  width: 100%;
+}
+.fxdraw svg {
+  display: block;
+  touch-action: none;
+}
+.fxdraw .well {
+  fill: #0d0e10;
+  stroke: var(--edge);
+}
+.fxdraw .axis {
+  stroke: #3a3b40;
+}
+.fxdraw .gt {
+  fill: #c9ccd3;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.fxdraw .cv {
+  fill: none;
+  stroke: var(--led);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.fxdraw .cv2 {
+  fill: none;
+  stroke: #e8e8ea;
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+}
+.fxdraw .area {
+  fill: color-mix(in srgb, var(--led) 22%, transparent);
+}
+.fxdraw .dry {
+  stroke: #e8e8ea;
+  stroke-width: 3;
+}
+.fxdraw .tap {
+  stroke: var(--led);
+  stroke-width: 3;
+}
+.fxdraw .drag {
+  fill: transparent;
+  cursor: move;
+}
+.fxdraw .dot {
+  fill: #0d0e10;
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.fxdraw .hit {
+  fill: transparent;
+  cursor: move;
 }

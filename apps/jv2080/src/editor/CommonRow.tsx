@@ -8,6 +8,7 @@ import type { ParamDef } from "../core/params";
 import { param } from "../core/paramValue";
 import { Section } from "../ui/controls";
 import { useEditor } from "./EditorContext";
+import { ChorusView, ReverbView } from "./ChorusReverbViews";
 import { EffectChooser } from "./EffectChooser";
 import { efxSlotParam } from "./efxParams";
 import { Mixer } from "./Mixer";
@@ -63,10 +64,7 @@ function Efx() {
 function Chorus() {
   return (
     <Section title="CHORUS" className="chorus">
-      <ParamFader def="chorusRate" label="Rate" />
-      <ParamFader def="chorusDepth" label="Depth" />
-      <ParamFader def="chorusPreDelay" label="Pre-Delay" />
-      <ParamFader def="chorusFeedback" label="Feedback" />
+      <ChorusView />
       <ParamChoice def="chorusOutput" label="Output" />
     </Section>
   );
@@ -76,9 +74,8 @@ function Reverb() {
   return (
     <Section title="REVERB" className="reverb">
       <ParamChoice def="reverbType" label="Type" />
-      <ParamFader def="reverbTime" label="Time" />
+      <ReverbView />
       <ParamSelect def="reverbHfDamp" label="HF Damp" />
-      <ParamFader def="delayFeedback" label="Dly Feedback" />
     </Section>
   );
 }

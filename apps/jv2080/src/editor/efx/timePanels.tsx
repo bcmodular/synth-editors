@@ -26,41 +26,54 @@ interface TapView {
   level?: EfxParam;
 }
 
-export function DelayPanel({ spec, get, size }: PanelProps<"delay">) {
+const levelOf = (t: TapView) => (t.level ? fraction(t.level) : 1);
+
+// Where things go: the baseline, the taps' x, the longest tap's repeats and the feedback handle's x.
+function delayLayout(taps: readonly TapView[], fb: number, size: Size) {
   const { width, height } = size;
-  const taps: TapView[] = spec.taps.map((t) => ({ label: t.label, time: get(t.time), level: t.level ? get(t.level) : undefined }));
-  const feedback = spec.feedback ? get(spec.feedback) : undefined;
-  const fb = feedback ? amount(feedback) / 100 : 0;
   const mid = (TOP + height - PAD) / 2 + 6;
-  const tall = mid - TOP - 4;
   const x0 = PAD + 4;
   const span = (width - x0 - PAD) * 0.45; // the longest delay fits in under half the width, leaving room for repeats
   const tx = (t: EfxParam) => x0 + 6 + fraction(t) * span;
-  const levelOf = (t: TapView) => (t.level ? fraction(t.level) : 1);
+  // Taps at the same time are drawn a little apart, so each stays visible and draggable.
+  const xs = taps.map((t, i) => tx(t.time) + 6 * taps.slice(0, i).filter((o) => o.time.raw === t.time.raw).length);
   const longest = taps.reduce((a, b) => (b.time.raw > a.time.raw ? b : a), taps[0]!);
-  const period = tx(longest.time) - x0;
-  const repeats = Array.from({ length: MAX_REPEATS }, (_, i) => ({ x: tx(longest.time) + (i + 1) * period, v: fb ** (i + 1) }))
+  const end = tx(longest.time);
+  const period = end - x0;
+  const repeats = Array.from({ length: MAX_REPEATS }, (_, i) => ({ x: end + (i + 1) * period, v: fb ** (i + 1) }))
     .filter((r) => r.x < width - PAD && Math.abs(r.v) > 0.02);
+  // The feedback handle sits on the first repeat, even when there's none to draw (feedback 0).
+  return { mid, tall: mid - TOP - 4, x0, span, xs, longest, repeats, fbX: Math.min(end + period, width - PAD - 6) };
+}
+
+function TapMark({ tap, x, mid, tall, span, labelY }: { tap: TapView; x: number; mid: number; tall: number; span: number; labelY: number }) {
+  const y = mid - levelOf(tap) * tall;
+  return (
+    <g>
+      <line className="tap" x1={x} x2={x} y1={mid} y2={y} />
+      {tap.label && <text className="gl" x={x} y={labelY} textAnchor="middle">{tap.label}</text>}
+      <Handle x={x} y={y} onPointerDown={(e) => dragXY(e, { x: tap.time.axis(span), y: tap.level?.axis(tall) })} />
+    </g>
+  );
+}
+
+export function DelayPanel({ spec, get, size }: PanelProps<"delay">) {
+  const taps: TapView[] = spec.taps.map((t) => ({ label: t.label, time: get(t.time), level: t.level ? get(t.level) : undefined }));
+  const feedback = spec.feedback ? get(spec.feedback) : undefined;
+  const fb = feedback ? amount(feedback) / 100 : 0;
+  const { mid, tall, x0, span, xs, longest, repeats, fbX } = delayLayout(taps, fb, size);
+  const top = levelOf(longest) * tall;
   const values = [...taps.map((t) => `${t.label || "TIME"} ${t.time.text}`), feedback && `FB ${feedback.text}`].filter(Boolean).join(" · ");
   return (
     <Frame size={size} title={spec.title} values={values}>
-      <line className="axis" x1={0} x2={width} y1={mid} y2={mid} />
+      <line className="axis" x1={0} x2={size.width} y1={mid} y2={mid} />
       <line className="dry" x1={x0} x2={x0} y1={mid} y2={mid - tall} />
-      {repeats.map((r, i) => (
-        <line key={i} className="tap dim" x1={r.x} x2={r.x} y1={mid} y2={mid - Math.sign(r.v) * Math.abs(r.v) * levelOf(longest) * tall} />
+      {repeats.map((r, i) => <line key={i} className="tap dim" x1={r.x} x2={r.x} y1={mid} y2={mid - r.v * top} />)}
+      {taps.map((t, i) => (
+        <TapMark key={t.label || "t"} tap={t} x={xs[i]!} mid={mid} tall={tall} span={span} labelY={size.height - 3} />
       ))}
-      {taps.map((t) => (
-        <g key={t.label || "t"}>
-          <line className="tap" x1={tx(t.time)} x2={tx(t.time)} y1={mid} y2={mid - levelOf(t) * tall} />
-          {t.label && <text className="gl" x={tx(t.time)} y={height - 3} textAnchor="middle">{t.label}</text>}
-          <Handle x={tx(t.time)} y={mid - levelOf(t) * tall}
-            onPointerDown={(e) => dragXY(e, { x: t.time.axis(span), y: t.level?.axis(tall) })} />
-        </g>
-      ))}
-      {feedback && repeats[0] && (
-        <Handle x={repeats[0].x} y={mid - fb * levelOf(longest) * tall} onPointerDown={(e) => dragXY(e, { y: feedback.axis(tall * 2) })} />
-      )}
-      {spec.accel && <text className="gl" x={width - 6} y={height - 3} textAnchor="end">ACCEL {get(spec.accel).text}</text>}
+      {feedback && <Handle x={fbX} y={mid - fb * top} onPointerDown={(e) => dragXY(e, { y: feedback.axis(tall * 2) })} />}
+      {spec.accel && <text className="gl" x={size.width - 6} y={size.height - 3} textAnchor="end">ACCEL {get(spec.accel).text}</text>}
     </Frame>
   );
 }

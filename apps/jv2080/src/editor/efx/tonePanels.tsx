@@ -173,6 +173,7 @@ export function CompressorPanel({ spec, get, size }: PanelProps<"compressor">) {
 // --- Limiter: output against input; drag the threshold knee, or the top end for the ratio ---
 
 const RATIOS = [1.5, 2, 4, 100];
+const LABEL_W = 36;
 
 export function LimiterPanel({ spec, get, size }: PanelProps<"limiter">) {
   const { width, height } = size;
@@ -182,7 +183,7 @@ export function LimiterPanel({ spec, get, size }: PanelProps<"limiter">) {
   const th = 0.15 + fraction(threshold) * 0.85;
   const out = (v: number) => (v < th ? v : th + (v - th) / r);
   const left = PAD;
-  const side = Math.min(width - 2 * PAD, height - TOP - PAD);
+  const side = Math.min(width - 2 * PAD - LABEL_W, height - TOP - PAD); // the plot is square; its labels go right
   const bottom = height - PAD;
   const px = (v: number) => left + v * side;
   const py = (v: number) => bottom - v * side;

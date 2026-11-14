@@ -3,13 +3,19 @@
 import { useState, type PointerEvent, type ReactNode } from "react";
 import { useSize } from "./useSize";
 
-// A drawing filling its box's width; `children` gets the width to draw at.
-export function Drawing({ height, className, children }: { height: number; className?: string; children: (width: number) => ReactNode }) {
+// A drawing filling its box's width, and its height too when none is given (the box is then sized by the layout);
+// `children` gets the size to draw at.
+export function Drawing({ height, className, children }: {
+  height?: number;
+  className?: string;
+  children: (width: number, height: number) => ReactNode;
+}) {
   const [box, setBox] = useState<HTMLDivElement | null>(null);
-  const { width } = useSize(box);
+  const size = useSize(box);
+  const h = height ?? size.height;
   return (
-    <div className={`fxdraw ${className ?? ""}`} ref={setBox}>
-      {width > 0 && <svg width={width} height={height}>{children(width)}</svg>}
+    <div className={`fxdraw ${height === undefined ? "fill" : ""} ${className ?? ""}`} ref={setBox}>
+      {size.width > 0 && h > 0 && <svg width={size.width} height={h}>{children(size.width, h)}</svg>}
     </div>
   );
 }

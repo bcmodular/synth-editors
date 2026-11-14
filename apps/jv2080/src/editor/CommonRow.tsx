@@ -1,4 +1,4 @@
-// The row above the tones: patch-wide settings, the EFX with its type's parameters, chorus and reverb.
+// The row above the tones: the mixer, the EFX with its type's parameters, chorus and reverb.
 
 import { efxType } from "../core/efx";
 import { getParam } from "../core/patch";
@@ -7,26 +7,8 @@ import { param } from "../core/paramValue";
 import { Section } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 import { efxSlotParam } from "./efxParams";
-import { ParamChoice, ParamFader, ParamSelect, ParamSwitch } from "./ParamControls";
-
-function PatchCommon() {
-  return (
-    <Section title="PATCH COMMON" className="common">
-      <ParamFader def="patchLevel" label="Level" />
-      <ParamFader def="patchPan" label="Pan" />
-      <ParamFader def="octaveShift" />
-      <ParamFader def="bendUp" />
-      <ParamFader def="bendDown" />
-      <ParamChoice def="keyAssign" label="Keys" />
-      <div className="row tight">
-        <ParamSwitch def="soloLegato" label="LEGATO" />
-        <ParamSwitch def="portamento" label="PORTA" />
-      </div>
-      <ParamFader def="portamentoTime" />
-      <ParamFader def="tempo" />
-    </Section>
-  );
-}
+import { Mixer } from "./Mixer";
+import { ParamChoice, ParamFader, ParamSelect } from "./ParamControls";
 
 // A list parameter with few values reads best as buttons; long lists as a drop-down.
 function EfxParam({ def }: { def: ParamDef }) {
@@ -54,7 +36,6 @@ function Efx() {
 function Chorus() {
   return (
     <Section title="CHORUS" className="chorus">
-      <ParamFader def="chorusLevel" label="Level" />
       <ParamFader def="chorusRate" label="Rate" />
       <ParamFader def="chorusDepth" label="Depth" />
       <ParamFader def="chorusPreDelay" label="Pre-Delay" />
@@ -68,7 +49,6 @@ function Reverb() {
   return (
     <Section title="REVERB" className="reverb">
       <ParamChoice def="reverbType" label="Type" />
-      <ParamFader def="reverbLevel" label="Level" />
       <ParamFader def="reverbTime" label="Time" />
       <ParamSelect def="reverbHfDamp" label="HF Damp" />
       <ParamFader def="delayFeedback" label="Dly Feedback" />
@@ -79,7 +59,7 @@ function Reverb() {
 export function CommonRow() {
   return (
     <div className="common-row">
-      <PatchCommon />
+      <Mixer />
       <Efx />
       <Chorus />
       <Reverb />

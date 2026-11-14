@@ -1,5 +1,5 @@
-// Copied from apps/tb3/src/ui/useValueDrag.ts.
-// Shared value interaction: relative drag (Shift = fine), double-click reset, wheel steps.
+// Copied from apps/sp404/src/ui/useValueDrag.ts (itself adapted from the TB-3 app's). Value interaction: relative
+// drag (Shift = fine), double-click reset, wheel steps, with an optional minimum.
 import { useEffect, useRef } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { getZoom } from "./zoom";
@@ -11,6 +11,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 
 export interface ValueDragOptions {
   value: number;
+  min?: number;
   max: number;
   onChange: (raw: number) => void;
   defaultValue: number;
@@ -18,6 +19,29 @@ export interface ValueDragOptions {
   length?: number; // px of travel for the full range; default: the element's own size
   disabled?: boolean;
 }
+
+const elementSize = (el: Element, axis: "x" | "y"): number =>
+  el instanceof HTMLElement ? (axis === "x" ? el.offsetWidth : el.offsetHeight) : 100;
+
+// Pointer moves for one drag: relative to where it started, in the layout's own px (undoing the fit zoom).
+function dragMover(opts: { current: ValueDragOptions }, start: { clientX: number; clientY: number }, size: number) {
+  const along = (ev: { clientX: number; clientY: number }) => (opts.current.axis === "x" ? ev.clientX : ev.clientY);
+  let last = along(start);
+  let acc = opts.current.value;
+  return (ev: PointerEvent) => {
+    const { axis, min = 0, max, onChange } = opts.current;
+    const length = opts.current.length ?? size;
+    const pos = along(ev);
+    const delta = (axis === "x" ? pos - last : last - pos) / getZoom() / length;
+    last = pos;
+    acc = clamp(acc + delta * (max - min) * (ev.shiftKey ? FINE : 1), min, max);
+    const next = Math.round(acc);
+    if (next !== opts.current.value) onChange(next);
+  };
+}
+
+// Shift + wheel (or a sideways swipe) scrolls the page across, as everywhere else, e.g. the desk.
+const scrollsAcross = (w: WheelEvent) => w.shiftKey || Math.abs(w.deltaX) > Math.abs(w.deltaY);
 
 export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOptions) {
   const opts = useRef(o);
@@ -31,8 +55,8 @@ export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOpt
     let acc = 0;
     const onWheel = (e: Event) => {
       const w = e as WheelEvent;
-      const { value, max, onChange, disabled } = opts.current;
-      if (disabled) return;
+      const { value, min = 0, max, onChange, disabled } = opts.current;
+      if (disabled || scrollsAcross(w)) return;
       w.preventDefault();
       // Mouse wheels report large deltas per notch; trackpads report many small ones.
       const d = Math.abs(w.deltaY) >= 40 ? Math.sign(w.deltaY) * WHEEL_PX_PER_STEP : w.deltaY;
@@ -40,7 +64,7 @@ export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOpt
       const steps = Math.trunc(acc / WHEEL_PX_PER_STEP);
       if (!steps) return;
       acc -= steps * WHEEL_PX_PER_STEP;
-      const next = clamp(value - steps, 0, max);
+      const next = clamp(value - steps, min, max);
       if (next === value) return;
       // Several wheel events can arrive before React re-renders with the new value.
       opts.current = { ...opts.current, value: next };
@@ -54,19 +78,7 @@ export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOpt
     if (opts.current.disabled || e.button !== 0) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
-    let last = opts.current.axis === "x" ? e.clientX : e.clientY;
-    let acc = opts.current.value;
-    const size = el instanceof HTMLElement ? (opts.current.axis === "x" ? el.offsetWidth : el.offsetHeight) : 100;
-    const move = (ev: PointerEvent) => {
-      const { axis, max, onChange } = opts.current;
-      const length = opts.current.length ?? size;
-      const pos = axis === "x" ? ev.clientX : ev.clientY;
-      const delta = (axis === "x" ? pos - last : last - pos) / getZoom() / length;
-      last = pos;
-      acc = clamp(acc + delta * max * (ev.shiftKey ? FINE : 1), 0, max);
-      const next = Math.round(acc);
-      if (next !== opts.current.value) onChange(next);
-    };
+    const move = dragMover(opts, e, elementSize(el, opts.current.axis));
     const up = () => {
       el.removeEventListener("pointermove", move as EventListener);
       el.removeEventListener("pointerup", up);

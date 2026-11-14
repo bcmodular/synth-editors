@@ -56,6 +56,26 @@ The detail, with page references, is in [jv2080-sysex-map.md](jv2080-sysex-map.m
 
 One window, everything on screen, ~1952 px wide like the TB-3.
 
+### Redesign (2026-11-14)
+
+After the first editor, a more compact layout, decided with the user:
+
+- **No scrolling.** Fixed design size, fit zoom. What doesn't fit goes behind popups or tabs; key controls stay visible.
+- **Mixer** in the top row, in the SP-404 desk's style, replacing PATCH COMMON: per tone ON, output assign, pan,
+  Mix/EFX, chorus and reverb send knobs and a level fader; chorus and reverb return faders (their Levels); a master
+  with Patch Level and Pan. ✅
+- **Patch settings popup** from the master strip: octave, bend up / down, keys, legato, portamento and its time,
+  Clock Source (PATCH / SYSTEM; SYSTEM follows the JV's system clock, which can follow MIDI clock) and Tempo. ✅
+- **EFX chooser** as a big grid of grouped types, like the SP-404's; **a dedicated view for each of the 40 types**.
+- **Chorus and reverb** get dedicated layouts like the SP-404's.
+- **Wave library:** a panel over the tones with search and instrument categories (assigned from the wave names);
+  INT-A / INT-B is a tag, not an up-front choice. Picking auditions straight away.
+- **Envelopes** (pitch, filter, amp) as graph editors; the other tone values as encoders.
+- **LFOs:** the TB-3's waveform drawing, and a routing view like its cross-mod matrix.
+- Controls are copied from the TB-3 and SP-404 apps for now; shared packages later, once they settle.
+
+The sections below describe the first design; where they differ, the list above wins.
+
 **Sidebar** (left, the TB-3's, unchanged in behaviour): PATCH (name large, slot, SAVE AS…), SET (DELETE, GRAB,
 the 8 × 2 slots, NEW / SAVE / SAVE AS…), LIBRARY (tree of `.syx` and `.jvset` files, search, ▶ audition).
 Morph is left out of v1; see Open questions.

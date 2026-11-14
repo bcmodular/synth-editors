@@ -1,11 +1,12 @@
-// Controls bound to a parameter of the patch: a labelled bar fader, a segmented choice, a drop-down list and an
-// on/off button. `tone` (0–3) picks the tone for tone parameters.
+// Controls bound to a parameter of the patch: a labelled bar fader, a segmented choice, a drop-down list, an on/off
+// button and a knob. `tone` (0–3) picks the tone for tone parameters.
 
 import { getParam } from "../core/patch";
 import type { ParamDef } from "../core/params";
 import { param } from "../core/paramValue";
 import { LedButton, Segmented } from "../ui/controls";
 import { HFader } from "../ui/Fader";
+import { Knob } from "../ui/Knob";
 import { useEditor } from "./EditorContext";
 
 export interface BoundProps {
@@ -69,4 +70,12 @@ export function ParamSelect(props: BoundProps) {
 export function ParamSwitch(props: BoundProps) {
   const { value, set, label } = useBound(props);
   return <LedButton label={label} on={value !== 0} onToggle={() => set(value ? 0 : 1)} />;
+}
+
+export function ParamKnob(props: BoundProps) {
+  const { def, value, set, label } = useBound(props);
+  return (
+    <Knob label={label} value={value} min={def.min} max={def.max} reset={def.center ?? def.min} text={def.display(value)}
+      onChange={set} />
+  );
 }

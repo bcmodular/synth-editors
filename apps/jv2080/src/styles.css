@@ -189,8 +189,8 @@ input {
   border-top: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
 }
-.common {
-  --tint: #e6c27a;
+.mixer {
+  --tint: #7be890;
 }
 .efx {
   --tint: #a8b8ff;
@@ -286,7 +286,7 @@ input {
 
 .common-row {
   display: grid;
-  grid-template-columns: 1fr 1.6fr 1fr 1fr;
+  grid-template-columns: auto 1.6fr 1fr 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -321,4 +321,199 @@ input {
 }
 .lfo-head > .prow:last-child > .lbl {
   flex-basis: 32px;
+}
+
+/* --- Mixer (after the SP-404's desk) --- */
+
+.desk {
+  display: flex;
+  gap: 4px;
+  height: 330px;
+}
+.strip {
+  width: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 4px 4px;
+  background: #151619;
+  border: 1px solid #000;
+  border-top: 2px solid var(--sc);
+}
+.strip.ret,
+.strip.master {
+  width: 70px;
+}
+.strip.master {
+  width: 84px;
+  margin-left: 6px;
+}
+.st-head {
+  font-size: var(--text-m);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--sc);
+}
+.strip > .btn {
+  width: 100%;
+  justify-content: center;
+}
+.strip .out {
+  width: 100%;
+  text-align: center;
+}
+.st-knobs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 2px;
+  width: 100%;
+}
+.lv {
+  font-size: var(--text-m);
+  font-weight: 600;
+  color: #fff;
+}
+.anchor {
+  position: relative;
+  width: 100%;
+}
+.anchor > .btn {
+  width: 100%;
+  justify-content: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.kn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  cursor: ns-resize;
+  min-width: 0;
+  touch-action: none;
+}
+.kn i {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, #3a3b40, #1a1b1e 70%);
+  border: 1px solid #000;
+  position: relative;
+  display: block;
+}
+.kn i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 2px;
+  height: 10px;
+  background: #fff;
+  transform-origin: 50% 12px;
+  transform: translateX(-50%) rotate(var(--a, 0deg));
+}
+.kn .lbl {
+  font-size: 11px;
+  color: var(--dim);
+  max-width: 60px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.kn em {
+  font-style: normal;
+  font-size: var(--text-s);
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.fader {
+  flex: 1 1 auto;
+  margin-top: 7px;
+  min-height: 80px;
+  width: 100%;
+  position: relative;
+  cursor: ns-resize;
+  touch-action: none;
+}
+.fader .slot {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  transform: translateX(-50%);
+  background: #000;
+  border: 1px solid #2a2a2e;
+}
+.fader .scale {
+  position: absolute;
+  left: 3px;
+  top: 4px;
+  bottom: 4px;
+  width: 6px;
+  background: repeating-linear-gradient(to bottom, #555 0 1px, transparent 1px 10%);
+}
+.fader .fill {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: calc(var(--fillpos) * (100% - 8px));
+  transform: translateX(-50%);
+  background: var(--fc);
+  box-shadow: 0 0 5px var(--fc);
+}
+.fader .knobcap {
+  position: absolute;
+  left: 50%;
+  bottom: calc(4px + var(--pos) * (100% - 8px));
+  width: 40px;
+  height: 18px;
+  transform: translate(-50%, 50%);
+  background: linear-gradient(#3a3b40, #18191c);
+  border: 1px solid #000;
+  border-top: 2px solid var(--fc);
+  border-radius: 2px;
+}
+.fader.muted .fill {
+  background: #555;
+  box-shadow: none;
+}
+.fader.muted .knobcap {
+  border-top-color: #555;
+}
+
+/* Popups: a panel under their button, over everything else. */
+.popup {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 300px;
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: #1b1c20;
+  border: 1px solid var(--rule);
+  box-shadow: 0 8px 24px #000a;
+}
+.popup h3 {
+  margin: 0 0 2px;
+  font-size: var(--text-xl);
+  color: var(--val);
+  letter-spacing: 0.05em;
+}
+.popup .off {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.popup .note {
+  margin: 2px 0 0;
+  font-size: var(--text-s);
+  color: var(--dim);
+  word-spacing: normal;
 }

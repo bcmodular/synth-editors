@@ -83,6 +83,7 @@ export const COMMON_PARAMS: readonly ParamDef[] = [
   onOff(common("portamento", "Portamento", 0x35)),
   level(common("portamentoTime", "Porta Time", 0x39)),
   range(common("octaveShift", "Octave", 0x41), 0, 6, { center: 3 }),
+  choice(common("clockSource", "Clock", 0x48), ["PATCH", "SYSTEM"]),
 ];
 
 // --- Patch Tone ---

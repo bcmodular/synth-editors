@@ -1,4 +1,4 @@
-// One tone's column: wave, pitch, filter, amp, LFOs and outputs. Envelopes are rows of times and levels for now;
+// One tone's column: wave, pitch, filter, amp envelope and LFOs (level, pan and sends are in the mixer). Envelopes are rows of times and levels for now;
 // the graph editor comes later in Phase 3.
 
 import { getParam } from "../core/patch";
@@ -89,17 +89,10 @@ export function ToneColumn({ tone }: ToneProps) {
       <ParamFader def="filterEnvDepth" tone={tone} label="Env Depth" />
       <Envelope tone={tone} prefix="filterEnv" levels={4} />
       <h3>AMP</h3>
-      <ParamFader def="toneLevel" tone={tone} />
-      <ParamFader def="tonePan" tone={tone} />
       <Envelope tone={tone} prefix="ampEnv" levels={3} />
       <h3>LFO</h3>
       <Lfo tone={tone} n={1} />
       <Lfo tone={tone} n={2} />
-      <h3>OUT</h3>
-      <ParamChoice def="outputAssign" tone={tone} label="Output" />
-      <ParamFader def="mixEfxSend" tone={tone} label="Mix/EFX" />
-      <ParamFader def="chorusSend" tone={tone} label="Chorus" />
-      <ParamFader def="reverbSend" tone={tone} label="Reverb" />
     </Section>
   );
 }

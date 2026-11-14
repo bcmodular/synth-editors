@@ -400,9 +400,59 @@ button.big.on {
   flex: 1;
 }
 
-.knobs {
+/* The 3 × 2 parameter grid, laid out as the BCR2000's encoders: slots 1–3 down the left, 4–6 down the right. */
+.slots {
   display: grid;
-  gap: 2px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 40px);
+  grid-auto-flow: column;
+  gap: 3px;
+}
+
+.slot {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  background: #151619;
+  border: 1px solid #000;
+  overflow: hidden;
+}
+
+.slot > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.slot .kn {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  justify-items: start;
+}
+
+.slot .kn i {
+  grid-row: span 2;
+}
+
+.slot .kn .lbl {
+  max-width: none;
+  align-self: end;
+}
+
+.slot .kn em {
+  align-self: start;
+}
+
+.slot .readout {
+  align-items: flex-start;
+  padding-left: 40px;
+}
+
+.slot .frow.col .seg button {
+  height: 18px;
 }
 
 .kn {

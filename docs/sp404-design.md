@@ -21,7 +21,8 @@ Two halves, each talking to the SP-404 over its own link:
 | **Pad mixer**: level, pan, routing, mute group and envelope for every loaded pad | USB serial (the SP-404's vendor CDC port) | Read and write |
 
 Not in scope: patterns, sequencing, sample management (loading, trimming, naming), and bus/master/input
-levels (the SP-404 has no MIDI or serial control for them). The BCR2000 is dropped.
+levels (the SP-404 has no MIDI or serial control for them). The BCR2000 is back (2026-11-13), for effect parameters
+only: see Controllers › BCR2000.
 
 ### FX
 
@@ -124,6 +125,50 @@ These match the TouchOSC version's behaviour, including the lock rules.
   NOTE/SCALE and Vocoder NOTE/SCALE/CHORD, plays the vocoder on channel 11, and grabs a bus so the Launchkey
   encoders drive its six parameters. The FX modules have no keyboards of their own.
 - **CC learn**: global, as in [PLAN.md](../PLAN.md) (relative / pickup / jump; no controller feedback).
+
+#### BCR2000 (agreed 2026-11-13)
+
+Hands-on control of the six effect parameters of every bus, with the TouchOSC layout's mapping, so the BCR keeps
+its preset (`touchosc-controllers/sp404-mk2/SP404-mk2-BCR2000.syx`, imported with BC Manager). Effect parameters
+and morph amount only: no pad mixer, no effect chooser; bus ON/OFF, presets, scenes, grab and lock stay on the
+Launchpad and the screen.
+
+- **Port**: its own MIDI input and output (any port whose name has BCR2000 in it), separate from the SP-404's.
+- **Two presets in the `.syx`**, one per BCR: *SP404 TouchOSC (Ch6-9)* for buses 1–4 and *SP404 TouchOSC (Ch10)*
+  for bus 5. With one BCR, bus 5 is reached by switching the BCR to the second preset. Bus *N* is on MIDI
+  channel 5 + *N* (6–10); each bus takes two adjacent columns (bus 1 = columns 1–2 … bus 4 = columns 7–8; bus 5 =
+  columns 1–2 of the second preset).
+- **Parameters**: the three rows of encoders under the buttons, all absolute 0–127. Slot *n* is the effect's
+  parameter *n* (Ctrl *n*, the SP-404's CC 16, 17, 18, 80, 81, 82):
+
+  | | left column | right column |
+  |---|---|---|
+  | row 1 | slot 1 · CC 81 | slot 4 · CC 82 |
+  | row 2 | slot 2 · CC 89 | slot 5 · CC 90 |
+  | row 3 | slot 3 · CC 97 | slot 6 · CC 98 |
+
+  An encoder sets the raw value, as a drag on the screen does (a discrete parameter reads as the step the value
+  falls in). On a bus with no effect loaded the encoders do nothing; LOCK doesn't stop them, as it doesn't stop the
+  screen's knobs. While morph is on, a turn edits the live value as the screen's knob does.
+- **Morph amount**: the left top encoder (CC 1) sets the bus's morph amount (0–127 = 0–100 %) once morph is on and
+  has a target; otherwise it does nothing. Its ring follows the track (0 while morph is off).
+- **Buttons** (FX, SYNC, GRAB, MORPH: CC 65, 66, 73, 74) and the right top encoder (CC 2) and pushes (CC 9, 10) do
+  nothing. The app sends 0 back to any button pressed, and to all of them on connect, so their LEDs stay dark.
+- **Feedback**: the app keeps what each ring shows and sends a value whenever the app's differs (same channel and
+  CC): effect changes, preset and scene recall, DEF, morph, edits on the screen. A value the BCR just sent isn't
+  sent back. A slot the effect doesn't have shows 0. Every bus is sent on connect. Paced like the SP-404's sends.
+- **Bus 5 with one BCR**: switching the BCR's preset loads that preset's stored ring positions, not the app's. So
+  when messages start coming from the other preset (channel 10 after 6–9, or back, or the first message after
+  connecting), the app sends that preset's values and ignores that one message, so the first turn doesn't jump.
+- **On screen**: each module lays its controls out as the BCR does, a 3 × 2 grid under the drawing (slots 1–3 down
+  the left, 4–6 down the right), so the screen is the map (no slot numbers). Knobs, switches, short button rows and
+  drop-downs sit in their cell (the knob beside its name and value). Wide controls (note-value matrices, long button
+  rows, button grids, big buttons) keep their full-width row above the grid, and set-in-the-drawing parameters
+  stay in the drawing; their cell shows the name and value. A slot the effect doesn't have is an empty cell. The
+  drawing gets shorter to make room.
+- **Top bar**: a BCR2000 link pill beside LAUNCHPAD.
+- **Code**: `apps/sp404/src/bcr/`: the mapping, parsing and ring mirror (pure, tested), and a hook that wires them to
+  the FX state. e2e with a fake BCR on the fake MIDI ports.
 
 ## Layout (D · Signal flow, big FX)
 
@@ -542,7 +587,8 @@ LIBRARY. e2e in `e2e/library.e2e.ts`. Not yet tried on the device.
 - Presets, defaults, recent values, FX scenes, GRAB, LOCK, morph; files with autosave.
 
 ### Phase 5 — Controllers
-- Launchpad Pro Mk1 mapping (via `packages/launchpad`); keyboard overlay with the Launchkey; CC learn.
+- Launchpad Pro Mk1 mapping (via `packages/launchpad`); BCR2000 for effect parameters (`src/bcr/`);
+  keyboard overlay with the Launchkey; CC learn.
 
 ### Phase 6 — Packaging
 - Signed build, remembered ports with reconnect, settings window.

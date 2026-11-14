@@ -2,6 +2,7 @@
 // 1920 × 1080 and zoomed to fit.
 
 import { useMemo, useState } from "react";
+import { useBcr } from "./bcr/useBcr";
 import { FxModes, FxRow } from "./fx/FxRow";
 import { useFx, type Fx } from "./fx/useFx";
 import { bankOf } from "./mixer/banks";
@@ -24,10 +25,15 @@ interface TopBarProps {
   device: Device;
   fx: Fx;
   midiInput?: string;
+  bcr?: string;
   onSettings: () => void;
 }
 
-function TopBar({ device, fx, midiInput, onSettings }: TopBarProps) {
+const BcrPill = ({ name }: { name?: string }) => (
+  <span className={`pill ${name ? "on" : ""}`} title={name ?? "No BCR2000 connected"}>{name ? "BCR2000 ●" : "BCR2000 ○"}</span>
+);
+
+function TopBar({ device, fx, midiInput, bcr, onSettings }: TopBarProps) {
   const { link, device: d, error, connect } = device;
   const midiOutput = fx.outputName;
   const project = d.project === undefined ? "" : ` · PROJECT ${String(d.project + 1).padStart(2, "0")}`;
@@ -42,6 +48,7 @@ function TopBar({ device, fx, midiInput, onSettings }: TopBarProps) {
       <span className={`pill ${link === "on" ? "on" : ""}`}>{usb}</span>
       {link === "off" && <button className="pill" onClick={connect}>CONNECT USB</button>}
       <span className="pill">LAUNCHPAD</span>
+      <BcrPill name={bcr} />
       {error && <span className="error" role="alert">{error}</span>}
       <span className="sp" />
       <FxModes fx={fx} />
@@ -69,6 +76,7 @@ export function Editor() {
   const loadedBanks = useMemo(() => new Set(mixer.pads.map((p) => bankOf(p.pad))), [mixer.pads]);
   const banks = useShownBanks(device.device.project, loadedBanks);
   const fx = useFx();
+  const bcr = useBcr(fx);
   const [settings, setSettings] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const midiHits = usePadHits(settings.padMidi);
@@ -77,7 +85,8 @@ export function Editor() {
   const scope = useScopeSet(settings);
   return (
     <div className="ld" ref={setRoot}>
-      <TopBar device={device} fx={fx} midiInput={midiHits.inputName} onSettings={() => setSettingsOpen(true)} />
+      <TopBar device={device} fx={fx} midiInput={midiHits.inputName} bcr={bcr.name}
+        onSettings={() => setSettingsOpen(true)} />
       <FxRow fx={fx} />
       <div className="mixer">
         <MixerSide project={projectView(device, mixer.renameProject)} shown={banks.shown} loadedBanks={loadedBanks}

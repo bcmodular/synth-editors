@@ -71,3 +71,13 @@ export const playMidi = (page: Page, ...bytes: number[]): Promise<void> =>
 // MIDI messages the app sent to the fake SP-404, oldest first.
 export const midiSent = (page: Page): Promise<number[][]> =>
   page.evaluate(() => (window as unknown as { __fakeSp404Midi: { sent: number[][] } }).__fakeSp404Midi.sent);
+
+type FakeMidi = { bcrSent: number[][]; bcrPlay: (...x: number[]) => void };
+
+// A message from the fake BCR2000 (a turn or a press).
+export const playBcr = (page: Page, ...bytes: number[]): Promise<void> =>
+  page.evaluate((b) => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.bcrPlay(...b), bytes);
+
+// MIDI messages the app sent to the fake BCR2000, oldest first.
+export const bcrSent = (page: Page): Promise<number[][]> =>
+  page.evaluate(() => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.bcrSent);

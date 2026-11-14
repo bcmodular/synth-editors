@@ -166,31 +166,37 @@ export function fakeSp404Port(init: FakeSp404Init) {
 export type FakeSp404 = ReturnType<typeof fakeSp404Port>;
 
 // A stand-in for the SP-404's USB MIDI: an output that records what the app sends (the FX), and optionally an
-// input the tests play pad notes on.
+// input the tests play pad notes on. A BCR2000 is always there too, with its own input and output.
 // Also self-contained, for the same reason as the serial fake.
 export function fakeSp404Midi(withInput: boolean) {
   type Listener = (e: { data: Uint8Array }) => void;
-  const listeners = new Set<Listener>();
-  const input = {
-    id: "fake-sp404-in", name: "SP-404MKII", manufacturer: "test", type: "input", state: "connected",
-    connection: "open", onmidimessage: null, onstatechange: null,
+  const port = (id: string, name: string, type: string) => ({
+    id, name, manufacturer: "test", type, state: "connected", connection: "open", onstatechange: null,
     open: async () => undefined, close: async () => undefined,
-    addEventListener: (t: string, fn: Listener) => t === "midimessage" && listeners.add(fn),
-    removeEventListener: (t: string, fn: Listener) => t === "midimessage" && listeners.delete(fn),
+  });
+  const inputPort = (id: string, name: string) => {
+    const listeners = new Set<Listener>();
+    const input = {
+      ...port(id, name, "input"), onmidimessage: null,
+      addEventListener: (t: string, fn: Listener) => t === "midimessage" && listeners.add(fn),
+      removeEventListener: (t: string, fn: Listener) => t === "midimessage" && listeners.delete(fn),
+    };
+    return { input, play: (...bytes: number[]) => listeners.forEach((fn) => fn({ data: Uint8Array.from(bytes) })) };
   };
+  const outputPort = (id: string, name: string, sent: number[][]) =>
+    ({ ...port(id, name, "output"), clear: () => undefined, send: (data: ArrayLike<number>) => void sent.push(Array.from(data)) });
   const sent: number[][] = [];
-  const output = {
-    id: "fake-sp404-out", name: "SP-404MKII", manufacturer: "test", type: "output", state: "connected",
-    connection: "open", onstatechange: null,
-    open: async () => undefined, close: async () => undefined, clear: () => undefined,
-    send: (data: ArrayLike<number>) => void sent.push(Array.from(data)),
-  };
+  const bcrSent: number[][] = [];
+  const sp = inputPort("fake-sp404-in", "SP-404MKII");
+  const bcr = inputPort("fake-bcr-in", "BCR2000 Port 1");
+  const outputs = [outputPort("fake-sp404-out", "SP-404MKII", sent), outputPort("fake-bcr-out", "BCR2000 Port 1", bcrSent)];
+  const inputs = withInput ? [sp.input, bcr.input] : [bcr.input];
   const access = {
-    inputs: new Map(withInput ? [[input.id, input]] : []), outputs: new Map([[output.id, output]]), sysexEnabled: true,
+    inputs: new Map(inputs.map((i) => [i.id, i])), outputs: new Map(outputs.map((o) => [o.id, o])), sysexEnabled: true,
     onstatechange: null, addEventListener: () => undefined, removeEventListener: () => undefined,
   };
   Object.defineProperty(navigator, "requestMIDIAccess", { value: async () => access, configurable: true });
-  return { sent, play: (...bytes: number[]) => listeners.forEach((fn) => fn({ data: Uint8Array.from(bytes) })) };
+  return { sent, play: sp.play, bcrSent, bcrPlay: bcr.play };
 }
 
 // Page script for Playwright: replaces navigator.serial with one that offers the fake port, and Web MIDI with

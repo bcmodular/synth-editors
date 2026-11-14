@@ -1,12 +1,15 @@
-// The controls under an effect's view, laid out as in the designs: the SYNC switch first, then button rows,
-// grids, drop-downs and note-value matrices, then the large performance buttons, then a row of knobs. A rate or
-// time parameter swaps to its note-value control while SYNC is on.
+// The controls under an effect's view, laid out as the BCR2000's encoders (docs/sp404-design.md › Controllers ›
+// BCR2000): a 3 × 2 grid with parameters 1–3 down the left and 4–6 down the right. Controls too wide for a cell (note-
+// value matrices, grids, long button rows, big buttons) get a full-width row above it, and their cell shows the
+// name and value, as do parameters set in the drawing. A rate or time parameter swaps to its note-value control
+// while SYNC is on.
 
 import type { ReactNode } from "react";
 import { displayValue, isSyncOn, paramMode, stepIndex, stepLabels, syncParam } from "../core/fx";
 import type { FxDef, FxParam } from "../core/fxTypes";
 import { BigButton, Drop, Grid, Knob, NoteMatrix, SegRow, type StepControlProps, type StepOption } from "./controls";
 import { FX_LAYOUT } from "./fxLayout";
+import { SLOTS } from "../bcr/bcrMap";
 import { KillRow } from "./KillRow";
 import type { ControlKind, ControlLayout } from "./layoutTypes";
 
@@ -35,7 +38,9 @@ export function controlFor(p: FxParam, kind: ControlKind, synced: ControlKind | 
   return (paramMode(p, syncOn).starts?.length ?? 0) > LONG_LIST ? "sk" : "seg";
 }
 
-type Placed = { area: "rows" | "big" | "knobs" | "readouts" | "none"; node: ReactNode };
+// Where a parameter's control goes: in its slot's cell of the 3 × 2 grid (laid out as the BCR2000's encoders), or,
+// when too wide for a cell, in a full-width row above the grid (its cell then shows the name and value).
+type Placed = { cell: ReactNode; row?: ReactNode; big?: boolean };
 
 const Readout = ({ label, text }: { label: string; text: string }) => (
   <span className="readout"><span className="lbl">{label}</span><em>{text}</em></span>
@@ -48,34 +53,30 @@ function rowFor(kind: ControlKind, props: StepControlProps): ReactNode {
   return <SegRow {...props} />;
 }
 
-const isWide = (kind: ControlKind, count: number) =>
-  kind === "nv" || kind === "nv8" || (kind === "seg" && count > 7) || (kind.startsWith("grid:") && Number(kind.slice(5)) > 6);
+const CELL_SEG = 4; // a button row this long or shorter fits in a cell
 
-function place(p: FxParam, ctl: { kind: ControlKind; label?: string }, raw: number, syncOn: boolean, set: (raw: number) => void): Placed {
-  const kind = ctl.kind;
+const isWide = (kind: ControlKind, count: number) =>
+  kind === "nv" || kind === "nv8" || kind.startsWith("grid:") || (kind === "seg" && count > CELL_SEG);
+
+function place(p: FxParam, kind: ControlKind, label: string | undefined, raw: number, syncOn: boolean,
+  set: (raw: number) => void): Placed {
   const text = displayValue(p, raw, syncOn);
   if (kind === "knob" || kind === "sk") {
-    return { area: "knobs", node: <Knob label={p.label} value={raw} text={text} stepped={kind === "sk"} onChange={set} /> };
+    return { cell: <Knob label={p.label} value={raw} text={text} stepped={kind === "sk"} onChange={set} /> };
   }
   const options = stepOptions(p, syncOn);
   const index = stepIndex(paramMode(p, syncOn).starts ?? [0], raw);
-  if (kind === "big") return { area: "big", node: <BigButton label={ctl.label ?? p.label} options={options} index={index} onPick={set} /> };
-  const wide = isWide(kind, options.length);
-  return {
-    area: "rows",
-    node: (
-      <div className={`frow ${wide ? "col" : ""}`}>
-        <span className="lbl">{p.label}</span>
-        {rowFor(kind, { label: p.label, options, index, onPick: set })}
-      </div>
-    ),
-  };
+  const readout = <Readout label={p.label} text={text} />;
+  if (kind === "big") {
+    return { cell: readout, big: true, row: <BigButton label={label ?? p.label} options={options} index={index} onPick={set} /> };
+  }
+  const control = rowFor(kind, { label: p.label, options, index, onPick: set });
+  if (!isWide(kind, options.length)) return { cell: <span className="frow col"><span className="lbl">{p.label}</span>{control}</span> };
+  return { cell: readout, row: <div className="frow col"><span className="lbl">{p.label}</span>{control}</div> };
 }
 
 // With its own drawing, an effect's in-view parameters (and synced ones shown in the view) are set there.
 const setInView = (ctl: ControlLayout, syncOn: boolean) => ctl.kind === "inview" || (syncOn && ctl.synced === "inview");
-
-const NOTHING: Placed = { area: "none", node: null };
 
 interface PlaceContext {
   fx: FxDef;
@@ -86,33 +87,32 @@ interface PlaceContext {
   readouts: ReadonlySet<number>;
 }
 
-type Slot = Placed & { first: boolean };
+// Set in the drawing (or a readout under it): its cell shows the name and value.
+const shownAsReadout = (ctl: ControlLayout, i: number, x: PlaceContext) =>
+  x.readouts.has(i) || (x.hasView && setInView(ctl, x.syncOn));
 
-// Where one parameter goes: a readout, set in the drawing, or its control (the SYNC switch sorts first).
-function placeParam(p: FxParam, i: number, x: PlaceContext): Slot {
+// One parameter: a readout when it's set in the drawing, else its control.
+function placeParam(p: FxParam, i: number, x: PlaceContext): Placed {
   const ctl = FX_LAYOUT[x.fx.id - 1]?.controls[i] ?? { kind: "knob" as const };
   const raw = x.values[i] ?? 0;
-  if (x.readouts.has(i)) {
-    return { first: false, area: "readouts", node: <Readout label={p.label} text={displayValue(p, raw, x.syncOn)} /> };
+  if (shownAsReadout(ctl, i, x)) {
+    return { cell: <Readout label={p.label} text={displayValue(p, raw, x.syncOn)} /> };
   }
-  if (x.hasView && setInView(ctl, x.syncOn)) return { first: false, ...NOTHING };
   const kind = ctl.kind === "sync" ? "seg" : controlFor(p, ctl.kind, ctl.synced, x.syncOn);
-  return { first: ctl.kind === "sync", ...place(p, { kind, label: ctl.label }, raw, x.syncOn, (r) => x.onValue(i, r)) };
+  return place(p, kind, ctl.label, raw, x.syncOn, (r) => x.onValue(i, r));
 }
 
-function Areas({ slots }: { slots: Slot[] }) {
-  const area = (a: Placed["area"]) => slots.filter((x) => x.area === a).sort((x, y) => Number(y.first) - Number(x.first));
-  const [rows, readouts, big, knobs] = [area("rows"), area("readouts"), area("big"), area("knobs")];
+// Wide rows, then big buttons side by side, then the six cells (slots 1–3 down the left, 4–6 down the right).
+function Slots({ placed }: { placed: Placed[] }) {
+  const rows = placed.filter((x) => x.row && !x.big);
+  const big = placed.filter((x) => x.big);
   return (
     <>
-      {rows.map((x, i) => <div key={`r${i}`} className="row-slot">{x.node}</div>)}
-      {readouts.length > 0 && <div className="frow readouts">{readouts.map((x) => x.node)}</div>}
-      {big.length > 0 && <div className="frow">{big.map((x, i) => <span key={i} className="big-slot">{x.node}</span>)}</div>}
-      {knobs.length > 0 && (
-        <div className="knobs" style={{ gridTemplateColumns: `repeat(${Math.max(4, knobs.length)}, 1fr)` }}>
-          {knobs.map((x, i) => <span key={i} className="knob-slot">{x.node}</span>)}
-        </div>
-      )}
+      {rows.map((x, i) => <div key={`r${i}`} className="row-slot">{x.row}</div>)}
+      {big.length > 0 && <div className="frow">{big.map((x, i) => <span key={i} className="big-slot">{x.row}</span>)}</div>}
+      <div className="slots">
+        {Array.from({ length: SLOTS }, (_, i) => <div key={i} className="slot">{placed[i]?.cell}</div>)}
+      </div>
     </>
   );
 }
@@ -126,7 +126,7 @@ export function FxControls({ fx, values, onValue, hasView }: FxControlsProps) {
   return (
     <div className="fx-controls">
       {layout?.kill && <KillRow values={values} onValue={onValue} />}
-      <Areas slots={fx.params.map((p, i) => placeParam(p, i, x))} />
+      <Slots placed={fx.params.map((p, i) => placeParam(p, i, x))} />
     </div>
   );
 }

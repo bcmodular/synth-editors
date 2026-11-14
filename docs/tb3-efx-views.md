@@ -37,6 +37,9 @@ Each EFX type except BYPASS has a drawing beside its slots, borrowed from the SP
 | EQ | (TB-3's own EqView) | every band setting but LEVEL |
 | REVERB | ReverbView | TIME, PRE DLY, HPF, LPF |
 
+EFX1 is azure and EFX2 violet: `.efx1` / `.efx2` set `--tint`, `--led`, `--led-off`, `--val` and `--sel-bg`, as the
+LFO's red does, and the drawings' fills mix from `--led`, so faders, buttons, readouts and drawings all follow.
+
 Drawings are 240 px wide, 167 px tall (136 under a row of mode buttons).
 
 ## Guesses to check on the hardware

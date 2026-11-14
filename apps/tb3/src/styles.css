@@ -195,8 +195,21 @@ button:focus-visible {
 .dist {
   --tint: #f0a070;
 }
-.efx {
-  --tint: #a8b8ff;
+/* EFX1 and EFX2 each have their own colour, which their faders, buttons, readouts and drawings follow (as the LFO's
+   red does): azure for EFX1, violet for EFX2. */
+.efx1 {
+  --tint: #9cc8ff;
+  --led: #4aa8ff;
+  --led-off: #234a6e;
+  --val: #9ccfff;
+  --sel-bg: #0f1d2c;
+}
+.efx2 {
+  --tint: #c9b0ff;
+  --led: #a97bff;
+  --led-off: #45346e;
+  --val: #cbb4ff;
+  --sel-bg: #1c1530;
 }
 /* LFO accents follow the TB-3's red LFO LED. */
 .lfo {
@@ -524,7 +537,7 @@ svg .glabel {
   letter-spacing: 0.06em;
 }
 svg .shape {
-  fill: rgba(61, 220, 90, 0.14);
+  fill: color-mix(in srgb, var(--led) 14%, transparent);
   stroke: var(--led);
   stroke-width: 2;
 }
@@ -535,7 +548,7 @@ svg .trace {
 }
 /* EFX drawings (editor/efx/, ui/draw.tsx), in the EQ's style. */
 svg .area {
-  fill: rgba(61, 220, 90, 0.14);
+  fill: color-mix(in srgb, var(--led) 14%, transparent);
 }
 svg .trace2 {
   fill: none;
@@ -552,11 +565,11 @@ svg .early {
   stroke-opacity: 0.35;
 }
 svg .voice {
-  fill: rgba(61, 220, 90, 0.18);
+  fill: color-mix(in srgb, var(--led) 18%, transparent);
   stroke: none;
 }
 svg .voice.echo {
-  fill: rgba(61, 220, 90, 0.1);
+  fill: color-mix(in srgb, var(--led) 10%, transparent);
 }
 svg .gcap {
   fill: var(--text);

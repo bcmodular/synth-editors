@@ -162,6 +162,7 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
   ![The distortion types](images/distortion-types.png)
 
 - **EFX1 and EFX2**: pick the effect type from the row of buttons. ON switches the effect in.
+  EFX1 is blue and EFX2 violet, down to their faders, readouts and pictures, so they're easy to tell apart.
   Some types also have mode buttons, like the reverb's AMBIENT, ROOM and HALL. Every type but
   BYPASS has a picture of what it does, on the left, with handles to drag. A setting you change in
   the picture shows as its name and value on the right; the other settings keep their faders.

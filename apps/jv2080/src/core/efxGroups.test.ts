@@ -10,7 +10,8 @@ describe("EFX groups", () => {
   });
 
   it("finds a type's group", () => {
-    expect(efxGroupOf(23)?.name).toBe("Pitch & reverb");
+    expect(efxGroupOf(23)?.name).toBe("Delay & reverb");
+    expect(efxGroupOf(6)?.name).toBe("Modulators");
     expect(efxGroupOf(99)).toBeUndefined();
   });
 });

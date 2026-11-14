@@ -36,7 +36,7 @@ function EfxTypeButton() {
   return (
     <>
       <button className="btn efx-type" style={{ ["--grp" as string]: group?.colour }} onClick={() => setOpen(true)}>
-        {raw + 1}: {efxType(raw)?.name ?? "?"} ▾
+        {efxType(raw)?.name ?? "?"} ▾
       </button>
       {open && <EffectChooser current={raw} onPick={pick} onClose={() => setOpen(false)} />}
     </>

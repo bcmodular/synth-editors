@@ -10,7 +10,7 @@ import { useJvSession } from "./useJvSession";
 
 export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void }) {
   const session = useJvSession(link);
-  const { patch, setValue, syncFromJv } = session;
+  const { patch, setValue, sendParam, syncFromJv } = session;
   const ready = link.outName !== "" && link.inName !== "" && link.outputs.length > 0;
 
   // Read the JV's patch once, as soon as the ports are known.
@@ -22,7 +22,7 @@ export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void })
   }, [ready, syncFromJv]);
 
   const resync = useCallback(() => void syncFromJv(), [syncFromJv]);
-  const api = useMemo(() => (patch ? { patch, setValue, resync } : null), [patch, setValue, resync]);
+  const api = useMemo(() => (patch ? { patch, setValue, sendParam, resync } : null), [patch, setValue, sendParam, resync]);
   return (
     <main className="editor">
       <TopStrip link={link} session={session} onSpike={onSpike} />

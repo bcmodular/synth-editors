@@ -15,6 +15,7 @@ export interface JvSession {
   patch: Patch | null;
   busy: boolean;
   setValue: (p: ParamDef, value: number, tone?: number) => void;
+  sendParam: (p: ParamDef, value: number, tone?: number) => void; // to the JV only, the patch unchanged (eg. solo)
   syncFromJv: () => Promise<void>;
   syncToJv: () => Promise<void>;
   loadFromBank: (bank: Bank, number: number) => Promise<void>;
@@ -35,10 +36,14 @@ export function useJvSession(link: JvLink): JvSession {
   const queue = useMemo(() => createEditQueue((msg) => send(msg, "DT1 edit")), [send]);
   useIncomingEdits(link, busy, setPatch);
 
-  const setValue = useCallback((p: ParamDef, value: number, tone = 0) => {
-    setPatch((cur) => cur && setParam(cur, p, value, tone));
+  const sendParam = useCallback((p: ParamDef, value: number, tone = 0) => {
     queue.push(addrHex(paramAddress(p, tone)), paramDt1(p, value, tone, device));
   }, [queue, device]);
+
+  const setValue = useCallback((p: ParamDef, value: number, tone = 0) => {
+    setPatch((cur) => cur && setParam(cur, p, value, tone));
+    sendParam(p, value, tone);
+  }, [sendParam]);
 
   const syncFromJv = useCallback(async () => {
     setBusy(true);
@@ -63,6 +68,6 @@ export function useJvSession(link: JvLink): JvSession {
     await syncFromJv();
   }, [link.channel, send, syncFromJv]);
 
-  return { patch, busy, setValue, syncFromJv, syncToJv, loadFromBank };
+  return { patch, busy, setValue, sendParam, syncFromJv, syncToJv, loadFromBank };
 }
 

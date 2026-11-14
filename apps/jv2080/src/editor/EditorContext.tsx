@@ -6,6 +6,7 @@ import type { ParamDef } from "../core/params";
 export interface EditorApi {
   patch: Patch;
   setValue: (p: ParamDef, value: number, tone?: number) => void;
+  sendParam: (p: ParamDef, value: number, tone?: number) => void; // to the JV only, the patch unchanged
   resync: () => void; // read the whole patch back from the JV (eg. after a change it may answer with defaults)
 }
 

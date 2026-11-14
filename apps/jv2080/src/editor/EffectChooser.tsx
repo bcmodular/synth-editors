@@ -21,7 +21,6 @@ export function EffectChooser({ current, onPick, onClose }: { current: number; o
             if (!cell) return <span key={i} className="ch-empty" />;
             return (
               <button key={cell.type} className={`ch-fx ${cell.type === current ? "on" : ""}`} onClick={() => onPick(cell.type)}>
-                <span className="ch-n">{cell.type + 1}</span>
                 {cell.label}
               </button>
             );

@@ -5,6 +5,7 @@ import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
 import { WAVE_GROUPS, waveCount, waveGroupBytes, waveGroupOf, waveName, type WaveGroup } from "../core/waves";
 import { Section, Segmented } from "../ui/controls";
+import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamFader, ParamSelect, ParamSwitch } from "./ParamControls";
 
@@ -74,7 +75,7 @@ function Lfo({ tone, n }: ToneProps & { n: 1 | 2 }) {
 
 export function ToneColumn({ tone }: ToneProps) {
   return (
-    <Section title={`TONE ${tone + 1}`} className="tone" extra={<ParamSwitch def="toneSwitch" tone={tone} label="ON" />}>
+    <Section title={`TONE ${tone + 1}`} className="tone" style={tintVars(TONE_COLOURS[tone]!)} extra={<ParamSwitch def="toneSwitch" tone={tone} label="ON" />}>
       <h3>WAVE</h3>
       <Wave tone={tone} />
       <h3>PITCH</h3>

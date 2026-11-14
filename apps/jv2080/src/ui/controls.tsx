@@ -1,9 +1,11 @@
-// Copied from apps/tb3/src/ui/controls.tsx: the section frame, LED button and segmented control.
-import type { ReactNode } from "react";
+// Copied from apps/tb3/src/ui/controls.tsx: the section frame (here with an optional style), LED button and
+// segmented control.
+import type { CSSProperties, ReactNode } from "react";
 
-export function Section(p: { title: ReactNode; extra?: ReactNode; className?: string; children: ReactNode }) {
+export function Section(p: { title: ReactNode; extra?: ReactNode; className?: string; style?: CSSProperties;
+  children: ReactNode }) {
   return (
-    <section className={`sec ${p.className ?? ""}`}>
+    <section className={`sec ${p.className ?? ""}`} style={p.style}>
       <header>
         <h2>{p.title}</h2>
         {p.extra && <div className="extra">{p.extra}</div>}

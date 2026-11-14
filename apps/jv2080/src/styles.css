@@ -323,31 +323,23 @@ input {
   flex-basis: 32px;
 }
 
-/* --- Mixer (after the SP-404's desk) --- */
+/* --- Mixer (a Mackie-style knob column per tone; returns and master after the SP-404's desk) --- */
 
 .desk {
   display: flex;
   gap: 4px;
-  height: 330px;
+  height: 318px;
 }
 .strip {
-  width: 78px;
+  width: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 5px 4px 4px;
+  gap: 6px;
+  padding: 5px 5px 4px;
   background: #151619;
   border: 1px solid #000;
   border-top: 2px solid var(--sc);
-}
-.strip.ret,
-.strip.master {
-  width: 70px;
-}
-.strip.master {
-  width: 84px;
-  margin-left: 6px;
 }
 .st-head {
   font-size: var(--text-m);
@@ -355,19 +347,104 @@ input {
   letter-spacing: 0.04em;
   color: var(--sc);
 }
-.strip > .btn {
-  width: 100%;
-  justify-content: center;
-}
-.strip .out {
-  width: 100%;
-  text-align: center;
-}
+/* Knobs in one column, label and value beside each. */
 .st-knobs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   width: 100%;
+}
+.st-knobs .kn {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  justify-items: start;
+}
+.st-knobs .kn i {
+  grid-row: span 2;
+}
+.st-knobs .kn .lbl {
+  align-self: end;
+}
+.st-knobs .kn em {
+  align-self: start;
+}
+.strip .seg {
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.strip .seg .btn {
+  flex: 1 1 0;
+  justify-content: center;
+  padding: 3px 0 1px;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.strip .seg .btn.sel {
+  border-color: var(--sc);
+  background: color-mix(in srgb, var(--sc) 18%, #0b0b0c);
+}
+.ms {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+}
+.ms .btn {
+  flex: 1 1 0;
+  justify-content: center;
+  padding: 3px 0 1px;
+  font-size: 12px;
+}
+.btn.mute.on {
+  background: #c8502a;
+  border-color: #c8502a;
+  color: #000;
+}
+.btn.solo.on {
+  background: #f2d03b;
+  border-color: #f2d03b;
+  color: #000;
+}
+.st-level {
+  margin-top: 2px;
+}
+.st-level .kn i {
+  width: 44px;
+  height: 44px;
+  border-top: 2px solid var(--sc);
+}
+.st-level .kn i::after {
+  height: 15px;
+  transform-origin: 50% 20px;
+}
+.st-level .kn .lbl {
+  color: var(--sc);
+}
+
+/* Returns: two short faders, one above the other, in their sections' colours. */
+.strip.ret {
+  width: 70px;
+  border-top-color: var(--rule);
+}
+.lvf {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+}
+.lvf .fader {
+  min-height: 0;
+}
+.strip.master {
+  width: 84px;
+  margin-left: 6px;
+}
+.strip.master .lvf {
+  flex: 1 1 auto;
 }
 .lv {
   font-size: var(--text-m);
@@ -523,7 +600,7 @@ input {
   position: relative;
 }
 .chooser {
-  --cell: 112px;
+  --cell: 104px;
   position: absolute;
   left: 50%;
   top: 60px;
@@ -545,7 +622,7 @@ input {
 }
 .ch-row {
   display: grid;
-  grid-template-columns: 190px repeat(6, var(--cell));
+  grid-template-columns: 170px repeat(9, var(--cell));
   grid-auto-rows: 72px;
   gap: 5px;
 }
@@ -573,13 +650,6 @@ input {
 .ch-fx.on {
   background: var(--grp);
   color: #000;
-}
-.ch-n {
-  position: absolute;
-  left: 5px;
-  top: 3px;
-  font-size: 11px;
-  opacity: 0.7;
 }
 .ch-empty {
   border: 1px dashed #26272b;

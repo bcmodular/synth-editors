@@ -11,7 +11,6 @@ export const SPECTRUM_TOP_DB = -20; // the analyser reads a band-averaged full-s
 export const SPECTRUM_FLOOR_DB = -110;
 const DB_STEP = 10;
 const GRID_HZ = [50, 100, 200, 500, 1000, 2000, 5000, 10000];
-const LABEL_FONT = "10px 'DIN Condensed', 'Avenir Next Condensed', sans-serif";
 
 const SPECTRUM_RANGE_DB = SPECTRUM_TOP_DB - SPECTRUM_FLOOR_DB;
 const yOfDb = (db: number, h: number) => h * Math.min(1, Math.max(0, (SPECTRUM_TOP_DB - db) / SPECTRUM_RANGE_DB));
@@ -20,7 +19,7 @@ const hzLabel = (hz: number) => (hz >= 1000 ? `${hz / 1000}k` : String(hz));
 function spectrumGrid({ g, w, h, p }: Surface) {
   g.fillStyle = p.well;
   g.fillRect(0, 0, w, h);
-  g.font = LABEL_FONT;
+  g.font = p.label;
   g.fillStyle = p.axis;
   for (let db = SPECTRUM_TOP_DB - DB_STEP; db > SPECTRUM_FLOOR_DB; db -= DB_STEP) {
     g.fillRect(0, Math.round(yOfDb(db, h)), w, 1);
@@ -83,7 +82,7 @@ function pixelsFor({ width, rows }: Spectrogram) {
 }
 
 function spectrogramGrid({ g, w, h, p }: Surface) {
-  g.font = LABEL_FONT;
+  g.font = p.label;
   for (const hz of SPECTROGRAM_GRID_HZ) {
     const y = Math.round(h * (1 - hzFraction(hz)));
     g.fillStyle = p.hold;

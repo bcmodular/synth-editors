@@ -129,7 +129,7 @@ Options B, C and D each bundle their font and also include A's clean-up, describ
 
 ### Decision (2026-11-14)
 
-**SP-404: Archivo**, for now; the TB-3 stays on DIN Condensed until we come back to it.
+**SP-404: Archivo**, and then the TB-3 too (below), so the two apps match.
 
 - It is bundled from `@fontsource-variable/archivo` (SIL OFL 1.1; the licence ships in the package and in `dist/`),
   imported in `apps/sp404/src/main.tsx` and set on `:root` in `styles.css` as `--font-panel`.
@@ -143,8 +143,24 @@ Options B, C and D each bundle their font and also include A's clean-up, describ
   labels, segmented buttons) is now 11px.
 - The only overflow was the Super Filter's three TYPE buttons (about 40px each), which use the font's 62% width,
   slightly tightened.
-- Still to do: the spectrum labels drawn on canvas (`packages/audio`, shared with the TB-3) are still DIN Condensed
-  10px.
+
+**TB-3: Archivo** as well, set up the same way (`apps/tb3/src/main.tsx`, `:root` in `styles.css`).
+
+- Panels at 75% width, weight 500 for labels and 600 for values, readouts, the patch name and section titles, with
+  `tabular-nums` and `word-spacing: 0.12em`. The tags in the morph and library rows (`EXPERIMENTAL`, `SET`) use it
+  too instead of naming DIN Condensed.
+- **Prose** (status line, library search and rows, tooltips, context menus, dialogs, toasts) moves from SF Pro to
+  Archivo at its normal 100% width, so the app is one family and looks the same on Windows. The MIDI log stays
+  `ui-monospace`.
+- **Type scale**: the nine sizes (10–26px) became eight, `--text-xs` to `--text-4xl`: 11, 12, 13, 14, 15, 18, 20 and
+  26px. The 10px lane labels and graph handle labels are now 11px.
+- **Overflow**, checked against the fake TB-3 at the full 1952px layout (leaf elements with `scrollWidth >
+  clientWidth`, and wrapped button rows), with Archivo and with DIN: the EFX type rows wrapped (EFX1 needed 749px of
+  656px), fixed with 4px side padding and no tracking on the type buttons; and VCO MIX's WAVE / SPECTRUM /
+  SPECTROGRAM header buttons wrapped in LIVE view, fixed by keeping header button groups on one line. Nothing else
+  overflows, including the distortion type popover.
+- The **spectrum and spectrogram labels** drawn on canvas (`packages/audio`, both apps) now use the app's
+  `--font-panel`, read from the canvas's computed style with the rest of the palette, at 11px condensed.
 
 ## Next topics
 

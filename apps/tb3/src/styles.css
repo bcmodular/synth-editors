@@ -12,8 +12,27 @@
   --edge: #34353a;
   --sel-bg: #10261a;
   color-scheme: dark;
-  font-family: "DIN Condensed", "DIN Alternate", "Avenir Next Condensed", "Helvetica Neue", sans-serif;
-  font-size: 14px;
+  /* Type: Archivo (SIL OFL 1.1, bundled from @fontsource-variable/archivo, imported in main.tsx), the same as the
+     SP-404 editor. A variable font with width and weight axes: the panels use it at 75% width (Archivo Narrow, but with
+     tabular figures, so changing values don't shift); prose (status, library, menus, dialogs) at 100%. Labels and text
+     at 500; values, readouts and names at 600 (below). See docs/ui-review.md. */
+  --font-panel: "Archivo Variable", "DIN Condensed", "Avenir Next Condensed", sans-serif;
+  /* The type scale: nothing below 11px. */
+  --text-xs: 11px;
+  --text-s: 12px;
+  --text-m: 13px;
+  --text-l: 14px;
+  --text-xl: 15px;
+  --text-2xl: 18px;
+  --text-3xl: 20px;
+  --text-4xl: 26px;
+  font-family: var(--font-panel);
+  font-stretch: 75%;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  /* At 75% width the space is narrow; this keeps "PITCH SHIFT" and "1/16 T" from running together. */
+  word-spacing: 0.12em;
+  font-size: var(--text-l);
 }
 
 * {
@@ -29,9 +48,34 @@ body {
 }
 
 button,
-select {
+select,
+input {
   font: inherit;
   color: inherit;
+}
+
+/* Values, readouts and names: a step heavier than the labels. */
+.v,
+.hf > em,
+.stepname,
+.patchname .big,
+.slot,
+.meterbox .peak {
+  font-weight: 600;
+}
+
+/* Prose (status lines, library, tooltips, menus, dialogs, toasts): the panel font at its normal width. */
+.status,
+.libbar .search,
+.librow,
+.tooltip,
+.ctxitem,
+.dialog p,
+.dialog input,
+.dialog .choice select,
+.toast {
+  font-stretch: 100%;
+  word-spacing: normal;
 }
 
 /* Fixed design size, zoomed to fit the window (editor/useFitZoom.ts). */
@@ -109,8 +153,8 @@ select {
 .sec h2,
 .sec h3 {
   margin: 0;
-  font-weight: normal;
-  font-size: 15px;
+  font-weight: 500;
+  font-size: var(--text-xl);
   letter-spacing: 0.05em;
   color: #e8e9ec;
 }
@@ -119,10 +163,11 @@ select {
 }
 .sec h2 {
   grid-column: 2;
+  font-weight: 600;
   text-align: center;
-  font-size: 20px;
+  font-size: var(--text-3xl);
   line-height: 1;
-  padding-top: 3px; /* DIN Condensed sits high in its line box */
+  padding-top: 3px;
 }
 /* Section tints: one soft hue per section so they're easy to tell apart. */
 .vco,
@@ -157,7 +202,7 @@ select {
 }
 /* Sub-headings (e.g. TUNING): a thinner ruled band in the section's tint. */
 .sec h3 {
-  font-size: 13px;
+  font-size: var(--text-m);
   color: color-mix(in srgb, var(--tint, var(--dim)) 75%, var(--dim));
   margin-top: 4px;
   padding: 3px 0 1px;
@@ -176,6 +221,10 @@ select {
   justify-self: end;
   display: flex;
   gap: 6px;
+}
+/* Header buttons stay on one line (VCO MIX's WAVE / SPECTRUM / SPECTROGRAM). */
+.sec .extra .seg {
+  flex-wrap: nowrap;
 }
 .placeholder {
   opacity: 0.45;
@@ -208,18 +257,18 @@ select {
 }
 
 .lbl {
-  font-size: 13px;
+  font-size: var(--text-m);
   letter-spacing: 0.04em;
   color: var(--dim);
   text-transform: uppercase;
   white-space: nowrap;
 }
 .v {
-  font-size: 14px;
+  font-size: var(--text-l);
   color: var(--val);
 }
 .status {
-  font: 12px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-s);
   color: var(--dim);
 }
 .status.err {
@@ -231,7 +280,7 @@ select {
   border: 1px solid var(--edge);
   background: #1e1f22;
   padding: 4px 9px 2px;
-  font-size: 13px;
+  font-size: var(--text-m);
   letter-spacing: 0.03em;
   cursor: pointer;
   display: inline-flex;
@@ -321,7 +370,7 @@ select {
   right: 5px;
   top: 3px;
   font-style: normal;
-  font-size: 14px;
+  font-size: var(--text-l);
   color: #fff;
   text-shadow: 0 0 2px #000, 0 0 1px #000;
   pointer-events: none;
@@ -440,7 +489,7 @@ select {
 }
 .hf.cell > em {
   color: var(--dim);
-  font-size: 13px;
+  font-size: var(--text-m);
 }
 svg .jack {
   fill: #55575e;
@@ -465,7 +514,7 @@ svg .axis {
 }
 svg .glabel {
   fill: var(--dim);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.06em;
 }
 svg .shape {
@@ -506,7 +555,7 @@ svg .trace {
   border-left: 0;
   border-right: 0;
   color: var(--val);
-  font-size: 18px;
+  font-size: var(--text-2xl);
   letter-spacing: 0.06em;
   cursor: pointer;
   padding: 3px 0 0;
@@ -532,7 +581,7 @@ svg .trace {
   gap: 3px;
 }
 .pgroup .gt {
-  font-size: 12px;
+  font-size: var(--text-s);
   color: var(--dim);
   letter-spacing: 0.06em;
   margin-bottom: 2px;
@@ -550,6 +599,10 @@ svg .trace {
 .types .btn {
   flex: 1 0 auto; /* type buttons share out the full row */
   justify-content: center;
+  /* Tight padding and no tracking, so EFX1's eleven types fit one row; flex hands the spare width back out. */
+  padding-left: 4px;
+  padding-right: 4px;
+  letter-spacing: 0;
 }
 .slots {
   display: grid;
@@ -638,13 +691,13 @@ svg .eqfill.cut {
   background: #1e1f22;
   border: 1px solid var(--edge);
   padding: 3px;
-  font-size: 14px;
+  font-size: var(--text-l);
 }
 .log {
   max-height: 220px;
   overflow: auto;
   margin: 0;
-  font: 11px ui-monospace, Menlo, monospace;
+  font: var(--text-xs) ui-monospace, Menlo, monospace;
   color: var(--dim);
   user-select: text;
 }
@@ -663,7 +716,7 @@ svg .eqfill.cut {
   align-items: center;
   justify-content: center;
   padding: 2px 0 0;
-  font-size: 14px;
+  font-size: var(--text-l);
   cursor: default;
 }
 .slot.filled {
@@ -737,7 +790,7 @@ svg .eqfill.cut {
 .btn.mini {
   height: 21px;
   padding: 3px 7px 1px;
-  font-size: 12px;
+  font-size: var(--text-s);
 }
 .setline,
 .nowline {
@@ -769,7 +822,7 @@ svg .eqfill.cut {
   min-width: 0;
 }
 .patchname .big {
-  font-size: 26px;
+  font-size: var(--text-4xl);
   letter-spacing: 0.02em;
   color: var(--led);
   overflow: hidden;
@@ -779,7 +832,7 @@ svg .eqfill.cut {
 .patchname .where {
   flex: none;
   color: var(--dim);
-  font-size: 14px;
+  font-size: var(--text-l);
 }
 .patchname .mod {
   color: var(--alt);
@@ -798,7 +851,7 @@ svg .eqfill.cut {
   outline-offset: 4px;
 }
 .morph .tag {
-  font: 11px "DIN Condensed", sans-serif;
+  font-size: var(--text-xs);
   letter-spacing: 0.05em;
   color: var(--alt);
   border: 1px solid currentColor;
@@ -836,7 +889,7 @@ svg .eqfill.cut {
   background: var(--well);
   border: 1px solid var(--edge);
   color: var(--text);
-  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-m);
   padding: 3px 7px;
 }
 .libbar .into {
@@ -861,7 +914,7 @@ svg .eqfill.cut {
   gap: 6px;
   height: 26px;
   padding-right: 10px;
-  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-m);
   cursor: default;
 }
 .librow:hover {
@@ -907,7 +960,9 @@ svg .eqfill.cut {
   color: var(--dim);
 }
 .librow .tag {
-  font: 11px "DIN Condensed", sans-serif;
+  font-size: var(--text-xs);
+  font-stretch: 75%;
+  word-spacing: 0.12em;
   letter-spacing: 0.05em;
   color: #a8b8ff;
   border: 1px solid currentColor;
@@ -931,7 +986,7 @@ svg .eqfill.cut {
   border: 1px solid var(--rule);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
   color: #e8e9ec;
-  font: 12px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-s);
   white-space: pre-line;
   pointer-events: none;
 }
@@ -951,7 +1006,7 @@ svg .eqfill.cut {
   background: none;
   text-align: left;
   padding: 5px 12px;
-  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-m);
   cursor: pointer;
 }
 .ctxitem:hover:not(:disabled) {
@@ -983,20 +1038,20 @@ svg .eqfill.cut {
 }
 .dialog h3 {
   margin: 0;
-  font-weight: normal;
-  font-size: 18px;
+  font-weight: 600;
+  font-size: var(--text-2xl);
   letter-spacing: 0.04em;
 }
 .dialog p {
   margin: 0;
-  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-m);
   color: var(--dim);
 }
 .dialog input {
   background: var(--well);
   border: 1px solid var(--edge);
   color: var(--text);
-  font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-l);
   padding: 5px 8px;
 }
 .dialog .row {
@@ -1009,14 +1064,14 @@ svg .eqfill.cut {
 }
 .dialog .choice .lbl {
   color: var(--dim);
-  font-size: 14px;
+  font-size: var(--text-l);
 }
 .dialog .choice select {
   flex: 1;
   background: var(--well);
   border: 1px solid var(--edge);
   color: var(--text);
-  font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-l);
   padding: 4px 6px;
 }
 .toast {
@@ -1030,7 +1085,7 @@ svg .eqfill.cut {
   background: #3a1d16;
   border: 1px solid #ff8a6a;
   color: #ffd2c4;
-  font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--text-m);
   cursor: pointer;
 }
 .perform,
@@ -1067,10 +1122,10 @@ svg .eqfill.cut {
 }
 svg .glabel.dest {
   fill: var(--text);
-  font-size: 13px;
+  font-size: var(--text-m);
 }
 svg .hlabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
   pointer-events: none;
 }
 /* Graph handles (envelopes, EQ): a small ring with a larger invisible hit circle. */
@@ -1108,7 +1163,7 @@ svg .handle:hover > .dot {
   position: absolute;
   top: 3px;
   left: 5px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--dim);
   pointer-events: none;
 }
@@ -1122,7 +1177,7 @@ svg .handle:hover > .dot {
   padding: 0 24px;
   text-align: center;
   color: var(--dim);
-  font-size: 13px;
+  font-size: var(--text-m);
   pointer-events: none;
 }
 .meterbox {
@@ -1145,7 +1200,7 @@ svg .handle:hover > .dot {
   box-shadow: 0 0 6px #ff3b30;
 }
 .meterbox .peak {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--dim);
   white-space: nowrap;
 }

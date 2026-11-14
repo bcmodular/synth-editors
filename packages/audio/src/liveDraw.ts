@@ -11,6 +11,7 @@ export interface Palette {
   meter: string;
   hot: string; // the top of the meter, near full scale
   hold: string;
+  label: string; // the canvas font for axis labels: the app's panel font (--font-panel), narrow, 11px
 }
 
 export function paletteOf(el: Element): Palette {
@@ -23,6 +24,7 @@ export function paletteOf(el: Element): Palette {
     meter: v("--led", "#3ddc5a"),
     hot: v("--alt", "#ffb020"),
     hold: v("--text", "#d4d5da"),
+    label: `500 condensed 11px ${v("--font-panel", "sans-serif")}`,
   };
 }
 

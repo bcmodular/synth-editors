@@ -12,13 +12,14 @@ export interface RangeProps {
 
 const fraction = (p: RangeProps) => (p.value - (p.min ?? 0)) / Math.max(1, p.max - (p.min ?? 0));
 
-export function Knob(p: RangeProps & { label: string; text: string }) {
+// `color` paints the cap (the pointer turns dark to stay visible); without it the cap is the plain grey one.
+export function Knob(p: RangeProps & { label: string; text: string; color?: string }) {
   const drag = useValueDrag<HTMLDivElement>({
     value: p.value, min: p.min, max: p.max, onChange: p.onChange, defaultValue: p.reset ?? p.min ?? 0, axis: "y",
     length: 160,
   });
   return (
-    <div className="kn" ref={drag.ref} role="slider" aria-label={p.label} aria-valuemin={p.min ?? 0}
+    <div className={`kn ${p.color ? "col" : ""}`} style={p.color ? { ["--kc" as string]: p.color } : undefined} ref={drag.ref} role="slider" aria-label={p.label} aria-valuemin={p.min ?? 0}
       aria-valuemax={p.max} aria-valuenow={p.value} aria-valuetext={p.text}
       onPointerDown={drag.onPointerDown} onDoubleClick={drag.onDoubleClick}>
       <i style={{ ["--a" as string]: `${-135 + fraction(p) * 270}deg` }} />

@@ -41,13 +41,14 @@ function ToneStrip({ tone, soloed, onSolo }: StripProps) {
   const { patch, setValue } = useEditor();
   const on = getParam(patch, param("toneSwitch"), tone) === 1;
   const out = getParam(patch, param("outputAssign"), tone);
+  const colour = TONE_COLOURS[tone];
   return (
-    <div className="strip" style={{ ["--sc" as string]: TONE_COLOURS[tone] }}>
+    <div className="strip" style={{ ["--sc" as string]: colour }}>
       <div className="st-head">TONE {tone + 1}</div>
       <div className="st-knobs">
-        <ParamKnob def="mixEfxSend" tone={tone} label={out === 1 ? "EFX" : "MIX"} />
-        <ParamKnob def="chorusSend" tone={tone} label="CHORUS" />
-        <ParamKnob def="reverbSend" tone={tone} label="REVERB" />
+        <ParamKnob def="mixEfxSend" tone={tone} label={out === 1 ? "EFX" : "MIX"} color={colour} />
+        <ParamKnob def="chorusSend" tone={tone} label="CHORUS" color={SECTION_COLOURS.chorus} />
+        <ParamKnob def="reverbSend" tone={tone} label="REVERB" color={SECTION_COLOURS.reverb} />
         <ParamKnob def="tonePan" tone={tone} label="PAN" />
       </div>
       <Segmented options={OUTPUTS.map((label, value) => ({ label, value }))} value={out}
@@ -57,7 +58,7 @@ function ToneStrip({ tone, soloed, onSolo }: StripProps) {
         <button className={`btn solo ${soloed ? "on" : ""}`} onClick={onSolo}>SOLO</button>
       </div>
       <div className="st-level">
-        <ParamKnob def="toneLevel" tone={tone} label="LEVEL" />
+        <ParamKnob def="toneLevel" tone={tone} label="LEVEL" color={colour} />
       </div>
     </div>
   );

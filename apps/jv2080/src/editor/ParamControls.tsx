@@ -72,10 +72,10 @@ export function ParamSwitch(props: BoundProps) {
   return <LedButton label={label} on={value !== 0} onToggle={() => set(value ? 0 : 1)} />;
 }
 
-export function ParamKnob(props: BoundProps) {
+export function ParamKnob(props: BoundProps & { color?: string }) {
   const { def, value, set, label } = useBound(props);
   return (
     <Knob label={label} value={value} min={def.min} max={def.max} reset={def.center ?? def.min} text={def.display(value)}
-      onChange={set} />
+      color={props.color} onChange={set} />
   );
 }

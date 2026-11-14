@@ -328,7 +328,7 @@ input {
 .desk {
   display: flex;
   gap: 4px;
-  height: 318px;
+  height: 344px;
 }
 .strip {
   width: 104px;
@@ -351,12 +351,13 @@ input {
 .st-knobs {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 9px;
   width: 100%;
+  padding: 2px 0;
 }
 .st-knobs .kn {
   display: grid;
-  grid-template-columns: 30px 1fr;
+  grid-template-columns: 34px 1fr;
   grid-template-rows: auto auto;
   column-gap: 6px;
   align-items: center;
@@ -364,6 +365,12 @@ input {
 }
 .st-knobs .kn i {
   grid-row: span 2;
+  width: 34px;
+  height: 34px;
+}
+.st-knobs .kn i::after {
+  transform-origin: 50% 15px;
+  height: 12px;
 }
 .st-knobs .kn .lbl {
   align-self: end;
@@ -413,7 +420,6 @@ input {
 .st-level .kn i {
   width: 44px;
   height: 44px;
-  border-top: 2px solid var(--sc);
 }
 .st-level .kn i::after {
   height: 15px;
@@ -490,6 +496,14 @@ input {
   background: #fff;
   transform-origin: 50% 12px;
   transform: translateX(-50%) rotate(var(--a, 0deg));
+}
+/* A coloured cap: the colour, lit from above, with a dark pointer. */
+.kn.col i {
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--kc) 85%, #fff), var(--kc) 45%,
+    color-mix(in srgb, var(--kc) 55%, #000) 100%);
+}
+.kn.col i::after {
+  background: #111;
 }
 .kn .lbl {
   font-size: 11px;

@@ -39,7 +39,7 @@ export function Spike() {
     patch.current = emptyPatch();
     redraw();
     const ok = await readPatch(link, patch.current, redraw);
-    link.note(ok ? `read "${patchName(patch.current.blocks[0]!)}"` : "read incomplete");
+    link.note(ok ? `read "${patchName(patch.current.blocks)}"` : "read incomplete");
     setBusy(false);
   };
   const complete = patchComplete(patch.current);
@@ -52,8 +52,8 @@ export function Spike() {
         <h2>Temporary patch</h2>
         <div className="row">
           <button disabled={busy} onClick={() => void read()}>READ PATCH (RQ1)</button>
-          <button disabled={busy || !complete} onClick={() => void sendPaced(link, patchToDt1s(patch.current, link.device), "DT1 patch")}>SEND PATCH BACK (9 × DT1)</button>
-          <button disabled={!complete} onClick={() => download(patchToDt1s(patch.current, link.device), patchName(patch.current.blocks[0]!))}>SAVE .SYX</button>
+          <button disabled={busy || !complete} onClick={() => void sendPaced(link, patchToDt1s(patch.current.blocks, link.device), "DT1 patch")}>SEND PATCH BACK (9 × DT1)</button>
+          <button disabled={!complete} onClick={() => download(patchToDt1s(patch.current.blocks, link.device), patchName(patch.current.blocks))}>SAVE .SYX</button>
         </div>
         <PatchView patch={patch.current} />
       </section>

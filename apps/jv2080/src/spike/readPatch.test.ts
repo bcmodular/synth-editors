@@ -35,7 +35,7 @@ describe("readPatch", () => {
     const patch = emptyPatch();
     expect(await readPatch(jv, patch, () => {})).toBe(true);
     expect(patchComplete(patch)).toBe(true);
-    expect(patchName(patch.blocks[0]!)).toBe("Test Patch");
+    expect(patchName(patch.blocks)).toBe("Test Patch");
     expect(jv.notes.filter((n) => n.includes("2 packet(s)"))).toHaveLength(4);
   });
 

@@ -1,14 +1,11 @@
-// Decoded readout of the temporary patch, with each block's raw bytes. The Wave Group ID column answers which raw
-// values mean INT-A and INT-B.
+// Decoded readout of the temporary patch, with each block's raw bytes. Values come from the core parameter table.
 
-import { commonSummary, PATCH_BLOCKS, receivedCount, toneSummary, type PatchBuffer } from "../core/patch";
-import { addOffset, addrHex } from "../core/sysex";
+import { getParam, PATCH_BLOCKS, patchName, receivedCount, type Patch, type PatchBuffer } from "../core/patch";
+import { param } from "../core/paramValue";
+import { addOffset, addrHex, type Address } from "../core/sysex";
+import { waveLabel } from "../core/waves";
 
-const REVERB = ["ROOM1", "ROOM2", "STAGE1", "STAGE2", "HALL1", "HALL2", "DELAY", "PAN-DLY"];
-const FILTER = ["OFF", "LPF", "BPF", "HPF", "PKG"];
-const GROUP_TYPE = ["INT", "PCM", "EXP"];
-
-function HexDump({ bytes, received, base }: { bytes: number[]; received: boolean[]; base: readonly [number, number, number, number] }) {
+function HexDump({ bytes, received, base }: { bytes: number[]; received: boolean[]; base: Address }) {
   const rows = [];
   for (let i = 0; i < bytes.length; i += 16) {
     const cells = bytes.slice(i, i + 16).map((b, j) =>
@@ -18,20 +15,28 @@ function HexDump({ bytes, received, base }: { bytes: number[]; received: boolean
   return <pre className="hex">{rows.join("\n")}</pre>;
 }
 
-function ToneTable({ patch }: { patch: PatchBuffer }) {
+// The display value of a parameter.
+const shown = (patch: Patch, id: string, tone = 0) => {
+  const p = param(id);
+  return p.display(getParam(patch, p, tone));
+};
+
+const TONE_COLUMNS = ["toneSwitch", "filterType", "cutoff", "resonance", "toneLevel", "tonePan", "reverbSend"];
+
+function ToneTable({ patch }: { patch: Patch }) {
   return (
     <table>
       <thead>
-        <tr><th></th><th>On</th><th>Group type</th><th>Group ID (raw)</th><th>Wave</th><th>Filter</th><th>Cutoff</th><th>Reso</th><th>Level</th><th>Rev send (off. 128)</th></tr>
+        <tr><th></th><th>Wave</th>{TONE_COLUMNS.map((id) => <th key={id}>{param(id).name}</th>)}</tr>
       </thead>
       <tbody>
-        {[1, 2, 3, 4].map((t) => {
-          const s = toneSummary(patch.blocks[t]!);
+        {[0, 1, 2, 3].map((t) => {
+          const raw = (id: string) => getParam(patch, param(id), t);
           return (
             <tr key={t}>
-              <th>Tone {t}</th><td>{s.on ? "ON" : "off"}</td><td>{GROUP_TYPE[s.groupType] ?? s.groupType}</td>
-              <td>{s.groupId}</td><td>{String(s.wave).padStart(3, "0")}</td><td>{FILTER[s.filterType] ?? s.filterType}</td>
-              <td>{s.cutoff}</td><td>{s.resonance}</td><td>{s.level}</td><td>{s.reverbSend}</td>
+              <th>Tone {t + 1}</th>
+              <td>{waveLabel(raw("waveGroupType"), raw("waveGroupId"), raw("waveNumber"))}</td>
+              {TONE_COLUMNS.map((id) => <td key={id}>{shown(patch, id, t)}</td>)}
             </tr>
           );
         })}
@@ -40,16 +45,17 @@ function ToneTable({ patch }: { patch: PatchBuffer }) {
   );
 }
 
+const COMMON_FIELDS = ["efxType", "reverbType", "patchLevel", "patchPan", "tempo"];
+
 export function PatchView({ patch }: { patch: PatchBuffer }) {
-  const c = commonSummary(patch.blocks[0]!);
+  const blocks = patch.blocks;
   return (
     <>
       <div className="row patch-head">
-        <span className="big">{c.name || "—"}</span>
-        <span>EFX type {c.efxType}</span><span>Reverb {REVERB[c.reverbType] ?? c.reverbType}</span>
-        <span>Level {c.level}</span><span>Pan {c.pan}</span><span>Tempo {c.tempo}</span>
+        <span className="big">{patchName(blocks) || "—"}</span>
+        {COMMON_FIELDS.map((id) => <span key={id}>{param(id).name} {shown(blocks, id)}</span>)}
       </div>
-      <ToneTable patch={patch} />
+      <ToneTable patch={blocks} />
       {PATCH_BLOCKS.map((def, i) => (
         <details key={def.name}>
           <summary>{def.name} · {addrHex(def.addr)} · {receivedCount(patch, i)}/{def.size} bytes</summary>

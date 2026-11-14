@@ -1,6 +1,7 @@
 // A multi-stage envelope (core/envelope.ts) as a graph with a handle at the end of each stage: drag sideways for the
 // stage's time, up / down for its level (Shift = fine), double-click to zero the time. The hold before the release
-// stage is drawn dashed. Hovering or dragging a handle shows its values; the corner button resets the envelope.
+// stage is drawn dashed. Hovering or dragging a handle shows its values; the button
+// at the top right resets the envelope.
 
 import { useState } from "react";
 import { envelopeNodes, type EnvelopeSpec } from "../core/envelope";
@@ -62,12 +63,12 @@ export function EnvelopeGraph({ spec, width, height, onTime, onLevel, onReset }:
       {onReset && (
         <g className="reset" onClick={onReset}>
           <title>Reset to a simple envelope</title>
-          <rect x={4} y={4} width={18} height={16} rx={2} />
-          <text x={13} y={16} textAnchor="middle">↺</text>
+          <rect x={width - 22} y={4} width={18} height={16} rx={2} />
+          <text x={width - 13} y={16} textAnchor="middle">↺</text>
         </g>
       )}
       {active !== null && (
-        <text className="readout" x={width - 6} y={14} textAnchor="end">
+        <text className="readout" x={width - 28} y={16} textAnchor="end">
           T{active + 1} {spec.times[active]}
           {active < spec.levels.length ? `  L${active + 1} ${levelText(spec, spec.levels[active]!)}` : ""}
         </text>

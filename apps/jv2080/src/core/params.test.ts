@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EFX_PARAM_COUNT, EFX_TYPES, efxDisplay, efxParamOffset } from "./efx";
+import { EFX_PARAM_COUNT, EFX_TYPES, efxDisplay, efxParamOffset, efxStartValue } from "./efx";
 import { ALL_PARAMS, COMMON_PARAMS, TONE_PARAMS } from "./params";
 import { param, paramWidth } from "./paramValue";
 import { COMMON_SIZE, TONE_SIZE } from "./patch";
@@ -110,5 +110,18 @@ describe("waves", () => {
     expect(waveGroupOf(2, 1)).toBeUndefined();
     expect(waveLabel(0, 1, 9)).toBe("INT-A 010 Piano Thump");
     expect(waveLabel(2, 3, 0)).toBe("group 2/3 001");
+  });
+});
+
+describe("EFX start values", () => {
+  const byName = (type: number, name: string) => EFX_TYPES[type]!.params.find((p) => p.name === name)!;
+
+  it("start bipolar ranges at their 0, frequency lists in the middle, other lists first", () => {
+    expect(efxDisplay(byName(0, "Low Gain"), efxStartValue(byName(0, "Low Gain")))).toBe("0 dB");
+    expect(efxDisplay(byName(21, "Coarse A"), efxStartValue(byName(21, "Coarse A")))).toBe("0 st");
+    expect(efxDisplay(byName(16, "Feedback"), efxStartValue(byName(16, "Feedback")))).toBe("0%");
+    expect(efxDisplay(byName(0, "P1 Freq"), efxStartValue(byName(0, "P1 Freq")))).toBe("1250 Hz");
+    expect(efxStartValue(byName(1, "Amp Type"))).toBe(0);
+    expect(efxDisplay(byName(1, "Pan"), efxStartValue(byName(1, "Pan")))).toBe("C");
   });
 });

@@ -29,10 +29,12 @@ function useIncomingEdits(link: JvLink, busy: boolean, setPatch: (f: (p: Patch |
   }), [link.subscribe, busy, setPatch]);
 }
 
-export function useJvSession(link: JvLink, initial: Patch | null = null): JvSession {
+// With `offline` (demo mode) nothing is sent: the editor works on its own patch without touching a JV.
+export function useJvSession(link: JvLink, initial: Patch | null = null, offline = false): JvSession {
   const [patch, setPatch] = useState<Patch | null>(initial);
   const [busy, setBusy] = useState(false);
-  const { send, device } = link;
+  const { device } = link;
+  const send = useMemo(() => (offline ? () => {} : link.send), [offline, link.send]);
   const queue = useMemo(() => createEditQueue((msg) => send(msg, "DT1 edit")), [send]);
   useIncomingEdits(link, busy, setPatch);
 
@@ -46,6 +48,7 @@ export function useJvSession(link: JvLink, initial: Patch | null = null): JvSess
   }, [sendParam]);
 
   const syncFromJv = useCallback(async () => {
+    if (offline) return;
     setBusy(true);
     const buffer = emptyPatch();
     const ok = await readPatch(link, buffer, () => {});
@@ -53,14 +56,14 @@ export function useJvSession(link: JvLink, initial: Patch | null = null): JvSess
     if (read) setPatch(read);
     link.note(read ? `read "${patchName(read)}"` : "read incomplete");
     setBusy(false);
-  }, [link]);
+  }, [link, offline]);
 
   const syncToJv = useCallback(async () => {
-    if (!patch) return;
+    if (!patch || offline) return;
     setBusy(true);
     await sendPaced(link, patchToDt1s(patch, device), "DT1 patch");
     setBusy(false);
-  }, [link, patch, device]);
+  }, [link, patch, device, offline]);
 
   // The JV handles MIDI in order, so the read can follow the program change straight away.
   const loadFromBank = useCallback(async (bank: Bank, number: number) => {

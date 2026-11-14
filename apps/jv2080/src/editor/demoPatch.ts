@@ -1,7 +1,7 @@
 // A plausible patch for working on the editor without a JV (open the app with ?demo): one tone on, a piano wave, the
 // EFX parameters at their middle values. For screens only; it isn't meant to be sent to a JV.
 
-import { EFX_TYPES, efxParamOffset } from "../core/efx";
+import { EFX_TYPES, efxParamOffset, efxStartValue } from "../core/efx";
 import { PATCH_BLOCKS, setParam, setPatchName, type Patch } from "../core/patch";
 import { ALL_PARAMS } from "../core/params";
 import { clampParam } from "../core/paramValue";
@@ -17,14 +17,9 @@ const DEFAULTS: Record<string, number> = {
   mixEfxSend: 127, chorusSend: 40, reverbSend: 50,
 };
 
-// An EFX parameter's middle: centre of a range, the first of a list.
-function efxMiddle(max: number, kind: string): number {
-  return kind === "list" ? 0 : Math.round(max / 2);
-}
-
 function withEfxMiddles(patch: Patch): Patch {
   const common = [...patch[0]!];
-  for (const p of EFX_TYPES[0]!.params) common[efxParamOffset(p.slot)] = efxMiddle(p.max, p.kind);
+  for (const p of EFX_TYPES[0]!.params) common[efxParamOffset(p.slot)] = efxStartValue(p);
   return [common, ...patch.slice(1)];
 }
 

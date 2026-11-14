@@ -60,3 +60,12 @@ const DISPLAY: Record<EfxValueKind, (p: EfxParamDef, raw: number) => string> = {
 export function efxDisplay(p: EfxParamDef, raw: number): string {
   return DISPLAY[p.kind](p, Math.max(0, Math.min(p.max, raw)));
 }
+
+// A neutral starting value for a parameter: its 0 where the range has one (0 dB, 0 %, 0 semitones, pan centre), the
+// middle frequency of a frequency list, the first entry of other lists, otherwise half way.
+export function efxStartValue(p: EfxParamDef): number {
+  if (p.kind === "list") return p.labels?.every((l) => / Hz$|^BYPASS$/.test(l)) ? Math.floor((p.labels.length - 1) / 2) : 0;
+  if (p.kind === "linear" && p.signed) return Math.max(0, Math.min(p.max, Math.round(-(p.first ?? 0) / (p.step ?? 1))));
+  if (p.kind === "pan") return 64;
+  return Math.round(p.max / 2);
+}

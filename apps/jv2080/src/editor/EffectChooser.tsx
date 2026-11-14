@@ -18,9 +18,10 @@ export function EffectChooser({ current, onPick, onClose }: { current: number; o
           <div className="ch-group">{g.name.toUpperCase()}</div>
           {Array.from({ length: EFX_CELLS }, (_, i) => {
             const cell = g.types[i];
-            if (!cell) return <span key={i} className="ch-empty" />;
+            if (!cell) return <span key={`empty-${i}`} className="ch-empty" />;
             return (
-              <button key={cell.type} className={`ch-fx ${cell.type === current ? "on" : ""}`} onClick={() => onPick(cell.type)}>
+              <button key={cell.type} className={`ch-fx ${cell.type === current ? "on" : ""}`} data-type={cell.type}
+                onClick={() => onPick(cell.type)}>
                 {cell.label}
               </button>
             );

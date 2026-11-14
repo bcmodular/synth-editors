@@ -1,25 +1,20 @@
 // The row above the tones: the mixer, the EFX with its type's parameters, chorus over reverb, and the patch settings.
 
 import { useState } from "react";
-import { efxType } from "../core/efx";
+import { EFX_TYPES, efxStartValue, efxType } from "../core/efx";
 import { efxGroupOf } from "../core/efxGroups";
 import { getParam } from "../core/patch";
-import type { ParamDef } from "../core/params";
 import { param } from "../core/paramValue";
 import { Section } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 import { ChorusView, ReverbView } from "./ChorusReverbViews";
 import { EffectChooser } from "./EffectChooser";
-import { efxSlotParam } from "./efxParams";
+import { isDemo } from "./demoPatch";
+import { efxSlotParam } from "./efx/efxParams";
+import { EfxView } from "./efx/EfxView";
 import { Mixer } from "./Mixer";
-import { ParamChoice, ParamFader, ParamSelect } from "./ParamControls";
+import { ParamChoice, ParamKnob, ParamSelect } from "./ParamControls";
 import { PatchSettings } from "./PatchSettings";
-
-// A list parameter with few values reads best as buttons; long lists as a drop-down.
-function EfxParam({ def }: { def: ParamDef }) {
-  if (!def.labels) return <ParamFader def={def} />;
-  return def.labels.length <= 5 ? <ParamChoice def={def} /> : <ParamSelect def={def} />;
-}
 
 // A new type can bring the JV's defaults for its parameters, so the patch is read back shortly after.
 const RESYNC_AFTER_TYPE_MS = 150;
@@ -33,7 +28,9 @@ function EfxTypeButton() {
     setOpen(false);
     if (type === raw) return;
     setValue(param("efxType"), type);
-    setTimeout(resync, RESYNC_AFTER_TYPE_MS);
+    // In demo mode there's no JV to answer, so the new type starts from neutral values.
+    if (isDemo()) for (const p of EFX_TYPES[type]?.params ?? []) setValue(efxSlotParam(p), efxStartValue(p));
+    else setTimeout(resync, RESYNC_AFTER_TYPE_MS);
   };
   return (
     <>
@@ -45,18 +42,17 @@ function EfxTypeButton() {
   );
 }
 
+// The type's own view, then where the EFX goes: its output and its sends, on one row.
 function Efx() {
-  const { patch } = useEditor();
-  const type = efxType(getParam(patch, param("efxType")));
   return (
     <Section title="EFX" className="efx" extra={<EfxTypeButton />}>
-      <div className="efx-params">
-        {type?.params.map((p) => <EfxParam key={`${type.name}-${p.slot}`} def={efxSlotParam(p)} />)}
+      <EfxView />
+      <div className="efx-out">
+        <ParamChoice def="efxOutput" label="Output" />
+        <ParamKnob def="efxMixSend" label="MIX" />
+        <ParamKnob def="efxChorusSend" label="CHORUS" />
+        <ParamKnob def="efxReverbSend" label="REVERB" />
       </div>
-      <ParamChoice def="efxOutput" label="Output" />
-      <ParamFader def="efxMixSend" label="Mix Send" />
-      <ParamFader def="efxChorusSend" label="Chorus Send" />
-      <ParamFader def="efxReverbSend" label="Reverb Send" />
     </Section>
   );
 }

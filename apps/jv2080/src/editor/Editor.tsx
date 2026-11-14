@@ -12,7 +12,7 @@ import { useJvSession } from "./useJvSession";
 export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void }) {
   const [demo] = useState(isDemo);
   const [initial] = useState(() => (demo ? demoPatch() : null));
-  const session = useJvSession(link, initial);
+  const session = useJvSession(link, initial, demo);
   const { patch, setValue, sendParam, syncFromJv } = session;
   const ready = link.outName !== "" && link.inName !== "" && link.outputs.length > 0;
 

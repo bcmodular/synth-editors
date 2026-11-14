@@ -306,11 +306,6 @@ input {
   gap: 16px;
   align-items: stretch;
 }
-.efx-params {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px 12px;
-}
 
 .tones {
   display: grid;
@@ -1091,4 +1086,138 @@ input {
 }
 .tone .kn i::after {
   background: #111;
+}
+
+/* The EFX type's view (editor/efx/EfxView.tsx): drawings, then knobs and buttons for the other parameters. */
+.efx-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+}
+.efx-panels {
+  display: flex;
+  gap: 6px;
+}
+.efx-panels.parallel {
+  flex-direction: column;
+  gap: 6px;
+}
+.efx-panel-wrap {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.efx-panel-wrap .fxdraw {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.efx-arrow {
+  color: var(--led);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+}
+.efx-rest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px 4px;
+}
+.efx-rest .kn {
+  width: 58px;
+}
+.efx-rest .kn .lbl {
+  max-width: 58px;
+  text-overflow: ellipsis;
+}
+.efx-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 4px;
+}
+.efx-choice .lbl {
+  font-size: 11px;
+  color: var(--dim);
+}
+.efx-choice .seg .btn {
+  padding: 3px 6px 1px;
+  font-size: 12px;
+}
+.efx-out {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+.efx-out .prow {
+  flex: 1 1 auto;
+}
+.efx-out .prow > .lbl {
+  flex-basis: 50px;
+}
+.efx-out .kn {
+  display: grid;
+  grid-template-columns: 28px auto;
+  column-gap: 5px;
+  align-items: center;
+}
+.efx-out .kn i {
+  grid-row: span 2;
+}
+.fxdraw .gv {
+  fill: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.fxdraw .gl {
+  fill: #8a8d96;
+  font-size: 10px;
+}
+.fxdraw .axis.strong {
+  stroke: #5a5c63;
+}
+.fxdraw .axis-box {
+  fill: none;
+  stroke: #3a3b40;
+}
+.fxdraw .bar {
+  fill: color-mix(in srgb, var(--led) 70%, transparent);
+}
+.fxdraw .bar.dim {
+  fill: #3a3b40;
+}
+.fxdraw .tap.dim {
+  opacity: 0.55;
+}
+.fxdraw .voice {
+  stroke: var(--led);
+  stroke-width: 3;
+}
+.fxdraw .spk {
+  fill: #18191c;
+  stroke: #4a4b52;
+}
+.fxdraw .tip {
+  fill: var(--led);
+}
+.fxdraw .svg-btn {
+  cursor: pointer;
+}
+.fxdraw .svg-btn rect {
+  fill: #1e1f22;
+  stroke: var(--edge);
+}
+.fxdraw .svg-btn text {
+  fill: var(--text);
+  font-size: 12px;
+}
+.fxdraw .svg-btn.on rect {
+  stroke: var(--led);
+  fill: color-mix(in srgb, var(--led) 18%, #0b0b0c);
+}
+.fxdraw .svg-btn.on text {
+  fill: #fff;
 }

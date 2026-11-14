@@ -5,11 +5,10 @@
 //   Reverb: a decaying tail whose length is the time; for DELAY and PAN-DLY the echoes instead, spaced by the time
 //   and dying away by the delay feedback (PAN-DLY alternating left and right).
 
-import { useState, type ReactNode } from "react";
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
 import { dragXY } from "../ui/dragXY";
-import { useSize } from "../ui/useSize";
+import { Drawing, Handle } from "../ui/Drawing";
 import { useEditor } from "./EditorContext";
 
 const PAD = 8;
@@ -22,26 +21,6 @@ function useParamAxis(id: string, px: number) {
   const def = param(id);
   const value = getParam(patch, def);
   return { value, axis: { value, min: def.min, max: def.max, px, onChange: (v: number) => setValue(def, v) } };
-}
-
-// A drawing as wide as its box.
-function Drawing({ height, children }: { height: number; children: (width: number) => ReactNode }) {
-  const [box, setBox] = useState<HTMLDivElement | null>(null);
-  const { width } = useSize(box);
-  return (
-    <div className="fxdraw" ref={setBox}>
-      {width > 0 && <svg width={width} height={height}>{children(width)}</svg>}
-    </div>
-  );
-}
-
-function Handle({ x, y, onPointerDown }: { x: number; y: number; onPointerDown: (e: React.PointerEvent<SVGCircleElement>) => void }) {
-  return (
-    <g className="handle">
-      <circle className="dot" cx={x} cy={y} r={4} />
-      <circle className="hit" cx={x} cy={y} r={10} onPointerDown={onPointerDown} />
-    </g>
-  );
 }
 
 // Repeats dying away: heights 1, f, f², … for feedback 0–127.

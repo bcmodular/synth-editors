@@ -1023,24 +1023,72 @@ input {
   flex-direction: column;
   gap: 5px;
 }
-/* Knobs in a grid of up to three columns, each knob over its label and value. */
+/* Knobs in rows of up to three, each knob over its label and value; the LFO depths a row of their own under a rule. */
 .knobgrid {
   flex: 0 0 auto;
+  width: 138px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+.knobs {
   display: grid;
   grid-template-columns: repeat(3, 44px);
-  grid-auto-rows: min-content;
-  align-content: space-between;
-  gap: 4px 2px;
+  gap: 2px;
+}
+.knobs.lfo {
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--tint) 30%, transparent);
 }
 .knobgrid .kn .lbl {
   max-width: 44px;
 }
-.lfo-line > .prow {
+/* An LFO: its waveform as icon buttons, its rate as a knob. */
+.lfo-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lfo-line > .lbl {
+  flex: 0 0 34px;
+  font-size: var(--text-m);
+  color: var(--dim);
+}
+.wave-btns {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+}
+.wave-btns .btn {
   flex: 1 1 0;
+  justify-content: center;
+  padding: 5px 0 4px;
+  min-width: 0;
 }
-.lfo-line > .prow:first-child > .lbl {
-  flex-basis: 36px;
+.wave-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
 }
-.lfo-line > .prow:last-child > .lbl {
-  flex-basis: 32px;
+.wave-btns .btn.sel {
+  color: var(--led);
+}
+.lfo-line .kn {
+  flex: none;
+  display: grid;
+  grid-template-columns: 30px auto;
+  column-gap: 5px;
+  align-items: center;
+}
+.lfo-line .kn i {
+  grid-row: span 2;
+}
+/* Knobs in a tone take the tone's colour. */
+.tone .kn i {
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--led) 85%, #fff), var(--led) 45%,
+    color-mix(in srgb, var(--led) 55%, #000) 100%);
+}
+.tone .kn i::after {
+  background: #111;
 }

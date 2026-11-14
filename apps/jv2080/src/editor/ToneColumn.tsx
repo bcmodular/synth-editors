@@ -12,8 +12,9 @@ import { EnvelopeGraph } from "../ui/EnvelopeGraph";
 import { useSize } from "../ui/useSize";
 import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
-import { ParamChoice, ParamFader, ParamKnob, ParamSelect } from "./ParamControls";
+import { ParamChoice, ParamKnob } from "./ParamControls";
 import { WaveLibrary } from "./WaveLibrary";
+import { WaveIcon } from "../ui/WaveIcon";
 
 const ROW_ENV_HEIGHT = 112; // beside two rows of knobs
 const AMP_ENV_HEIGHT = 64;
@@ -103,11 +104,23 @@ function Block({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+// An LFO's waveform as icon buttons, and its rate as a knob.
 function LfoLine({ tone, n }: ToneProps & { n: 1 | 2 }) {
+  const { patch, setValue } = useEditor();
+  const wave = param(`lfo${n}Wave`);
+  const value = getParam(patch, wave, tone);
   return (
-    <div className="row tight lfo-line">
-      <ParamSelect def={`lfo${n}Wave`} tone={tone} label={`LFO${n}`} />
-      <ParamFader def={`lfo${n}Rate`} tone={tone} label="Rate" />
+    <div className="lfo-line">
+      <span className="lbl">LFO{n}</span>
+      <div className="seg wave-btns">
+        {(wave.labels ?? []).map((shape, i) => (
+          <button key={shape} className={`btn ${i === value ? "sel" : ""}`} title={shape} aria-label={shape}
+            onClick={() => setValue(wave, i, tone)}>
+            <WaveIcon shape={shape} />
+          </button>
+        ))}
+      </div>
+      <ParamKnob def={`lfo${n}Rate`} tone={tone} label="RATE" />
     </div>
   );
 }
@@ -118,11 +131,15 @@ export function ToneColumn({ tone }: ToneProps) {
       <Block label="PITCH">
         <div className="envrow">
           <div className="knobgrid">
-            <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
-            <ParamKnob def="fineTune" tone={tone} label="FINE" />
-            <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV" />
-            <ParamKnob def="pitchLfo1" tone={tone} label="LFO1" />
-            <ParamKnob def="pitchLfo2" tone={tone} label="LFO2" />
+            <div className="knobs">
+              <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
+              <ParamKnob def="fineTune" tone={tone} label="FINE" />
+              <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV" />
+            </div>
+            <div className="knobs lfo">
+              <ParamKnob def="pitchLfo1" tone={tone} label="LFO1" />
+              <ParamKnob def="pitchLfo2" tone={tone} label="LFO2" />
+            </div>
           </div>
           <Envelope tone={tone} kind="pitch" height={ROW_ENV_HEIGHT} />
         </div>
@@ -131,11 +148,15 @@ export function ToneColumn({ tone }: ToneProps) {
         <ParamChoice def="filterType" tone={tone} label="Type" />
         <div className="envrow">
           <div className="knobgrid">
-            <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
-            <ParamKnob def="resonance" tone={tone} label="RESO" />
-            <ParamKnob def="filterEnvDepth" tone={tone} label="ENV" />
-            <ParamKnob def="filterLfo1" tone={tone} label="LFO1" />
-            <ParamKnob def="filterLfo2" tone={tone} label="LFO2" />
+            <div className="knobs">
+              <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
+              <ParamKnob def="resonance" tone={tone} label="RESO" />
+              <ParamKnob def="filterEnvDepth" tone={tone} label="ENV" />
+            </div>
+            <div className="knobs lfo">
+              <ParamKnob def="filterLfo1" tone={tone} label="LFO1" />
+              <ParamKnob def="filterLfo2" tone={tone} label="LFO2" />
+            </div>
           </div>
           <Envelope tone={tone} kind="filter" height={ROW_ENV_HEIGHT} />
         </div>
@@ -143,8 +164,10 @@ export function ToneColumn({ tone }: ToneProps) {
       <Block label="AMP">
         <div className="envrow">
           <div className="knobgrid">
-            <ParamKnob def="ampLfo1" tone={tone} label="LFO1" />
-            <ParamKnob def="ampLfo2" tone={tone} label="LFO2" />
+            <div className="knobs">
+              <ParamKnob def="ampLfo1" tone={tone} label="LFO1" />
+              <ParamKnob def="ampLfo2" tone={tone} label="LFO2" />
+            </div>
           </div>
           <Envelope tone={tone} kind="amp" height={AMP_ENV_HEIGHT} />
         </div>

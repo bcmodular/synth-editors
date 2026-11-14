@@ -162,8 +162,32 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
   ![The distortion types](images/distortion-types.png)
 
 - **EFX1 and EFX2**: pick the effect type from the row of buttons. ON switches the effect in.
-  The settings below change with the type; some types also have mode buttons, like the reverb's
-  AMBIENT, ROOM and HALL. Settings that the current mode doesn't use are dimmed.
+  Some types also have mode buttons, like the reverb's AMBIENT, ROOM and HALL. Every type but
+  BYPASS has a picture of what it does, on the left, with handles to drag. A setting you change in
+  the picture shows as its name and value on the right; the other settings keep their faders.
+  Settings that the current mode doesn't use are dimmed.
+  - Drag a handle the way its cursor shows: sideways, up and down, or both. Hold Shift for fine
+    steps, and double-click a handle to reset it.
+  - Some pictures are dragged as a whole: the tremolo's and chorus's waves (sideways for RATE, or
+    the BPM SYNC division when it's on; up and down for DEPTH) and the bit crusher's sine
+    (sideways for SAMP RATE).
+  - Filter bands (HPF and LPF) run along the bottom of the delay, chorus and reverb pictures:
+    drag either edge.
+
+  | Type | The picture | Its handles |
+  | --- | --- | --- |
+  | COMP | Output level against input, and the gain reduction after a loud note | THRESHOLD (up and down for GAIN), RATIO, ATTACK, RELEASE |
+  | RING MOD | The carrier under a fading note, which bends it UP or DOWN; the EQ below | FREQ · SENS, EQ LOW, EQ HIGH |
+  | BIT CRUSH | A sine and its sampled copy; the filter and EQ below | SAMP RATE (drag the sine), FILTER, EQ LOW, EQ HIGH |
+  | TREMOLO | TYPE buttons over one bar of the wave; the right channel is dashed | TYPE, RATE · DEPTH (drag the wave), PHASE |
+  | CHORUS | The voices' movement over a bar; the filter band below | RATE · DEPTH (drag the wave), HPF, LPF |
+  | FLANGER, PHASER | The comb or notches the effect sweeps; shading shows DEPTH | MANUAL · RESO, and the flanger's HPF |
+  | DELAY | The repeats over a bar; PAN and STEREO put the left above the line and the right below | TIME (or the BPM SYNC division), FEEDBACK, PAN's TAP, LPF |
+  | PITCH SHIFT (EFX1) | Each voice's pitch (±24 semitones) against its pre-delay; FEEDBACK echoes voice 1 | voice 1 and voice 2 |
+  | EQ (EFX1) | The frequency response | a handle for each band (below) |
+  | REVERB (EFX2) | The tail, where it starts (PRE DLY) and dies away (TIME) | PRE DLY, TIME, HPF, LPF |
+
+  The pictures make the settings easy to read; they aren't measurements of the TB-3's sound.
 - **EQ** (EFX1 only) shows its frequency response, with a handle for each band:
   - Drag a handle sideways to change its frequency, or up and down to change its gain.
   - Scroll over a mid band's handle to change its width (Q).

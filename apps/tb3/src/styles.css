@@ -192,8 +192,13 @@ button:focus-visible {
 .vca {
   --tint: #8fdcc4;
 }
+/* DISTORTION follows its header's orange, as the EFX blocks and the LFO follow theirs. */
 .dist {
   --tint: #f0a070;
+  --led: #ff8a3d;
+  --led-off: #6e3a1e;
+  --val: #ffb07a;
+  --sel-bg: #2c180c;
 }
 /* EFX1 and EFX2 each have their own colour, which their faders, buttons, readouts and drawings follow (as the LFO's
    red does): azure for EFX1, violet for EFX2. */
@@ -627,7 +632,7 @@ svg .pad.on > text {
 .stepname {
   flex: 1 1 0;
   height: 30px;
-  background: #0c1a10;
+  background: color-mix(in srgb, var(--led) 8%, #0b0b0c);
   border: 1px solid var(--edge);
   border-left: 0;
   border-right: 0;

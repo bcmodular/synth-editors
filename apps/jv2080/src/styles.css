@@ -1,0 +1,160 @@
+/* Phase 1 spike styles: the TB-3 app's palette and font, no layout system yet. */
+:root {
+  --body: #121214;
+  --edge: #34353a;
+  --well: #222327;
+  --text: #d4d5da;
+  --dim: #8a8d96;
+  --led: #3ddc5a;
+  --val: #7be890;
+  color-scheme: dark;
+  font-family: "Archivo Variable", "Archivo", sans-serif;
+  font-stretch: 75%;
+  font-weight: 500;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+body {
+  margin: 0;
+  background: var(--body);
+  color: var(--text);
+}
+
+.spike {
+  max-width: 1200px;
+  padding: 12px 18px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--val);
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+section {
+  border: 1px solid var(--edge);
+  padding: 10px 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: var(--text);
+  background: #1e1f22;
+  border: 1px solid var(--edge);
+  padding: 4px 9px 3px;
+  border-radius: 1px;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--led);
+}
+
+button:disabled {
+  color: #55575e;
+}
+
+input[type="number"] {
+  width: 64px;
+}
+
+input[type="range"] {
+  width: 300px;
+  accent-color: var(--led);
+}
+
+.dim {
+  color: var(--dim);
+}
+
+.lbl {
+  width: 140px;
+}
+
+.val {
+  width: 32px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.big {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--val);
+  min-width: 160px;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 6px 0 8px;
+}
+
+th,
+td {
+  border: 1px solid var(--edge);
+  padding: 3px 10px;
+  text-align: right;
+}
+
+thead th {
+  color: var(--dim);
+  font-weight: 500;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--dim);
+  padding: 2px 0;
+}
+
+pre,
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+}
+
+.hex {
+  background: var(--well);
+  padding: 6px 8px;
+  margin: 4px 0;
+}
+
+.log pre {
+  background: var(--well);
+  padding: 6px 8px;
+  margin: 0;
+  height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

@@ -115,7 +115,10 @@ Follows the TB-3's split:
 
 0. **Map** ✅ — [jv2080-sysex-map.md](jv2080-sysex-map.md).
 1. **Spike on hardware** — app shell, MIDI port picker, RQ1 the five blocks and show them decoded, send one DT1.
-   Answer the hardware questions below.
+   Answer the hardware questions below. *Built (`npm run dev:jv2080`), not yet run against the JV.* It reads the
+   patch and logs packets and timings per block, shows the raw Wave Group IDs, sends PC then reads after a set
+   delay, sends single DT1s (Tone 1 Reverb Send tests the address carry), sends the whole patch back, and saves it
+   as `.syx` (save JV dumps under `fixtures/local/` for Phase 2's tests).
 2. **Core** — params, EFX and wave tables, SysEx with address carry and packets, patch encode / decode, diff;
    tests against `.syx` dumps captured from the JV.
 3. **Editor** — common row, four tone columns, envelope editor, sync from / to the JV, bank browser.

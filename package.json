@@ -9,6 +9,7 @@
   "scripts": {
     "dev:tb3": "npm run dev -w @synth-editors/tb3",
     "dev:sp404": "npm run dev -w @synth-editors/sp404",
+    "dev:jv2080": "npm run dev -w @synth-editors/jv2080",
     "test": "vitest run",
     "test:e2e": "npm run e2e -w @synth-editors/tb3",
     "test:e2e:sp404": "npm run e2e -w @synth-editors/sp404",

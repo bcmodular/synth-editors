@@ -12,6 +12,7 @@ This repo is public. The roadmap is in [PLAN.md](PLAN.md); design notes and to-d
 
 ```
 apps/tb3/            TB-3 editor: Electron main in electron/, React + TS renderer in src/, Playwright e2e in e2e/
+apps/jv2080/         JV-2080 editor (Phase 1 hardware spike for now; docs/jv2080-design.md)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 ```

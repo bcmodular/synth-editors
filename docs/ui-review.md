@@ -131,18 +131,20 @@ Options B, C and D each bundle their font and also include A's clean-up, describ
 
 **SP-404: Archivo**, for now; the TB-3 stays on DIN Condensed until we come back to it.
 
-- It is bundled from `@fontsource-variable/archivo` (SIL OFL 1.1; the licence ships in the package and in `dist/`)
-  and set up in `apps/sp404/src/type.css`.
+- It is bundled from `@fontsource-variable/archivo` (SIL OFL 1.1; the licence ships in the package and in `dist/`),
+  imported in `apps/sp404/src/main.tsx` and set on `:root` in `styles.css` as `--font-panel`.
 - It uses the variable Archivo at 75% width rather than the static Archivo Narrow from the samples. The design is the
   same, a touch narrower, but the variable font has tabular figures, which the static Archivo Narrow lacks (measured:
   its "1" is narrower than its "0" even with `tabular-nums`).
 - Labels and text are at weight 500; values, readouts and bus names at 600. `word-spacing: 0.12em` keeps spaces
-  visible at this width. The FX graph labels now use the panel font instead of SF Pro.
-- The only overflow was the Super Filter's three TYPE buttons (about 40px each), which drop to 62% width.
-- Still to do once the BCR2000 work in `styles.css` is committed: move the font rules into `styles.css`, replace the
-  half-pixel sizes with a type scale, and raise the smallest text (9–10px) to 11px. The spectrum labels drawn on
-  canvas (`packages/audio`, shared with the TB-3) are still DIN.
-
+  visible at this width. The FX graph labels use the panel font instead of SF Pro.
+- **Type scale**: the 15 sizes (including 9, 9.5, 10.5, 11.5 and 12.5px) became seven, `--text-xs` to `--text-3xl`:
+  11, 12, 13, 14, 15, 18 and 22px. Everything that was 9–10.5px (knob labels, group titles, `EXP`, the FX graph
+  labels, segmented buttons) is now 11px.
+- The only overflow was the Super Filter's three TYPE buttons (about 40px each), which use the font's 62% width,
+  slightly tightened.
+- Still to do: the spectrum labels drawn on canvas (`packages/audio`, shared with the TB-3) are still DIN Condensed
+  10px.
 
 ## Next topics
 

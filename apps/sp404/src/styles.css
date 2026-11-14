@@ -22,8 +22,26 @@
   --solo: #ffd23a;
   --error: #ff6b6b;
   color-scheme: dark;
-  font-family: "DIN Condensed", "DIN Alternate", "Avenir Next Condensed", "Helvetica Neue", sans-serif;
-  font-size: 12px;
+  /* Type: Archivo (SIL OFL 1.1, bundled from @fontsource-variable/archivo, imported in main.tsx), a grotesque in the
+     spirit of the SP-404 MK2's own panel lettering. A variable font with width and weight axes: at 75% width it is
+     the narrow cut (Archivo Narrow), but unlike the static Archivo Narrow it has tabular figures, so changing values
+     don't shift. Labels and text at 500; values, readouts and names at 600 (below). See docs/ui-review.md. */
+  --font-panel: "Archivo Variable", "DIN Condensed", "Avenir Next Condensed", sans-serif;
+  /* The type scale: nothing below 11px, which is what reads at arm's length on the 1080p monitor. */
+  --text-xs: 11px;
+  --text-s: 12px;
+  --text-m: 13px;
+  --text-l: 14px;
+  --text-xl: 15px;
+  --text-2xl: 18px;
+  --text-3xl: 22px;
+  font-family: var(--font-panel);
+  font-stretch: 75%;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  /* At 75% width the space is narrow; this keeps "BANK A" and "785 Hz" from running together. */
+  word-spacing: 0.12em;
+  font-size: var(--text-s);
 }
 
 * {
@@ -50,6 +68,22 @@ select {
   color: inherit;
 }
 
+/* ---- type: values, readouts and names at 600 over the 500 of labels and text */
+
+.readout em,
+.kn em,
+.pv,
+.lv,
+.lufs,
+.lufs-i,
+.ahr-values b,
+.clocktext,
+.corr .v,
+.bus .num,
+.bus .name {
+  font-weight: 600;
+}
+
 /* ---- window */
 
 .ld {
@@ -70,14 +104,14 @@ select {
   padding: 0 12px;
   border-bottom: 1px solid var(--edge);
   background: #101012;
-  font-size: 13px;
+  font-size: var(--text-m);
   letter-spacing: 0.06em;
   color: var(--dim);
 }
 
 .bar .logo {
   color: #fff;
-  font-size: 15px;
+  font-size: var(--text-xl);
   letter-spacing: 0.12em;
 }
 
@@ -123,7 +157,7 @@ select {
 }
 
 .grp > .gt {
-  font-size: 10px;
+  font-size: var(--text-xs);
   letter-spacing: 0.1em;
   color: var(--dim);
   padding: 4px 10px 0;
@@ -138,7 +172,7 @@ select {
 
 .flowarrow {
   color: var(--dim);
-  font-size: 18px;
+  font-size: var(--text-2xl);
   align-self: center;
   padding: 0 1px;
 }
@@ -169,7 +203,7 @@ select {
   border: 1px solid var(--acc);
   background: color-mix(in srgb, var(--acc) 22%, #000);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-m);
   color: var(--acc);
   padding: 0;
 }
@@ -191,7 +225,7 @@ select {
   background: color-mix(in srgb, var(--acc) 14%, #000);
   color: var(--acc);
   padding: 4px 7px;
-  font-size: 15px;
+  font-size: var(--text-xl);
   letter-spacing: 0.05em;
   border: 1px solid #000;
   white-space: nowrap;
@@ -204,7 +238,7 @@ select {
   border: 2px solid var(--acc);
   color: var(--acc);
   padding: 2px 7px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
   background: #000;
   border-radius: 3px;
@@ -251,7 +285,7 @@ select {
   display: grid;
   place-items: center;
   color: #4a4c52;
-  font-size: 13px;
+  font-size: var(--text-m);
   letter-spacing: 0.06em;
 }
 
@@ -271,7 +305,7 @@ select {
   width: 56px;
   flex: none;
   overflow: hidden;
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 
 .frow.col {
@@ -298,7 +332,7 @@ select {
   min-width: 0;
   height: 18px;
   padding: 0;
-  font-size: 10.5px;
+  font-size: var(--text-xs);
   background: #1d1e21;
   border: 1px solid #000;
   color: #a3a6ae;
@@ -323,12 +357,12 @@ select {
 
 .gsel button {
   height: 16px;
-  font-size: 10px;
+  font-size: var(--text-xs);
 }
 
 .nv button {
   height: 22px;
-  font-size: 11.5px;
+  font-size: var(--text-s);
 }
 
 .nv button.sf {
@@ -345,7 +379,7 @@ select.dd {
   background: var(--lcd);
   color: var(--lcdtxt);
   border: 1px solid #000;
-  font-size: 12px;
+  font-size: var(--text-s);
   height: 19px;
   letter-spacing: 0.04em;
 }
@@ -353,7 +387,7 @@ select.dd {
 button.big {
   width: 100%;
   height: 24px;
-  font-size: 12px;
+  font-size: var(--text-s);
   letter-spacing: 0.1em;
   border: 2px solid var(--acc);
   color: var(--acc);
@@ -393,7 +427,7 @@ button.big.on {
 .readout em {
   font-style: normal;
   color: var(--lcdtxt);
-  font-size: 12px;
+  font-size: var(--text-s);
 }
 
 .big-slot {
@@ -451,6 +485,14 @@ button.big.on {
   padding-left: 40px;
 }
 
+/* Three or more choices side by side in a slot (Super Filter's LOW-PASS / BAND-PASS / HIGH-PASS) only get about 40px
+   each: the font's narrowest width, slightly tightened, keeps the names whole. */
+.slot .seg button:first-child:nth-last-child(n + 3),
+.slot .seg button:first-child:nth-last-child(n + 3) ~ button {
+  font-stretch: 62%;
+  letter-spacing: -0.02em;
+}
+
 .slot .frow.col .seg button {
   height: 18px;
 }
@@ -492,7 +534,7 @@ button.big.on {
 }
 
 .kn .lbl {
-  font-size: 9.5px;
+  font-size: var(--text-xs);
   max-width: 54px;
   overflow: hidden;
   white-space: nowrap;
@@ -500,7 +542,7 @@ button.big.on {
 
 .kn em {
   font-style: normal;
-  font-size: 12px;
+  font-size: var(--text-s);
   color: var(--lcdtxt);
   white-space: nowrap;
 }
@@ -514,7 +556,7 @@ button.big.on {
 }
 
 .pcol .lbl {
-  font-size: 9.5px;
+  font-size: var(--text-xs);
   letter-spacing: 0.04em;
   text-align: center;
 }
@@ -536,7 +578,7 @@ button.big.on {
   border: 1px solid #000;
   border-radius: 2px;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--text-s);
   color: #555;
   display: grid;
   place-items: center;
@@ -664,7 +706,7 @@ button.big.on {
 
 .exp {
   font: inherit;
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: #d8a2ff;
   background: none;
   border: 1px solid #d8a2ff;
@@ -684,7 +726,7 @@ button.big.on {
 }
 
 .morph .keep {
-  font-size: 11px;
+  font-size: var(--text-xs);
   padding: 3px 8px;
   border-color: color-mix(in srgb, var(--acc) 70%, #000);
   color: var(--acc);
@@ -705,7 +747,7 @@ button.big.on {
 }
 
 .fxrow .side .h {
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-align: center;
   color: #fff;
@@ -721,7 +763,7 @@ button.big.on {
 }
 
 .fxrow .scenes button {
-  font-size: 14px;
+  font-size: var(--text-l);
 }
 
 .settings .libbtns {
@@ -783,7 +825,7 @@ button.big.on {
   background: #1d1e21;
   border: 1px solid #000;
   padding: 4px 6px;
-  font-size: 12.5px;
+  font-size: var(--text-m);
   cursor: pointer;
 }
 
@@ -800,13 +842,13 @@ button.big.on {
 /* svg drawing classes, as in the mockup */
 .pad { fill: #1d1e21; stroke: #000; cursor: pointer; }
 .on > .pad, .pad.on { fill: var(--acc); }
-.padt { fill: #a3a6ae; font-size: 13px; pointer-events: none; }
+.padt { fill: #a3a6ae; font-size: var(--text-m); pointer-events: none; }
 .on > .padt { fill: #000; }
 .pad.key { stroke: #fff; stroke-width: 2; }
-.gl { fill: #5b5e66; font-size: 9px; font-family: -apple-system, sans-serif; }
-.gt { fill: #c9ccd3; font-size: 10px; font-family: -apple-system, sans-serif; letter-spacing: 0.04em; }
-.big1 { fill: #fff; font-size: 15px; letter-spacing: 0.08em; }
-.hl { fill: #fff; font-size: 9px; font-family: -apple-system, sans-serif; pointer-events: none; }
+.gl { fill: #5b5e66; font-size: var(--text-xs); }
+.gt { fill: #c9ccd3; font-size: var(--text-xs); letter-spacing: 0.04em; }
+.big1 { fill: #fff; font-size: var(--text-xl); letter-spacing: 0.08em; }
+.hl { fill: #fff; font-size: var(--text-xs); pointer-events: none; }
 .gr { stroke: #1d2024; stroke-width: 1; }
 .ax { stroke: #3a3d44; stroke-width: 1; }
 .cv { fill: none; stroke: var(--acc); stroke-width: 2; stroke-linejoin: round; }
@@ -842,7 +884,7 @@ button.big.on {
 }
 
 .lbl {
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.1em;
   color: var(--dim);
   text-transform: uppercase;
@@ -856,7 +898,7 @@ button.big.on {
   color: var(--lcdtxt);
   border: 1px solid #000;
   padding: 4px;
-  font-size: 13px;
+  font-size: var(--text-m);
 }
 
 .mx-left .project .nameedit {
@@ -902,7 +944,7 @@ button.big.on {
   border: 1px solid var(--rule);
   padding: 4px 0;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.06em;
   background: #1d1e21;
   cursor: pointer;
@@ -948,7 +990,7 @@ button.big.on {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--text-m);
   letter-spacing: 0.14em;
   color: #000;
   font-weight: 600;
@@ -986,7 +1028,7 @@ button.big.on {
 }
 
 .ws .wpad {
-  font-size: 13px;
+  font-size: var(--text-m);
   color: #000;
   font-weight: 600;
   padding: 1px 6px;
@@ -1031,7 +1073,7 @@ button.wpad:active {
 }
 
 .ws .nt {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--dim);
 }
 
@@ -1039,7 +1081,7 @@ button.wpad:active {
   width: 100%;
   background: var(--lcd);
   color: var(--bc, var(--lcdtxt));
-  font-size: 12.5px;
+  font-size: var(--text-m);
   padding: 3px 4px;
   border: 1px solid #000;
   white-space: nowrap;
@@ -1120,7 +1162,7 @@ button.wpad:active {
 
 .ahr-head .h {
   color: #fff;
-  font-size: 14px;
+  font-size: var(--text-l);
   letter-spacing: 0.08em;
 }
 
@@ -1158,14 +1200,14 @@ button.wpad:active {
   display: flex;
   justify-content: space-between;
   color: var(--dim);
-  font-size: 12px;
+  font-size: var(--text-s);
   letter-spacing: 0.06em;
 }
 
 .ahr-values b {
   color: var(--lcdtxt);
   font-weight: normal;
-  font-size: 14px;
+  font-size: var(--text-l);
   margin-left: 4px;
 }
 
@@ -1184,7 +1226,7 @@ button.wpad:active {
   position: relative;
   height: 20px;
   border: 1px solid var(--rule);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.04em;
   display: flex;
   align-items: center;
@@ -1206,7 +1248,7 @@ button.wpad:active {
   background: none;
   border: none;
   color: inherit;
-  font-size: 12px;
+  font-size: var(--text-s);
   cursor: pointer;
   appearance: none;
   padding: 0 5px;
@@ -1230,7 +1272,7 @@ button.wpad:active {
   flex: 1 1 0;
   min-width: 0;
   height: 100%;
-  font-size: 11px;
+  font-size: var(--text-xs);
   border: none;
   color: var(--dim);
   background: #000;
@@ -1299,7 +1341,7 @@ button.wpad:active {
 .pv {
   flex: 1;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--dim);
 }
 
@@ -1308,7 +1350,7 @@ button.wpad:active {
   height: 22px;
   flex: none;
   border: 1px solid var(--rule);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.06em;
   color: var(--dim);
   background: #1d1e21;
@@ -1392,7 +1434,7 @@ button.wpad:active {
 
 .lv {
   text-align: center;
-  font-size: 13px;
+  font-size: var(--text-m);
   color: var(--bc, var(--lcdtxt));
 }
 
@@ -1424,7 +1466,7 @@ button.wpad:active {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--text-m);
 }
 
 .seg {
@@ -1465,7 +1507,7 @@ button.wpad:active {
 .spike {
   padding: 16px 24px;
   font-family: "Helvetica Neue", sans-serif;
-  font-size: 14px;
+  font-size: var(--text-l);
 }
 
 .spike .row {
@@ -1513,7 +1555,7 @@ button.wpad:active {
   padding: 8px;
   max-height: 320px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--text-s);
 }
 
 /* ---- Scopes (docs/sp404-design.md › Scopes): the USB OUT meter column and the SCOPE view */
@@ -1552,7 +1594,7 @@ button.wpad:active {
   position: absolute;
   inset: 8px 2px auto;
   margin: 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.25;
   color: var(--dim);
   background: #111113e0;
@@ -1569,7 +1611,7 @@ button.wpad:active {
   background: #1d1e21;
   color: var(--txt);
   padding: 3px 0;
-  font-size: 12px;
+  font-size: var(--text-s);
   cursor: pointer;
   min-height: 22px;
 }
@@ -1581,7 +1623,7 @@ button.wpad:active {
 }
 
 .mx-right .lufs {
-  font-size: 22px;
+  font-size: var(--text-3xl);
   color: var(--lcdtxt);
   background: var(--lcd);
   border: 1px solid #000;
@@ -1596,7 +1638,7 @@ button.wpad:active {
   background: #1d1e21;
   color: var(--txt);
   padding: 3px 0;
-  font-size: 15px;
+  font-size: var(--text-xl);
   cursor: pointer;
 }
 
@@ -1646,7 +1688,7 @@ button.wpad:active {
 
 .scopebar .clocktext {
   color: var(--dim);
-  font-size: 12px;
+  font-size: var(--text-s);
   letter-spacing: 0.05em;
 }
 
@@ -1688,7 +1730,7 @@ button.wpad:active {
 .scope .corr .end,
 .scope .corr .v {
   color: var(--dim);
-  font-size: 12px;
+  font-size: var(--text-s);
 }
 
 .scope .corr .v {

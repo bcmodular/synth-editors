@@ -129,7 +129,8 @@ Follows the TB-3's split:
 
 Need the JV-2080 on the bench:
 
-- The raw Wave Group ID values for INT-A and INT-B.
+- ~~The raw Wave Group ID values for INT-A and INT-B.~~ Answered on the bench (2026-11-14): Group Type 0 (INT),
+  Group ID 1 = INT-A, 2 = INT-B.
 - Raw → display for the EFX parameters shown in ms, Hz, dB, degrees, notes and balance (marked ⚑ in the map), and
   that each type's list order is EFX Parameter 1–12.
 - How the JV splits a tone RQ1 reply.

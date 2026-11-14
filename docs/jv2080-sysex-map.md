@@ -42,9 +42,9 @@ TouchOSC plan, so some mention "the plan"; [jv2080-design.md](jv2080-design.md) 
    waves**, **448 internal waves** in total. "Wave Group 1–2 (fixed INT in v1)" is not enough: the
    editor must set Wave Group Type (offset 1) **and** Wave Group ID (offset 2) to pick A or B.
    It needs two name tables.
-   - **Not verifiable from the manual:** the raw Group ID values for INT-A and INT-B. The MIDI
-     implementation only gives `Wave Group Type 0–2 = INT, <PCM>, EXP` and `Wave Group ID 0–127`
-     (p.190). Read a known preset on hardware to find the IDs. Check an INT-A tone and an INT-B tone.
+   - **Not in the manual, found on the hardware (2026-11-14):** Group ID **1 = INT-A, 2 = INT-B**, with
+     Group Type 0 (INT). The MIDI implementation only gives `Wave Group Type 0–2 = INT, <PCM>, EXP` and
+     `Wave Group ID 0–127` (p.190); the IDs were read back from the JV after setting each group on its panel.
    - `<PCM>` is in angle brackets. Per p.188, values in `< >` are for JV-1080/XP-80 and are ignored
      by the JV-2080. So Group Type is effectively 0 = INT, 2 = EXP.
 5. **Wave Number range is per group.** It is raw 0–254 (display 001–255) (p.190). INT-B only uses
@@ -202,7 +202,7 @@ Total size `00 00 00 4A` ✓.
 |---|---|---|---|---|---|
 | 00 | 0 | Tone Switch | 0–1 | OFF, ON | ★ |
 | 01 | 1 | Wave Group Type | 0–2 | INT, \<PCM\>, EXP (PCM ignored by JV-2080) | ★ |
-| 02 | 2 | Wave Group ID | 0–127 | INT-A / INT-B / XP-A…H — **raw IDs not in manual** | ★ |
+| 02 | 2 | Wave Group ID | 0–127 | 1 = INT-A, 2 = INT-B (found on hardware; not in manual) | ★ |
 | 03–04 # | 3–4 | Wave Number | 0–254 (nibbled) | 001–255 (§8) | ★ |
 | 05 | 5 | Wave Gain | 0–3 | −6, 0, +6, +12 dB | |
 | 06 | 6 | FXM Switch | 0–1 | OFF, ON | |
@@ -942,8 +942,8 @@ Wave Group: **INT-A** (255 waves) and **INT-B** (193 waves), **448 internal wave
 p.182. Names are transcribed as printed, including oddities such as "REV PhillHit",
 "REV Clve" and "REV SN  Roll".
 
-**Unverified:** the raw Wave Group Type/ID that selects INT-A vs INT-B. Type is presumably 0 (INT).
-The ID values are not in the manual. See Discrepancy 4.
+**Found on hardware:** Wave Group Type 0 (INT) with Group ID 1 = INT-A, 2 = INT-B. The IDs are not in the
+manual. See Discrepancy 4.
 
 #### INT-A (manual p.182) (255 waves)
 
@@ -1109,7 +1109,8 @@ The ID values are not in the manual. See Discrepancy 4.
 
 ## Not found / not verifiable in the manual
 
-- Raw Wave Group ID values for INT-A and INT-B (only `Type 0–2`, `ID 0–127` are given, p.190).
+- Raw Wave Group ID values for INT-A and INT-B (only `Type 0–2`, `ID 0–127` are given, p.190). Since found on
+  the hardware: 1 = INT-A, 2 = INT-B.
 - How EFX parameter raw values map to display values, and the raw step count, for every
   non-0–127 EFX parameter (§7).
 - Explicit confirmation that the per-type list order equals EFX Parameter 1–12.

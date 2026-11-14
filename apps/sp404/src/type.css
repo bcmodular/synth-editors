@@ -1,0 +1,45 @@
+/* Type: Archivo (SIL OFL 1.1, bundled from @fontsource-variable/archivo), a grotesque in the spirit of the SP-404
+   MK2's own panel lettering. It is a variable font with width and weight axes: at 75% width it is the narrow cut
+   (Archivo Narrow), but unlike the static Archivo Narrow it has tabular figures, so changing values don't shift.
+   Labels and text at 500; values, readouts and names at 600. See docs/ui-review.md. */
+@import "@fontsource-variable/archivo/wdth.css";
+
+:root {
+  --font-panel: "Archivo Variable", "DIN Condensed", "Avenir Next Condensed", sans-serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+  font-family: var(--font-panel);
+  font-stretch: 75%;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  /* At 75% width the space is narrow; this keeps "BANK A" and "785 Hz" from running together. */
+  word-spacing: 0.12em;
+}
+
+/* Three or more choices side by side in a parameter slot (Super Filter's LOW-PASS / BAND-PASS / HIGH-PASS) only get
+   about 40px each: the narrowest width keeps the names whole. */
+.slot .seg button:first-child:nth-last-child(n + 3),
+.slot .seg button:first-child:nth-last-child(n + 3) ~ button {
+  font-stretch: 62%;
+}
+
+/* The labels drawn inside the FX views use the panel font too. */
+.gl,
+.gt,
+.hl {
+  font-family: var(--font-panel);
+}
+
+/* Values and names. */
+.readout em,
+.kn em,
+.pv,
+.lv,
+.lufs,
+.lufs-i,
+.ahr-values b,
+.clocktext,
+.corr .v,
+.bus .num,
+.bus .name {
+  font-weight: 600;
+}

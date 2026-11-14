@@ -533,6 +533,64 @@ svg .trace {
   stroke: var(--led);
   stroke-width: 2.2;
 }
+/* EFX drawings (editor/efx/, ui/draw.tsx), in the EQ's style. */
+svg .area {
+  fill: rgba(61, 220, 90, 0.14);
+}
+svg .trace2 {
+  fill: none;
+  stroke: #e8e8ea;
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+}
+svg .tap {
+  stroke: var(--led);
+  stroke-width: 3;
+}
+svg .early {
+  stroke: var(--led);
+  stroke-opacity: 0.35;
+}
+svg .voice {
+  fill: rgba(61, 220, 90, 0.18);
+  stroke: none;
+}
+svg .voice.echo {
+  fill: rgba(61, 220, 90, 0.1);
+}
+svg .gcap {
+  fill: var(--text);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+}
+svg .bandedge {
+  fill: var(--led);
+  fill-opacity: 0.8;
+}
+svg .hit,
+svg .dragarea {
+  fill: transparent;
+  touch-action: none;
+}
+svg .pad {
+  cursor: pointer;
+}
+svg .pad > rect {
+  fill: var(--well);
+  stroke: var(--edge);
+}
+svg .pad > text {
+  fill: var(--dim);
+  font-size: var(--text-xs);
+  pointer-events: none;
+}
+svg .pad.on > rect {
+  fill: color-mix(in srgb, var(--led) 22%, var(--well));
+  stroke: var(--led);
+}
+svg .pad.on > text {
+  fill: #fff;
+}
 .envvals {
   display: flex;
   justify-content: space-between;
@@ -622,8 +680,7 @@ svg .trace {
 .fx .sec {
   gap: 8px;
 }
-.efx > .slots,
-.efx > .eq,
+.efx > .efxbody,
 .dist > .col {
   margin-top: 14px;
 }
@@ -631,19 +688,37 @@ svg .trace {
 .dist > .col {
   row-gap: 10px;
 }
-.eq {
+/* EFX body: the type's drawing (editor/efx/) beside its slots. */
+.efxbody {
   gap: 16px;
 }
-.eq > .slots {
+.efxbody > .slots {
   flex: 1;
+  min-width: 0;
+  column-gap: 12px;
 }
-/* EQ has six slot rows: spaced a little tighter so it fits the row's usual height. */
-.efx > .eq {
+.efxbody .hrow > .lbl {
+  width: 70px;
+  flex: none;
+}
+.efxbody:has(> svg) {
   margin-top: 10px;
 }
-.eq .slots {
-  column-gap: 12px;
+.efxbody:has(> svg) .slots {
   row-gap: 7px;
+}
+/* A slot set in the drawing: its name and value, no fader. */
+.hrow.readout > .rv {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 22px;
+  padding: 3px 5px 0;
+  border-bottom: 1px solid var(--edge);
+  text-align: right;
+  font-style: normal;
+  font-weight: 600;
+  font-size: var(--text-l);
+  color: var(--led);
 }
 svg .grid {
   stroke: #26272b;

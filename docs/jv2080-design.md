@@ -71,7 +71,8 @@ After the first editor, a more compact layout, decided with the user:
   them. ✅
 - **Wave library:** a panel over the tones with search and instrument categories (assigned from the wave names);
   INT-A / INT-B is a tag, not an up-front choice. Picking auditions straight away. The wave's name replaces
-  "TONE n" in the tone's header, with an icon that opens the library; the WAVE section then goes.
+  "TONE n" in the tone's header, with an icon that opens the library; the WAVE section then goes. ✅ (categories
+  in `core/waveCategories.ts`, as ranges of the manual's numbering)
 - **Envelopes** (pitch, filter, amp) as graph editors with a reset to a simple shape; the other tone values as
   encoders, stacked left of the pitch and filter graphs. ✅
 - **LFOs:** the TB-3's waveform drawing, and a routing view like its cross-mod matrix.

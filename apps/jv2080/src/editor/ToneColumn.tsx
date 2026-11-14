@@ -1,17 +1,19 @@
-// One tone's column: wave, pitch, filter, amp envelope and LFOs (level, pan and sends are in the mixer). Envelopes
-// are graphs; the other values are knobs.
+// One tone's column: its wave as the title (opening the wave library), pitch, filter, amp envelope and LFOs (level,
+// pan and sends are in the mixer). Envelopes are graphs; the other values are knobs.
 
 import { useState } from "react";
 import { SIMPLE_ENVELOPES, type EnvelopeKind, type EnvelopeSpec } from "../core/envelope";
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
-import { WAVE_GROUPS, waveCount, waveGroupBytes, waveGroupOf, waveName, type WaveGroup } from "../core/waves";
-import { Section, Segmented } from "../ui/controls";
+import type { WaveEntry } from "../core/waveCategories";
+import { waveGroupBytes, waveGroupOf, waveName } from "../core/waves";
+import { Section } from "../ui/controls";
 import { EnvelopeGraph } from "../ui/EnvelopeGraph";
 import { useSize } from "../ui/useSize";
 import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamFader, ParamKnob, ParamSelect } from "./ParamControls";
+import { WaveLibrary } from "./WaveLibrary";
 
 const ROW_ENV_HEIGHT = 112; // beside the three knobs
 const AMP_ENV_HEIGHT = 80;
@@ -20,37 +22,40 @@ interface ToneProps {
   tone: number; // 0–3
 }
 
-function Wave({ tone }: ToneProps) {
+// The tone's wave as its section title: the name, and an icon that opens the wave library.
+function WaveTitle({ tone }: ToneProps) {
   const { patch, setValue } = useEditor();
+  const [open, setOpen] = useState(false);
   const raw = (id: string) => getParam(patch, param(id), tone);
   const group = waveGroupOf(raw("waveGroupType"), raw("waveGroupId"));
   const number = raw("waveNumber");
-  const setGroup = (g: WaveGroup) => {
-    const [type, id] = waveGroupBytes(g);
+  const name = group ? waveName(group, number) : `group ${raw("waveGroupType")}/${raw("waveGroupId")} ${number + 1}`;
+  const pick = (w: WaveEntry) => {
+    const [type, id] = waveGroupBytes(w.group);
     setValue(param("waveGroupType"), type, tone);
     setValue(param("waveGroupId"), id, tone);
-    if (number >= waveCount(g)) setValue(param("waveNumber"), waveCount(g) - 1, tone);
+    setValue(param("waveNumber"), w.number, tone);
   };
-  const setNumber = (n: number) => group && setValue(param("waveNumber"), Math.max(0, Math.min(waveCount(group) - 1, n)), tone);
   return (
     <>
-      <Segmented
-        options={WAVE_GROUPS.map((g, i) => ({ label: g, value: i }))}
-        value={group ? WAVE_GROUPS.indexOf(group) : -1}
-        onChange={(i) => setGroup(WAVE_GROUPS[i]!)}
-      />
-      <div className="row tight wave">
-        <button className="btn" disabled={!group || number === 0} onClick={() => setNumber(number - 1)}>‹</button>
-        <select className="pick" disabled={!group} value={number} onChange={(e) => setNumber(Number(e.target.value))}>
-          {group
-            ? Array.from({ length: waveCount(group) }, (_, n) => (
-                <option key={n} value={n}>{String(n + 1).padStart(3, "0")} {waveName(group, n)}</option>
-              ))
-            : <option value={number}>group {raw("waveGroupType")}/{raw("waveGroupId")} {number + 1}</option>}
-        </select>
-        <button className="btn" disabled={!group || number === waveCount(group) - 1} onClick={() => setNumber(number + 1)}>›</button>
-      </div>
+      <button className="wave-title" title="Choose a wave" onClick={() => setOpen(true)}>
+        <span>{name}</span>
+        <LibraryIcon />
+      </button>
+      {open && (
+        <WaveLibrary title={`TONE ${tone + 1} WAVE`} colour={TONE_COLOURS[tone]!} current={{ group, number }}
+          onPick={pick} onClose={() => setOpen(false)} />
+      )}
     </>
+  );
+}
+
+// Four little squares: "pick from a grid".
+function LibraryIcon() {
+  return (
+    <svg className="lib-icon" width={14} height={14} viewBox="0 0 14 14" aria-hidden>
+      {[0, 8].flatMap((x) => [0, 8].map((y) => <rect key={`${x}${y}`} x={x} y={y} width={6} height={6} rx={1} />))}
+    </svg>
   );
 }
 
@@ -104,9 +109,7 @@ function Lfo({ tone, n }: ToneProps & { n: 1 | 2 }) {
 
 export function ToneColumn({ tone }: ToneProps) {
   return (
-    <Section title={`TONE ${tone + 1}`} className="tone" style={tintVars(TONE_COLOURS[tone]!)}>
-      <h3>WAVE</h3>
-      <Wave tone={tone} />
+    <Section title={<WaveTitle tone={tone} />} className="tone" style={tintVars(TONE_COLOURS[tone]!)}>
       <h3>PITCH</h3>
       <div className="envrow">
         <div className="knobstack">

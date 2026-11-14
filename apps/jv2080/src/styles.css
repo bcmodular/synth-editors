@@ -836,3 +836,157 @@ input {
   fill: transparent;
   cursor: move;
 }
+
+/* The wave as a tone's title: name and library icon. */
+.wave-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0 4px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.wave-title:hover {
+  color: #fff;
+}
+.lib-icon {
+  fill: currentColor;
+  opacity: 0.7;
+  flex: none;
+}
+.wave-title:hover .lib-icon {
+  opacity: 1;
+}
+
+/* The wave library (editor/WaveLibrary.tsx): over the editor, in the tone's colour (--acc). */
+.wavelib {
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: 1180px;
+  height: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  background: #121214;
+  border: 1px solid var(--acc);
+  box-shadow: 0 12px 40px #000c;
+}
+.wl-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.wl-title {
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--acc);
+}
+.wl-search {
+  width: 320px;
+  font-size: var(--text-l);
+  padding: 4px 8px;
+}
+.wl-search:focus {
+  outline: 1px solid var(--acc);
+}
+.wl-count {
+  color: var(--dim);
+  font-size: var(--text-m);
+}
+.wl-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+}
+.wl-cats {
+  flex: 0 0 170px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+.wl-cat {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px 3px;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text);
+  font-size: var(--text-l);
+  text-align: left;
+  cursor: pointer;
+}
+.wl-cat em {
+  font-style: normal;
+  color: var(--dim);
+  font-size: var(--text-s);
+}
+.wl-cat:hover:not(:disabled) {
+  border-color: var(--edge);
+}
+.wl-cat.on {
+  border-color: var(--acc);
+  background: color-mix(in srgb, var(--acc) 16%, #0b0b0c);
+  color: #fff;
+}
+.wl-cat:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.wl-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: 48px;
+  gap: 4px;
+  overflow-y: auto;
+  align-content: start;
+}
+.wl-wave {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--acc) 7%, #0b0b0c);
+  border: 1px solid color-mix(in srgb, var(--acc) 25%, #000);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  min-width: 0;
+}
+.wl-wave:hover {
+  background: color-mix(in srgb, var(--acc) 18%, #0b0b0c);
+}
+.wl-wave.on {
+  background: var(--acc);
+  color: #000;
+}
+.wl-name {
+  font-size: var(--text-l);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.wl-tags {
+  display: flex;
+  gap: 5px;
+}
+.wl-tags i {
+  font-style: normal;
+  font-size: 11px;
+  opacity: 0.65;
+}

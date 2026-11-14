@@ -3,7 +3,10 @@ import type { LogLine } from "./useJvLink";
 
 export function LogPanel({ log, onClear }: { log: LogLine[]; onClear: () => void }) {
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ block: "nearest" }), [log]);
+  // A block body: scrollIntoView returns a Promise in current Chromium, and React would take it for a cleanup.
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "nearest" });
+  }, [log]);
   const first = log[0]?.t ?? 0;
   return (
     <section className="log">

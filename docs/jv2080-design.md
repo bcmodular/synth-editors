@@ -137,6 +137,8 @@ Need the JV-2080 on the bench:
   that each type's list order is EFX Parameter 1–12.
 - ~~How the JV splits a tone RQ1 reply.~~ Answered on the bench (2026-11-14): it doesn't. Each tone comes back as
   a single DT1 carrying all 129 bytes, ~70 ms per tone over DIN.
+- ~~Whether the address carry is right.~~ Checked on the bench (2026-11-14): a DT1 to `03 00 11 00` (Tone 1 offset
+  128, Reverb Send) set Tone 1's Reverb Send to 127 and read back as 127, with the other tones unchanged.
 - ~~How long after a program change before an RQ1 is answered.~~ Answered on the bench (2026-11-14): no wait is
   needed. An RQ1 sent straight after bank select + program change (0 ms) returns the new patch, so the JV handles
   incoming MIDI in order. The bank browser's LOAD can send the PC and the RQ1s back to back.

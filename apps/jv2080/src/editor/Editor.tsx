@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { JvLink } from "../link/useJvLink";
 import { CommonRow } from "./CommonRow";
 import { EditorContext } from "./EditorContext";
+import { PatchSettings } from "./PatchSettings";
 import { ToneColumn } from "./ToneColumn";
 import { TopStrip } from "./TopStrip";
 import { useJvSession } from "./useJvSession";
@@ -24,18 +25,20 @@ export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void })
   const resync = useCallback(() => void syncFromJv(), [syncFromJv]);
   const api = useMemo(() => (patch ? { patch, setValue, sendParam, resync } : null), [patch, setValue, sendParam, resync]);
   return (
-    <main className="editor">
-      <TopStrip link={link} session={session} onSpike={onSpike} />
-      {api ? (
-        <EditorContext.Provider value={api}>
-          <CommonRow />
-          <div className="tones">
-            {[0, 1, 2, 3].map((t) => <ToneColumn key={t} tone={t} />)}
-          </div>
-        </EditorContext.Provider>
-      ) : (
-        <p className="empty">{ready ? "Reading the patch from the JV…" : "Choose the JV's MIDI ports, then SYNC FROM JV."}</p>
-      )}
-    </main>
+    <EditorContext.Provider value={api}>
+      <main className="editor">
+        <TopStrip link={link} session={session} onSpike={onSpike} settings={api ? <PatchSettings /> : null} />
+        {api ? (
+          <>
+            <CommonRow />
+            <div className="tones">
+              {[0, 1, 2, 3].map((t) => <ToneColumn key={t} tone={t} />)}
+            </div>
+          </>
+        ) : (
+          <p className="empty">{ready ? "Reading the patch from the JV…" : "Choose the JV's MIDI ports, then SYNC FROM JV."}</p>
+        )}
+      </main>
+    </EditorContext.Provider>
   );
 }

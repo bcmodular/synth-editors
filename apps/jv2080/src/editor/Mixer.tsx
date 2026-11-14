@@ -1,16 +1,15 @@
 // The mixer, laid out like a small analogue desk (a Mackie 1202-VLZ): each tone a column of knobs (sends, then pan),
 // its output buttons, MUTE and SOLO, and a level knob. Then the chorus and reverb returns as short faders, and the
-// master (patch level and pan) with the SETTINGS popup for the patch-wide settings.
+// master (patch level and pan). The patch-wide settings are in the header (PatchSettings.tsx).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getParam, type Patch } from "../core/patch";
 import { param } from "../core/paramValue";
 import { Segmented } from "../ui/controls";
 import { ChannelFader } from "../ui/Knob";
-import { useDismiss } from "../ui/useDismiss";
 import { MASTER_COLOUR, PAN_COLOUR, SECTION_COLOURS, TONE_COLOURS } from "./colours";
 import { useEditor } from "./EditorContext";
-import { ParamChoice, ParamFader, ParamKnob, ParamSwitch } from "./ParamControls";
+import { ParamKnob } from "./ParamControls";
 import { soloedSwitches, toggleSolo } from "./solo";
 
 const TONES = [0, 1, 2, 3];
@@ -73,45 +72,10 @@ function Returns() {
   );
 }
 
-// The patch-wide settings that don't need to be on screen all the time.
-function PatchPopup() {
-  const { patch } = useEditor();
-  const followsSystem = getParam(patch, param("clockSource")) === 1;
-  return (
-    <div className="popup patch-pop">
-      <h3>PATCH</h3>
-      <ParamFader def="octaveShift" />
-      <ParamFader def="bendUp" />
-      <ParamFader def="bendDown" />
-      <ParamChoice def="keyAssign" label="Keys" />
-      <div className="row tight">
-        <ParamSwitch def="soloLegato" label="LEGATO" />
-        <ParamSwitch def="portamento" label="PORTA" />
-      </div>
-      <ParamFader def="portamentoTime" />
-      <ParamChoice def="clockSource" />
-      <div className={followsSystem ? "off" : ""}>
-        <ParamFader def="tempo" />
-      </div>
-      <p className="note">
-        {followsSystem
-          ? "SYSTEM follows the JV's system clock, which follows incoming MIDI clock when SYSTEM › MIDI sets it to MIDI."
-          : "PATCH uses this patch's own tempo, for tempo-synced LFOs, delays and tone delay."}
-      </p>
-    </div>
-  );
-}
-
 function MasterStrip() {
-  const [open, setOpen] = useState(false);
-  const anchor = useRef<HTMLDivElement>(null);
-  useDismiss(anchor, useCallback(() => setOpen(false), []));
   return (
     <div className="strip master">
-      <div className="anchor" ref={anchor}>
-        <button className={`btn ${open ? "sel" : ""}`} onClick={() => setOpen((o) => !o)}>SETTINGS…</button>
-        {open && <PatchPopup />}
-      </div>
+      <div className="st-head">PATCH</div>
       <ParamKnob def="patchPan" label="PAN" color={PAN_COLOUR} />
       <LevelFader id="patchLevel" colour={MASTER_COLOUR} />
     </div>

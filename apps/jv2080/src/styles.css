@@ -457,7 +457,7 @@ input {
   align-items: center;
   width: 100%;
   min-height: 0;
-  padding: 4px 0 2px;
+  padding: 5px 0 2px;
   background: color-mix(in srgb, var(--sc) 12%, #151619);
 }
 .lvf .fader {
@@ -694,4 +694,8 @@ input {
   color: var(--grp, #fff);
   border-color: color-mix(in srgb, var(--grp, #888) 60%, #000);
   font-weight: 600;
+}
+
+.anchor.settings {
+  width: auto;
 }

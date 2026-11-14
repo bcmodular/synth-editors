@@ -1,7 +1,7 @@
 // Title, MIDI ports, sync with the JV, and the bank browser (bank select + program change, then read the patch).
 
 import type { PortInfo } from "@synth-editors/midi";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BANKS, PATCHES_PER_BANK } from "../core/banks";
 import { patchName } from "../core/patch";
 import type { JvLink } from "../link/useJvLink";
@@ -48,12 +48,13 @@ function BankBrowser({ session }: { session: JvSession }) {
   );
 }
 
-export function TopStrip(p: { link: JvLink; session: JvSession; onSpike: () => void }) {
+export function TopStrip(p: { link: JvLink; session: JvSession; onSpike: () => void; settings: ReactNode }) {
   const { link, session } = p;
   return (
     <header className="top">
       <h1>JV-2080</h1>
       <span className="name">{session.patch ? patchName(session.patch) : "—"}</span>
+      {p.settings}
       <PortSelect label="OUT" ports={link.outputs} value={link.outName} onChange={link.setOutName} />
       <PortSelect label="IN" ports={link.inputs} value={link.inName} onChange={link.setInName} />
       <button className="btn" disabled={session.busy} onClick={() => void session.syncFromJv()}>SYNC FROM JV</button>

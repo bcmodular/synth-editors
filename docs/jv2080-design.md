@@ -44,8 +44,10 @@ The detail, with page references, is in [jv2080-sysex-map.md](jv2080-sysex-map.m
 - **Addresses are 7 bits per byte.** Tone offset 128 is at sub-address `01 00`, so the address builder carries
   into the next byte. The TB-3's `core/sysex.ts` doesn't need this; the JV's does.
 - **DT1 data ≤ 128 bytes, ≥ 20 ms apart** for bulk sends. A tone is two packets, so a whole patch is 9 messages
-  and takes about 200 ms. The JV also answers a tone RQ1 in more than one DT1: the parser places each packet by
-  address (the TB-3's block parser assumes one message per block).
+  and takes about 200 ms. Despite the manual, the JV answers a tone RQ1 with **one 129-byte DT1** (seen on the bench);
+  the parser still places packets by address, so either shape works.
+- A whole patch reads back in about 330 ms over DIN: Common 51 ms, each tone 70 ms (one RQ1 per block, sent when
+  the previous block is complete).
 - The JV-2080 is DIN-only (behind the H12MIDI-Pro). DIN's 31.25 kbaud spaces single edits by itself; a pacer in
   the style of `editor/pacer.ts` adds the 20 ms bulk gap.
 - Banks: USER 80/0, PR-A 81/0, PR-B 81/1, PR-C 81/2, GM 81/3, PR-E 81/4 (CC 0 / CC 32), program 1–128.
@@ -133,7 +135,8 @@ Need the JV-2080 on the bench:
   Group ID 1 = INT-A, 2 = INT-B.
 - Raw → display for the EFX parameters shown in ms, Hz, dB, degrees, notes and balance (marked ⚑ in the map), and
   that each type's list order is EFX Parameter 1–12.
-- How the JV splits a tone RQ1 reply.
+- ~~How the JV splits a tone RQ1 reply.~~ Answered on the bench (2026-11-14): it doesn't. Each tone comes back as
+  a single DT1 carrying all 129 bytes, ~70 ms per tone over DIN.
 - ~~How long after a program change before an RQ1 is answered.~~ Answered on the bench (2026-11-14): no wait is
   needed. An RQ1 sent straight after bank select + program change (0 ms) returns the new patch, so the JV handles
   incoming MIDI in order. The bank browser's LOAD can send the PC and the RQ1s back to back.

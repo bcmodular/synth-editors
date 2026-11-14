@@ -34,8 +34,9 @@ TouchOSC plan, so some mention "the plan"; [jv2080-design.md](jv2080-design.md) 
    - Preset recall can't be "5 DT1 block writes". Each 129-byte tone needs at least 2 DT1s, for
      example 128 bytes at `…1n 00` plus 1 byte at `…1n+1 00`, or two halves. Space them ≥20 ms
      apart.
-   - The receiver must expect a tone RQ1 to come back as **more than one DT1** and reassemble the
-     pieces by address.
+   - The receiver should place replies by address. On the bench (2026-11-14) the JV in fact answered
+     each tone RQ1 with **a single DT1 of all 129 bytes**, despite p.187; the address-based parser
+     handles that and a split reply alike. Sending stays at ≤128 bytes per packet, as the manual asks.
 4. **The internal waves are two groups, INT-A and INT-B, not one "INT" table.** The Wave Group
    display values are `INT-A, INT-B, XP-A–XP-H` (p.161; p.79 says "INT-A—B: waveforms stored in
    internal memory"). The waveform list (pp.182–183) has **INT-A = 255 waves** and **INT-B = 193
@@ -1115,6 +1116,6 @@ manual. See Discrepancy 4.
   non-0–127 EFX parameter (§7).
 - Explicit confirmation that the per-type list order equals EFX Parameter 1–12.
 - How the JV splits a 129-byte tone when it answers an RQ1. p.187 only says packets are ≤128 bytes,
-  sent about 20 ms apart. Check on hardware.
+  sent about 20 ms apart. Since checked on hardware: it doesn't split it (one 129-byte DT1, ~70 ms over DIN).
 - Safe DT1 pacing for single-parameter edits. The manual only gives ≥20 ms between *packets* of a
   split bulk transfer.

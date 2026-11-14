@@ -132,7 +132,10 @@ Need the JV-2080 on the bench:
 - The raw Wave Group ID values for INT-A and INT-B.
 - Raw → display for the EFX parameters shown in ms, Hz, dB, degrees, notes and balance (marked ⚑ in the map), and
   that each type's list order is EFX Parameter 1–12.
-- How the JV splits a tone RQ1 reply, and how long after a program change before an RQ1 is answered.
+- How the JV splits a tone RQ1 reply.
+- ~~How long after a program change before an RQ1 is answered.~~ Answered on the bench (2026-11-14): no wait is
+  needed. An RQ1 sent straight after bank select + program change (0 ms) returns the new patch, so the JV handles
+  incoming MIDI in order. The bank browser's LOAD can send the PC and the RQ1s back to back.
 
 To decide:
 

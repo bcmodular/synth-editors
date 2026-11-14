@@ -29,8 +29,8 @@ function useIncomingEdits(link: JvLink, busy: boolean, setPatch: (f: (p: Patch |
   }), [link.subscribe, busy, setPatch]);
 }
 
-export function useJvSession(link: JvLink): JvSession {
-  const [patch, setPatch] = useState<Patch | null>(null);
+export function useJvSession(link: JvLink, initial: Patch | null = null): JvSession {
+  const [patch, setPatch] = useState<Patch | null>(initial);
   const [busy, setBusy] = useState(false);
   const { send, device } = link;
   const queue = useMemo(() => createEditQueue((msg) => send(msg, "DT1 edit")), [send]);

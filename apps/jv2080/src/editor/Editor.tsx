@@ -1,27 +1,30 @@
 // The patch editor: top strip, common row and the four tone columns.
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { JvLink } from "../link/useJvLink";
 import { CommonRow } from "./CommonRow";
+import { demoPatch, isDemo } from "./demoPatch";
 import { EditorContext } from "./EditorContext";
 import { ToneColumn } from "./ToneColumn";
 import { TopStrip } from "./TopStrip";
 import { useJvSession } from "./useJvSession";
 
 export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void }) {
-  const session = useJvSession(link);
+  const [demo] = useState(isDemo);
+  const [initial] = useState(() => (demo ? demoPatch() : null));
+  const session = useJvSession(link, initial);
   const { patch, setValue, sendParam, syncFromJv } = session;
   const ready = link.outName !== "" && link.inName !== "" && link.outputs.length > 0;
 
   // Read the JV's patch once, as soon as the ports are known.
   const triedRead = useRef(false);
   useEffect(() => {
-    if (!ready || triedRead.current) return;
+    if (demo || !ready || triedRead.current) return;
     triedRead.current = true;
     void syncFromJv();
-  }, [ready, syncFromJv]);
+  }, [demo, ready, syncFromJv]);
 
-  const resync = useCallback(() => void syncFromJv(), [syncFromJv]);
+  const resync = useCallback(() => void (demo || syncFromJv()), [demo, syncFromJv]);
   const api = useMemo(() => (patch ? { patch, setValue, sendParam, resync } : null), [patch, setValue, sendParam, resync]);
   return (
     <EditorContext.Provider value={api}>

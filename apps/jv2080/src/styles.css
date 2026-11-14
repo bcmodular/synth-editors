@@ -990,3 +990,57 @@ input {
   font-size: 11px;
   opacity: 0.65;
 }
+
+/* A part of a tone column (PITCH, FILTER, AMP, LFO): its name in a thin strip on the left, reading upwards. */
+.block {
+  display: flex;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
+}
+.block:first-of-type {
+  border-top: none;
+}
+.vlabel {
+  flex: 0 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--tint) 14%, transparent);
+}
+.vlabel span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--tint) 80%, var(--dim));
+}
+.block-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+/* Knobs in a grid of up to three columns, each knob over its label and value. */
+.knobgrid {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-auto-rows: min-content;
+  align-content: space-between;
+  gap: 4px 2px;
+}
+.knobgrid .kn .lbl {
+  max-width: 44px;
+}
+.lfo-line > .prow {
+  flex: 1 1 0;
+}
+.lfo-line > .prow:first-child > .lbl {
+  flex-basis: 36px;
+}
+.lfo-line > .prow:last-child > .lbl {
+  flex-basis: 32px;
+}

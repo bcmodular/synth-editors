@@ -1,7 +1,7 @@
 // One tone's column: its wave as the title (opening the wave library), pitch, filter, amp envelope and LFOs (level,
 // pan and sends are in the mixer). Envelopes are graphs; the other values are knobs.
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { SIMPLE_ENVELOPES, type EnvelopeKind, type EnvelopeSpec } from "../core/envelope";
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
@@ -15,8 +15,8 @@ import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamFader, ParamKnob, ParamSelect } from "./ParamControls";
 import { WaveLibrary } from "./WaveLibrary";
 
-const ROW_ENV_HEIGHT = 112; // beside the three knobs
-const AMP_ENV_HEIGHT = 80;
+const ROW_ENV_HEIGHT = 112; // beside two rows of knobs
+const AMP_ENV_HEIGHT = 64;
 
 interface ToneProps {
   tone: number; // 0–3
@@ -93,47 +93,66 @@ function Envelope({ tone, kind, height }: ToneProps & { kind: EnvelopeKind; heig
   );
 }
 
-function Lfo({ tone, n }: ToneProps & { n: 1 | 2 }) {
+// One part of the column: a thin strip on the left with the part's name reading upwards, its controls beside it.
+function Block({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <>
-      <div className="row tight lfo-head">
-        <ParamSelect def={`lfo${n}Wave`} tone={tone} label={`LFO${n}`} />
-        <ParamFader def={`lfo${n}Rate`} tone={tone} label="Rate" />
-      </div>
-      <ParamFader def={`pitchLfo${n}`} tone={tone} label="→ Pitch" />
-      <ParamFader def={`filterLfo${n}`} tone={tone} label="→ Filter" />
-      <ParamFader def={`ampLfo${n}`} tone={tone} label="→ Amp" />
-    </>
+    <div className="block">
+      <div className="vlabel"><span>{label}</span></div>
+      <div className="block-body">{children}</div>
+    </div>
+  );
+}
+
+function LfoLine({ tone, n }: ToneProps & { n: 1 | 2 }) {
+  return (
+    <div className="row tight lfo-line">
+      <ParamSelect def={`lfo${n}Wave`} tone={tone} label={`LFO${n}`} />
+      <ParamFader def={`lfo${n}Rate`} tone={tone} label="Rate" />
+    </div>
   );
 }
 
 export function ToneColumn({ tone }: ToneProps) {
   return (
     <Section title={<WaveTitle tone={tone} />} className="tone" style={tintVars(TONE_COLOURS[tone]!)}>
-      <h3>PITCH</h3>
-      <div className="envrow">
-        <div className="knobstack">
-          <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
-          <ParamKnob def="fineTune" tone={tone} label="FINE" />
-          <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV DEPTH" />
+      <Block label="PITCH">
+        <div className="envrow">
+          <div className="knobgrid">
+            <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
+            <ParamKnob def="fineTune" tone={tone} label="FINE" />
+            <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV" />
+            <ParamKnob def="pitchLfo1" tone={tone} label="LFO1" />
+            <ParamKnob def="pitchLfo2" tone={tone} label="LFO2" />
+          </div>
+          <Envelope tone={tone} kind="pitch" height={ROW_ENV_HEIGHT} />
         </div>
-        <Envelope tone={tone} kind="pitch" height={ROW_ENV_HEIGHT} />
-      </div>
-      <h3>FILTER</h3>
-      <ParamChoice def="filterType" tone={tone} label="Type" />
-      <div className="envrow">
-        <div className="knobstack">
-          <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
-          <ParamKnob def="resonance" tone={tone} label="RESO" />
-          <ParamKnob def="filterEnvDepth" tone={tone} label="ENV DEPTH" />
+      </Block>
+      <Block label="FILTER">
+        <ParamChoice def="filterType" tone={tone} label="Type" />
+        <div className="envrow">
+          <div className="knobgrid">
+            <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
+            <ParamKnob def="resonance" tone={tone} label="RESO" />
+            <ParamKnob def="filterEnvDepth" tone={tone} label="ENV" />
+            <ParamKnob def="filterLfo1" tone={tone} label="LFO1" />
+            <ParamKnob def="filterLfo2" tone={tone} label="LFO2" />
+          </div>
+          <Envelope tone={tone} kind="filter" height={ROW_ENV_HEIGHT} />
         </div>
-        <Envelope tone={tone} kind="filter" height={ROW_ENV_HEIGHT} />
-      </div>
-      <h3>AMP</h3>
-      <Envelope tone={tone} kind="amp" height={AMP_ENV_HEIGHT} />
-      <h3>LFO</h3>
-      <Lfo tone={tone} n={1} />
-      <Lfo tone={tone} n={2} />
+      </Block>
+      <Block label="AMP">
+        <div className="envrow">
+          <div className="knobgrid">
+            <ParamKnob def="ampLfo1" tone={tone} label="LFO1" />
+            <ParamKnob def="ampLfo2" tone={tone} label="LFO2" />
+          </div>
+          <Envelope tone={tone} kind="amp" height={AMP_ENV_HEIGHT} />
+        </div>
+      </Block>
+      <Block label="LFO">
+        <LfoLine tone={tone} n={1} />
+        <LfoLine tone={tone} n={2} />
+      </Block>
     </Section>
   );
 }

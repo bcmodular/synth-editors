@@ -95,8 +95,9 @@ Follows the TB-3's split:
   - `params.ts` — one row per parameter (the ★ rows of the map): block (`common` / `tone`), offset, nibbled or not,
     range, display formatter, enum labels. Written by hand from the SysEx map; formatters in `display.ts`.
   - `paramValue.ts` — look a parameter up by id; read, clamp and encode its value.
-  - `efx.ts` + `efxTable.ts` — the 40 types and their parameters 1–12, with enum labels. Parameters whose raw →
-    display mapping isn't in the manual have kind `unknown` and show the raw value.
+  - `efx.ts` + `efxTable.ts` — the 40 types and their parameters by slot (wire order), each with its raw range and
+    how it displays (list, linear, pan, balance). Rates and times whose Hz / ms values aren't known yet have kind
+    `unknown` and show the raw value.
   - `waves.ts` + `waveNames.ts` — INT-A (255) and INT-B (193) names; group ↔ type / ID bytes.
   - `efxTable.ts` and `waveNames.ts` are generated from the map by `scripts/genTables.mjs`; correct the map and
     re-run it rather than editing them.
@@ -139,8 +140,11 @@ Need the JV-2080 on the bench:
 
 - ~~The raw Wave Group ID values for INT-A and INT-B.~~ Answered on the bench (2026-11-14): Group Type 0 (INT),
   Group ID 1 = INT-A, 2 = INT-B.
-- Raw → display for the EFX parameters shown in ms, Hz, dB, degrees, notes and balance (marked ⚑ in the map), and
-  that each type's list order is EFX Parameter 1–12.
+- ~~Raw → display for the EFX parameters, and that each type's list order is EFX Parameter 1–12.~~ Taken from
+  tgoelles' measurements on a JV-2080 ([jv2080-max-for-live](https://github.com/tgoelles/jv2080-max-for-live)):
+  the wire order differs from the manual's list for about half the types, and raw values index each parameter's
+  values (eg. −15…+15 dB = 0–30). Still unknown: the Hz / ms values of rates and times (74 parameters, raw 0–125
+  or 0–126), shown raw for now.
 - ~~How the JV splits a tone RQ1 reply.~~ Answered on the bench (2026-11-14): it doesn't. Each tone comes back as
   a single DT1 carrying all 129 bytes, ~70 ms per tone over DIN.
 - ~~Whether the address carry is right.~~ Checked on the bench (2026-11-14): a DT1 to `03 00 11 00` (Tone 1 offset

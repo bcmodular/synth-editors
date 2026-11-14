@@ -42,3 +42,8 @@ packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 The SP-404 MK2 pad mixer talks to the SP-404's USB serial port using the reverse-engineered protocol notes
 of the [SparkyMK2](https://github.com/TuscanPL/SparkyMK2) project (GPL-3). The code here was written from
 their notes only; none of theirs is copied.
+
+The JV-2080 editor's EFX tables use the parameter order and raw value ranges that tgoelles measured on a JV-2080
+for [jv2080-max-for-live](https://github.com/tgoelles/jv2080-max-for-live) (CC BY-NC 4.0). The manual gives
+neither. The measured facts are recorded in [docs/jv2080-sysex-map.md](docs/jv2080-sysex-map.md) §7; no code is
+copied.

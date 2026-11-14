@@ -53,14 +53,12 @@ TouchOSC plan, so some mention "the plan"; [jv2080-design.md](jv2080-design.md) 
 6. **EFX Output Assign has no "EFX" option.** EFX Output Assign (Common 0x19 = 25) is
    `0–2 = MIX, DIR1, DIR2` (p.189, p.163). Tone Output Assign (Tone 0x7D = 125) is
    `0–3 = MIX, EFX, DIR1, DIR2` (p.190). The two enums differ. the plan doesn't list either.
-7. **The EFX parameter value encoding is not in the manual.** EFX Parameter 1–12 are raw `0–127`
-   in the MIDI implementation (p.189). The per-type lists (pp.168–172) only give *display* ranges
-   such as `-15—+15 dB`, `0.0—100.0 ms` and `0.05—10.00 Hz`. The manual never says how raw maps to
-   display, or how many raw steps each parameter has. It also never says outright that the
-   per-type list order is the order of EFX Parameter 1–12. That order is inferred from the list
-   order and from the p.33 screen shot (TRIPLE-TAP-DELAY shows params in the same order as p.170).
-   **Every non-0–127 EFX parameter is flagged** in the EFX section and needs hardware measurement:
-   sweep each raw value and read the panel.
+7. **The EFX parameter value encoding and order are not in the manual.** EFX Parameter 1–12 are raw `0–127`
+   in the MIDI implementation (p.189), and the per-type lists (pp.168–172) only give *display* ranges in panel
+   order. Both were measured on a JV-2080 by tgoelles ([jv2080-max-for-live](https://github.com/tgoelles/jv2080-max-for-live)):
+   raw values are indexes into each parameter's values (eg. −15…+15 dB = 0–30), and the wire order differs from
+   the manual's list for about half the types. §7 has both. Only the Hz / ms values of rates and times remain
+   unknown.
 8. **TVA Envelope Level 4 is not a parameter.** It is confirmed absent: the MIDI implementation has
    only Level Envelope Level 1–3 (0x72–0x74) (p.190), and the TVA Envelope page lists
    "Level 1—3" (p.162). The p.86 envelope diagram shows the level returning to the baseline after
@@ -289,651 +287,664 @@ Total size `00 00 00 4A` ✓.
 
 ## 7. EFX types — per-type parameters (pp.33, 168–172; descriptions pp.34–53)
 
-EFX Type is raw 0–39 at Common 0x0C (12). The display is 1–40. EFX Parameter *n* is Common offset
-`12 + n` (13–24), raw 0–127 (p.189).
+EFX Type is raw 0–39 at Common 0x0C (12). The display is 1–40. EFX Parameter *n* (slot *n*) is Common offset
+`12 + n` (13–24), one byte each (p.189).
 
-**Read this before using the tables:**
-- The manual lists each type's parameters in panel order (pp.168–172). That order is **assumed** to
-  be EFX Parameter 1…N. The manual never states this. It is consistent with the p.33 TRIPLE-TAP-DELAY
-  screen shot.
-- The manual gives **display ranges only**. It never says how raw 0–127 maps to them.
-  Rows marked ⚑ need hardware measurement. Rows marked "raw = display" are 0–127 on the panel and
-  are almost certainly 1:1. Steps for enum rows are counted from the manual's own list, and the
-  "probably raw 0–(n−1)" note is an inference. Continuous non-0–127 ranges (dB, ms, Hz, %, degree,
-  semitone, cent, balance) are marked "mapping unknown". Many are certainly non-linear tables
-  (e.g. 0.0–500.0 ms can't fit 128 linear steps at 0.1 ms resolution).
-- "note" in a range (TRIPLE/QUADRUPLE-TAP-DELAY delay times, STEP-FLANGER Step Rate) means the
-  value also offers tempo-synced note lengths (cf. p.161 note-value list). Where those sit in the
-  raw range is unknown.
+**Wire order and raw ranges were measured on a JV-2080 by tgoelles** in
+[jv2080-max-for-live](https://github.com/tgoelles/jv2080-max-for-live) (`device/jv2080_efx.js`,
+`docs/efx_survey.json`), and are used here with thanks. The manual gives neither:
+
+- **Slots are not the manual's list order.** The manual lists each type's parameters in panel order (pp.168–172);
+  the JV sends them in a different order for about half the types (eg. STEREO-EQ sends the high shelf before the
+  peaking bands). The tables below are in **slot order**. Names, full names and display ranges are the manual's.
+- **Raw values are indexes into the parameter's values**, not 0–127 scaled. The Raw column gives the range and how
+  it maps:
+  - `= display`: the raw value is what the panel shows.
+  - `list`: raw 0…n−1 picks from the display list.
+  - `linear`: evenly spaced from the range's first to last value, eg. −15…+15 dB = raw 0–30 in 1 dB steps,
+    −100…+100 cent = raw 0–100 in 2-cent steps, 0–180 degree = raw 0–90.
+  - `pan`: L64…63R, 64 = centre. `balance`: raw *r* shows as D(100−*r*):*r*W (or DRY…WET, A…B).
+  - `display values not yet known`: the raw range is measured (0–125 or 0–126), but the panel values for rates
+    (Hz) and times (ms) aren't evenly spaced and haven't been tabulated.
 - Shared lists: **F17** = 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150,
   4000, 5000, 6300, 8000 Hz. **F18** = F17 + BYPASS.
-- Pan "L64…0…63R" and balances ("DRY100:0WET…DRY0:100WET", "D100:0W…D0:100W",
-  "A100:0B…A0:100B") are probably 0–127 with a centre at 64, but the manual doesn't confirm this.
+- "note" in a range (TRIPLE/QUADRUPLE-TAP-DELAY delay times, STEP-FLANGER Step Rate) means the value also offers
+  tempo-synced note lengths (cf. p.161 note-value list). Where those sit in the raw range is unknown.
 - Effects chapter p.33: params marked "#" in pp.34–53 can be modulated in real time via EFX
   Control Source 1/2. Those markers are not transcribed here.
 
+These tables generate `apps/jv2080/src/core/efxTable.ts` (`apps/jv2080/scripts/genTables.mjs`).
+
 #### 01 STEREO-EQ — raw EFX Type 0 (p.168; description p.34)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Low Freq | Low frequency | 200, 400 Hz | ⚑ enum, 2 values, probably raw 0–1 |
-| 2 | 14 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 3 | 15 | P1 Freq | Peaking 1 frequency | *F17* (17 freqs) | ⚑ enum, 17 values, probably raw 0–16 |
-| 4 | 16 | P1 Gain | Peaking 1 gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | P1 Q | Peaking 1 Q | 0.5, 1.0, 2.0, 4.0, 8.0 | ⚑ enum, 5 values, probably raw 0–4 |
-| 6 | 18 | High Freq | High frequency | 4000, 8000 Hz | ⚑ enum, 2 values, probably raw 0–1 |
-| 7 | 19 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 8 | 20 | P2 Freq | Peaking 2 frequency | *F17* (17 freqs) | ⚑ enum, 17 values, probably raw 0–16 |
-| 9 | 21 | P2 Gain | Peaking 2 gain | -15…+15 dB | ⚑ mapping unknown |
-| 10 | 22 | P2 Q | Peaking 2 Q | 0.5, 1.0, 2.0, 4.0, 8.0 | ⚑ enum, 5 values, probably raw 0–4 |
-| 11 | 23 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Low Freq | Low frequency | 200, 400 Hz | 0–1 list |
+| 2 | 14 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 3 | 15 | High Freq | High frequency | 4000, 8000 Hz | 0–1 list |
+| 4 | 16 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 5 | 17 | P1 Freq | Peaking 1 frequency | *F17* (17 freqs) | 0–16 list |
+| 6 | 18 | P1 Q | Peaking 1 Q | 0.5, 1.0, 2.0, 4.0, 8.0 | 0–4 list |
+| 7 | 19 | P1 Gain | Peaking 1 gain | -15…+15 dB | 0–30 linear |
+| 8 | 20 | P2 Freq | Peaking 2 frequency | *F17* (17 freqs) | 0–16 list |
+| 9 | 21 | P2 Q | Peaking 2 Q | 0.5, 1.0, 2.0, 4.0, 8.0 | 0–4 list |
+| 10 | 22 | P2 Gain | Peaking 2 gain | -15…+15 dB | 0–30 linear |
+| 11 | 23 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 11 params; param 12 presumably unused.
+Unused slot: 12.
 
 #### 02 OVERDRIVE — raw EFX Type 1 (p.168; description p.34)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | Amp Type | Amp simulator type | SMALL, BUILT-IN, 2-STACK, 3-STACK | ⚑ enum, 4 values, probably raw 0–3 |
-| 3 | 15 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 4 | 16 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 6 | 18 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | Amp Type | Amp simulator type | SMALL, BUILT-IN, 2-STACK, 3-STACK | 0–3 list |
+| 4 | 16 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 5 | 17 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 6 params; params 7–12 presumably unused.
+Unused slots: 7, 8, 9, 10, 11, 12.
 
 #### 03 DISTORTION — raw EFX Type 2 (p.168; description p.35)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | Amp Type | Amp simulator type | SMALL, BUILT-IN, 2-STACK, 3-STACK | ⚑ enum, 4 values, probably raw 0–3 |
-| 3 | 15 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 4 | 16 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 6 | 18 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | Amp Type | Amp simulator type | SMALL, BUILT-IN, 2-STACK, 3-STACK | 0–3 list |
+| 4 | 16 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 5 | 17 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 6 params; params 7–12 presumably unused.
+Unused slots: 7, 8, 9, 10, 11, 12.
 
 #### 04 PHASER — raw EFX Type 3 (p.168; description p.35)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Manual | Manual | 100–8000 Hz | ⚑ mapping unknown |
-| 2 | 14 | Rate | Phaser rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Depth | Phaser depth | 0–127 | raw = display |
-| 4 | 16 | Resonance | Resonance | 0–127 | raw = display |
-| 5 | 17 | Mix | Mix level | 0–127 | raw = display |
-| 6 | 18 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Manual | Manual | 100–8000 Hz | 0–125, display values not yet known |
+| 2 | 14 | Rate | Phaser rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Depth | Phaser depth | 0–127 | 0–127 = display |
+| 4 | 16 | Resonance | Resonance | 0–127 | 0–127 = display |
+| 5 | 17 | Mix | Mix level | 0–127 | 0–127 = display |
+| 6 | 18 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 7 | 19 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 8, 9, 10, 11, 12.
 
 #### 05 SPECTRUM — raw EFX Type 4 (p.168; description p.35)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Band1 | Band1 gain | -15…+15 dB | ⚑ mapping unknown |
-| 2 | 14 | Band2 | Band2 gain | -15…+15 dB | ⚑ mapping unknown |
-| 3 | 15 | Band3 | Band3 gain | -15…+15 dB | ⚑ mapping unknown |
-| 4 | 16 | Band4 | Band4 gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | Band5 | Band5 gain | -15…+15 dB | ⚑ mapping unknown |
-| 6 | 18 | Band6 | Band6 gain | -15…+15 dB | ⚑ mapping unknown |
-| 7 | 19 | Band7 | Band7 gain | -15…+15 dB | ⚑ mapping unknown |
-| 8 | 20 | Band8 | Band8 gain | -15…+15 dB | ⚑ mapping unknown |
-| 9 | 21 | Q | Q | 0.5, 1.0, 2.0, 4.0, 8.0 | ⚑ enum, 5 values, probably raw 0–4 |
-| 10 | 22 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 11 | 23 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Band1 | Band1 gain | -15…+15 dB | 0–30 linear |
+| 2 | 14 | Band2 | Band2 gain | -15…+15 dB | 0–30 linear |
+| 3 | 15 | Band3 | Band3 gain | -15…+15 dB | 0–30 linear |
+| 4 | 16 | Band4 | Band4 gain | -15…+15 dB | 0–30 linear |
+| 5 | 17 | Band5 | Band5 gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | Band6 | Band6 gain | -15…+15 dB | 0–30 linear |
+| 7 | 19 | Band7 | Band7 gain | -15…+15 dB | 0–30 linear |
+| 8 | 20 | Band8 | Band8 gain | -15…+15 dB | 0–30 linear |
+| 9 | 21 | Q | Q | 0.5, 1.0, 2.0, 4.0, 8.0 | 0–4 list |
+| 10 | 22 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 11 | 23 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 11 params; param 12 presumably unused.
+Unused slot: 12.
 
 #### 06 ENHANCER — raw EFX Type 5 (p.168; description p.36)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Sens | Sensitivity | 0–127 | raw = display |
-| 2 | 14 | Mix | Mix level | 0–127 | raw = display |
-| 3 | 15 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 4 | 16 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Sens | Sensitivity | 0–127 | 0–127 = display |
+| 2 | 14 | Mix | Mix level | 0–127 | 0–127 = display |
+| 3 | 15 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 4 | 16 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 5 | 17 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 5 params; params 6–12 presumably unused.
+Unused slots: 6, 7, 8, 9, 10, 11, 12.
 
 #### 07 AUTO-WAH — raw EFX Type 6 (p.168; description p.36)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Filter Type | Filter type | LPF, BPF | ⚑ enum, 2 values, probably raw 0–1 |
-| 2 | 14 | Sens | Sensitivity | 0–127 | raw = display |
-| 3 | 15 | Manual | Manual | 0–127 | raw = display |
-| 4 | 16 | Peak | Peak | 0–127 | raw = display |
-| 5 | 17 | Rate | LFO rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 6 | 18 | Depth | LFO depth | 0–127 | raw = display |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Filter Type | Filter type | LPF, BPF | 0–1 list |
+| 2 | 14 | Rate | LFO rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Depth | LFO depth | 0–127 | 0–127 = display |
+| 4 | 16 | Sens | Sensitivity | 0–127 | 0–127 = display |
+| 5 | 17 | Manual | Manual | 0–127 | 0–127 = display |
+| 6 | 18 | Peak | Peak | 0–127 | 0–127 = display |
+| 7 | 19 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 8, 9, 10, 11, 12.
 
 #### 08 ROTARY — raw EFX Type 7 (p.168; description p.37)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Low Slow Rate | Low frequency slow rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 2 | 14 | Low Fast Rate | Low frequency fast rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Low Acceleration | Low frequency acceleration | 0–15 | ⚑ likely raw = display (unconfirmed) |
-| 4 | 16 | Low Level | Low frequency level | 0–127 | raw = display |
-| 5 | 17 | Speed | Speed | SLOW, FAST | ⚑ enum, 2 values, probably raw 0–1 |
-| 6 | 18 | High Slow Rate | High frequency slow rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 7 | 19 | High Fast Rate | High frequency fast rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 8 | 20 | High Acceleration | High frequency acceleration | 0–15 | ⚑ likely raw = display (unconfirmed) |
-| 9 | 21 | High Level | High frequency level | 0–127 | raw = display |
-| 10 | 22 | Separation | Separation | 0–127 | raw = display |
-| 11 | 23 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | High Slow Rate | High frequency slow rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 2 | 14 | Low Slow Rate | Low frequency slow rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | High Fast Rate | High frequency fast rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 4 | 16 | Low Fast Rate | Low frequency fast rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Speed | Speed | SLOW, FAST | 0–1 list |
+| 6 | 18 | High Acceleration | High frequency acceleration | 0–15 | 0–15 = display |
+| 7 | 19 | Low Acceleration | Low frequency acceleration | 0–15 | 0–15 = display |
+| 8 | 20 | High Level | High frequency level | 0–127 | 0–127 = display |
+| 9 | 21 | Low Level | Low frequency level | 0–127 | 0–127 = display |
+| 10 | 22 | Separation | Separation | 0–127 | 0–127 = display |
+| 11 | 23 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 11 params; param 12 presumably unused.
+Unused slot: 12.
 
 #### 09 COMPRESSOR — raw EFX Type 8 (p.168; description p.37)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Attack | Attack time | 0–127 | raw = display |
-| 2 | 14 | Sustain | Sustain | 0–127 | raw = display |
-| 3 | 15 | Post Gain | Post gain | 0, +6, +12, +18 dB | ⚑ enum, 4 values, probably raw 0–3 |
-| 4 | 16 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 6 | 18 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Sustain | Sustain | 0–127 | 0–127 = display |
+| 2 | 14 | Attack | Attack time | 0–127 | 0–127 = display |
+| 3 | 15 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 4 | 16 | Post Gain | Post gain | 0, +6, +12, +18 dB | 0–3 list |
+| 5 | 17 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 7 | 19 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 8, 9, 10, 11, 12.
 
 #### 10 LIMITER — raw EFX Type 9 (p.169; description p.38)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Threshold | Threshold level | 0–127 | raw = display |
-| 2 | 14 | Ratio | Compression ratio | 1.5:1, 2:1, 4:1, 100:1 | ⚑ enum, 4 values, probably raw 0–3 |
-| 3 | 15 | Release | Release time | 0–127 | raw = display |
-| 4 | 16 | Post Gain | Post gain | 0, +6, +12, +18 dB | ⚑ enum, 4 values, probably raw 0–3 |
-| 5 | 17 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 6 | 18 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 7 | 19 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Threshold | Threshold level | 0–127 | 0–127 = display |
+| 2 | 14 | Release | Release time | 0–127 | 0–127 = display |
+| 3 | 15 | Ratio | Compression ratio | 1.5:1, 2:1, 4:1, 100:1 | 0–3 list |
+| 4 | 16 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 5 | 17 | Post Gain | Post gain | 0, +6, +12, +18 dB | 0–3 list |
+| 6 | 18 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 7 | 19 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 11 HEXA-CHORUS — raw EFX Type 10 (p.169; description p.38)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Pre Delay Deviation | Pre delay deviation | 0–20 | ⚑ likely raw = display (unconfirmed) |
-| 5 | 17 | Depth Deviation | Depth deviation | -20…+20 | ⚑ mapping unknown |
-| 6 | 18 | Pan Deviation | Pan deviation | 0–20 | ⚑ likely raw = display (unconfirmed) |
-| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Depth | Chorus depth | 0–127 | 0–127 = display |
+| 4 | 16 | Pre Delay Deviation | Pre delay deviation | 0–20 | 0–20 = display |
+| 5 | 17 | Depth Deviation | Depth deviation | -20…+20 | 0–40 linear |
+| 6 | 18 | Pan Deviation | Pan deviation | 0–20 | 0–20 = display |
+| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 12 TREMOLO-CHORUS — raw EFX Type 11 (p.169; description p.39)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Tremolo Phase | Tremolo phase | 0–180 degree | ⚑ mapping unknown |
-| 5 | 17 | Tremolo Rate | Tremolo rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 6 | 18 | Tremolo Separation | Tremolo separation | 0–127 | raw = display |
-| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 4 | 16 | Tremolo Rate | Tremolo rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Tremolo Separation | Tremolo separation | 0–127 | 0–127 = display |
+| 6 | 18 | Tremolo Phase | Tremolo phase | 0–180 degree | 0–90 linear |
+| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 13 SPACE-D — raw EFX Type 12 (p.169; description p.39)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Phase | Phase | 0–180 degree | ⚑ mapping unknown |
-| 5 | 17 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 6 | 18 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Depth | Chorus depth | 0–127 | 0–127 = display |
+| 4 | 16 | Phase | Phase | 0–180 degree | 0–90 linear |
+| 5 | 17 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 14 STEREO-CHORUS — raw EFX Type 13 (p.169; description p.40)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Phase | Phase | 0–180 degree | ⚑ mapping unknown |
-| 5 | 17 | Filter Type | Filter type | OFF, LPF, HPF | ⚑ enum, 3 values, probably raw 0–2 |
-| 6 | 18 | Cutoff Freq | Cutoff frequency | *F17* (17 freqs) | ⚑ enum, 17 values, probably raw 0–16 |
-| 7 | 19 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 8 | 20 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 9 | 21 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Filter Type | Filter type | OFF, LPF, HPF | 0–2 list |
+| 2 | 14 | Cutoff Freq | Cutoff frequency | *F17* (17 freqs) | 0–16 list |
+| 3 | 15 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Depth | Chorus depth | 0–127 | 0–127 = display |
+| 6 | 18 | Phase | Phase | 0–180 degree | 0–90 linear |
+| 8 | 20 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 9 | 21 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 10 | 22 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 11 | 23 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 7, 12.
 
 #### 15 STEREO-FLANGER — raw EFX Type 14 (p.169; description p.40)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Rate | LFO rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Depth | LFO depth | 0–127 | raw = display |
-| 4 | 16 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | Phase | Phase | 0–180 degree | ⚑ mapping unknown |
-| 6 | 18 | Filter Type | Filter type | OFF, LPF, HPF | ⚑ enum, 3 values, probably raw 0–2 |
-| 7 | 19 | Cutoff Freq | Cutoff frequency | *F17* (17 freqs) | ⚑ enum, 17 values, probably raw 0–16 |
-| 8 | 20 | Low Gain | Low gain | -15…+15 dB (manual prints "15—+15 dB", assumed typo) | ⚑ mapping unknown |
-| 9 | 21 | High Gain | High gain | -15…+15 dB (manual prints "15—+15 dB", assumed typo) | ⚑ mapping unknown |
-| 10 | 22 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 11 | 23 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Filter Type | Filter type | OFF, LPF, HPF | 0–2 list |
+| 2 | 14 | Cutoff Freq | Cutoff frequency | *F17* (17 freqs) | 0–16 list |
+| 3 | 15 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | Rate | LFO rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Depth | LFO depth | 0–127 | 0–127 = display |
+| 6 | 18 | Phase | Phase | 0–180 degree | 0–90 linear |
+| 7 | 19 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 8 | 20 | Low Gain | Low gain | -15…+15 dB (manual prints "15—+15 dB", assumed typo) | 0–30 linear |
+| 9 | 21 | High Gain | High gain | -15…+15 dB (manual prints "15—+15 dB", assumed typo) | 0–30 linear |
+| 10 | 22 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 11 | 23 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 11 params; param 12 presumably unused.
+Unused slot: 12.
 
 #### 16 STEP-FLANGER — raw EFX Type 15 (p.169; description p.41)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Rate | LFO rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Depth | LFO depth | 0–127 | raw = display |
-| 4 | 16 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | Phase | Phase | 0–180 degree | ⚑ mapping unknown |
-| 6 | 18 | Step Rate | Step rate | 0.10–20.00 Hz, note | ⚑ range + note values: mapping unknown |
-| 7 | 19 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 8 | 20 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 9 | 21 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Rate | LFO rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Depth | LFO depth | 0–127 | 0–127 = display |
+| 4 | 16 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | Step Rate | Step rate | 0.10–20.00 Hz, note | 0–125, display values not yet known |
+| 6 | 18 | Phase | Phase | 0–180 degree | 0–90 linear |
+| 7 | 19 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 8 | 20 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 9 | 21 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 11, 12.
 
 #### 17 STEREO-DELAY — raw EFX Type 16 (p.169; description p.42)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Delay Left | Delay time left | 0.0–500.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Delay Right | Delay time right | 0.0–500.0 ms | ⚑ mapping unknown |
-| 3 | 15 | Phase Left | Phase left | NORMAL, INVERT | ⚑ enum, 2 values, probably raw 0–1 |
-| 4 | 16 | Phase Right | Phase right | NORMAL, INVERT | ⚑ enum, 2 values, probably raw 0–1 |
-| 5 | 17 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 6 | 18 | Feedback Mode | Feedback mode | NORMAL, CROSS | ⚑ enum, 2 values, probably raw 0–1 |
-| 7 | 19 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 8 | 20 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 9 | 21 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 10 | 22 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 11 | 23 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Feedback Mode | Feedback mode | NORMAL, CROSS | 0–1 list |
+| 2 | 14 | Delay Left | Delay time left | 0.0–500.0 ms | 0–126, display values not yet known |
+| 3 | 15 | Delay Right | Delay time right | 0.0–500.0 ms | 0–126, display values not yet known |
+| 4 | 16 | Phase Left | Phase left | NORMAL, INVERT | 0–1 list |
+| 5 | 17 | Phase Right | Phase right | NORMAL, INVERT | 0–1 list |
+| 6 | 18 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 7 | 19 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 8 | 20 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 9 | 21 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 10 | 22 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 11 | 23 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 11 params; param 12 presumably unused.
+Unused slot: 12.
 
 #### 18 MODULATION-DELAY — raw EFX Type 17 (p.169; description p.42)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Delay Left | Delay time left | 0.0–500.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Delay Right | Delay time right | 0.0–500.0 ms | ⚑ mapping unknown |
-| 3 | 15 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 4 | 16 | Feedback Mode | Feedback mode | NORMAL, CROSS | ⚑ enum, 2 values, probably raw 0–1 |
-| 5 | 17 | Rate | Modulation rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 6 | 18 | Depth | Modulation depth | 0–127 | raw = display |
-| 7 | 19 | Phase | Phase | 0–180 degree | ⚑ mapping unknown |
-| 8 | 20 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 9 | 21 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 10 | 22 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 11 | 23 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 12 | 24 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Feedback Mode | Feedback mode | NORMAL, CROSS | 0–1 list |
+| 2 | 14 | Delay Left | Delay time left | 0.0–500.0 ms | 0–126, display values not yet known |
+| 3 | 15 | Delay Right | Delay time right | 0.0–500.0 ms | 0–126, display values not yet known |
+| 4 | 16 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 6 | 18 | Rate | Modulation rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 7 | 19 | Depth | Modulation depth | 0–127 | 0–127 = display |
+| 8 | 20 | Phase | Phase | 0–180 degree | 0–90 linear |
+| 9 | 21 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 10 | 22 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 11 | 23 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 12 | 24 | Level | Output level | 0–127 | 0–127 = display |
+
+All 12 slots used.
 
 #### 19 TRIPLE-TAP-DELAY — raw EFX Type 18 (p.170; description p.43)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Delay Center | Delay time center | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 2 | 14 | Delay Left | Delay time left | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 3 | 15 | Delay Right | Delay time right | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 4 | 16 | Center Level | Center level | 0–127 | raw = display |
-| 5 | 17 | Left Level | Left level | 0–127 | raw = display |
-| 6 | 18 | Right Level | Right level | 0–127 | raw = display |
-| 7 | 19 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 8 | 20 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 9 | 21 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 10 | 22 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 11 | 23 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 12 | 24 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Delay Left | Delay time left | 200–1000 ms, note | 0–125, display values not yet known |
+| 2 | 14 | Delay Right | Delay time right | 200–1000 ms, note | 0–125, display values not yet known |
+| 3 | 15 | Delay Center | Delay time center | 200–1000 ms, note | 0–125, display values not yet known |
+| 4 | 16 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 6 | 18 | Left Level | Left level | 0–127 | 0–127 = display |
+| 7 | 19 | Right Level | Right level | 0–127 | 0–127 = display |
+| 8 | 20 | Center Level | Center level | 0–127 | 0–127 = display |
+| 9 | 21 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 10 | 22 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 11 | 23 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 12 | 24 | Level | Output level | 0–127 | 0–127 = display |
+
+All 12 slots used.
 
 #### 20 QUADRUPLE-TAP-DELAY — raw EFX Type 19 (p.170; description p.44)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Delay 1 | Delay time1 | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 2 | 14 | Delay 2 | Delay time2 | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 3 | 15 | Delay 3 | Delay time3 | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 4 | 16 | Delay 4 | Delay time4 | 200–1000 ms, note | ⚑ range + note values: mapping unknown |
-| 5 | 17 | Feedback | Feedback level | -98…+98 % | ⚑ mapping unknown |
-| 6 | 18 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 7 | 19 | Level 1 | Level1 | 0–127 | raw = display |
-| 8 | 20 | Level 2 | Level2 | 0–127 | raw = display |
-| 9 | 21 | Level 3 | Level3 | 0–127 | raw = display |
-| 10 | 22 | Level 4 | Level4 | 0–127 | raw = display |
-| 11 | 23 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 12 | 24 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Delay 1 | Delay time1 | 200–1000 ms, note | 0–125, display values not yet known |
+| 2 | 14 | Delay 2 | Delay time2 | 200–1000 ms, note | 0–125, display values not yet known |
+| 3 | 15 | Delay 3 | Delay time3 | 200–1000 ms, note | 0–125, display values not yet known |
+| 4 | 16 | Delay 4 | Delay time4 | 200–1000 ms, note | 0–125, display values not yet known |
+| 5 | 17 | Level 1 | Level1 | 0–127 | 0–127 = display |
+| 6 | 18 | Level 2 | Level2 | 0–127 | 0–127 = display |
+| 7 | 19 | Level 3 | Level3 | 0–127 | 0–127 = display |
+| 8 | 20 | Level 4 | Level4 | 0–127 | 0–127 = display |
+| 9 | 21 | Feedback | Feedback level | -98…+98 % | 0–98 linear |
+| 10 | 22 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 11 | 23 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 12 | 24 | Level | Output level | 0–127 | 0–127 = display |
+
+All 12 slots used.
 
 #### 21 TIME-CONTROL-DELAY — raw EFX Type 20 (p.170; description p.45)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Delay | Delay time | 200–1000 ms | ⚑ mapping unknown |
-| 2 | 14 | Acceleration | Acceleration | 0–15 | ⚑ likely raw = display (unconfirmed) |
-| 3 | 15 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 4 | 16 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 5 | 17 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 6 | 18 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 7 | 19 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 8 | 20 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 9 | 21 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Delay | Delay time | 200–1000 ms | 0–125, display values not yet known |
+| 2 | 14 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 3 | 15 | Acceleration | Acceleration | 0–15 | 0–15 = display |
+| 4 | 16 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 5 | 17 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 6 | 18 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 7 | 19 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 8 | 20 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 9 | 21 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 9 params; params 10–12 presumably unused.
+Unused slots: 10, 11, 12.
 
 #### 22 2VOICE-PITCH-SHIFTER — raw EFX Type 21 (p.170; description p.46)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Coarse A | Coarse pitch A | -24…+12 semitone | ⚑ mapping unknown |
-| 2 | 14 | Fine A | Fine pitch A | -100…+100 cent | ⚑ mapping unknown |
-| 3 | 15 | Pan A | Output pan A | L64…0…63R | ⚑ mapping unknown |
-| 4 | 16 | Pre Delay A | Pre delay time A | 0.0–500.0 ms | ⚑ mapping unknown |
-| 5 | 17 | Level Balance | Level balance | A100:0B…A0:100B | ⚑ mapping unknown |
-| 6 | 18 | Mode | Pitch shifter mode | 1, 2, 3, 4, 5 | ⚑ enum, 5 values, probably raw 0–4 |
-| 7 | 19 | Coarse B | Coarse pitch B | -24…+12 semitone | ⚑ mapping unknown |
-| 8 | 20 | Fine B | Fine pitch B | -100…+100 cent | ⚑ mapping unknown |
-| 9 | 21 | Pan B | Output pan B | L64…0…63R | ⚑ mapping unknown |
-| 10 | 22 | Pre Delay B | Pre delay time B | 0.0–500 ms | ⚑ mapping unknown |
-| 11 | 23 | Balance | Effect balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 12 | 24 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Mode | Pitch shifter mode | 1, 2, 3, 4, 5 | 0–4 list |
+| 2 | 14 | Coarse A | Coarse pitch A | -24…+12 semitone | 0–36 linear |
+| 3 | 15 | Coarse B | Coarse pitch B | -24…+12 semitone | 0–36 linear |
+| 4 | 16 | Fine A | Fine pitch A | -100…+100 cent | 0–100 linear |
+| 5 | 17 | Fine B | Fine pitch B | -100…+100 cent | 0–100 linear |
+| 6 | 18 | Pre Delay A | Pre delay time A | 0.0–500.0 ms | 0–126, display values not yet known |
+| 7 | 19 | Pre Delay B | Pre delay time B | 0.0–500 ms | 0–126, display values not yet known |
+| 8 | 20 | Pan A | Output pan A | L64…0…63R | 0–127 pan, 64 = centre |
+| 9 | 21 | Pan B | Output pan B | L64…0…63R | 0–127 pan, 64 = centre |
+| 10 | 22 | Level Balance | Level balance | A100:0B…A0:100B | 0–100 balance |
+| 11 | 23 | Balance | Effect balance | D100:0W…D0:100W | 0–100 balance |
+| 12 | 24 | Level | Output level | 0–127 | 0–127 = display |
+
+All 12 slots used.
 
 #### 23 FBK-PITCH-SHIFTER — raw EFX Type 22 (p.170; description p.46)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Coarse | Coarse pitch | -24…+12 semitone | ⚑ mapping unknown |
-| 2 | 14 | Fine | Fine pitch | -100…+100 cent | ⚑ mapping unknown |
-| 3 | 15 | Pan | Output pan | L64…0…63R | ⚑ mapping unknown |
-| 4 | 16 | Pre Delay | Pre delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 5 | 17 | Mode | Pitch shifter mode | 1, 2, 3, 4, 5 | ⚑ enum, 5 values, probably raw 0–4 |
-| 6 | 18 | Feedback | Feedback | -98…+98 % | ⚑ mapping unknown |
-| 7 | 19 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 8 | 20 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 9 | 21 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Mode | Pitch shifter mode | 1, 2, 3, 4, 5 | 0–4 list |
+| 2 | 14 | Coarse | Coarse pitch | -24…+12 semitone | 0–36 linear |
+| 3 | 15 | Fine | Fine pitch | -100…+100 cent | 0–100 linear |
+| 4 | 16 | Pre Delay | Pre delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 5 | 17 | Feedback | Feedback | -98…+98 % | 0–98 linear |
+| 6 | 18 | Pan | Output pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 7 | 19 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 8 | 20 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 9 | 21 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 11, 12.
 
 #### 24 REVERB — raw EFX Type 23 (p.170; description p.47)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Type | Reverb type | ROOM1, ROOM2, STAGE1, STAGE2, HALL1, HALL2 | ⚑ enum, 6 values, probably raw 0–5 |
-| 2 | 14 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 3 | 15 | Time | Reverb time | 0–127 | raw = display |
-| 4 | 16 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 5 | 17 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 6 | 18 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Type | Reverb type | ROOM1, ROOM2, STAGE1, STAGE2, HALL1, HALL2 | 0–5 list |
+| 2 | 14 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 3 | 15 | Time | Reverb time | 0–127 | 0–127 = display |
+| 4 | 16 | HF Damp | HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 5 | 17 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 7 | 19 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 25 GATE-REVERB — raw EFX Type 24 (p.170; description p.47)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Type | Reverb type | NORMAL, REVERSE, SWEEP1, SWEEP2 | ⚑ enum, 4 values, probably raw 0–3 |
-| 2 | 14 | Pre Delay | Pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 3 | 15 | Gate Time | Gate time | 5–500 ms | ⚑ mapping unknown |
-| 4 | 16 | Low Gain | Low gain | -15…+15 dB | ⚑ mapping unknown |
-| 5 | 17 | High Gain | High gain | -15…+15 dB | ⚑ mapping unknown |
-| 6 | 18 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Type | Reverb type | NORMAL, REVERSE, SWEEP1, SWEEP2 | 0–3 list |
+| 2 | 14 | Pre Delay | Pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 3 | 15 | Gate Time | Gate time | 5–500 ms | 0–99 linear |
+| 4 | 16 | Low Gain | Low gain | -15…+15 dB | 0–30 linear |
+| 5 | 17 | High Gain | High gain | -15…+15 dB | 0–30 linear |
+| 6 | 18 | Balance | Effect balance | DRY100:0WET…DRY0:100WET | 0–100 balance |
+| 7 | 19 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 8, 9, 10, 11, 12.
 
 #### 26 OVERDRIVE→CHORUS — raw EFX Type 25 (p.170; description p.48)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | OD Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | OD Pan | Over drive pan | L64…0…63R | ⚑ mapping unknown |
-| 3 | 15 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 4 | 16 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 5 | 17 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 6 | 18 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | OD Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | OD Pan | Over drive pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 7 | 19 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 6, 9, 10, 11, 12.
 
 #### 27 OVERDRIVE→FLANGER — raw EFX Type 26 (p.170; description p.48)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | OD Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | OD Pan | Over drive pan | L64…0…63R | ⚑ mapping unknown |
-| 3 | 15 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 4 | 16 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 5 | 17 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 6 | 18 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 7 | 19 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | OD Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | OD Pan | Over drive pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 6 | 18 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 7 | 19 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 28 OVERDRIVE→DELAY — raw EFX Type 27 (p.171; description p.49)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | OD Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | OD Pan | Over drive pan | L64…0…63R | ⚑ mapping unknown |
-| 3 | 15 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 4 | 16 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 6 | 18 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | OD Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | OD Pan | Over drive pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 4 | 16 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 6 | 18 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 7 | 19 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 8, 9, 10, 11, 12.
 
 #### 29 DISTORTION→CHORUS — raw EFX Type 28 (p.171; description p.49)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | DIST Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | DIST Pan | Distortion pan | L64…0…63R | ⚑ mapping unknown |
-| 3 | 15 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 4 | 16 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 5 | 17 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 6 | 18 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | DIST Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | DIST Pan | Distortion pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 7 | 19 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 6, 9, 10, 11, 12.
 
 #### 30 DISTORTION→FLANGER — raw EFX Type 29 (p.171; description p.49)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | DIST Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | DIST Pan | Distortion pan | L64…0…63R | ⚑ mapping unknown |
-| 3 | 15 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 4 | 16 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 5 | 17 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 6 | 18 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 7 | 19 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | DIST Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | DIST Pan | Distortion pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 6 | 18 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 7 | 19 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 31 DISTORTION→DELAY — raw EFX Type 30 (p.171; description p.50)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | DIST Drive | Drive | 0–127 | raw = display |
-| 2 | 14 | DIST Pan | Distortion pan | L64…0…63R | ⚑ mapping unknown |
-| 3 | 15 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 4 | 16 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 6 | 18 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | DIST Drive | Drive | 0–127 | 0–127 = display |
+| 2 | 14 | DIST Pan | Distortion pan | L64…0…63R | 0–127 pan, 64 = centre |
+| 3 | 15 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 4 | 16 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 6 | 18 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 7 | 19 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 8, 9, 10, 11, 12.
 
 #### 32 ENHANCER→CHORUS — raw EFX Type 31 (p.171; description p.50)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Enhancer Sens | Enhancer sensitivity | 0–127 | raw = display |
-| 2 | 14 | Enhancer Mix | Enhancer mix level | 0–127 | raw = display |
-| 3 | 15 | Chorus Pre Delay | Chorus pre delay time | 0.0–100 ms | ⚑ mapping unknown |
-| 4 | 16 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 5 | 17 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 6 | 18 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Enhancer Sens | Enhancer sensitivity | 0–127 | 0–127 = display |
+| 2 | 14 | Enhancer Mix | Enhancer mix level | 0–127 | 0–127 = display |
+| 3 | 15 | Chorus Pre Delay | Chorus pre delay time | 0.0–100 ms | 0–125, display values not yet known |
+| 4 | 16 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 7 | 19 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 6, 9, 10, 11, 12.
 
 #### 33 ENHANCER→FLANGER — raw EFX Type 32 (p.171; description p.50)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Enhancer Sens | Enhancer sensitivity | 0–127 | raw = display |
-| 2 | 14 | Enhancer Mix | Enhancer mix level | 0–127 | raw = display |
-| 3 | 15 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 4 | 16 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 5 | 17 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 6 | 18 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 7 | 19 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 8 | 20 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Enhancer Sens | Enhancer sensitivity | 0–127 | 0–127 = display |
+| 2 | 14 | Enhancer Mix | Enhancer mix level | 0–127 | 0–127 = display |
+| 3 | 15 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 4 | 16 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 5 | 17 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 6 | 18 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 7 | 19 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 8 params; params 9–12 presumably unused.
+Unused slots: 9, 10, 11, 12.
 
 #### 34 ENHANCER→DELAY — raw EFX Type 33 (p.171; description p.51)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Enhancer Sens | Enhancer sensitivity | 0–127 | raw = display |
-| 2 | 14 | Enhancer Mix | Enhancer mix level | 0–127 | raw = display |
-| 3 | 15 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 4 | 16 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 6 | 18 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 7 | 19 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Enhancer Sens | Enhancer sensitivity | 0–127 | 0–127 = display |
+| 2 | 14 | Enhancer Mix | Enhancer mix level | 0–127 | 0–127 = display |
+| 3 | 15 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 4 | 16 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 7 | 19 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 8 | 20 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 7 params; params 8–12 presumably unused.
+Unused slots: 6, 9, 10, 11, 12.
 
 #### 35 CHORUS→DELAY — raw EFX Type 34 (p.171; description p.51)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 5 | 17 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 6 | 18 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 7 | 19 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 8 | 20 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 9 | 21 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 5 | 17 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 6 | 18 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 7 | 19 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 8 | 20 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 9 | 21 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 9 params; params 10–12 presumably unused.
+Unused slots: 4, 11, 12.
 
 #### 36 FLANGER→DELAY — raw EFX Type 35 (p.171; description p.52)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 4 | 16 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 6 | 18 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 7 | 19 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 8 | 20 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 9 | 21 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 4 | 16 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 6 | 18 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 7 | 19 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 8 | 20 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 9 | 21 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 11, 12.
 
 #### 37 CHORUS→FLANGER — raw EFX Type 36 (p.172; description p.52)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 5 | 17 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 6 | 18 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 7 | 19 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 8 | 20 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 9 | 21 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 4 | 16 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 5 | 17 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 6 | 18 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 7 | 19 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 8 | 20 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 9 | 21 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 11, 12.
 
 #### 38 CHORUS/DELAY — raw EFX Type 37 (p.172; description p.53)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 5 | 17 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 6 | 18 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 7 | 19 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 8 | 20 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 9 | 21 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 5 | 17 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 6 | 18 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 7 | 19 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 8 | 20 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 9 | 21 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 9 params; params 10–12 presumably unused.
+Unused slots: 4, 11, 12.
 
 #### 39 FLANGER/DELAY — raw EFX Type 38 (p.172; description p.53)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 4 | 16 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 5 | 17 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 6 | 18 | Delay Time | Delay time | 0.0–500.0 ms | ⚑ mapping unknown |
-| 7 | 19 | Delay Feedback | Delay feedback | -98…+98 % | ⚑ mapping unknown |
-| 8 | 20 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | ⚑ enum, 18 values, probably raw 0–17 |
-| 9 | 21 | Delay Balance | Delay balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 4 | 16 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 5 | 17 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 6 | 18 | Delay Time | Delay time | 0.0–500.0 ms | 0–126, display values not yet known |
+| 7 | 19 | Delay Feedback | Delay feedback | -98…+98 % | 0–98 linear |
+| 8 | 20 | Delay HF Damp | Delay HF damp | *F18* (17 freqs + BYPASS) | 0–17 list |
+| 9 | 21 | Delay Balance | Delay balance | D100:0W…D0:100W | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 11, 12.
 
 #### 40 CHORUS/FLANGER — raw EFX Type 39 (p.172; description p.53)
 
-| # | Common off | Param | Full name | Display range | Raw→display |
+| Slot | Common off | Param | Full name | Display range | Raw |
 |---|---|---|---|---|---|
-| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | raw = display |
-| 4 | 16 | Chorus Balance | Chorus balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 5 | 17 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | ⚑ mapping unknown |
-| 6 | 18 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | ⚑ mapping unknown |
-| 7 | 19 | FLNG Depth | Flanger depth | 0–127 | raw = display |
-| 8 | 20 | FLNG Feedback | Flanger feedback | -98…+98 % | ⚑ mapping unknown |
-| 9 | 21 | FLNG Balance | Flanger balance | D100:0W…D0:100W | ⚑ mapping unknown |
-| 10 | 22 | Level | Output level | 0–127 | raw = display |
+| 1 | 13 | Chorus Pre Delay | Chorus pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 2 | 14 | Chorus Rate | Chorus rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 3 | 15 | Chorus Depth | Chorus depth | 0–127 | 0–127 = display |
+| 4 | 16 | Chorus Balance | Chorus balance | D100:0W…D0:100W | 0–100 balance |
+| 5 | 17 | FLNG Pre Delay | Flanger pre delay time | 0.0–100.0 ms | 0–125, display values not yet known |
+| 6 | 18 | FLNG Rate | Flanger rate | 0.05–10.00 Hz | 0–125, display values not yet known |
+| 7 | 19 | FLNG Depth | Flanger depth | 0–127 | 0–127 = display |
+| 8 | 20 | FLNG Feedback | Flanger feedback | -98…+98 % | 0–98 linear |
+| 9 | 21 | FLNG Balance | Flanger balance | D100:0W…D0:100W | 0–100 balance |
+| 10 | 22 | Level | Output level | 0–127 | 0–127 = display |
 
-Manual lists 10 params; params 11–12 presumably unused.
+Unused slots: 11, 12.
 
 ## 8. Internal waveform list (pp.182–183)
 
@@ -1113,8 +1124,9 @@ manual. See Discrepancy 4.
 - Raw Wave Group ID values for INT-A and INT-B (only `Type 0–2`, `ID 0–127` are given, p.190). Since found on
   the hardware: 1 = INT-A, 2 = INT-B.
 - How EFX parameter raw values map to display values, and the raw step count, for every
-  non-0–127 EFX parameter (§7).
-- Explicit confirmation that the per-type list order equals EFX Parameter 1–12.
+  non-0–127 EFX parameter (§7). Since measured by tgoelles, except the Hz / ms values of rates and times.
+- Explicit confirmation that the per-type list order equals EFX Parameter 1–12. It doesn't: the wire order,
+  measured by tgoelles, is in §7.
 - How the JV splits a 129-byte tone when it answers an RQ1. p.187 only says packets are ≤128 bytes,
   sent about 20 ms apart. Since checked on hardware: it doesn't split it (one 129-byte DT1, ~70 ms over DIN).
 - Safe DT1 pacing for single-parameter edits. The manual only gives ≥20 ms between *packets* of a

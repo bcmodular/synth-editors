@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EFX_PARAM_COUNT, EFX_TYPES, efxDisplay, efxParamMax, efxParamOffset } from "./efx";
+import { EFX_PARAM_COUNT, EFX_TYPES, efxDisplay, efxParamOffset } from "./efx";
 import { ALL_PARAMS, COMMON_PARAMS, TONE_PARAMS } from "./params";
 import { param, paramWidth } from "./paramValue";
 import { COMMON_SIZE, TONE_SIZE } from "./patch";
@@ -45,23 +45,46 @@ describe("parameter table", () => {
 });
 
 describe("EFX types", () => {
-  it("has 40 types of at most 12 parameters, at Common 13–24", () => {
+  it("has 40 types with parameters in distinct slots 1–12, at Common 13–24", () => {
     expect(EFX_TYPES).toHaveLength(40);
-    expect(Math.max(...EFX_TYPES.map((t) => t.params.length))).toBeLessThanOrEqual(EFX_PARAM_COUNT);
-    expect(efxParamOffset(0)).toBe(13);
-    expect(efxParamOffset(11)).toBe(24);
+    for (const t of EFX_TYPES) {
+      const slots = t.params.map((p) => p.slot);
+      expect(new Set(slots).size, t.name).toBe(slots.length);
+      expect(slots, t.name).toEqual([...slots].sort((a, b) => a - b));
+      expect(Math.max(...slots), t.name).toBeLessThanOrEqual(EFX_PARAM_COUNT);
+    }
+    expect(efxParamOffset(1)).toBe(13);
+    expect(efxParamOffset(12)).toBe(24);
   });
 
-  it("matches the manual's list for a type with every kind of parameter", () => {
+  it("uses the measured wire order, not the manual's list order", () => {
     const eq = EFX_TYPES[0]!;
     expect(eq.name).toBe("STEREO-EQ");
     expect(eq.params.map((p) => p.name)).toEqual(
-      ["Low Freq", "Low Gain", "P1 Freq", "P1 Gain", "P1 Q", "High Freq", "High Gain", "P2 Freq", "P2 Gain", "P2 Q", "Level"]);
-    const [lowFreq, lowGain, p1Freq] = eq.params;
-    expect(efxDisplay(lowFreq!, 1)).toBe("400 Hz");
-    expect(efxParamMax(p1Freq!)).toBe(16);
-    expect(lowGain!.kind).toBe("unknown");
-    expect(efxDisplay(lowGain!, 40)).toBe("40");
+      ["Low Freq", "Low Gain", "High Freq", "High Gain", "P1 Freq", "P1 Q", "P1 Gain", "P2 Freq", "P2 Q", "P2 Gain", "Level"]);
+    expect(EFX_TYPES[1]!.params.map((p) => p.name)).toEqual(["Drive", "Pan", "Amp Type", "Low Gain", "High Gain", "Level"]);
+  });
+
+  it("leaves unused slots out", () => {
+    const odChorus = EFX_TYPES[25]!; // OVERDRIVE→CHORUS: slot 6 is unused
+    expect(odChorus.params.map((p) => p.slot)).toEqual([1, 2, 3, 4, 5, 7, 8]);
+  });
+
+  it("displays each kind of value as the panel does", () => {
+    const byName = (type: number, name: string) => EFX_TYPES[type]!.params.find((p) => p.name === name)!;
+    const lowGain = byName(0, "Low Gain");
+    expect(lowGain.max).toBe(30);
+    expect([0, 15, 30].map((raw) => efxDisplay(lowGain, raw))).toEqual(["-15 dB", "0 dB", "+15 dB"]);
+    expect(efxDisplay(byName(0, "Low Freq"), 1)).toBe("400 Hz");
+    expect(efxDisplay(byName(1, "Pan"), 0)).toBe("L64");
+    expect(efxDisplay(byName(21, "Fine A"), 0)).toBe("-100 cent"); // 2-cent steps
+    expect(efxDisplay(byName(21, "Fine A"), 51)).toBe("+2 cent");
+    expect(efxDisplay(byName(21, "Coarse A"), 36)).toBe("+12 st");
+    expect(efxDisplay(byName(23, "Balance"), 30)).toBe("DRY70:30WET");
+    expect(efxDisplay(byName(21, "Level Balance"), 0)).toBe("A100:0B");
+    const rate = byName(3, "Rate"); // PHASER: Hz values not yet known
+    expect([rate.kind, rate.max, efxDisplay(rate, 40)]).toEqual(["unknown", 125, "(40)"]);
+    expect(efxDisplay(lowGain, 99)).toBe("+15 dB"); // clamped
   });
 
   it("puts BYPASS last in HF Damp lists", () => {

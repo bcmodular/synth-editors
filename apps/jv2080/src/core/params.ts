@@ -2,7 +2,7 @@
 // One row per parameter: block, offset, raw range and how the panel displays it. Tone rows apply to each of the
 // four tones. The EFX parameters' meaning depends on the EFX type; see efx.ts.
 
-import { fmtBendDown, fmtOffset, fmtPan, fmtSigned, fmtWaveNumber, HF_DAMP } from "./display";
+import { fmtBendDown, fmtOffset, fmtPan, fmtSigned, fmtWaveNumber, HF_DAMP, PAN_CENTRE } from "./display";
 import { EFX_TYPES } from "./efx";
 
 export type ParamBlock = "common" | "tone";
@@ -75,7 +75,7 @@ export const COMMON_PARAMS: readonly ParamDef[] = [
   level(common("delayFeedback", "Delay Feedback", 0x2b)),
   range(common("tempo", "Tempo", 0x2c), 20, 250, { nibbled: true }),
   level(common("patchLevel", "Patch Level", 0x2e)),
-  range(common("patchPan", "Patch Pan", 0x2f), 0, 127, { display: fmtPan }),
+  range(common("patchPan", "Patch Pan", 0x2f), 0, 127, { center: PAN_CENTRE, display: fmtPan }),
   range(common("bendUp", "Bend Up", 0x31), 0, 12, { display: fmtSigned }),
   range(common("bendDown", "Bend Down", 0x32), 0, 48, { display: fmtBendDown }),
   choice(common("keyAssign", "Key Assign", 0x33), ["POLY", "SOLO"]),
@@ -119,7 +119,7 @@ export const TONE_PARAMS: readonly ParamDef[] = [
   ...envRows(tone("ampEnvLevel", "Amp Env L", 0x72), 3, level), // Level 4 is fixed at 0
   depth(tone("ampLfo1", "Amp LFO1", 0x75)),
   depth(tone("ampLfo2", "Amp LFO2", 0x76)),
-  range(tone("tonePan", "Pan", 0x77), 0, 127, { display: fmtPan }),
+  range(tone("tonePan", "Pan", 0x77), 0, 127, { center: PAN_CENTRE, display: fmtPan }),
   choice(tone("outputAssign", "Output", 0x7d), ["MIX", "EFX", "DIR1", "DIR2"]),
   level(tone("mixEfxSend", "Mix/EFX Send", 0x7e)),
   level(tone("chorusSend", "Chorus Send", 0x7f)),

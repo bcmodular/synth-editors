@@ -5,8 +5,12 @@ export const fmtSigned = (n: number) => (n > 0 ? `+${n}` : String(n));
 // A bipolar value shown relative to its centre, eg. Coarse Tune raw 36 → "-12".
 export const fmtOffset = (center: number) => (raw: number) => fmtSigned(raw - center);
 
-// Raw 0–127, 64 = centre: "L64" … "0" … "63R".
-export const fmtPan = (raw: number) => (raw === 64 ? "0" : raw < 64 ? `L${64 - raw}` : `${raw - 64}R`);
+// Raw 0–127, 64 = centre: "L64" … "C" … "63R".
+export const PAN_CENTRE = 64;
+export function fmtPan(raw: number): string {
+  if (raw === PAN_CENTRE) return "C";
+  return raw < PAN_CENTRE ? `L${PAN_CENTRE - raw}` : `${raw - PAN_CENTRE}R`;
+}
 
 // Bend Range Down: raw n bends down n semitones.
 export const fmtBendDown = (raw: number) => fmtSigned(-raw);

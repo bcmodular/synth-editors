@@ -8,7 +8,7 @@ import { param } from "../core/paramValue";
 import { Segmented } from "../ui/controls";
 import { ChannelFader } from "../ui/Knob";
 import { useDismiss } from "../ui/useDismiss";
-import { MASTER_COLOUR, SECTION_COLOURS, TONE_COLOURS } from "./colours";
+import { MASTER_COLOUR, PAN_COLOUR, SECTION_COLOURS, TONE_COLOURS } from "./colours";
 import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamFader, ParamKnob, ParamSwitch } from "./ParamControls";
 import { soloedSwitches, toggleSolo } from "./solo";
@@ -49,7 +49,7 @@ function ToneStrip({ tone, soloed, onSolo }: StripProps) {
         <ParamKnob def="mixEfxSend" tone={tone} label={out === 1 ? "EFX" : "MIX"} color={colour} />
         <ParamKnob def="chorusSend" tone={tone} label="CHORUS" color={SECTION_COLOURS.chorus} />
         <ParamKnob def="reverbSend" tone={tone} label="REVERB" color={SECTION_COLOURS.reverb} />
-        <ParamKnob def="tonePan" tone={tone} label="PAN" />
+        <ParamKnob def="tonePan" tone={tone} label="PAN" color={PAN_COLOUR} />
       </div>
       <Segmented options={OUTPUTS.map((label, value) => ({ label, value }))} value={out}
         onChange={(v) => setValue(param("outputAssign"), v, tone)} />
@@ -113,7 +113,7 @@ function MasterStrip() {
         <button className={`btn ${open ? "sel" : ""}`} onClick={() => setOpen((o) => !o)}>SETTINGS…</button>
         {open && <PatchPopup />}
       </div>
-      <ParamKnob def="patchPan" label="PAN" />
+      <ParamKnob def="patchPan" label="PAN" color={PAN_COLOUR} />
       <LevelFader id="patchLevel" colour={MASTER_COLOUR} />
     </div>
   );

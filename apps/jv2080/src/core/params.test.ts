@@ -30,7 +30,8 @@ describe("parameter table", () => {
     expect(param("coarseTune").display(60)).toBe("+12");
     expect(param("pitchEnvLevel1").display(63)).toBe("0");
     expect(param("tonePan").display(0)).toBe("L64");
-    expect(param("tonePan").display(64)).toBe("0");
+    expect(param("tonePan").display(64)).toBe("C");
+    expect(param("tonePan").center).toBe(64); // double-click resets to centre
     expect(param("tonePan").display(127)).toBe("63R");
     expect(param("bendDown").display(24)).toBe("-24");
     expect(param("octaveShift").display(3)).toBe("0");

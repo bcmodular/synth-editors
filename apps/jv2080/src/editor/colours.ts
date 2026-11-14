@@ -7,6 +7,8 @@ export const SECTION_COLOURS = { efx: "#a8b8ff", chorus: "#8fdcc4", reverb: "#7f
 
 export const MASTER_COLOUR = "#7be890";
 
+export const PAN_COLOUR = "#ff5a4a";
+
 // CSS variables that recolour a section and the controls in it (headings, fader fills, selected buttons, LEDs).
 export function tintVars(colour: string): Record<string, string> {
   return {

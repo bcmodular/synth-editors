@@ -45,7 +45,7 @@ export const shortName = (name: string) => SHORTER.reduce((n, [re, to]) => n.rep
 // A parameter no drawing takes: buttons for a short list, a drop-down for a long one, otherwise a knob.
 function RestControl({ x }: { x: EfxParam }) {
   const labels = x.p.labels;
-  if (labels && labels.length <= 5) {
+  if (labels && labels.length <= 6) {
     return (
       <div className="efx-choice">
         <span className="lbl">{shortName(x.p.name)}</span>

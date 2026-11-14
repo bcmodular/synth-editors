@@ -66,7 +66,14 @@ After the first editor, a more compact layout, decided with the user:
   with Patch Level and Pan. ✅
 - **Patch settings popup** from the master strip: octave, bend up / down, keys, legato, portamento and its time,
   Clock Source (PATCH / SYSTEM; SYSTEM follows the JV's system clock, which can follow MIDI clock) and Tempo. ✅
-- **EFX chooser** as a big grid of grouped types, like the SP-404's; **a dedicated view for each of the 40 types**.
+- **EFX chooser** as a big grid of grouped types, like the SP-404's ✅; **a dedicated view for each of the 40 types** ✅
+  (`editor/efx/`: a spec per type names the drawings it shows and the parameters they drag; EQ, spectrum, drive,
+  enhancer, compressor, limiter, LFO sweep, rotary, delay taps, pitch ladder, reverb and gate drawings; two-effect
+  types joined by an arrow or stacked; the rest as knobs and buttons). Rates and times still draw from raw values.
+- **Demo mode** (`?demo`): the editor on a built-in patch with nothing sent, for working without a JV. A new EFX
+  type starts from neutral values there (`efxStartValue`); on the JV it keeps the previous type's bytes (open
+  question whether to send start values too).
+- LFO drawing / routing view and fit zoom: dropped (2026-11-14), not needed.
 - **Chorus and reverb** get dedicated layouts like the SP-404's, stacked; the patch settings always visible beside
   them. ✅
 - **Wave library:** a panel over the tones with search and instrument categories (assigned from the wave names);
@@ -75,7 +82,6 @@ After the first editor, a more compact layout, decided with the user:
   in `core/waveCategories.ts`, as ranges of the manual's numbering)
 - **Envelopes** (pitch, filter, amp) as graph editors with a reset to a simple shape; the other tone values as
   encoders, stacked left of the pitch and filter graphs. ✅
-- **LFOs:** the TB-3's waveform drawing, and a routing view like its cross-mod matrix.
 - Controls are copied from the TB-3 and SP-404 apps for now; shared packages later, once they settle.
 
 The sections below describe the first design; where they differ, the list above wins.

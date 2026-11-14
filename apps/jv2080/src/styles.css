@@ -1237,3 +1237,21 @@ input {
 .fxdraw .svg-btn.on text {
   fill: #fff;
 }
+/* Only handles, drag areas and buttons take the pointer; lines, fills and text drawn over them mustn't. */
+.fxdraw .cv,
+.fxdraw .cv2,
+.fxdraw .axis,
+.fxdraw .axis-box,
+.fxdraw .area,
+.fxdraw .bar,
+.fxdraw .tap,
+.fxdraw .dry,
+.fxdraw .voice,
+.fxdraw .spk,
+.fxdraw .tip,
+.fxdraw .dot,
+.fxdraw .gt,
+.fxdraw .gv,
+.fxdraw .gl {
+  pointer-events: none;
+}

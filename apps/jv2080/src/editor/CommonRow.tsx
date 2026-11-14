@@ -1,4 +1,4 @@
-// The row above the tones: the mixer, the EFX with its type's parameters, chorus and reverb.
+// The row above the tones: the mixer, the EFX with its type's parameters, chorus over reverb, and the patch settings.
 
 import { useState } from "react";
 import { efxType } from "../core/efx";
@@ -12,6 +12,7 @@ import { EffectChooser } from "./EffectChooser";
 import { efxSlotParam } from "./efxParams";
 import { Mixer } from "./Mixer";
 import { ParamChoice, ParamFader, ParamSelect } from "./ParamControls";
+import { PatchSettings } from "./PatchSettings";
 
 // A list parameter with few values reads best as buttons; long lists as a drop-down.
 function EfxParam({ def }: { def: ParamDef }) {
@@ -87,8 +88,11 @@ export function CommonRow() {
     <div className="common-row">
       <Mixer />
       <Efx />
-      <Chorus />
-      <Reverb />
+      <div className="stack">
+        <Chorus />
+        <Reverb />
+      </div>
+      <PatchSettings />
     </div>
   );
 }

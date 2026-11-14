@@ -599,38 +599,6 @@ input {
   border-top-color: #555;
 }
 
-/* Popups: a panel under their button, over everything else. */
-.popup {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 4px);
-  left: 0;
-  width: 300px;
-  padding: 8px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  background: #1b1c20;
-  border: 1px solid var(--rule);
-  box-shadow: 0 8px 24px #000a;
-}
-.popup h3 {
-  margin: 0 0 2px;
-  font-size: var(--text-xl);
-  color: var(--val);
-  letter-spacing: 0.05em;
-}
-.popup .off {
-  opacity: 0.4;
-  pointer-events: none;
-}
-.popup .note {
-  margin: 2px 0 0;
-  font-size: var(--text-s);
-  color: var(--dim);
-  word-spacing: normal;
-}
-
 /* The EFX chooser (editor/EffectChooser.tsx), after the SP-404's: one row per group in its colour (--grp). */
 .editor {
   position: relative;
@@ -696,6 +664,28 @@ input {
   font-weight: 600;
 }
 
-.anchor.settings {
-  width: auto;
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.stack > .sec {
+  flex: 1 1 auto;
+}
+.patch-set {
+  --tint: #7be890;
+  --led: var(--tint);
+  --led-off: color-mix(in srgb, var(--tint) 35%, #111);
+  --sel-bg: color-mix(in srgb, var(--tint) 16%, #0b0b0c);
+}
+.patch-set .off {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.patch-set .note {
+  margin: 2px 0 0;
+  font-size: var(--text-s);
+  color: var(--dim);
+  word-spacing: normal;
 }

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { JvLink } from "../link/useJvLink";
 import { CommonRow } from "./CommonRow";
 import { EditorContext } from "./EditorContext";
-import { PatchSettings } from "./PatchSettings";
 import { ToneColumn } from "./ToneColumn";
 import { TopStrip } from "./TopStrip";
 import { useJvSession } from "./useJvSession";
@@ -27,7 +26,7 @@ export function Editor({ link, onSpike }: { link: JvLink; onSpike: () => void })
   return (
     <EditorContext.Provider value={api}>
       <main className="editor">
-        <TopStrip link={link} session={session} onSpike={onSpike} settings={api ? <PatchSettings /> : null} />
+        <TopStrip link={link} session={session} onSpike={onSpike} />
         {api ? (
           <>
             <CommonRow />

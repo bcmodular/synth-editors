@@ -3,7 +3,7 @@
 
 import { getParam } from "../core/patch";
 import type { ParamDef } from "../core/params";
-import { param } from "../core/paramValue";
+import { clampParam, param } from "../core/paramValue";
 import { LedButton, Segmented } from "../ui/controls";
 import { HFader } from "../ui/Fader";
 import { Knob } from "../ui/Knob";
@@ -17,11 +17,14 @@ export interface BoundProps {
 
 const defOf = (def: ParamDef | string) => (typeof def === "string" ? param(def) : def);
 
+// The value is shown within the parameter's range: a byte can hold more (eg. an EFX parameter left over from the
+// previous EFX type, which the JV keeps when the type changes).
 function useBound(props: BoundProps) {
   const { patch, setValue } = useEditor();
   const def = defOf(props.def);
   const tone = props.tone ?? 0;
-  return { def, value: getParam(patch, def, tone), set: (v: number) => setValue(def, v, tone), label: props.label ?? def.name };
+  const value = clampParam(def, getParam(patch, def, tone));
+  return { def, value, set: (v: number) => setValue(def, v, tone), label: props.label ?? def.name };
 }
 
 // The fader works from 0, so parameters that start higher (Tempo 20–250) are shifted by their minimum.

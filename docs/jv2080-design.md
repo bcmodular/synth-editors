@@ -67,10 +67,13 @@ After the first editor, a more compact layout, decided with the user:
 - **Patch settings popup** from the master strip: octave, bend up / down, keys, legato, portamento and its time,
   Clock Source (PATCH / SYSTEM; SYSTEM follows the JV's system clock, which can follow MIDI clock) and Tempo. ✅
 - **EFX chooser** as a big grid of grouped types, like the SP-404's; **a dedicated view for each of the 40 types**.
-- **Chorus and reverb** get dedicated layouts like the SP-404's.
+- **Chorus and reverb** get dedicated layouts like the SP-404's, stacked; the patch settings always visible beside
+  them. ✅
 - **Wave library:** a panel over the tones with search and instrument categories (assigned from the wave names);
-  INT-A / INT-B is a tag, not an up-front choice. Picking auditions straight away.
-- **Envelopes** (pitch, filter, amp) as graph editors; the other tone values as encoders.
+  INT-A / INT-B is a tag, not an up-front choice. Picking auditions straight away. The wave's name replaces
+  "TONE n" in the tone's header, with an icon that opens the library; the WAVE section then goes.
+- **Envelopes** (pitch, filter, amp) as graph editors with a reset to a simple shape; the other tone values as
+  encoders, stacked left of the pitch and filter graphs. ✅
 - **LFOs:** the TB-3's waveform drawing, and a routing view like its cross-mod matrix.
 - Controls are copied from the TB-3 and SP-404 apps for now; shared packages later, once they settle.
 

@@ -42,3 +42,13 @@ export function envelopeNodes(spec: EnvelopeSpec, sustain: number): EnvelopeNode
   nodes.push({ t, v: level(3) });
   return nodes;
 }
+
+export type EnvelopeKind = "pitch" | "filter" | "amp";
+
+// The simple shapes a reset returns to: pitch flat (no change), filter and amp straight up to full, held, then
+// back to 0 at note-off (the amp with a short release, so notes don't click off).
+export const SIMPLE_ENVELOPES: Record<EnvelopeKind, { times: readonly number[]; levels: readonly number[] }> = {
+  pitch: { times: [0, 0, 0, 0], levels: [63, 63, 63, 63] },
+  filter: { times: [0, 0, 0, 0], levels: [127, 127, 127, 0] },
+  amp: { times: [0, 0, 0, 10], levels: [127, 127, 127] },
+};

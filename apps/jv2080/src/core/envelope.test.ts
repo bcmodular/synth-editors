@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { envelopeLevel, envelopeNodes, rawAtLevel, type EnvelopeSpec } from "./envelope";
+import { envelopeLevel, envelopeNodes, rawAtLevel, SIMPLE_ENVELOPES, type EnvelopeSpec } from "./envelope";
 
 const amp: EnvelopeSpec = { times: [0, 48, 78, 36], levels: [127, 118, 21], levelMax: 127 };
 const pitch: EnvelopeSpec = { times: [10, 20, 30, 40], levels: [126, 0, 63, 63], levelMax: 126, center: 63 };
@@ -22,5 +22,15 @@ describe("envelopes", () => {
     expect(rawAtLevel(pitch, 0.5)).toBe(95);
     expect(rawAtLevel(amp, 2)).toBe(127);
     expect(rawAtLevel(amp, -0.2)).toBe(0);
+  });
+});
+
+describe("simple envelopes", () => {
+  it("are flat for pitch and full-held-zero for filter and amp", () => {
+    const flat = envelopeNodes({ ...SIMPLE_ENVELOPES.pitch, levelMax: 126, center: 63 }, 10);
+    expect(flat.every((n) => n.v === 0)).toBe(true);
+    const amp = envelopeNodes({ ...SIMPLE_ENVELOPES.amp, levelMax: 127 }, 10);
+    expect(amp.map((n) => n.v)).toEqual([0, 1, 1, 1, 1, 0]);
+    expect(SIMPLE_ENVELOPES.amp.levels).toHaveLength(3); // the amp has no L4
   });
 });

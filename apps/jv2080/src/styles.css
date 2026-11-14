@@ -244,6 +244,10 @@ input {
 .prow > .pick {
   flex: 1 1 0;
 }
+.prow > .seg {
+  flex-wrap: wrap;
+  min-width: 0;
+}
 
 /* --- Editor layout --- */
 
@@ -298,13 +302,13 @@ input {
 
 .common-row {
   display: grid;
-  grid-template-columns: auto 1.6fr 1fr 1fr;
+  grid-template-columns: auto minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
 }
 .efx-params {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px 12px;
 }
 
@@ -363,10 +367,53 @@ input {
   font-size: var(--text-s);
   font-weight: 600;
 }
-.knobrow {
+/* Pitch and filter: three knobs stacked on the left (knob, label and value beside it), the envelope beside them. */
+.envrow {
   display: flex;
-  justify-content: space-around;
-  padding: 2px 0;
+  gap: 8px;
+  align-items: stretch;
+}
+.envrow .envbox {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.knobstack {
+  flex: 0 0 auto;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.knobstack .kn {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  justify-items: start;
+}
+.knobstack .kn i {
+  grid-row: span 2;
+}
+.knobstack .kn .lbl {
+  align-self: end;
+}
+.knobstack .kn em {
+  align-self: start;
+}
+.envg .reset {
+  cursor: pointer;
+}
+.envg .reset rect {
+  fill: #1e1f22;
+  stroke: var(--edge);
+}
+.envg .reset:hover rect {
+  stroke: var(--led);
+}
+.envg .reset text {
+  fill: var(--text);
+  font-size: 13px;
 }
 .lfo-head > .prow {
   flex: 1 1 0;

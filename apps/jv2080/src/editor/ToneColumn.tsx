@@ -2,7 +2,7 @@
 // are graphs; the other values are knobs.
 
 import { useState } from "react";
-import type { EnvelopeSpec } from "../core/envelope";
+import { SIMPLE_ENVELOPES, type EnvelopeKind, type EnvelopeSpec } from "../core/envelope";
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
 import { WAVE_GROUPS, waveCount, waveGroupBytes, waveGroupOf, waveName, type WaveGroup } from "../core/waves";
@@ -13,7 +13,8 @@ import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamFader, ParamKnob, ParamSelect } from "./ParamControls";
 
-const ENV_HEIGHT = 80;
+const ROW_ENV_HEIGHT = 112; // beside the three knobs
+const AMP_ENV_HEIGHT = 80;
 
 interface ToneProps {
   tone: number; // 0–3
@@ -53,9 +54,19 @@ function Wave({ tone }: ToneProps) {
   );
 }
 
-// An envelope as a graph the width of the column (ui/EnvelopeGraph.tsx).
-function Envelope({ tone, prefix, levels, bipolar }: ToneProps & { prefix: string; levels: number; bipolar?: boolean }) {
+// Sets an envelope's times and levels to its simple shape.
+function resetEnvelope(kind: EnvelopeKind, set: (id: string, value: number) => void) {
+  const { times, levels } = SIMPLE_ENVELOPES[kind];
+  times.forEach((v, i) => set(`${kind}EnvTime${i + 1}`, v));
+  levels.forEach((v, i) => set(`${kind}EnvLevel${i + 1}`, v));
+}
+
+// An envelope as a graph filling the width it's given (ui/EnvelopeGraph.tsx).
+function Envelope({ tone, kind, height }: ToneProps & { kind: EnvelopeKind; height: number }) {
   const { patch, setValue } = useEditor();
+  const prefix = `${kind}Env`;
+  const bipolar = kind === "pitch";
+  const levels = SIMPLE_ENVELOPES[kind].levels.length;
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const { width } = useSize(box);
   const raw = (id: string) => getParam(patch, param(id), tone);
@@ -68,9 +79,10 @@ function Envelope({ tone, prefix, levels, bipolar }: ToneProps & { prefix: strin
   return (
     <div className="envbox" ref={setBox}>
       {width > 0 && (
-        <EnvelopeGraph spec={spec} width={width} height={ENV_HEIGHT}
+        <EnvelopeGraph spec={spec} width={width} height={height}
           onTime={(stage, v) => setValue(param(`${prefix}Time${stage + 1}`), v, tone)}
-          onLevel={(stage, v) => setValue(param(`${prefix}Level${stage + 1}`), v, tone)} />
+          onLevel={(stage, v) => setValue(param(`${prefix}Level${stage + 1}`), v, tone)}
+          onReset={() => resetEnvelope(kind, (id, v) => setValue(param(id), v, tone))} />
       )}
     </div>
   );
@@ -96,22 +108,26 @@ export function ToneColumn({ tone }: ToneProps) {
       <h3>WAVE</h3>
       <Wave tone={tone} />
       <h3>PITCH</h3>
-      <div className="knobrow">
-        <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
-        <ParamKnob def="fineTune" tone={tone} label="FINE" />
-        <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV DEPTH" />
+      <div className="envrow">
+        <div className="knobstack">
+          <ParamKnob def="coarseTune" tone={tone} label="COARSE" />
+          <ParamKnob def="fineTune" tone={tone} label="FINE" />
+          <ParamKnob def="pitchEnvDepth" tone={tone} label="ENV DEPTH" />
+        </div>
+        <Envelope tone={tone} kind="pitch" height={ROW_ENV_HEIGHT} />
       </div>
-      <Envelope tone={tone} prefix="pitchEnv" levels={4} bipolar />
       <h3>FILTER</h3>
       <ParamChoice def="filterType" tone={tone} label="Type" />
-      <div className="knobrow">
-        <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
-        <ParamKnob def="resonance" tone={tone} label="RESO" />
-        <ParamKnob def="filterEnvDepth" tone={tone} label="ENV DEPTH" />
+      <div className="envrow">
+        <div className="knobstack">
+          <ParamKnob def="cutoff" tone={tone} label="CUTOFF" />
+          <ParamKnob def="resonance" tone={tone} label="RESO" />
+          <ParamKnob def="filterEnvDepth" tone={tone} label="ENV DEPTH" />
+        </div>
+        <Envelope tone={tone} kind="filter" height={ROW_ENV_HEIGHT} />
       </div>
-      <Envelope tone={tone} prefix="filterEnv" levels={4} />
       <h3>AMP</h3>
-      <Envelope tone={tone} prefix="ampEnv" levels={3} />
+      <Envelope tone={tone} kind="amp" height={AMP_ENV_HEIGHT} />
       <h3>LFO</h3>
       <Lfo tone={tone} n={1} />
       <Lfo tone={tone} n={2} />

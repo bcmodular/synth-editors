@@ -337,9 +337,8 @@ input {
   align-items: center;
   gap: 6px;
   padding: 5px 5px 4px;
-  background: #151619;
+  background: color-mix(in srgb, var(--sc, #151619) 12%, #151619);
   border: 1px solid #000;
-  border-top: 2px solid var(--sc);
 }
 .st-head {
   font-size: var(--text-m);
@@ -432,7 +431,9 @@ input {
 /* Returns: two short faders, one above the other, in their sections' colours. */
 .strip.ret {
   width: 70px;
-  border-top-color: var(--rule);
+}
+.lvf .st-head {
+  margin-bottom: 8px;
 }
 .lvf {
   flex: 1 1 0;

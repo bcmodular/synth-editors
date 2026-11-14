@@ -107,8 +107,7 @@ function MasterStrip() {
   const anchor = useRef<HTMLDivElement>(null);
   useDismiss(anchor, useCallback(() => setOpen(false), []));
   return (
-    <div className="strip master" style={{ ["--sc" as string]: MASTER_COLOUR }}>
-      <div className="st-head">PATCH</div>
+    <div className="strip master">
       <div className="anchor" ref={anchor}>
         <button className={`btn ${open ? "sel" : ""}`} onClick={() => setOpen((o) => !o)}>SETTINGS…</button>
         {open && <PatchPopup />}

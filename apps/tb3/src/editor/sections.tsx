@@ -1,4 +1,5 @@
 // Synthesis sections of layout A (docs/tb3-phase2-design.md).
+import { useState } from "react";
 import { DIST_TYPES } from "../core/display";
 import { lfoShape } from "../core/lfoShape";
 import { getRaw } from "../core/patch";
@@ -9,7 +10,10 @@ import { EnvelopeEditor } from "../ui/EnvelopeEditor";
 import type { Stage } from "../ui/EnvelopeEditor";
 import { Section, Segmented, Stepper } from "../ui/controls";
 import type { SegOption } from "../ui/controls";
+import { WaveIcon } from "../ui/WaveIcon";
+import type { Wave } from "../ui/WaveIcon";
 import { WaveView } from "../ui/WaveView";
+import { useSize } from "../ui/useSize";
 import { XmodMatrix } from "../ui/XmodMatrix";
 import { useEditor } from "./EditorContext";
 import { LiveWave } from "./LiveWave";
@@ -171,7 +175,7 @@ export function RingModSection() {
   );
 }
 
-function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
+function Envelope(p: { prefix: "vcf" | "vca"; label: string; width: number }) {
   const ed = useEditor();
   const ids: Record<Stage, string> = {
     a: `${p.prefix}_attack`,
@@ -188,8 +192,8 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
       s={v("s")}
       r={v("r")}
       label={p.label}
-      width={232}
-      height={120}
+      width={p.width}
+      height={140}
       disabled={!ed.patch}
       readOnly={ed.armed !== null || ed.learning}
       wrapValue={(k, node) => (
@@ -206,16 +210,14 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
 export function VcfSection() {
   return (
     <Section title="FILTER" className="vcf"
-      info={<HelpButton label="the filter" useContent={sectionHelp(FILTER_HELP)} side={<VcfSection />} sideWidth={420} />}>
-      <div className="row top">
-        <Envelope prefix="vcf" label="ENV" />
-        <div className="knobgrid two">
-          <ParamKnob id="vcf_cutoff" label="CUTOFF" />
-          <ParamKnob id="vcf_resonance" label="RESONANCE" />
-          <ParamKnob id="vcf_env_depth" label="ENV DEPTH" />
-          <ParamKnob id="vcf_key_follow" label="KEY FOLLOW" />
-          <LfoDepth id="vcf_lfo_depth" />
-        </div>
+      info={<HelpButton label="the filter" useContent={sectionHelp(FILTER_HELP)} side={<VcfSection />} sideWidth={380} />}>
+      <Envelope prefix="vcf" label="ENV" width={340} />
+      <div className="knobrow">
+        <ParamKnob id="vcf_cutoff" label="CUTOFF" />
+        <ParamKnob id="vcf_resonance" label="RESONANCE" />
+        <ParamKnob id="vcf_env_depth" label="ENV DEPTH" />
+        <ParamKnob id="vcf_key_follow" label="KEY FOLLOW" />
+        <LfoDepth id="vcf_lfo_depth" />
       </div>
     </Section>
   );
@@ -224,13 +226,11 @@ export function VcfSection() {
 export function VcaSection() {
   return (
     <Section title="AMPLIFIER" className="vca"
-      info={<HelpButton label="the amplifier" useContent={sectionHelp(AMP_HELP)} side={<VcaSection />} sideWidth={420} />}>
-      <div className="row top">
-        <Envelope prefix="vca" label="ENV" />
-        <div className="knobgrid two">
-          <ParamKnob id="master_volume" label="VOLUME" />
-          <LfoDepth id="vca_lfo_depth" />
-        </div>
+      info={<HelpButton label="the amplifier" useContent={sectionHelp(AMP_HELP)} side={<VcaSection />} sideWidth={280} />}>
+      <Envelope prefix="vca" label="ENV" width={240} />
+      <div className="knobrow">
+        <ParamKnob id="master_volume" label="VOLUME" />
+        <LfoDepth id="vca_lfo_depth" />
       </div>
     </Section>
   );
@@ -275,6 +275,26 @@ export function DistSection() {
   );
 }
 
+// The LFO's waves, each knob under a picture of its wave.
+const LFO_WAVES: readonly [Wave, string, string][] = [
+  ["saw", "lfo_saw", "SAW"],
+  ["sqr", "lfo_sqr", "SQR"],
+  ["tri", "lfo_tri", "TRI"],
+  ["sin", "lfo_sin", "SIN"],
+  ["sh", "lfo_sh", "S&H"],
+];
+
+// A wave picture as wide as its section.
+function FillWave(p: { ys: number[] | null; height: number }) {
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const { width } = useSize(box);
+  return (
+    <div ref={setBox} className="fillwave" style={{ height: p.height }}>
+      {width > 0 && <WaveView ys={p.ys} width={width} height={p.height} />}
+    </div>
+  );
+}
+
 export function LfoSection() {
   const { patch } = useEditor();
   const ys = patch
@@ -301,17 +321,15 @@ export function LfoSection() {
         </>
       }
     >
-      <div className="row top">
-        <WaveView ys={ys} width={296} height={130} />
-        <div className="knobgrid">
-          <ParamKnob id="lfo_saw" label="SAW" />
-          <ParamKnob id="lfo_sqr" label="SQR" />
-          <ParamKnob id="lfo_tri" label="TRI" />
-          <ParamKnob id="lfo_sin" label="SIN" />
-          <ParamKnob id="lfo_sh" label="S&H" />
-        </div>
-      </div>
-      <div className="knobrow">
+      <FillWave ys={ys} height={120} />
+      <div className="knobrow lforow">
+        {LFO_WAVES.map(([wave, id, label]) => (
+          <div key={id} className="wavek">
+            <WaveIcon wave={wave} />
+            <ParamKnob id={id} label={label} bare />
+          </div>
+        ))}
+        <span className="knobsep" />
         <ParamKnob id="lfo_rate" label="RATE" />
         <ParamKnob id="lfo_delay" label="DELAY" />
         <ParamKnob id="lfo_cv_offset" label="CV OFFSET" />

@@ -163,16 +163,18 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
 
 ![FILTER, AMPLIFIER, LFO and DISTORTION](images/row-shaping.png)
 
-- **FILTER** (the VCF): cutoff, resonance, envelope depth and key follow, with the filter envelope. Drag the
-  envelope's handles to shape it. The first sets attack, the second sets decay (sideways) and
-  sustain (up and down), and the last sets release. The A, D, S and R knobs underneath edit the
-  same values. The red **LFO** knob sets how much the LFO moves the cutoff.
-- **AMPLIFIER** (the VCA): the amp envelope, edited in the same way, the master volume, and a red
-  **LFO** knob for how much the LFO moves the level (tremolo).
-- **LFO**: the waveform mix (saw, square, triangle, sine and sample & hold), rate, delay and CV
-  offset. How much it moves each destination is set where it lands, on the red LFO knobs in
-  OSCILLATORS (pitch, beside TUNING), FILTER and AMPLIFIER. BPM SYNC locks the rate to the tempo,
-  and RETRIG restarts the LFO on each note. The picture shows the resulting shape.
+- **FILTER** (the VCF): the filter envelope, with cutoff, resonance, envelope depth, key follow and a
+  red **LFO** knob (how much the LFO moves the cutoff) in a row under it. Drag the envelope's
+  handles to shape it. The first sets attack, the second sets decay (sideways) and sustain (up and
+  down), and the last sets release. The A, D, S and R values along the bottom of the graph edit
+  the same settings: drag one up or down, scroll it, or double-click it to zero.
+- **AMPLIFIER** (the VCA): the amp envelope, edited in the same way, with the master volume and a
+  red **LFO** knob (how much the LFO moves the level: tremolo) under it.
+- **LFO**: the picture shows the shape the LFO makes. Under it, one row of knobs: the waveform
+  mix, each knob under a little picture of its wave (saw, square, triangle, sine and sample &
+  hold), then rate, delay and CV offset. How much the LFO moves each destination is set where it
+  lands, on the red LFO knobs in OSCILLATORS (pitch, beside TUNING), FILTER and AMPLIFIER. BPM
+  SYNC locks the rate to the tempo, and RETRIG restarts the LFO on each note.
 
 ### Distortion and effects
 

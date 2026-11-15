@@ -167,7 +167,7 @@ async function shootEditor(page: Page) {
   await libRow(page, "Live set").dblclick();
   await expect(page.locator(".slotgrid .slot.filled")).toHaveCount(Object.keys(SET_SLOTS).length);
   await slot(page, 2).click();
-  await page.locator(".vcf .knobgrid .kn").first().hover();
+  await page.locator(".vcf .knobrow .kn").first().hover();
   await page.mouse.wheel(0, -100);
   await page.mouse.wheel(0, -100);
   await slot(page, 1).click();

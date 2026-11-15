@@ -78,7 +78,7 @@ export const FILTER_HELP: SectionHelp = {
     { label: "ENV DEPTH", ids: ["vcf_env_depth"], text: "How far the envelope sweeps the cutoff on each note: the front panel's ENV MOD (the pad's x-axis in ENV MOD mode)." },
     { label: "KEY FOLLOW", ids: ["vcf_key_follow"], text: "How much the cutoff follows the note's pitch, so higher notes stay as bright as low ones." },
     { label: "LFO", ids: ["vcf_lfo_depth"], text: "How much the LFO moves the cutoff (red, as the LFO's): a wah or wobble. Left of centre inverts it." },
-    { label: "ENVELOPE", ids: ["vcf_attack", "vcf_decay", "vcf_sustain", "vcf_release"], text: "The filter envelope: attack, decay, sustain and release. Decay is the front panel's ENV MOD pad y-axis. Drag the graph's handles or turn the knobs under it." },
+    { label: "ENVELOPE", ids: ["vcf_attack", "vcf_decay", "vcf_sustain", "vcf_release"], text: "The filter envelope: attack, decay, sustain and release. Decay is the front panel's ENV MOD pad y-axis. Drag the graph's handles, or drag or scroll the values under them." },
   ],
   notes: [
     "The classic acid line: cutoff low, resonance high, plenty of ENV DEPTH and a short decay, with accents and slides in the pattern.",
@@ -92,7 +92,7 @@ export const AMP_HELP: SectionHelp = {
   title: "Amplifier",
   summary: "The VCA: how each note's level rises and falls, and the patch's overall volume.",
   rows: [
-    { label: "ENVELOPE", ids: ["vca_attack", "vca_decay", "vca_sustain", "vca_release"], text: "The amp envelope: attack, decay, sustain and release. Drag the graph's handles or turn the knobs under it." },
+    { label: "ENVELOPE", ids: ["vca_attack", "vca_decay", "vca_sustain", "vca_release"], text: "The amp envelope: attack, decay, sustain and release. Drag the graph's handles, or drag or scroll the values under them." },
     { label: "VOLUME", ids: ["master_volume"], text: "The patch's level, to balance it against others in a set." },
     { label: "LFO", ids: ["vca_lfo_depth"], text: "How much the LFO moves the level (red, as the LFO's): tremolo. Left of centre inverts it." },
   ],

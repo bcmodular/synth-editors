@@ -100,10 +100,10 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 | VCO mix | Display-only waveform: the summed oscillator mix over two cycles (sources that are switched off are left out; tuning offsets shift each wave's pitch, 24 steps drawn as an octave; cross/ring mod depths are not modelled). The window is two cycles of the lowest-pitched wave that's playing, so a single detuned wave never goes flat, and other waves are drawn at most three octaves above it. Maths in `core/vcoShape.ts`. | `vco_*`, `*_tuning` |
 | Cross mod | **3b**, mirrored: the → SAW cells on the left, the → SQR cells on the right, and the patch view between them. The patch view labels the sources at its left and right edges, beside their cells, with SAW and SQR in the middle; each **non-zero** cell draws a cord inwards from its source to its destination, so cords from the two columns never cross. Thickness shows the amount and colour the sign (green positive, amber negative). Zero cells draw nothing. The patch view is read-only. | `cm_*` (8) |
 | Ring mod | Its own section under CROSS MOD: one row of six knobs. | `rm_*` |
-| VCF | **4a** envelope editor (see below), with horizontal bars to its right for CUTOFF, RESONANCE, ENV DEPTH and KEY FOLLOW. Cutoff and resonance are u16 (0–255). | `vcf_*` |
-| VCA | **4a** envelope editor, with VOLUME to its right. | `vca_*`, `master_volume` |
+| VCF | **4a** envelope editor (see below), its A, D, S and R values in a strip inside the graph, under the floor; then one row of knobs under it: CUTOFF, RESONANCE, ENV DEPTH, KEY FOLLOW and the red LFO depth. Cutoff and resonance are u16 (0–255). | `vcf_*` |
+| VCA | **4a** envelope editor, as the VCF's, with VOLUME and the red LFO depth under it. | `vca_*`, `master_volume` |
 | Distortion | **6b**: type stepper, then ON and COLOR LED buttons, then DRIVE (0–120), BOTTOM and TONE (bipolar, centre 50), EFX LVL and DRY LVL. | `dist_*` |
-| LFO | **5a** (see below), then RATE, DELAY and CV OFFSET, and BPM SYNC and RETRIG LED buttons. Its depths are in the sections they modulate (above). | `lfo_*` |
+| LFO | **5a** (see below) across the section, then one row of knobs under it: the five waves, each under a small picture of its wave (`ui/WaveIcon.tsx`), a rule, then RATE, DELAY and CV OFFSET. BPM SYNC and RETRIG LED buttons in the header. Its depths are in the sections they modulate (above). | `lfo_*` |
 | EFX1 / EFX2 | **7a** (see below). | EFX blocks |
 | Porta · Bend | Top strip section: PORTA LED button, a LEGATO/ALWAYS segmented control, TIME bar, and BEND RANGE bar (display `±n st`). | `porta_*`, `bender_range` |
 | Assign | **8a** learn-by-click (see below). | `assign_*` |

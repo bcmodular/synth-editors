@@ -148,7 +148,7 @@ export const EFX_TYPE_HELP: Readonly<Record<string, EfxTypeHelp>> = {
       "HM GAIN": "The high-mid band's boost or cut, ±20 dB.",
       LEVEL: "The EQ's output level, ±20 dB.",
     },
-    notes: ["Drag a band's handle sideways for its frequency, up and down for its gain; scroll on a mid band for its Q."],
+    notes: ["Drag a band's handle sideways for its frequency, up and down for its gain; scroll on a mid band for its Q, or turn its Q knob."],
   },
   REVERB: {
     summary: "A reverb (EFX2 only): the sound in a space, from a small room to a long hall, a plate or a spring.",

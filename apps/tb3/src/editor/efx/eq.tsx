@@ -1,5 +1,6 @@
 // The EQ's drawing: its frequency response with a handle for each band (ui/EqView.tsx). Every band setting but
-// LEVEL is set here.
+// LEVEL is set here. The mid bands' Q is also a scroll on their handles, which nobody finds, so LM Q and HM Q stay
+// out of the view's list and get knobs beside LEVEL as well.
 import { dispDb20, dispEQFreq, dispEQQ, dispHPF, dispLPF, EQ_FREQS, EQ_Q, HPF_FREQS, LPF_FREQS } from "../../core/display";
 import { EQ_MAX_HZ, EQ_MIN_HZ, eqGainDb, eqResponse, parseHz } from "../../core/eqResponse";
 import type { EqSettings } from "../../core/eqResponse";
@@ -24,7 +25,8 @@ export const EQ_OFFSETS = {
   level: 0x5e,
 } as const satisfies Record<keyof EqSettings, number>;
 
-export const EQ_IN_VIEW = Object.values(EQ_OFFSETS).filter((o) => o !== EQ_OFFSETS.level);
+const EQ_KNOBS: readonly number[] = [EQ_OFFSETS.lmQ, EQ_OFFSETS.hmQ, EQ_OFFSETS.level];
+export const EQ_IN_VIEW = Object.values(EQ_OFFSETS).filter((o) => !EQ_KNOBS.includes(o));
 
 const hzTable = (labels: readonly string[], flat: number) => labels.map((l) => parseHz(l) ?? flat);
 const EQ_HZ = hzTable(EQ_FREQS, EQ_MIN_HZ);

@@ -151,7 +151,8 @@ The panel stacks, top to bottom:
    beside the standard slot grid, whose faders are shorter (118 px) and a little more tightly
    spaced so the effects row keeps its height. The curve is editable like the envelopes:
    - **LM / HM** handles: drag horizontally to step through the 28 frequencies, vertically for
-     gain; scroll for Q; double-click resets the gain to 0 dB.
+     gain; scroll for Q (also LM Q and HM Q knobs beside LEVEL, since the scroll is hard to find);
+     double-click resets the gain to 0 dB.
    - **LOW / HIGH** shelf handles: vertical drag (or scroll) for gain; double-click resets.
    - **CUT** handles at the edges: horizontal drag (or scroll) for the low/high cut frequency;
      double-click returns them to Flat.

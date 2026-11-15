@@ -35,7 +35,7 @@ the JV-2080's), and the drawing takes the width they leave. Every handle sends t
 | PHASER | PhaserView | MANUAL × RESONANCE |
 | DELAY | Sync Delay / Ko-Da-Ma taps | TIME (BPM SYNC when on, never down to OFF), FEEDBACK, LPF, TAP TIME in PAN |
 | PITCH SHIFT | ChromaticPsView | PITCH × PRE DLY for each voice |
-| EQ | (TB-3's own EqView) | every band setting but LEVEL, with frequency, gain and Q on the handles |
+| EQ | (TB-3's own EqView) | every band setting but LEVEL, with frequency, gain and Q on the handles; LM Q and HM Q also as knobs |
 | REVERB | ReverbView | TIME, PRE DLY, HPF, LPF |
 
 EFX1 is azure and EFX2 violet: `.efx1` / `.efx2` set `--tint`, `--led`, `--led-off`, `--val` and `--sel-bg`, as the

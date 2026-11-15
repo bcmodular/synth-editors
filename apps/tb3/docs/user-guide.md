@@ -218,9 +218,10 @@ the bottom row. Each is titled with its effect type.
 
   The pictures make the settings easy to read; they aren't measurements of the TB-3's sound.
 - **EQ** (EFX1 only) shows its frequency response, with a handle for each band showing its
-  frequency, gain and (for the mid bands) Q. LEVEL is the knob beside it.
+  frequency, gain and (for the mid bands) Q. Beside it are knobs for the mid bands' width (LM Q and
+  HM Q) and the output LEVEL.
   - Drag a handle sideways to change its frequency, or up and down to change its gain.
-  - Scroll over a mid band's handle to change its width (Q).
+  - Scroll over a mid band's handle to change its width (Q), or turn its Q knob.
   - Double-click a handle to reset it.
 
 ## Patches and sets

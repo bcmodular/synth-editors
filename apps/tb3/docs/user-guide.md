@@ -71,6 +71,16 @@ mod, the ring fills from the top, either way; cross mod's negative amounts are a
 shows its value in the TB-3's own units (semitones, Hz, dB, ms, note lengths and so on). A knob
 whose source is switched off, or a rate while BPM SYNC is on, is dimmed.
 
+### Help
+
+Each section has a round **(i)** at the left of its header. It opens help for that section over
+the editor: what it does, a line on each setting with its current value and range, and tips. A
+working copy of the section sits beside it, so you can try things as you read; point at a line
+and its control lights up, or the other way round. For EFX1 and EFX2 the help follows the effect
+type. Press Esc or click outside to close it.
+
+![The filter's help](images/help.png)
+
 ### Top strip
 
 ![The top strip](images/top-strip.png)

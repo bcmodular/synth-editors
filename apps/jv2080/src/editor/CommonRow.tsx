@@ -8,6 +8,7 @@ import { param } from "../core/paramValue";
 import { Section } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 import { ChorusView, ReverbView } from "./ChorusReverbViews";
+import { EfxInfoButton } from "./efx/EfxInfo";
 import { EffectChooser } from "./EffectChooser";
 import { isDemo } from "./demoPatch";
 import { efxSlotParam } from "./efx/efxParams";
@@ -46,7 +47,7 @@ function EfxTypeButton() {
 // The type's own view, then where the EFX goes: its output and its sends, on one row.
 function Efx() {
   return (
-    <Section title="EFX" className="efx" extra={<EfxTypeButton />}>
+    <Section title="EFX" className="efx" extra={<><EfxInfoButton /><EfxTypeButton /></>}>
       <EfxView />
       <div className="efx-out">
         <ParamChoice def="efxOutput" label="Output" />

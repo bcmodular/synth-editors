@@ -1246,3 +1246,167 @@ input {
 .fxdraw .gl {
   pointer-events: none;
 }
+
+/* The (i) help panels (editor/efx/EfxInfo.tsx): over the editor like the chooser, in the section's colour. */
+.info-btn {
+  width: 24px;
+  padding: 0;
+  font-style: italic;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  color: var(--tint);
+  border-color: color-mix(in srgb, var(--tint) 50%, #000);
+  border-radius: 50%;
+}
+.info-panel {
+  --tint: #a8b8ff;
+  --led: var(--tint);
+  position: absolute;
+  left: 50%;
+  top: 60px;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: 900px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: #121214;
+  border: 1px solid color-mix(in srgb, var(--tint) 45%, #000);
+  box-shadow: 0 12px 40px #000c;
+  padding: 14px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.info-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.info-num {
+  color: var(--dim);
+  font-size: var(--text-xl);
+}
+.info-title {
+  color: var(--tint);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.info-close {
+  margin-left: auto;
+}
+.info-summary {
+  margin: 0;
+  font-size: var(--text-l);
+  line-height: 1.45;
+}
+.flow {
+  align-self: center;
+  background: #0b0b0c;
+  border: 1px solid #222327;
+}
+.flow .fl-edge .ln {
+  fill: none;
+  stroke: var(--tint);
+  stroke-width: 1.5;
+}
+.flow .fl-edge.dry .ln {
+  stroke: #c8cad0;
+}
+.flow .fl-edge.fb .ln {
+  stroke-dasharray: 4 3;
+}
+.flow .fl-edge .hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 10;
+}
+.flow .fl-edge .dot {
+  fill: var(--tint);
+}
+.flow .fl-edge.dry .dot {
+  fill: #c8cad0;
+}
+.flow .fl-edge.hot .ln {
+  stroke-width: 3;
+  stroke-opacity: 1 !important;
+}
+.flow marker path {
+  fill: context-stroke;
+}
+.flow .fl-val {
+  fill: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.flow .fl-edge.hot .fl-val {
+  fill: #fff;
+}
+.flow .fl-io {
+  fill: var(--dim);
+  font-size: 12px;
+  font-weight: 600;
+}
+.flow .fl-sum circle {
+  fill: #0b0b0c;
+  stroke: #c8cad0;
+  stroke-width: 1.2;
+}
+.flow .fl-sum path {
+  stroke: #c8cad0;
+  stroke-width: 1.2;
+}
+.flow .fl-fx rect {
+  fill: color-mix(in srgb, var(--tint) 16%, #0b0b0c);
+  stroke: var(--tint);
+  stroke-width: 1.2;
+}
+.flow .fl-fx text {
+  fill: var(--tint);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+.flow .fl-fx.hot rect {
+  fill: color-mix(in srgb, var(--tint) 40%, #0b0b0c);
+  stroke-width: 2.5;
+}
+.info-params {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 18px;
+}
+.info-params > div {
+  padding: 4px 6px;
+  border-left: 2px solid transparent;
+}
+.info-params > div.hot {
+  background: color-mix(in srgb, var(--tint) 12%, transparent);
+  border-left-color: var(--tint);
+}
+.info-params dt {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--tint);
+  font-size: var(--text-m);
+}
+.info-params dt em {
+  font-style: normal;
+  color: #fff;
+}
+.info-params dd {
+  margin: 2px 0 0;
+  font-size: var(--text-m);
+  line-height: 1.4;
+  color: #c8cad0;
+}
+.info-notes {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--text-m);
+  line-height: 1.45;
+  color: var(--dim);
+}

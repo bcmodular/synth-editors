@@ -51,8 +51,9 @@ test("the voice's flow marks the section, and lights up with its rows", async ()
   await expect(filter).toHaveCount(1);
   await dialog.locator(".info-params > div").filter({ has: page.locator("dt", { hasText: /^CUTOFF/ }) }).hover();
   await expect(filter).toHaveClass(/hot/);
-  // And the other way: pointing at the LFO block lights the LFO's paths and nothing in this section's rows.
+  // And the other way: pointing at the LFO block lights the LFO's paths, and of this section's rows only its LFO depth.
   await dialog.locator(".vf-block.vf-lfo").hover();
   await expect(dialog.locator(".vf-edge.vf-lfo.hot").first()).toBeVisible();
-  await expect(dialog.locator(".info-params > div.hot")).toHaveCount(0);
+  await expect(dialog.locator(".info-params > div.hot dt")).toHaveCount(1);
+  await expect(dialog.locator(".info-params > div.hot dt")).toContainText("LFO");
 });

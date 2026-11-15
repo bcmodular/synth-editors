@@ -76,8 +76,9 @@ titled with their type alone.)
 PORTA · BEND was a popover from PERFORM while PATCHES and MORPH shared the top strip. Since
 those moved to the sidebar (Phase 3) it is a section in the strip again, between PERFORM and ASSIGN.
 
-The LFO depths (→ VCO, → VCF, → VCA) live only in the LFO section, so the LFO is self-contained
-and nothing is duplicated.
+The LFO depths sit where they modulate, each once: a red LFO knob (the LFO's colour) beside the
+oscillators' TUNING, among the FILTER's knobs and beside the AMPLIFIER's VOLUME. (They first lived in the LFO
+section, as → VCO, → VCF and → VCA; moved in November 2026 so each section shows everything acting on it.)
 
 The top strip's PATCHES and MORPH blocks are **layout placeholders** in Phase 2: they're drawn
 and sized but disabled, with a hover note saying they arrive in Phase 3.
@@ -102,7 +103,7 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 | VCF | **4a** envelope editor (see below), with horizontal bars to its right for CUTOFF, RESONANCE, ENV DEPTH and KEY FOLLOW. Cutoff and resonance are u16 (0–255). | `vcf_*` |
 | VCA | **4a** envelope editor, with VOLUME to its right. | `vca_*`, `master_volume` |
 | Distortion | **6b**: type stepper, then ON and COLOR LED buttons, then DRIVE (0–120), BOTTOM and TONE (bipolar, centre 50), EFX LVL and DRY LVL. | `dist_*` |
-| LFO | **5a** (see below), then RATE, DELAY and CV OFFSET bars, BPM SYNC and RETRIG LED buttons, and bipolar → VCO/→ VCF/→ VCA. | `lfo_*`, `*_lfo_depth` |
+| LFO | **5a** (see below), then RATE, DELAY and CV OFFSET, and BPM SYNC and RETRIG LED buttons. Its depths are in the sections they modulate (above). | `lfo_*` |
 | EFX1 / EFX2 | **7a** (see below). | EFX blocks |
 | Porta · Bend | Top strip section: PORTA LED button, a LEGATO/ALWAYS segmented control, TIME bar, and BEND RANGE bar (display `±n st`). | `porta_*`, `bender_range` |
 | Assign | **8a** learn-by-click (see below). | `assign_*` |

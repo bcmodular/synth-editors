@@ -48,7 +48,17 @@ function VcoControls() {
         <ParamKnob id="saw_tuning" label="SAW" />
         <ParamKnob id="sqr_tuning" label="SQR" />
         <ParamKnob id="ring_sin_tuning" label="RING+SIN" />
+        <LfoDepth id="vco_lfo_depth" />
       </div>
+    </div>
+  );
+}
+
+// The LFO's depth into a section, kept in that section but in the LFO's red, so it reads as the LFO's.
+function LfoDepth(p: { id: string }) {
+  return (
+    <div className="lfo-depth">
+      <ParamKnob id={p.id} label="LFO" />
     </div>
   );
 }
@@ -204,6 +214,7 @@ export function VcfSection() {
           <ParamKnob id="vcf_resonance" label="RESONANCE" />
           <ParamKnob id="vcf_env_depth" label="ENV DEPTH" />
           <ParamKnob id="vcf_key_follow" label="KEY FOLLOW" />
+          <LfoDepth id="vcf_lfo_depth" />
         </div>
       </div>
     </Section>
@@ -218,6 +229,7 @@ export function VcaSection() {
         <Envelope prefix="vca" label="ENV" />
         <div className="knobgrid two">
           <ParamKnob id="master_volume" label="VOLUME" />
+          <LfoDepth id="vca_lfo_depth" />
         </div>
       </div>
     </Section>
@@ -303,9 +315,6 @@ export function LfoSection() {
         <ParamKnob id="lfo_rate" label="RATE" />
         <ParamKnob id="lfo_delay" label="DELAY" />
         <ParamKnob id="lfo_cv_offset" label="CV OFFSET" />
-        <ParamKnob id="vco_lfo_depth" label="→ VCO" />
-        <ParamKnob id="vcf_lfo_depth" label="→ VCF" />
-        <ParamKnob id="vca_lfo_depth" label="→ VCA" />
       </div>
     </Section>
   );

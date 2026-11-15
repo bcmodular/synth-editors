@@ -19,6 +19,7 @@ export const OSCILLATORS_HELP: SectionHelp = {
     { label: "SAW tuning", ids: ["saw_tuning"], text: "Moves the saw's pitch against the others, for detuned and interval sounds." },
     { label: "SQR tuning", ids: ["sqr_tuning"], text: "The same for the square." },
     { label: "RING+SIN tuning", ids: ["ring_sin_tuning"], text: "The same for the sine and the ring oscillator." },
+    { label: "LFO", ids: ["vco_lfo_depth"], text: "How much the LFO moves the pitch (red, as the LFO's): vibrato, or sirens at high amounts. Left of centre inverts it." },
   ],
   notes: [
     "Each source's button switches it on or off without losing its level; a switched-off source's knob is dimmed.",
@@ -76,6 +77,7 @@ export const FILTER_HELP: SectionHelp = {
     { label: "RESONANCE", ids: ["vcf_resonance"], text: "A peak at the cutoff: higher is more vocal and squelchy, whistling at the top. The front panel's RESONANCE knob." },
     { label: "ENV DEPTH", ids: ["vcf_env_depth"], text: "How far the envelope sweeps the cutoff on each note: the front panel's ENV MOD (the pad's x-axis in ENV MOD mode)." },
     { label: "KEY FOLLOW", ids: ["vcf_key_follow"], text: "How much the cutoff follows the note's pitch, so higher notes stay as bright as low ones." },
+    { label: "LFO", ids: ["vcf_lfo_depth"], text: "How much the LFO moves the cutoff (red, as the LFO's): a wah or wobble. Left of centre inverts it." },
     { label: "ENVELOPE", ids: ["vcf_attack", "vcf_decay", "vcf_sustain", "vcf_release"], text: "The filter envelope: attack, decay, sustain and release. Decay is the front panel's ENV MOD pad y-axis. Drag the graph's handles or turn the knobs under it." },
   ],
   notes: [
@@ -92,6 +94,7 @@ export const AMP_HELP: SectionHelp = {
   rows: [
     { label: "ENVELOPE", ids: ["vca_attack", "vca_decay", "vca_sustain", "vca_release"], text: "The amp envelope: attack, decay, sustain and release. Drag the graph's handles or turn the knobs under it." },
     { label: "VOLUME", ids: ["master_volume"], text: "The patch's level, to balance it against others in a set." },
+    { label: "LFO", ids: ["vca_lfo_depth"], text: "How much the LFO moves the level (red, as the LFO's): tremolo. Left of centre inverts it." },
   ],
   notes: [
     "A 303-style bass wants an instant attack, full sustain and a short release; let the filter envelope shape each note.",
@@ -110,13 +113,11 @@ export const LFO_HELP: SectionHelp = {
     { label: "RATE", ids: ["lfo_rate"], text: "How fast the LFO runs; with BPM SYNC on it follows the tempo instead." },
     { label: "DELAY", ids: ["lfo_delay"], text: "How long after each note the LFO takes to fade in, for delayed vibrato." },
     { label: "CV OFFSET", ids: ["lfo_cv_offset"], text: "Shifts the whole LFO up or down, so it pushes more one way than the other." },
-    { label: "→ VCO", ids: ["vco_lfo_depth"], text: "How much the LFO moves the pitch: vibrato, or sirens at high amounts. Either way." },
-    { label: "→ VCF", ids: ["vcf_lfo_depth"], text: "How much it moves the filter cutoff: a wah or wobble." },
-    { label: "→ VCA", ids: ["vca_lfo_depth"], text: "How much it moves the level: tremolo." },
     { label: "BPM SYNC", ids: ["lfo_bpm_sync"], text: "Locks the LFO's rate to the tempo." },
     { label: "RETRIG", ids: ["lfo_retrigger"], text: "Restarts the LFO on each note, so every note moves the same way." },
   ],
   notes: [
+    "How much the LFO moves each destination is set where it lands: the red LFO knobs in OSCILLATORS (pitch), FILTER (cutoff) and AMPLIFIER (level).",
     "The effects' own tempo sync (tremolo, chorus, flanger, phaser) runs freely and can drift against the pattern; the LFO with RETRIG on keeps time more tightly.",
     "Some factory sounds carry modulation that can't be changed from the front panel; this section shows and edits it.",
   ],

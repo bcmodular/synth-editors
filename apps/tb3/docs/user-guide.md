@@ -166,10 +166,12 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
 - **FILTER** (the VCF): cutoff, resonance, envelope depth and key follow, with the filter envelope. Drag the
   envelope's handles to shape it. The first sets attack, the second sets decay (sideways) and
   sustain (up and down), and the last sets release. The A, D, S and R knobs underneath edit the
-  same values.
-- **AMPLIFIER** (the VCA): the amp envelope, edited in the same way, and the master volume.
+  same values. The red **LFO** knob sets how much the LFO moves the cutoff.
+- **AMPLIFIER** (the VCA): the amp envelope, edited in the same way, the master volume, and a red
+  **LFO** knob for how much the LFO moves the level (tremolo).
 - **LFO**: the waveform mix (saw, square, triangle, sine and sample & hold), rate, delay and CV
-  offset, and how much the LFO moves the VCO, VCF and VCA. BPM SYNC locks the rate to the tempo,
+  offset. How much it moves each destination is set where it lands, on the red LFO knobs in
+  OSCILLATORS (pitch, beside TUNING), FILTER and AMPLIFIER. BPM SYNC locks the rate to the tempo,
   and RETRIG restarts the LFO on each note. The picture shows the resulting shape.
 
 ### Distortion and effects

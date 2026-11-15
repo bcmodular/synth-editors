@@ -254,6 +254,15 @@ button:focus-visible {
   border-top: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
 }
+/* An LFO depth knob inside the section it modulates (editor/sections.tsx LfoDepth): the LFO's red. */
+.lfo-depth {
+  display: contents;
+  --tint: #ff5a4a;
+  --led: #ff3b30;
+  --led-off: #6e2a24;
+  --val: #ff8a7e;
+  --sel-bg: #2a1210;
+}
 .vcoctl {
   width: 376px;
   display: flex;

@@ -1,5 +1,4 @@
 // Short, fat faders. The fill grows from 0, or from the centre line for bipolar values.
-import type { ReactNode } from "react";
 import { useValueDrag } from "./useValueDrag";
 
 export interface FaderProps {
@@ -54,50 +53,6 @@ export function HFader(p: FaderProps & { width?: number | "fill" }) {
     >
       <i className={fillClass(p)} style={{ left: `${f.start}%`, width: `${f.size}%` }} />
       <em>{p.disabled ? "" : (p.format ?? String)(p.value)}</em>
-    </div>
-  );
-}
-
-export interface VFaderProps extends FaderProps {
-  height?: number;
-  color?: "led" | "alt";
-  label?: ReactNode;
-  led?: { on: boolean; onToggle: () => void }; // LED cap = on/off switch
-}
-
-export function VFader(p: VFaderProps) {
-  const height = p.height ?? 100;
-  const drag = useValueDrag<HTMLDivElement>({
-    value: p.value,
-    max: p.max,
-    onChange: p.onChange,
-    defaultValue: p.defaultValue ?? p.center ?? 0,
-    axis: "y",
-    length: height,
-    disabled: p.disabled,
-  });
-  const f = fill(p.value, p.max, p.center);
-  return (
-    <div className="vcell">
-      {p.led && (
-        <button
-          className={`ledcap ${p.led.on ? "on" : ""}`}
-          disabled={p.disabled}
-          onClick={p.led.onToggle}
-          aria-label="on/off"
-        />
-      )}
-      <div
-        ref={drag.ref}
-        className={`vf ${p.center !== undefined ? "bi" : ""} ${p.color === "alt" ? "alt" : ""} ${p.disabled ? "disabled" : ""}`}
-        style={{ height, ["--c" as string]: centerPct(p) }}
-        onPointerDown={drag.onPointerDown}
-        onDoubleClick={drag.onDoubleClick}
-      >
-        <i className={fillClass(p)} style={{ bottom: `${f.start}%`, height: `${f.size}%` }} />
-      </div>
-      <span className="v">{p.disabled ? "–" : (p.format ?? String)(p.value)}</span>
-      {p.label}
     </div>
   );
 }

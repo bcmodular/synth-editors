@@ -1,6 +1,6 @@
 // The EQ's drawing: its frequency response with a handle for each band (ui/EqView.tsx). Every band setting but
 // LEVEL is set here.
-import { EQ_FREQS, EQ_Q, HPF_FREQS, LPF_FREQS } from "../../core/display";
+import { dispDb20, dispEQFreq, dispEQQ, dispHPF, dispLPF, EQ_FREQS, EQ_Q, HPF_FREQS, LPF_FREQS } from "../../core/display";
 import { EQ_MAX_HZ, EQ_MIN_HZ, eqGainDb, eqResponse, parseHz } from "../../core/eqResponse";
 import type { EqSettings } from "../../core/eqResponse";
 import { getEfxRaw } from "../../core/patch";
@@ -47,6 +47,7 @@ export function EqDrawing({ efx, size }: EfxViewProps) {
     {
       key: "lc",
       label: "CUT",
+      value: [dispHPF(e.lowCut)],
       below: true,
       hz: LOW_CUT_HZ[e.lowCut]!,
       db: at(LOW_CUT_HZ[e.lowCut]!),
@@ -57,6 +58,7 @@ export function EqDrawing({ efx, size }: EfxViewProps) {
     {
       key: "lo",
       label: "LOW",
+      value: [dispDb20(e.lowGain)],
       hz: SHELF_HANDLE_HZ.low,
       db: at(SHELF_HANDLE_HZ.low),
       gain: gain(O.lowGain),
@@ -69,6 +71,7 @@ export function EqDrawing({ efx, size }: EfxViewProps) {
       return {
         key: band,
         label: band === "lm" ? "LM" : "HM",
+        value: [dispEQFreq(b(o.f)), `${dispDb20(b(o.g))} · ${dispEQQ(b(o.q))}`],
         hz,
         db: at(hz),
         freq: { table: EQ_HZ, index: b(o.f), onChange: set(o.f) },
@@ -80,6 +83,7 @@ export function EqDrawing({ efx, size }: EfxViewProps) {
     {
       key: "hi",
       label: "HIGH",
+      value: [dispDb20(e.hiGain)],
       hz: SHELF_HANDLE_HZ.high,
       db: at(SHELF_HANDLE_HZ.high),
       gain: gain(O.hiGain),
@@ -89,6 +93,7 @@ export function EqDrawing({ efx, size }: EfxViewProps) {
     {
       key: "hc",
       label: "CUT",
+      value: [dispLPF(e.hiCut)],
       below: true,
       hz: HI_CUT_HZ[e.hiCut]!,
       db: at(HI_CUT_HZ[e.hiCut]!),

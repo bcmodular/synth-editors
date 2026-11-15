@@ -28,11 +28,11 @@ function Transfer({ c, region }: { c: EfxView; region: Region }) {
       ))}
       <line className="trace2" x1={0} y1={y(FLOOR_DB)} x2={w} y2={y(0)} />
       <polyline className="trace" points={sample(w, curve)} />
-      <Caption region={region}>{`${c.text(C.ratio)} · ${c.text(C.knee).toUpperCase()}`}</Caption>
-      <Handle size={c.size} x={x(t)} y={curve(x(t))} label="THRESHOLD" below
+      <Caption region={region}>{`KNEE ${c.text(C.knee).toUpperCase()}`}</Caption>
+      <Handle size={c.size} x={x(t)} y={curve(x(t))} label="THRESHOLD" value={`${c.text(C.threshold)} · ${c.text(C.gain)}`} below
         onPointerDown={c.drag({ x: { offset: C.threshold, px: 160 }, y: { offset: C.gain, px: 240 } })}
         onReset={c.reset(C.threshold, C.gain)} />
-      <Handle size={c.size} x={w - 8} y={curve(w)} label="RATIO" cursor="ns-resize"
+      <Handle size={c.size} x={w - 8} y={curve(w)} label="RATIO" value={c.text(C.ratio)} below cursor="ns-resize"
         onPointerDown={c.drag({ y: { offset: C.ratio, px: -110 } })} onReset={c.reset(C.ratio)} />
     </g>
   );
@@ -59,9 +59,9 @@ function Envelope({ c, region }: { c: EfxView; region: Region }) {
       <line className="grid" x1={HIT * w} y1={top} x2={HIT * w} y2={top + h} />
       <line className="grid" x1={LET_GO * w} y1={top} x2={LET_GO * w} y2={top + h} />
       <polyline className="trace" points={sample(w, (px) => y(gr(px / w)), 1)} />
-      <Handle size={c.size} x={(HIT + a) * w} y={y(gr(HIT + a))} label="ATTACK" cursor="ew-resize"
+      <Handle size={c.size} x={(HIT + a) * w} y={y(gr(HIT + a))} label="ATTACK" value={c.text(C.attack)} cursor="ew-resize"
         onPointerDown={c.drag({ x: { offset: C.attack, px: 160 } })} onReset={c.reset(C.attack)} />
-      <Handle size={c.size} x={Math.min(LET_GO + r, 0.98) * w} y={y(gr(LET_GO + r))} label="RELEASE" cursor="ew-resize"
+      <Handle size={c.size} x={Math.min(LET_GO + r, 0.98) * w} y={y(gr(LET_GO + r))} label="RELEASE" value={c.text(C.release)} cursor="ew-resize"
         onPointerDown={c.drag({ x: { offset: C.release, px: 160 } })} onReset={c.reset(C.release)} />
     </g>
   );
@@ -106,7 +106,7 @@ function Carrier({ c, region }: { c: EfxView; region: Region }) {
       <line className="axis" x1={0} y1={mid} x2={w} y2={mid} />
       <polyline className="trace2" points={sample(w, (px) => mid - env(px) * (h / 2 - 6))} />
       <polyline className="trace" style={{ strokeWidth: 1.3 }} points={points.join(" ")} />
-      <Handle size={c.size} x={w * 0.5} y={mid - env(w * 0.5) * (h / 2 - 6)} label="FREQ · SENS"
+      <Handle size={c.size} x={w * 0.5} y={mid - env(w * 0.5) * (h / 2 - 6)} label="FREQ · SENS" value={`${c.text(RM.freq)} · ${c.text(RM.sens)}`}
         onPointerDown={c.drag({ x: { offset: RM.freq, px: 200 }, y: { offset: RM.sens, px: 160 } })}
         onReset={c.reset(RM.freq, RM.sens)} />
     </g>
@@ -166,7 +166,7 @@ export function BitCrushView(props: EfxViewProps) {
     <Svg size={c.size} label="BIT CRUSH">
       <Crushed c={c} region={main} />
       <TonePanel c={c} region={tone} low={BC.low} high={BC.high} extra={lp} />
-      <Handle size={c.size} x={freqX(fc, c.size.width)} y={(tone.top ?? 0) + 12} label="FILTER" below cursor="ew-resize"
+      <Handle size={c.size} x={freqX(fc, c.size.width)} y={(tone.top ?? 0) + 12} label="FILTER" value={c.text(BC.filter)} below cursor="ew-resize"
         onPointerDown={c.drag({ x: { offset: BC.filter, px: 200 } })} onReset={c.reset(BC.filter)} />
     </Svg>
   );

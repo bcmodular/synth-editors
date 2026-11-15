@@ -19,6 +19,7 @@ const GRID_HZ: [number, string][] = [
 export interface EqHandle {
   key: string;
   label: string;
+  value?: readonly string[]; // lines under the label: frequency, gain, Q
   below?: boolean; // label under the handle (the cut handles, which sit near others)
   hz: number; // drawn position
   db: number;
@@ -88,6 +89,7 @@ export function EqView(p: { ys: number[] | null; handles?: EqHandle[]; width?: n
             h={h}
             x={Math.max(6, Math.min(W - 6, xOf(h.hz)))}
             y={Math.max(6, Math.min(H - 6, yOf(h.db)))}
+            width={W}
             xOf={xOf}
             dbPerPx={dbPerPx}
           />
@@ -96,7 +98,35 @@ export function EqView(p: { ys: number[] | null; handles?: EqHandle[]; width?: n
   );
 }
 
-function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => number; dbPerPx: number }) {
+const LINE = 11;
+
+// A handle's name, then its values, above it (below for the cut handles, which sit low).
+function HandleText({ h, x: hx, y, width }: { h: EqHandle; x: number; y: number; width: number }) {
+  const lines = [h.label, ...(h.value ?? [])];
+  const half = Math.max(...lines.map((l) => l.length)) * 3.4 + 2; // about half the widest line at 11 px
+  const x = Math.max(half, Math.min(width - half, hx));
+  const first = h.below ? y + 15 : y - 8 - (lines.length - 1) * LINE;
+  return (
+    <text className="glabel hlabel" x={x} y={first} textAnchor="middle">
+      {lines.map((l, i) => (
+        <tspan key={i} className={i ? "hval" : undefined} x={x} dy={i ? LINE : 0}>
+          {l}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
+interface HandleProps {
+  h: EqHandle;
+  x: number;
+  y: number;
+  width: number; // the drawing's
+  xOf: (hz: number) => number;
+  dbPerPx: number;
+}
+
+function Handle(p: HandleProps) {
   const ref = useRef<SVGCircleElement>(null);
   const props = useRef(p);
   props.current = p;
@@ -165,9 +195,7 @@ function Handle(p: { h: EqHandle; x: number; y: number; xOf: (hz: number) => num
   const cursor = h.freq && h.gain ? "move" : h.freq ? "ew-resize" : "ns-resize";
   return (
     <g className="handle">
-      <text className="glabel hlabel" x={x} y={h.below ? y + 15 : y - 8} textAnchor="middle">
-        {h.label}
-      </text>
+      <HandleText h={h} x={x} y={y} width={p.width} />
       <circle className="dot" cx={x} cy={y} r={4} />
       {/* Larger invisible hit area, so the small dot is still easy to grab (also in EnvelopeEditor). */}
       <circle

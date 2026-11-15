@@ -21,6 +21,7 @@ interface TapHandle {
   offset: number;
   axis: "x" | "y";
   spec: AxisSpec;
+  text: string;
 }
 
 // PAN: TAP on the left tap, TIME and FEEDBACK on the first two right ones; else TIME and FEEDBACK on the first two.
@@ -28,10 +29,12 @@ function tapHandles(c: EfxView, taps: TapAt[]): TapHandle[] {
   const synced = bpmBars({ sync: c.raw(D.sync) }) !== undefined;
   const time: AxisSpec = synced ? { offset: D.sync, px: -160, min: 1 } : { offset: D.time, px: 200 };
   const [tap, timeAt, fbAt] = c.raw(D.mode) === 1 ? [taps[0], taps[1], taps[3]] : [undefined, taps[0], taps[1]];
+  const timeText = synced ? `${c.text(D.sync)} BAR` : c.text(D.time);
+  const fb: AxisSpec = { offset: D.feedback, px: 100 };
   return [
-    { tap, label: "TAP", offset: D.tap, axis: "x", spec: { offset: D.tap, px: 120 } },
-    { tap: timeAt, label: "TIME", offset: D.time, axis: "x", spec: time },
-    { tap: fbAt, label: "FEEDBACK", offset: D.feedback, axis: "y", spec: { offset: D.feedback, px: 100 } },
+    { tap, label: "TAP", offset: D.tap, axis: "x", spec: { offset: D.tap, px: 120 }, text: c.text(D.tap) },
+    { tap: timeAt, label: "TIME", offset: D.time, axis: "x", spec: time, text: timeText },
+    { tap: fbAt, label: "FEEDBACK", offset: D.feedback, axis: "y", spec: fb, text: c.text(D.feedback) },
   ];
 }
 
@@ -57,14 +60,13 @@ function Taps({ c, region }: { c: EfxView; region: Region }) {
       {taps.map((t, i) => (
         <line key={i} className="tap" x1={t.at * w} y1={base} x2={t.at * w} y2={tip(t)} />
       ))}
-      <Caption region={region}>{synced ? `${c.text(D.sync)} BAR` : c.text(D.time)}</Caption>
       <Caption region={region} right>
         {bars > 1 ? `${bars} BARS` : "1 BAR"}
       </Caption>
       {tapHandles(c, taps).map(
         (t) =>
           t.tap && (
-            <Handle key={t.label} size={c.size} x={t.tap.at * w} y={tip(t.tap)} label={t.label} below={t.tap.side === 1}
+            <Handle key={t.label} size={c.size} x={t.tap.at * w} y={tip(t.tap)} label={t.label} value={t.text} below={t.tap.side === 1}
               cursor={t.axis === "x" ? "ew-resize" : "ns-resize"} onPointerDown={c.drag({ [t.axis]: t.spec })}
               onReset={c.reset(t.offset)} />
           ),
@@ -125,12 +127,9 @@ function Tail({ c, region }: { c: EfxView; region: Region }) {
       <polygon className="area" points={`0,${bottom} ${points} ${w},${bottom}`} />
       <polyline className="trace" points={points} />
       <Caption region={region}>{REVERB_MODES[c.raw(R.mode)]}</Caption>
-      <Caption region={region} right>
-        {c.text(R.time)}
-      </Caption>
-      <Handle size={c.size} x={x(pre)} y={bottom - reach} label="PRE DLY" below cursor="ew-resize"
+      <Handle size={c.size} x={x(pre)} y={bottom - reach} label="PRE DLY" value={c.text(R.pre)} below cursor="ew-resize"
         onPointerDown={c.drag({ x: { offset: R.pre, px: 120 } })} onReset={c.reset(R.pre)} />
-      <Handle size={c.size} x={x(pre + time)} y={bottom - 4} label="TIME" cursor="ew-resize"
+      <Handle size={c.size} x={x(pre + time)} y={bottom - 4} label="TIME" value={c.text(R.time)} cursor="ew-resize"
         onPointerDown={c.drag({ x: { offset: R.time, px: 200 } })} onReset={c.reset(R.time)} />
     </g>
   );
@@ -164,7 +163,7 @@ function Voice(p: { c: EfxView; region: Region; n: 1 | 2 }) {
       {echoes.map((k) => (
         <circle key={k} className="voice echo" cx={x + k * 18} cy={y} r={3 + fb ** k * 4} />
       ))}
-      <Handle size={c.size} x={x} y={y} label={`${n}: ${c.text(pitch)}`}
+      <Handle size={c.size} x={x} y={y} label={`VOICE ${n}`} value={`${c.text(pitch)} · ${c.text(pre)}`}
         onPointerDown={c.drag({ x: { offset: pre, px: 200 }, y: { offset: pitch, px: 140 } })}
         onReset={c.reset(pitch, pre)} />
     </g>

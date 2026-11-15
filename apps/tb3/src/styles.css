@@ -380,8 +380,7 @@ button:focus-visible {
   flex: 1 1 0;
   min-width: 0;
 }
-.hf > i,
-.vf > i {
+.hf > i {
   position: absolute;
   background: var(--led);
 }
@@ -408,73 +407,14 @@ button:focus-visible {
   width: 1px;
   background: #9a9ca3;
 }
-.vf {
-  position: relative;
-  width: 26px;
-  background: var(--well);
-  border: 1px solid var(--edge);
-  cursor: ns-resize;
-  touch-action: none;
-}
-.vf > i {
-  left: 0;
-  right: 0;
-}
-/* Invisible hit margins: the fit zoom can shrink these small controls to a few screen points. */
-.vf::before,
-.ledcap::before {
-  content: "";
-  position: absolute;
-  inset: 0 -8px;
-}
-.ledcap::before {
-  inset: -7px -8px -3px; /* stops short of the fader below */
-}
-.vf.alt > i {
-  background: var(--alt);
-}
-.vf.bi::after {
-  content: "";
-  position: absolute;
-  bottom: var(--c, 50%);
-  left: -3px;
-  right: -3px;
-  height: 1px;
-  background: #9a9ca3;
-}
-.hf > i.off,
-.vf > i.off {
+.hf > i.off {
   background: var(--led-off);
 }
 .hf > i.neg {
   background: var(--alt);
 }
-.hf.disabled,
-.vf.disabled {
+.hf.disabled {
   cursor: default;
-}
-.vcell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 34px;
-}
-.ledcap {
-  position: relative;
-  width: 22px;
-  height: 9px;
-  background: var(--led-off);
-  border: 1px solid #000;
-  padding: 0;
-  cursor: pointer;
-}
-.ledcap.on {
-  background: var(--led);
-}
-.ledcap:disabled {
-  cursor: default;
-  opacity: 0.5;
 }
 
 /* Cross mod */
@@ -576,6 +516,10 @@ svg .voice {
 svg .voice.echo {
   fill: color-mix(in srgb, var(--led) 10%, transparent);
 }
+svg .hval {
+  fill: #fff;
+  font-weight: 600;
+}
 svg .gcap {
   fill: var(--text);
   font-size: var(--text-xs);
@@ -614,11 +558,8 @@ svg .pad.on > text {
   justify-content: space-between;
   margin-top: 6px;
 }
-.envvals .hrow {
-  gap: 4px;
-}
-.envvals .lbl {
-  width: 10px;
+.envvals .kn {
+  width: 66px;
 }
 
 /* Stepper */
@@ -694,49 +635,31 @@ svg .pad.on > text {
 .slots .hole {
   height: 22px;
 }
-/* Effects row: give the faders some air below the type/mode buttons and the header. */
+/* Effects row: give the knobs some air below the type/mode buttons and the header. */
 .fx .sec {
   gap: 8px;
 }
 .efx > .efxbody,
-.dist > .col {
-  margin-top: 14px;
-}
-.efx .slots,
-.dist > .col {
-  row-gap: 10px;
-}
-/* EFX body: the type's drawing (editor/efx/) beside its slots. */
-.efxbody {
-  gap: 16px;
-}
-.efxbody > .slots {
-  flex: 1;
-  min-width: 0;
-  column-gap: 12px;
-}
-.efxbody .hrow > .lbl {
-  width: 70px;
-  flex: none;
-}
-.efxbody:has(> svg) {
+.dist > .knobgrid {
   margin-top: 10px;
 }
-.efxbody:has(> svg) .slots {
-  row-gap: 7px;
+/* EFX body: the type's drawing (editor/efx/) beside knobs for the settings it doesn't take. */
+.efxbody {
+  gap: 14px;
 }
-/* A slot set in the drawing: its name and value, no fader. */
-.hrow.readout > .rv {
+.efxdraw {
   flex: 1 1 0;
   min-width: 0;
-  height: 22px;
-  padding: 3px 5px 0;
-  border-bottom: 1px solid var(--edge);
-  text-align: right;
-  font-style: normal;
-  font-weight: 600;
-  font-size: var(--text-l);
-  color: var(--led);
+}
+.efxknobs {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 66px);
+  gap: 8px 6px;
+  align-content: start;
+}
+.efxknobs .kn {
+  width: 66px;
 }
 svg .grid {
   stroke: #26272b;
@@ -880,6 +803,10 @@ svg .eqfill.cut {
 }
 .btn.mode-grab.sel {
   background: #ffffff1f;
+}
+/* GRAB is grey until it's on, then white. */
+.btn.mode-grab:not(.sel) {
+  color: var(--dim);
 }
 .slotgrid.delete .slot:not(.filled),
 .slotgrid.grab .slot:not(.filled) {
@@ -1310,4 +1237,140 @@ svg .handle:hover > .dot {
   font-size: var(--text-xs);
   color: var(--dim);
   white-space: nowrap;
+}
+
+/* Encoders (ui/Knob.tsx, after the JV-2080's): a cap in the section's colour with a dark pointer, inside a ring
+   that shows the value; the label and value under it. */
+.kn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: ns-resize;
+  touch-action: none;
+  min-width: 0;
+  --cap: 30px;
+}
+.kn.s {
+  --cap: 24px;
+}
+.kn.xs {
+  --cap: 18px;
+}
+.kn .ring {
+  position: relative;
+  display: block;
+  width: calc(var(--cap) + 12px);
+  height: calc(var(--cap) + 12px);
+  border-radius: 50%;
+  background:
+    conic-gradient(from var(--from), var(--arc, var(--led)) 0deg var(--len), transparent var(--len)),
+    conic-gradient(from -135deg, #34363c 0deg 270deg, transparent 270deg);
+  -webkit-mask: radial-gradient(circle, #000 calc(var(--cap) / 2 + 0.5px), transparent calc(var(--cap) / 2 + 1px),
+    transparent calc(var(--cap) / 2 + 2px), #000 calc(var(--cap) / 2 + 2.5px));
+}
+.kn .ring > i {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--led) 70%, #fff), var(--led) 45%,
+    color-mix(in srgb, var(--led) 50%, #000) 100%);
+}
+.kn .ring > i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: 2px;
+  height: calc(var(--cap) * 0.36);
+  background: #111;
+  transform-origin: 50% calc(var(--cap) / 2 - 3px);
+  transform: translateX(-50%) rotate(var(--a, 0deg));
+}
+.kn .lbl {
+  font-size: var(--text-xs);
+  color: var(--dim);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kn em {
+  font-style: normal;
+  font-weight: 600;
+  font-size: var(--text-l);
+  color: var(--val);
+  white-space: nowrap;
+  line-height: 1;
+}
+.kn.neg {
+  --arc: var(--alt);
+}
+/* Side: the knob, then its label over its value. */
+.kn.beside {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 6px;
+  align-items: center;
+  justify-items: start;
+}
+.kn.beside .ring {
+  grid-row: span 2;
+}
+.kn.beside .lbl {
+  align-self: end;
+}
+.kn.beside em {
+  align-self: start;
+}
+.kn.beside:not(:has(.lbl)) em {
+  grid-row: span 2;
+  align-self: center;
+  min-width: 30px;
+  text-align: right;
+}
+.kn.dim .ring > i {
+  filter: saturate(0.25) brightness(0.6);
+}
+.kn.dim em {
+  color: var(--dim);
+}
+.kn.disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Knob layouts: a row spread across the section, or a grid of 64 px cells (3 across; .two for 2). */
+.knobrow {
+  display: flex;
+  justify-content: space-around;
+  gap: 6px;
+}
+.knobgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 10px 6px;
+  align-content: start;
+}
+.knobgrid.two {
+  grid-template-columns: repeat(2, 72px);
+}
+.knobrow .knobcell .kn,
+.knobgrid .kn {
+  width: 100%;
+}
+.knobgrid .knobcell,
+.knobrow .knobcell {
+  min-width: 56px;
+}
+/* VCO sources: the on/off switch over each level knob. */
+.vsrc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.vsrc > .inline > .btn {
+  padding: 3px 6px 1px;
 }

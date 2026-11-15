@@ -11,7 +11,7 @@ export interface XmodMatrixProps {
   renderCell: (row: number, col: number) => ReactNode;
 }
 
-const ROW = 24;
+const ROW = 30; // an extra-small knob
 const GAP = 4;
 const VIEW_W = 130;
 const SRC_X = 46; // source jacks, after the source labels

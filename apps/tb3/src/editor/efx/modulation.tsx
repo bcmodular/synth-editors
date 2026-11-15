@@ -53,13 +53,13 @@ function TremoloWave({ c, region }: { c: EfxView; region: Region }) {
       {pan && <line className="axis" x1={0} y1={top + h / 2} x2={w} y2={top + h / 2} />}
       <polyline className="trace2" points={sample(w, (px) => at(px, -offset), 1)} />
       <polyline className="trace" points={sample(w, (px) => at(px, 0), 1)} />
-      <Caption region={region}>{pan ? "PAN · L — R - -" : "TREMOLO · L — R - -"}</Caption>
+      <Caption region={region}>{`DEPTH ${c.text(T.depth)} · L — R - -`}</Caption>
       <Caption region={region} right>
         {rateText(c, T.rate, T.sync)}
       </Caption>
       <DragArea region={region} cursor="move" label="RATE · DEPTH"
         onPointerDown={c.drag({ x: rateAxis(c, T.rate, T.sync), y: { offset: T.depth, px: 120 } })} />
-      <Handle size={c.size} x={phaseX} y={at(phaseX, -offset)} label="PHASE" below
+      <Handle size={c.size} x={phaseX} y={at(phaseX, -offset)} label="PHASE" value={c.text(T.phase)} below
         cursor="ew-resize" onPointerDown={c.drag({ x: { offset: T.phase, px: 200 } })} onReset={c.reset(T.phase)} />
     </g>
   );
@@ -99,7 +99,7 @@ function Voices({ c, region }: { c: EfxView; region: Region }) {
       <line className="axis" x1={0} y1={top + h / 2} x2={w} y2={top + h / 2} />
       {!mono && <polyline className="trace2" points={sample(w, (px) => y(px, -1), 1)} />}
       <polyline className="trace" points={sample(w, (px) => y(px, 1), 1)} />
-      <Caption region={region}>{mono ? "MONO" : "L — R - -"}</Caption>
+      <Caption region={region}>{`DEPTH ${c.text(CH.depth)}${mono ? "" : " · L — R - -"}`}</Caption>
       <Caption region={region} right>
         {rateText(c, CH.rate, CH.sync)}
       </Caption>
@@ -154,11 +154,11 @@ function NotchView({ props, n }: { props: EfxViewProps; n: Notches }) {
       <Response region={region} range={24} curve={curve} />
       <rect className="area" x={a} y={0} width={Math.max(0, b - a)} height={c.size.height} style={{ fillOpacity: 0.08 }} />
       <Caption region={region} right>{`DEPTH ${c.raw(n.depth)}`}</Caption>
-      <Handle size={c.size} x={freqX(f0, c.size.width)} y={y(-18 * res)} label="MANUAL · RESO"
+      <Handle size={c.size} x={freqX(f0, c.size.width)} y={y(-18 * res)} label="MANUAL · RESO" value={`${c.text(n.manual)} · ${c.text(n.reso)}`}
         onPointerDown={c.drag({ x: { offset: n.manual, px: 200 }, y: { offset: n.reso, px: 140 } })}
         onReset={c.reset(n.manual, n.reso)} />
       {n.hpf !== undefined && (
-        <Handle size={c.size} x={freqX(cut ?? 20, c.size.width)} y={y(-3)} label="HPF" cursor="ew-resize"
+        <Handle size={c.size} x={freqX(cut ?? 20, c.size.width)} y={y(-3)} label="HPF" value={c.text(n.hpf)} cursor="ew-resize"
           onPointerDown={c.drag({ x: { offset: n.hpf, px: 140 } })} onReset={c.reset(n.hpf)} />
       )}
     </Svg>

@@ -1,10 +1,11 @@
-// EFX1 / EFX2 panel: type buttons, ON switch, mode segmented control(s), then the type's drawing (editor/efx/) beside
-// its slots in a 2-column grid that keeps the efx.ts null holes as empty cells. Slots set in the drawing show as
-// readouts (name and value) instead of faders, as on the SP-404 editor.
+// EFX1 / EFX2 panel: type buttons, ON switch, mode segmented control(s), then the type's drawing (editor/efx/), which
+// shows and sets its own values, beside knobs for the rest.
+import { useState } from "react";
 import { efxTypes } from "../core/efx";
 import type { EfxButton, EfxNum, EfxSlot, EfxType } from "../core/efx";
 import { getEfxRaw, getEfxType } from "../core/patch";
-import { HFader } from "../ui/Fader";
+import { Knob } from "../ui/Knob";
+import { useSize } from "../ui/useSize";
 import { LedButton, Section, Segmented } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 import { EFX_VIEWS } from "./efx";
@@ -19,64 +20,62 @@ function buttonGroups(buttons: (EfxButton | null)[]): EfxButton[][] {
   return [...groups.values()];
 }
 
-// Slots whose default is the middle are bipolar (gain in dB): fill and zero line from there.
+// Slots whose default is the middle are bipolar (gain in dB): the ring fills from there.
 const slotCenter = (s: EfxSlot) => (s.default === 0.5 ? s.max / 2 : undefined);
 
-const DRAWING_W = 240;
 const DRAWING_H = { plain: 167, withModes: 136 }; // shorter under a row of mode buttons
 
-interface SlotsProps {
+interface KnobsProps {
   efx: EfxNum;
-  type: EfxType;
-  inView: ReadonlySet<number>;
+  slots: EfxSlot[];
   byte: (offset: number) => number;
 }
 
-function SlotRow({ efx, slot: s, inView, byte }: Omit<SlotsProps, "type"> & { slot: EfxSlot }) {
+// A knob for each slot the drawing doesn't set; dimmed while a setting it depends on is off (RATE under BPM SYNC).
+function SlotKnobs({ efx, slots, byte }: KnobsProps) {
   const ed = useEditor();
-  const dim = s.disabledBy.some((o) => byte(o) !== 0);
-  const value = byte(s.offset);
   return (
-    <div className={`hrow ${dim ? "dim" : ""} ${inView.has(s.offset) ? "readout" : ""}`}>
-      <span className="lbl">{s.name}</span>
-      {inView.has(s.offset) ? (
-        <em className="rv">{ed.patch ? s.display(value) : ""}</em>
-      ) : (
-        <HFader
-          width="fill"
-          value={value}
+    <div className="efxknobs">
+      {slots.map((s) => (
+        <Knob
+          key={s.offset}
+          label={s.name}
+          value={byte(s.offset)}
           max={s.max}
           center={slotCenter(s)}
           format={s.display}
           defaultValue={Math.round(s.default * s.max)}
           onChange={(v) => ed.setEfxByte(efx, s.offset, v)}
           disabled={!ed.patch}
+          dim={s.disabledBy.some((o) => byte(o) !== 0)}
         />
-      )}
+      ))}
     </div>
   );
 }
 
-// Slot faders stretch to fill their half of the space beside the drawing.
-function Slots(p: SlotsProps) {
+// The drawing takes the width the knobs leave.
+function DrawingBox({ efx, type, height }: { efx: EfxNum; type: EfxType; height: number }) {
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
+  const { width } = useSize(box);
+  const drawing = EFX_VIEWS[type.name];
   return (
-    <div className="slots">
-      {p.type.slots.map((s, i) =>
-        s ? <SlotRow key={s.offset} {...p} slot={s} /> : <div key={`hole-${i}`} className="hole" />,
-      )}
+    <div ref={setBox} className="efxdraw" style={{ height }}>
+      {drawing && width > 0 && <drawing.View efx={efx} type={type} size={{ width, height }} />}
     </div>
   );
 }
 
+// The type's drawing, then knobs (two rows) for what it doesn't set; BYPASS has neither.
 function Body({ efx, type, byte }: { efx: EfxNum; type: EfxType; byte: (offset: number) => number }) {
-  const ed = useEditor();
   const drawing = EFX_VIEWS[type.name];
   const height = type.buttons.some(Boolean) ? DRAWING_H.withModes : DRAWING_H.plain;
-  const inView = new Set(ed.patch && drawing ? drawing.inView(byte) : []);
+  const inView = new Set(drawing ? drawing.inView(byte) : []);
+  const rest = type.slots.filter((s): s is EfxSlot => s !== null && !inView.has(s.offset));
   return (
-    <div className="row top efxbody">
-      {drawing && <drawing.View efx={efx} type={type} size={{ width: DRAWING_W, height }} />}
-      <Slots efx={efx} type={type} inView={inView} byte={byte} />
+    <div className="row top efxbody" style={{ ["--cols" as string]: Math.ceil(rest.length / 2) }}>
+      {drawing && <DrawingBox efx={efx} type={type} height={height} />}
+      <SlotKnobs efx={efx} slots={rest} byte={byte} />
     </div>
   );
 }

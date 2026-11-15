@@ -4,12 +4,12 @@ import { useState } from "react";
 import { GLOBAL_TUNING_DISPLAY } from "../core/display";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
-import { HFader } from "../ui/Fader";
+import { Knob } from "../ui/Knob";
 import { Section } from "../ui/controls";
 import { KEYS } from "../ui/platform";
 import { CcSettings } from "./CcSettings";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
-import { ParamH } from "./Param";
+import { ParamKnob } from "./Param";
 import type { CcLearn } from "./useCcLearn";
 import type { Tb3Audio } from "./useTb3Audio";
 import type { PortRole, Tb3Midi } from "./useTb3Midi";
@@ -176,19 +176,17 @@ function AudioInputChoice(p: { audio: Tb3Audio }) {
 export function PerformBlock(p: { tuning: number; onTuning: (v: number) => void; connected: boolean }) {
   return (
     <Section title="PERFORM" className="perform">
-      <ParamH id="accent" label="ACCENT" width={170} labelWidth={84} />
-      <div className="hrow">
-        <span className="lbl" style={{ width: 84 }}>
-          GLOBAL TUNE
-        </span>
-        <HFader
+      <div className="knobrow">
+        <ParamKnob id="accent" label="ACCENT" side />
+        <Knob
+          label="GLOBAL TUNE"
           value={p.tuning}
           max={127}
           center={64}
           format={(v) => GLOBAL_TUNING_DISPLAY[v] ?? String(v)}
           onChange={p.onTuning}
           disabled={!p.connected}
-          width={170}
+          side
         />
       </div>
     </Section>

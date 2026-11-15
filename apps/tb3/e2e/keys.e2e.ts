@@ -49,7 +49,7 @@ test("LEARN, a click on a parameter and a knob assign it; the knob then moves it
   const list = page.locator(".cclist");
   await expect(list).toContainText("VCF RESONANCE");
   await page.locator(".ccsettings").getByRole("button", { name: "LEARN", exact: true }).first().click();
-  await page.locator(".hrow", { has: page.locator(".lbl", { hasText: /^RESONANCE$/ }) }).click();
+  await page.getByRole("slider", { name: "RESONANCE", exact: true }).click();
   await expect(page.locator(".ccsettings .status")).toContainText("Move a knob or fader for VCF RESONANCE");
   await play(page, [0xb0, 21, 5]);
   const row = list.locator("tr", { hasText: "VCF RESONANCE" });

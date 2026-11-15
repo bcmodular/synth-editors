@@ -71,7 +71,7 @@ export function TonePanel(p: { c: EfxView; region: Region; low: number; high: nu
   const y = dbScale(region, 18);
   const curve = (f: number) => lowShelf(f, 150, lo) + highShelf(f, 5000, hi) + (p.extra?.(f) ?? 0);
   const handle = (offset: number, hz: number, v: number) => (
-    <Handle size={c.size} x={freqX(hz, region.width)} y={y(v)} label={c.name(offset)} cursor="ns-resize"
+    <Handle size={c.size} x={freqX(hz, region.width)} y={y(v)} label={c.name(offset)} value={c.text(offset)} cursor="ns-resize"
       onPointerDown={c.drag({ y: { offset, px: 90 } })} onReset={c.reset(offset)} />
   );
   return (

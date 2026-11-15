@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
 import type { ParamDef } from "../core/params";
-import { HFader, VFader } from "../ui/Fader";
+import { Knob } from "../ui/Knob";
 import { LedButton } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 import type { Editor } from "./EditorContext";
@@ -58,52 +58,35 @@ export function Assignable(p: { def: ParamDef; className?: string; children: Rea
   );
 }
 
-export function ParamLabel(p: { text: string; width?: number }) {
-  return (
-    <span className="lbl" style={p.width ? { width: p.width } : undefined}>
-      {p.text}
-    </span>
-  );
+// An encoder for a patch parameter, in its section's colour. `swId` dims it while that switch is off.
+interface ParamKnobProps {
+  id: string;
+  label: string;
+  swId?: string;
+  size?: "xs" | "s" | "m";
+  side?: boolean;
+  bare?: boolean;
+  signColors?: boolean;
 }
 
-// Label + horizontal fader row.
-export function ParamH(p: { id: string; label: string; width?: number | "fill"; labelWidth?: number }) {
-  const { def, value, disabled, set } = useParam(p.id);
-  return (
-    <Assignable def={def} className="hrow">
-      <ParamLabel text={p.label} width={p.labelWidth ?? 74} />
-      <HFader
-        value={value}
-        max={def.max}
-        center={def.center}
-        format={def.display}
-        onChange={set}
-        disabled={disabled}
-        width={p.width}
-      />
-    </Assignable>
-  );
-}
-
-// Vertical fader with optional LED-cap switch (another param id).
-export function ParamV(p: { id: string; label: string; swId?: string; color?: "led" | "alt"; height?: number }) {
+export function ParamKnob(p: ParamKnobProps) {
   const { def, value, disabled, set } = useParam(p.id);
   const sw = useParam(p.swId ?? p.id);
-  const on = p.swId ? sw.value !== 0 : true;
   return (
-    <Assignable def={def}>
-      <VFader
+    <Assignable def={def} className="knobcell">
+      <Knob
+        label={p.label}
         value={value}
         max={def.max}
         center={def.center}
         format={def.display}
         onChange={set}
         disabled={disabled}
-        color={p.color}
-        height={p.height}
-        off={!on}
-        led={p.swId ? { on, onToggle: () => sw.set(on ? 0 : 1) } : undefined}
-        label={<ParamLabel text={p.label} />}
+        dim={p.swId !== undefined && sw.value === 0}
+        size={p.size}
+        side={p.side}
+        bare={p.bare}
+        signColors={p.signColors}
       />
     </Assignable>
   );

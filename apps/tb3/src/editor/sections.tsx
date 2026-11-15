@@ -7,7 +7,6 @@ import { paramById } from "../core/params";
 import { vcoShape } from "../core/vcoShape";
 import { EnvelopeEditor } from "../ui/EnvelopeEditor";
 import type { Stage } from "../ui/EnvelopeEditor";
-import { HFader } from "../ui/Fader";
 import { Section, Segmented, Stepper } from "../ui/controls";
 import type { SegOption } from "../ui/controls";
 import { WaveView } from "../ui/WaveView";
@@ -16,7 +15,7 @@ import { useEditor } from "./EditorContext";
 import { LiveWave } from "./LiveWave";
 import type { LiveGraph } from "./liveEngine";
 import type { Tb3Audio } from "./useTb3Audio";
-import { Assignable, ParamH, ParamLed, ParamV, useParam } from "./Param";
+import { Assignable, ParamKnob, ParamLed, useParam } from "./Param";
 
 export function VcoSection() {
   const src: [string, string, string][] = [
@@ -29,16 +28,19 @@ export function VcoSection() {
   ];
   return (
     <Section title="VCO" className="vco">
-      <div className="row tight">
+      <div className="knobrow">
         {src.map(([label, id, sw]) => (
-          <ParamV key={id} id={id} swId={sw} label={label} />
+          <div key={id} className="vsrc">
+            <ParamLed id={sw} label={label} />
+            <ParamKnob id={id} label={label} swId={sw} bare />
+          </div>
         ))}
       </div>
       <h3>TUNING</h3>
-      <div className="col">
-        <ParamH id="saw_tuning" label="SAW" width={220} />
-        <ParamH id="sqr_tuning" label="SQR" width={220} />
-        <ParamH id="ring_sin_tuning" label="RING+SIN" width={220} />
+      <div className="knobrow">
+        <ParamKnob id="saw_tuning" label="SAW" />
+        <ParamKnob id="sqr_tuning" label="SQR" />
+        <ParamKnob id="ring_sin_tuning" label="RING+SIN" />
       </div>
     </Section>
   );
@@ -106,21 +108,8 @@ const XM_DESTS = ["SAW", "SQR"] as const;
 const xmId = (r: number, c: number) => `cm_${XM_SOURCES[r]!.toLowerCase()}_${XM_DESTS[c]!.toLowerCase()}`;
 
 function XmodCell(p: { row: number; col: number }) {
-  const { def, value, disabled, set } = useParam(xmId(p.row, p.col));
   return (
-    <Assignable def={def}>
-      <HFader
-        className="cell"
-        width={110}
-        value={value}
-        max={def.max}
-        center={def.center}
-        format={def.display}
-        onChange={set}
-        disabled={disabled}
-        signColors
-      />
-    </Assignable>
+    <ParamKnob id={xmId(p.row, p.col)} label={`${XM_SOURCES[p.row]} → ${XM_DESTS[p.col]}`} size="xs" side bare signColors />
   );
 }
 
@@ -145,13 +134,13 @@ export function ModSection() {
 export function RingModSection() {
   return (
     <Section title="RING MOD" className="ring">
-      <div className="grid2">
-        <ParamH id="rm_saw_depth" label="SAW" width={110} labelWidth={48} />
-        <ParamH id="rm_white_depth" label="WHITE" width={110} labelWidth={48} />
-        <ParamH id="rm_sqr_depth" label="SQR" width={110} labelWidth={48} />
-        <ParamH id="rm_pink_depth" label="PINK" width={110} labelWidth={48} />
-        <ParamH id="rm_ring_depth" label="RING" width={110} labelWidth={48} />
-        <ParamH id="rm_depth" label="DEPTH" width={110} labelWidth={48} />
+      <div className="knobgrid">
+        <ParamKnob id="rm_saw_depth" label="SAW" />
+        <ParamKnob id="rm_sqr_depth" label="SQR" />
+        <ParamKnob id="rm_ring_depth" label="RING" />
+        <ParamKnob id="rm_white_depth" label="WHITE" />
+        <ParamKnob id="rm_pink_depth" label="PINK" />
+        <ParamKnob id="rm_depth" label="DEPTH" />
       </div>
     </Section>
   );
@@ -192,11 +181,11 @@ export function VcfSection() {
     <Section title="VCF" className="vcf">
       <div className="row top">
         <Envelope prefix="vcf" label="ENV" />
-        <div className="col">
-          <ParamH id="vcf_cutoff" label="CUTOFF" width={150} />
-          <ParamH id="vcf_resonance" label="RESONANCE" width={150} />
-          <ParamH id="vcf_env_depth" label="ENV DEPTH" width={150} />
-          <ParamH id="vcf_key_follow" label="KEY FOLLOW" width={150} />
+        <div className="knobgrid two">
+          <ParamKnob id="vcf_cutoff" label="CUTOFF" />
+          <ParamKnob id="vcf_resonance" label="RESONANCE" />
+          <ParamKnob id="vcf_env_depth" label="ENV DEPTH" />
+          <ParamKnob id="vcf_key_follow" label="KEY FOLLOW" />
         </div>
       </div>
     </Section>
@@ -208,8 +197,8 @@ export function VcaSection() {
     <Section title="VCA" className="vca">
       <div className="row top">
         <Envelope prefix="vca" label="ENV" />
-        <div className="col">
-          <ParamH id="master_volume" label="VOLUME" width={150} />
+        <div className="knobgrid two">
+          <ParamKnob id="master_volume" label="VOLUME" />
         </div>
       </div>
     </Section>
@@ -241,12 +230,12 @@ export function DistSection() {
       <div className="row">
         <ParamLed id="dist_color" label="COLOR" />
       </div>
-      <div className="col">
-        <ParamH id="dist_drive" label="DRIVE" width="fill" />
-        <ParamH id="dist_bottom" label="BOTTOM" width="fill" />
-        <ParamH id="dist_tone" label="TONE" width="fill" />
-        <ParamH id="dist_efx_level" label="EFX LVL" width="fill" />
-        <ParamH id="dist_dry_level" label="DRY LVL" width="fill" />
+      <div className="knobgrid">
+        <ParamKnob id="dist_drive" label="DRIVE" />
+        <ParamKnob id="dist_bottom" label="BOTTOM" />
+        <ParamKnob id="dist_tone" label="TONE" />
+        <ParamKnob id="dist_efx_level" label="EFX LVL" />
+        <ParamKnob id="dist_dry_level" label="DRY LVL" />
       </div>
     </Section>
   );
@@ -279,21 +268,21 @@ export function LfoSection() {
     >
       <div className="row top">
         <WaveView ys={ys} width={296} height={130} />
-        <div className="row tight">
-          <ParamV id="lfo_saw" label="SAW" height={110} />
-          <ParamV id="lfo_sqr" label="SQR" height={110} />
-          <ParamV id="lfo_tri" label="TRI" height={110} />
-          <ParamV id="lfo_sin" label="SIN" height={110} />
-          <ParamV id="lfo_sh" label="S&H" height={110} />
+        <div className="knobgrid">
+          <ParamKnob id="lfo_saw" label="SAW" />
+          <ParamKnob id="lfo_sqr" label="SQR" />
+          <ParamKnob id="lfo_tri" label="TRI" />
+          <ParamKnob id="lfo_sin" label="SIN" />
+          <ParamKnob id="lfo_sh" label="S&H" />
         </div>
       </div>
-      <div className="grid2 fill">
-        <ParamH id="lfo_rate" label="RATE" width="fill" />
-        <ParamH id="vco_lfo_depth" label="→ VCO" width="fill" labelWidth={50} />
-        <ParamH id="lfo_delay" label="DELAY" width="fill" />
-        <ParamH id="vcf_lfo_depth" label="→ VCF" width="fill" labelWidth={50} />
-        <ParamH id="lfo_cv_offset" label="CV OFFSET" width="fill" />
-        <ParamH id="vca_lfo_depth" label="→ VCA" width="fill" labelWidth={50} />
+      <div className="knobrow">
+        <ParamKnob id="lfo_rate" label="RATE" />
+        <ParamKnob id="lfo_delay" label="DELAY" />
+        <ParamKnob id="lfo_cv_offset" label="CV OFFSET" />
+        <ParamKnob id="vco_lfo_depth" label="→ VCO" />
+        <ParamKnob id="vcf_lfo_depth" label="→ VCF" />
+        <ParamKnob id="vca_lfo_depth" label="→ VCA" />
       </div>
     </Section>
   );
@@ -315,8 +304,10 @@ export function PortaBendSection() {
           disabled={mode.disabled}
         />
       </Assignable>
-      <ParamH id="porta_time" label="TIME" width={170} labelWidth={50} />
-      <ParamH id="bender_range" label="BEND" width={170} labelWidth={50} />
+      <div className="knobrow">
+        <ParamKnob id="porta_time" label="TIME" side />
+        <ParamKnob id="bender_range" label="BEND" side />
+      </div>
     </Section>
   );
 }

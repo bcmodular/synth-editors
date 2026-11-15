@@ -1,10 +1,10 @@
 // Draggable ADSR graph. Attack handle → A (x); decay/sustain handle → D (x) and S (y);
 // release handle → R (x). Each stage gets a quarter of the width at full value. A row of small
-// faders under the graph edits the same four values.
+// knobs under the graph edits the same four values.
 import { useRef } from "react";
 import type { ReactNode } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { HFader } from "./Fader";
+import { Knob } from "./Knob";
 import { getZoom } from "./zoom";
 
 export type Stage = "a" | "d" | "s" | "r";
@@ -12,7 +12,6 @@ const STAGES: Stage[] = ["a", "d", "s", "r"];
 const MAX = 127;
 const FINE = 0.15;
 const PAD = 10;
-const ENV_GAP = 8; // between the A/D/S/R faders
 
 export interface EnvelopeProps {
   a: number;
@@ -111,16 +110,15 @@ export function EnvelopeEditor(p: EnvelopeProps) {
       <div className="envvals" style={{ width: W }}>
         {STAGES.map((k) => {
           const node = (
-            <span className="hrow">
-              <span className="lbl">{k.toUpperCase()}</span>
-              <HFader
-                width={(W - 3 * ENV_GAP) / 4 - 14}
-                value={p[k]}
-                max={MAX}
-                disabled={p.disabled}
-                onChange={(v) => p.onChange(k, v)}
-              />
-            </span>
+            <Knob
+              label={k.toUpperCase()}
+              size="s"
+              side
+              value={p[k]}
+              max={MAX}
+              disabled={p.disabled}
+              onChange={(v) => p.onChange(k, v)}
+            />
           );
           return <span key={k}>{p.wrapValue ? p.wrapValue(k, node) : node}</span>;
         })}

@@ -109,26 +109,42 @@ export interface HandleProps {
   x: Px;
   y: Px;
   label?: string;
+  value?: string; // shown under the label, brighter
   below?: boolean; // label under the dot
   cursor?: "move" | "ew-resize" | "ns-resize";
   onPointerDown: PointerDown;
   onReset?: () => void;
 }
 
-// A ring with a larger invisible hit area and a label above it (below when asked, or near the top).
-export function Handle({ size, x, y, label, below, cursor = "move", onPointerDown, onReset }: HandleProps) {
+const LINE = 12; // between a handle's label and value
+
+// A handle's name and value, above its dot (below when asked, or near the top), kept inside the drawing.
+function HandleText({ size, cx, cy, label, value, under }: { size: Size; cx: Px; cy: Px; label: string; value?: string;
+  under: boolean }) {
+  const half = Math.max(label.length, value?.length ?? 0) * 3.4 + 2; // about half the widest line at 11 px
+  const x = clamp(cx, half, size.width - half);
+  const lines = value ? 2 : 1;
+  const first = under ? cy + 16 : cy - 9 - (lines - 1) * LINE;
+  return (
+    <text className="glabel hlabel" x={x} y={first} textAnchor="middle">
+      <tspan x={x}>{label}</tspan>
+      {value && (
+        <tspan className="hval" x={x} dy={LINE}>
+          {value}
+        </tspan>
+      )}
+    </text>
+  );
+}
+
+// A ring with a larger invisible hit area, and its name and value beside it.
+export function Handle({ size, x, y, label, value, below, cursor = "move", onPointerDown, onReset }: HandleProps) {
   const cx = clamp(x, 6, size.width - 6);
   const cy = clamp(y, 6, size.height - 6);
-  const under = below || cy < 18;
-  const half = label ? label.length * 3.4 + 2 : 0; // about half the label's width at 11 px
+  const under = below || cy < 18 + (value ? LINE : 0);
   return (
-    <g className="handle" role="slider" aria-label={label}>
-      {label && (
-        <text className="glabel hlabel" x={clamp(cx, half, size.width - half)} y={under ? cy + 16 : cy - 9}
-          textAnchor="middle">
-          {label}
-        </text>
-      )}
+    <g className="handle" role="slider" aria-label={label} aria-valuetext={value}>
+      {label && <HandleText size={size} cx={cx} cy={cy} label={label} value={value} under={under} />}
       <circle className="dot" cx={cx} cy={cy} r={4} />
       <circle className="hit" style={{ cursor }} cx={cx} cy={cy} r={9} onPointerDown={onPointerDown}
         onDoubleClick={onReset} />

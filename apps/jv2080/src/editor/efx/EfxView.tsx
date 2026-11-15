@@ -11,6 +11,7 @@ import { LfoPanel, RotaryPanel } from "./modPanels";
 import { EFX_SPECS, panelParams, type PanelSpec } from "./specs";
 import { DelayPanel, GatePanel, PitchPanel, ReverbPanel } from "./timePanels";
 import { CompressorPanel, DrivePanel, EnhancerPanel, EqPanel, LimiterPanel, SpectrumPanel } from "./tonePanels";
+import { hotProps, useEfxHot } from "./hot";
 import { useEfx, type EfxParam, type GetParam } from "./useEfx";
 
 function panelContent(spec: PanelSpec, get: GetParam, size: Size): ReactNode {
@@ -42,8 +43,13 @@ const SHORTER: readonly (readonly [RegExp, string])[] = [
 ];
 export const shortName = (name: string) => SHORTER.reduce((n, [re, to]) => n.replace(re, to), name);
 
-// A parameter no drawing takes: buttons for a short list, a drop-down for a long one, otherwise a knob.
+// A parameter no drawing takes, lit while the help points at it.
 function RestControl({ x }: { x: EfxParam }) {
+  return <div {...hotProps(useEfxHot(), [x.p.name], "efx-ctl")}><RestInput x={x} /></div>;
+}
+
+// Buttons for a short list, a drop-down for a long one, otherwise a knob.
+function RestInput({ x }: { x: EfxParam }) {
   const labels = x.p.labels;
   if (labels && labels.length <= 6) {
     return (
@@ -68,6 +74,7 @@ function RestControl({ x }: { x: EfxParam }) {
 
 export function EfxView() {
   const { typeRaw, params, get } = useEfx();
+  const hot = useEfxHot();
   const spec = EFX_SPECS[typeRaw];
   if (!spec) return null;
   const drawn = new Set(spec.panels.flatMap(panelParams));
@@ -76,7 +83,7 @@ export function EfxView() {
     <div className="efx-view">
       <div className={`efx-panels ${spec.join ?? ""}`}>
         {spec.panels.map((panel, i) => (
-          <div key={`${typeRaw}-${i}`} className="efx-panel-wrap">
+          <div key={`${typeRaw}-${i}`} {...hotProps(hot, panelParams(panel), "efx-panel-wrap")}>
             {i > 0 && spec.join === "series" && <span className="efx-arrow">→</span>}
             <Panel spec={panel} get={get} />
           </div>

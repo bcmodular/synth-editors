@@ -9,6 +9,7 @@ import { EFX_GENERAL_NOTE, efxHelp, paramHelp, type EfxHelp } from "../../core/e
 import type { EfxParamDef } from "../../core/efx";
 import { useDismiss } from "../../ui/useDismiss";
 import { FlowDiagram } from "./FlowDiagram";
+import { EfxHotContext } from "./hot";
 import { useEfx } from "./useEfx";
 
 // A parameter's range as the panel shows it; a long list as its first and last entries.
@@ -29,7 +30,9 @@ function InfoPanel({ help, side, onClose }: PanelProps) {
   const host = document.querySelector<HTMLElement>(".editor") ?? document.body;
   return createPortal(
     <div className="info-overlay" ref={panel}>
-    <div className="info-side">{side}</div>
+    <EfxHotContext.Provider value={{ hot, hover }}>
+      <div className="info-side">{side}</div>
+    </EfxHotContext.Provider>
     <div className="info-panel efx-info" role="dialog" aria-label={`About ${type?.name}`}>
       <div className="info-head">
         <p className="info-summary">{help.summary}</p>

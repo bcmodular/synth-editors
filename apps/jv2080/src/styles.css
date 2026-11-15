@@ -1134,6 +1134,21 @@ input {
   max-width: 58px;
   text-overflow: ellipsis;
 }
+/* Lit while the help panel points at the parameter (editor/efx/hot.ts). */
+.efx-ctl {
+  border-radius: 6px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.1s, background 0.1s;
+}
+.efx-ctl.hot,
+.efx-panel-wrap.hot .fxdraw {
+  outline: 2px solid var(--tint);
+  background: color-mix(in srgb, var(--tint) 14%, transparent);
+}
+.efx-panel-wrap.hot .fxdraw {
+  outline-offset: -2px;
+}
 .efx-choice {
   display: flex;
   flex-direction: column;

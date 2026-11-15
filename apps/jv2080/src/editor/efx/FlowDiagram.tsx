@@ -14,6 +14,8 @@ interface Props {
   onHover: (params: readonly string[]) => void;
 }
 
+const SCALE = 1.35; // drawn larger than its layout units, text and all
+
 const edgeParams = (e: FlowEdge) => [...(e.gains ?? []).map((g) => g.param), ...(e.params ?? []), ...(e.when ? [e.when.param] : [])];
 const isHot = (params: readonly string[], hot: ReadonlySet<string>) => params.some((p) => hot.has(p));
 
@@ -64,7 +66,7 @@ export function FlowDiagram({ flow, get, hot, onHover }: Props) {
   const outs = (id: string) => edges.filter((e) => e.from === id && e.route !== "loop").length;
   const { width, height } = flowSize(flow);
   return (
-    <svg className="flow" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+    <svg className="flow" width={width * SCALE} height={height * SCALE} viewBox={`0 0 ${width} ${height}`}>
       <defs>
         <marker id="fl-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse"
           orient="auto-start-reverse">

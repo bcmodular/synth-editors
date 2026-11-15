@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ALL_PARAMS } from "../params";
-import { AMP_HELP, CHORUS_HELP, FILTER_HELP, LFO_HELP, MIXER_HELP, PATCH_HELP, PITCH_HELP, REVERB_HELP } from ".";
+import { AMP_HELP, CHORUS_HELP, FILTER_HELP, LFO_HELP, MIXER_HELP, PATCH_HELP, PITCH_HELP, REVERB_HELP, toneOverviewHelp } from ".";
 
 const ids = new Set(ALL_PARAMS.map((p) => p.id));
-const sections = [PITCH_HELP, FILTER_HELP, AMP_HELP, LFO_HELP, CHORUS_HELP, REVERB_HELP, PATCH_HELP, MIXER_HELP].map((help) => ({ name: help.title, help }));
+const parts = [PITCH_HELP, FILTER_HELP, AMP_HELP, LFO_HELP, CHORUS_HELP, REVERB_HELP, PATCH_HELP, MIXER_HELP].map((help) => ({ name: help.title, help }));
+// The tone overviews' blocks stand for whole parts, whose detail is in the parts' own help, so they aren't all rows.
+const overviews = [0, 1, 2, 3].map((t) => ({ name: toneOverviewHelp(t).title, help: toneOverviewHelp(t) }));
+const sections = [...parts, ...overviews];
 
 describe("section help", () => {
   it.each(sections)("$name's rows name real parameters, each once", ({ help }) => {
@@ -23,10 +26,17 @@ describe("section help", () => {
     for (const id of used) expect(ids.has(id), id).toBe(true);
   });
 
-  it.each(sections)("$name's flow parameters are all in its rows, so pointing at the flow lights a row", ({ help }) => {
+  it.each(parts)("$name's flow parameters are all in its rows, so pointing at the flow lights a row", ({ help }) => {
     const rowIds = new Set(help.rows.flatMap((r) => r.ids));
     const used = help.flow.nodes.flatMap((n) => n.params ?? []).concat(help.flow.edges.flatMap((e) => (e.gains ?? []).map((g) => g.param)));
     const outside = used.filter((id) => !rowIds.has(id) && !id.startsWith("efx"));
     expect(outside).toEqual([]);
+  });
+});
+
+describe("tone overview", () => {
+  it("pairs each tone with the other tone of its pair", () => {
+    expect(toneOverviewHelp(0).rows.find((r) => r.label.startsWith("Structure"))?.ids).toEqual(["structure12"]);
+    expect(toneOverviewHelp(3).rows.find((r) => r.label.startsWith("Structure"))?.text).toContain("tone 3");
   });
 });

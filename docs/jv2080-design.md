@@ -87,7 +87,10 @@ After the first editor, a more compact layout, decided with the user:
   it is set. Every control in a copy, including envelopes, LFO wave buttons and the chorus and reverb drawings,
   lights up while the help points at it, and the other way round. Notes list what the JV has that this editor
   doesn't show yet. Data in `core/sectionHelp/` (from manual pp. 25–27, 53–55, 70–89); the panel is
-  `editor/help/HelpPanel.tsx`, shared with the EFX help. The manual itself stays in `fixtures/local/jv2080/` and is never
+  `editor/help/HelpPanel.tsx`, shared with the EFX help.
+- **Tone overview** ✅ (2026-11-15): an (i) in each tone's header, beside a copy of the whole column: the note through
+  ranges, tone delay, pitch, wave, filter and amp (each with its envelope and the LFOs below) to the output and sends,
+  with the pair's structure above the filter (`core/sectionHelp/toneOverview.ts`). The manual itself stays in `fixtures/local/jv2080/` and is never
   committed. Nothing from it is copied word for word.
 - **Demo mode** (`?demo`): the editor on a built-in patch with nothing sent, for working without a JV. A new EFX
   type starts from neutral values (`efxStartValue`), there and on the JV: the JV keeps the previous type's bytes when

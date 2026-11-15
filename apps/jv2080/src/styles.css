@@ -1428,6 +1428,8 @@ input {
 }
 .flow {
   align-self: center;
+  max-width: 100%; /* a wide flow (the tone overview) scales down to fit its panel */
+  height: auto;
   background: #0b0b0c;
   border: 1px solid #222327;
 }

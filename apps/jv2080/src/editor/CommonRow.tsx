@@ -16,8 +16,10 @@ import { Mixer } from "./Mixer";
 import { ParamChoice, ParamKnob, ParamSelect } from "./ParamControls";
 import { PatchSettings } from "./PatchSettings";
 
-// A new type can bring the JV's defaults for its parameters, so the patch is read back shortly after.
-const RESYNC_AFTER_TYPE_MS = 150;
+// The JV keeps the previous type's parameter bytes when the type changes, which can mean nothing to the new type.
+// So a new type is sent with neutral starting values for its parameters (core/efx efxStartValue), in order after
+// the type, and the patch is read back once they've gone to confirm what the JV holds.
+const RESYNC_AFTER_TYPE_MS = 300;
 
 function EfxTypeButton() {
   const { patch, setValue, resync } = useEditor();
@@ -28,9 +30,8 @@ function EfxTypeButton() {
     setOpen(false);
     if (type === raw) return;
     setValue(param("efxType"), type);
-    // In demo mode there's no JV to answer, so the new type starts from neutral values.
-    if (isDemo()) for (const p of EFX_TYPES[type]?.params ?? []) setValue(efxSlotParam(p), efxStartValue(p));
-    else setTimeout(resync, RESYNC_AFTER_TYPE_MS);
+    for (const p of EFX_TYPES[type]?.params ?? []) setValue(efxSlotParam(p), efxStartValue(p));
+    if (!isDemo()) setTimeout(resync, RESYNC_AFTER_TYPE_MS);
   };
   return (
     <>

@@ -71,8 +71,8 @@ After the first editor, a more compact layout, decided with the user:
   enhancer, compressor, limiter, LFO sweep, rotary, delay taps, pitch ladder, reverb and gate drawings; two-effect
   types joined by an arrow or stacked; the rest as knobs and buttons). Rates and times still draw from raw values.
 - **Demo mode** (`?demo`): the editor on a built-in patch with nothing sent, for working without a JV. A new EFX
-  type starts from neutral values there (`efxStartValue`); on the JV it keeps the previous type's bytes (open
-  question whether to send start values too).
+  type starts from neutral values (`efxStartValue`), there and on the JV: the JV keeps the previous type's bytes when
+  the type changes, so the editor sends the start values after the type (decided 2026-11-15).
 - LFO drawing / routing view and fit zoom: dropped (2026-11-14), not needed.
 - **Chorus and reverb** get dedicated layouts like the SP-404's, stacked; the patch settings always visible beside
   them. ✅

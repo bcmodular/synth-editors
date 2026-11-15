@@ -2,10 +2,19 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 
-export function Section(p: { title: ReactNode; extra?: ReactNode; className?: string; children: ReactNode }) {
+interface SectionProps {
+  title: ReactNode;
+  extra?: ReactNode; // header buttons on the right
+  info?: ReactNode; // the (i) help button, on the left
+  className?: string;
+  children: ReactNode;
+}
+
+export function Section(p: SectionProps) {
   return (
     <section className={`sec ${p.className ?? ""}`}>
       <header>
+        {p.info && <div className="info">{p.info}</div>}
         <h2>{p.title}</h2>
         {p.extra && <div className="extra">{p.extra}</div>}
       </header>

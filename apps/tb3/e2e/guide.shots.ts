@@ -179,6 +179,12 @@ async function shootEditor(page: Page) {
   await shot(page, "row-shaping", [page.locator(".editor > .shape")]);
   await shot(page, "row-effects", [page.locator(".editor > .fx")]);
 
+  // A section's help.
+  await page.getByRole("button", { name: "About the filter" }).click();
+  await page.locator(".info-params > div", { hasText: "RESONANCE" }).hover();
+  await shotHere(page, "help", [page.locator(".info-overlay")]);
+  await page.keyboard.press("Escape");
+
   // Distortion types.
   await page.locator(".dist .stepname").click();
   await shot(page, "distortion-types", [page.locator(".dist"), page.locator(".dist .popover")]);

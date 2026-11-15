@@ -8,6 +8,7 @@ import { HFader } from "../ui/Fader";
 import { Knob } from "../ui/Knob";
 import { LedButton } from "../ui/controls";
 import { useEditor } from "./EditorContext";
+import { Lit } from "./help/Lit";
 import type { Editor } from "./EditorContext";
 
 export function useParam(id: string) {
@@ -75,6 +76,7 @@ export function ParamKnob(p: ParamKnobProps) {
   const sw = useParam(p.swId ?? p.id);
   return (
     <Assignable def={def} className="knobcell">
+      <Lit ids={[p.id, ...(p.swId ? [p.swId] : [])]}>
       <Knob
         label={p.label}
         value={value}
@@ -89,6 +91,7 @@ export function ParamKnob(p: ParamKnobProps) {
         bare={p.bare}
         signColors={p.signColors}
       />
+      </Lit>
     </Assignable>
   );
 }
@@ -98,8 +101,10 @@ export function ParamFader(p: { id: string; label: string; width: number; signCo
   const { def, value, disabled, set } = useParam(p.id);
   return (
     <Assignable def={def}>
+      <Lit ids={[p.id]}>
       <HFader label={p.label} width={p.width} value={value} max={def.max} center={def.center} format={def.display}
         onChange={set} disabled={disabled} signColors={p.signColors} />
+      </Lit>
     </Assignable>
   );
 }
@@ -108,7 +113,9 @@ export function ParamLed(p: { id: string; label: string }) {
   const { def, value, disabled, set } = useParam(p.id);
   return (
     <Assignable def={def} className="inline">
-      <LedButton label={p.label} on={value !== 0} disabled={disabled} onToggle={() => set(value ? 0 : 1)} />
+      <Lit ids={[p.id]}>
+        <LedButton label={p.label} on={value !== 0} disabled={disabled} onToggle={() => set(value ? 0 : 1)} />
+      </Lit>
     </Assignable>
   );
 }

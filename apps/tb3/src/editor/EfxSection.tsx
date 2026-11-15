@@ -9,6 +9,9 @@ import { useSize } from "../ui/useSize";
 import { LedButton, Section, Segmented } from "../ui/controls";
 import { useEditor } from "./EditorContext";
 import { EFX_VIEWS } from "./efx";
+import { efxHelp, efxId } from "./help/content";
+import { HelpButton } from "./help/HelpPanel";
+import { Lit } from "./help/Lit";
 
 // Group `set` buttons by offset: each group is one segmented control.
 function buttonGroups(buttons: (EfxButton | null)[]): EfxButton[][] {
@@ -37,8 +40,8 @@ function SlotKnobs({ efx, slots, byte }: KnobsProps) {
   return (
     <div className="efxknobs">
       {slots.map((s) => (
+        <Lit key={s.offset} ids={[efxId(s.offset)]}>
         <Knob
-          key={s.offset}
           label={s.name}
           value={byte(s.offset)}
           max={s.max}
@@ -49,6 +52,7 @@ function SlotKnobs({ efx, slots, byte }: KnobsProps) {
           disabled={!ed.patch}
           dim={s.disabledBy.some((o) => byte(o) !== 0)}
         />
+        </Lit>
       ))}
     </div>
   );
@@ -74,7 +78,11 @@ function Body({ efx, type, byte }: { efx: EfxNum; type: EfxType; byte: (offset: 
   const rest = type.slots.filter((s): s is EfxSlot => s !== null && !inView.has(s.offset));
   return (
     <div className="row top efxbody" style={{ ["--cols" as string]: Math.ceil(rest.length / 2) }}>
-      {drawing && <DrawingBox efx={efx} type={type} height={height} />}
+      {drawing && (
+        <Lit ids={[...inView].map(efxId)}>
+          <DrawingBox efx={efx} type={type} height={height} />
+        </Lit>
+      )}
       <SlotKnobs efx={efx} slots={rest} byte={byte} />
     </div>
   );
@@ -93,6 +101,7 @@ export function EfxSection(p: { efx: EfxNum }) {
     <Section
       title={disabled ? "–" : type.name}
       className={`efx efx${p.efx}`}
+      info={<HelpButton label={`EFX${p.efx}`} useContent={efxHelp(p.efx)} side={<EfxSection efx={p.efx} />} sideWidth={780} />}
       extra={
         sw !== undefined && (
           <LedButton
@@ -117,13 +126,14 @@ export function EfxSection(p: { efx: EfxNum }) {
         ))}
       </div>
       {buttonGroups(type.buttons).map((g) => (
-        <Segmented
-          key={g[0]!.offset}
-          options={g.map((b) => ({ label: b.name, value: b.value ?? 0 }))}
-          value={byte(g[0]!.offset)}
-          onChange={(v) => ed.setEfxByte(p.efx, g[0]!.offset, v)}
-          disabled={disabled}
-        />
+        <Lit key={g[0]!.offset} ids={[efxId(g[0]!.offset)]}>
+          <Segmented
+            options={g.map((b) => ({ label: b.name, value: b.value ?? 0 }))}
+            value={byte(g[0]!.offset)}
+            onChange={(v) => ed.setEfxByte(p.efx, g[0]!.offset, v)}
+            disabled={disabled}
+          />
+        </Lit>
       ))}
       <Body efx={p.efx} type={type} byte={byte} />
     </Section>

@@ -15,6 +15,12 @@ import { useEditor } from "./EditorContext";
 import { LiveWave } from "./LiveWave";
 import type { LiveGraph } from "./liveEngine";
 import type { Tb3Audio } from "./useTb3Audio";
+import {
+  AMP_HELP, CROSS_MOD_HELP, DIST_HELP, FILTER_HELP, LFO_HELP, OSCILLATORS_HELP, PORTA_HELP, RING_MOD_HELP,
+} from "../core/help";
+import { sectionHelp } from "./help/content";
+import { HelpButton } from "./help/HelpPanel";
+import { Lit } from "./help/Lit";
 import { Assignable, ParamFader, ParamKnob, ParamLed, useParam } from "./Param";
 
 // The source levels (each under its on/off switch) and the tunings: the left of the VCO group.
@@ -95,7 +101,9 @@ export function VcoSection(p: { audio: Tb3Audio }) {
       })
     : null;
   return (
-    <Section title="OSCILLATORS" className="vco vcosum" extra={<ViewSwitch audio={p.audio} />}>
+    <Section title="OSCILLATORS" className="vco vcosum" extra={<ViewSwitch audio={p.audio} />}
+      info={<HelpButton label="the oscillators" useContent={sectionHelp(OSCILLATORS_HELP)} side={<VcoSection audio={p.audio} />}
+        sideWidth={960} />}>
       <div className="row top">
         <VcoControls />
         {p.audio.view === "live" ? (
@@ -124,7 +132,8 @@ export function ModSection() {
     ? XM_SOURCES.map((_, r) => XM_DESTS.map((_, c) => getRaw(patch, paramById(xmId(r, c))) - 64))
     : null;
   return (
-    <Section title="CROSS MODULATION" className="mod">
+    <Section title="CROSS MODULATION" className="mod"
+      info={<HelpButton label="cross modulation" useContent={sectionHelp(CROSS_MOD_HELP)} side={<ModSection />} sideWidth={620} />}>
       <XmodMatrix
         sources={XM_SOURCES}
         dests={XM_DESTS}
@@ -138,7 +147,8 @@ export function ModSection() {
 
 export function RingModSection() {
   return (
-    <Section title="RING MODULATION" className="ring">
+    <Section title="RING MODULATION" className="ring"
+      info={<HelpButton label="ring modulation" useContent={sectionHelp(RING_MOD_HELP)} side={<RingModSection />} sideWidth={620} />}>
       <div className="knobrow">
         <ParamKnob id="rm_saw_depth" label="SAW" />
         <ParamKnob id="rm_sqr_depth" label="SQR" />
@@ -161,6 +171,7 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
   };
   const v = (k: Stage) => (ed.patch ? getRaw(ed.patch, paramById(ids[k])) : 0);
   return (
+    <Lit ids={Object.values(ids)}>
     <EnvelopeEditor
       a={v("a")}
       d={v("d")}
@@ -178,12 +189,14 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
       )}
       onChange={(k, raw) => ed.setParam(ids[k], raw)}
     />
+    </Lit>
   );
 }
 
 export function VcfSection() {
   return (
-    <Section title="FILTER" className="vcf">
+    <Section title="FILTER" className="vcf"
+      info={<HelpButton label="the filter" useContent={sectionHelp(FILTER_HELP)} side={<VcfSection />} sideWidth={420} />}>
       <div className="row top">
         <Envelope prefix="vcf" label="ENV" />
         <div className="knobgrid two">
@@ -199,7 +212,8 @@ export function VcfSection() {
 
 export function VcaSection() {
   return (
-    <Section title="AMPLIFIER" className="vca">
+    <Section title="AMPLIFIER" className="vca"
+      info={<HelpButton label="the amplifier" useContent={sectionHelp(AMP_HELP)} side={<VcaSection />} sideWidth={420} />}>
       <div className="row top">
         <Envelope prefix="vca" label="ENV" />
         <div className="knobgrid two">
@@ -222,15 +236,18 @@ const DIST_GROUPS = [
 export function DistSection() {
   const type = useParam("dist_type");
   return (
-    <Section title="DISTORTION" className="dist" extra={<ParamLed id="dist_sw" label="ON" />}>
+    <Section title="DISTORTION" className="dist" extra={<ParamLed id="dist_sw" label="ON" />}
+      info={<HelpButton label="the distortion" useContent={sectionHelp(DIST_HELP)} side={<DistSection />} sideWidth={260} />}>
       <Assignable def={type.def}>
-        <Stepper
-          items={DIST_TYPES}
-          groups={DIST_GROUPS}
-          index={type.value}
-          onChange={type.set}
-          disabled={type.disabled}
-        />
+        <Lit ids={["dist_type"]}>
+          <Stepper
+            items={DIST_TYPES}
+            groups={DIST_GROUPS}
+            index={type.value}
+            onChange={type.set}
+            disabled={type.disabled}
+          />
+        </Lit>
       </Assignable>
       <div className="row">
         <ParamLed id="dist_color" label="COLOR" />
@@ -262,6 +279,7 @@ export function LfoSection() {
     : null;
   return (
     <Section
+      info={<HelpButton label="the LFO" useContent={sectionHelp(LFO_HELP)} side={<LfoSection />} sideWidth={540} />}
       title="LFO"
       className="lfo"
       extra={
@@ -297,17 +315,21 @@ export function LfoSection() {
 export function PortaBendSection() {
   const mode = useParam("porta_mode");
   return (
-    <Section title="PORTA · BEND" className="porta" extra={<ParamLed id="porta_sw" label="PORTA" />}>
+    <Section title="PORTA · BEND" className="porta" extra={<ParamLed id="porta_sw" label="PORTA" />}
+      info={<HelpButton label="portamento and bend" useContent={sectionHelp(PORTA_HELP)} side={<PortaBendSection />}
+        sideWidth={280} />}>
       <Assignable def={mode.def}>
-        <Segmented
-          options={[
-            { label: "LEGATO", value: 0 },
-            { label: "ALWAYS", value: 1 },
-          ]}
-          value={mode.value}
-          onChange={mode.set}
-          disabled={mode.disabled}
-        />
+        <Lit ids={["porta_mode"]}>
+          <Segmented
+            options={[
+              { label: "LEGATO", value: 0 },
+              { label: "ALWAYS", value: 1 },
+            ]}
+            value={mode.value}
+            onChange={mode.set}
+            disabled={mode.disabled}
+          />
+        </Lit>
       </Assignable>
       <div className="knobrow">
         <ParamKnob id="porta_time" label="TIME" side />

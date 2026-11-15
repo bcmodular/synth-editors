@@ -9,6 +9,9 @@ import { Section } from "../ui/controls";
 import { KEYS } from "../ui/platform";
 import { CcSettings } from "./CcSettings";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
+import { PERFORM_HELP } from "../core/help";
+import { sectionHelp } from "./help/content";
+import { HelpButton } from "./help/HelpPanel";
 import { ParamKnob } from "./Param";
 import type { CcLearn } from "./useCcLearn";
 import type { Tb3Audio } from "./useTb3Audio";
@@ -175,7 +178,8 @@ function AudioInputChoice(p: { audio: Tb3Audio }) {
 // Global tuning is CC 104, not part of the patch: local state, sent only.
 export function PerformBlock(p: { tuning: number; onTuning: (v: number) => void; connected: boolean }) {
   return (
-    <Section title="PERFORM" className="perform">
+    <Section title="PERFORM" className="perform"
+      info={<HelpButton label="perform" useContent={sectionHelp(PERFORM_HELP)} side={<PerformBlock {...p} />} sideWidth={310} />}>
       <div className="knobrow">
         <ParamKnob id="accent" label="ACCENT" side />
         <Knob

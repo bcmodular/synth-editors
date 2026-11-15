@@ -10,8 +10,6 @@ import { EnvelopeEditor } from "../ui/EnvelopeEditor";
 import type { Stage } from "../ui/EnvelopeEditor";
 import { Section, Segmented, Stepper } from "../ui/controls";
 import type { SegOption } from "../ui/controls";
-import { WaveIcon } from "../ui/WaveIcon";
-import type { Wave } from "../ui/WaveIcon";
 import { WaveView } from "../ui/WaveView";
 import { useSize } from "../ui/useSize";
 import { XmodMatrix } from "../ui/XmodMatrix";
@@ -175,7 +173,7 @@ export function RingModSection() {
   );
 }
 
-function Envelope(p: { prefix: "vcf" | "vca"; label: string; width: number }) {
+function Envelope(p: { prefix: "vcf" | "vca"; width: number }) {
   const ed = useEditor();
   const ids: Record<Stage, string> = {
     a: `${p.prefix}_attack`,
@@ -191,7 +189,6 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string; width: number }) {
       d={v("d")}
       s={v("s")}
       r={v("r")}
-      label={p.label}
       width={p.width}
       height={140}
       disabled={!ed.patch}
@@ -211,7 +208,7 @@ export function VcfSection() {
   return (
     <Section title="FILTER" className="vcf"
       info={<HelpButton label="the filter" useContent={sectionHelp(FILTER_HELP)} side={<VcfSection />} sideWidth={380} />}>
-      <Envelope prefix="vcf" label="ENV" width={340} />
+      <Envelope prefix="vcf" width={340} />
       <div className="knobrow">
         <ParamKnob id="vcf_cutoff" label="CUTOFF" />
         <ParamKnob id="vcf_resonance" label="RESONANCE" />
@@ -226,8 +223,8 @@ export function VcfSection() {
 export function VcaSection() {
   return (
     <Section title="AMPLIFIER" className="vca"
-      info={<HelpButton label="the amplifier" useContent={sectionHelp(AMP_HELP)} side={<VcaSection />} sideWidth={280} />}>
-      <Envelope prefix="vca" label="ENV" width={240} />
+      info={<HelpButton label="the amplifier" useContent={sectionHelp(AMP_HELP)} side={<VcaSection />} sideWidth={380} />}>
+      <Envelope prefix="vca" width={340} />
       <div className="knobrow">
         <ParamKnob id="master_volume" label="VOLUME" />
         <LfoDepth id="vca_lfo_depth" />
@@ -249,7 +246,7 @@ export function DistSection() {
   const type = useParam("dist_type");
   return (
     <Section title="DISTORTION" className="dist" extra={<ParamLed id="dist_sw" label="ON" />}
-      info={<HelpButton label="the distortion" useContent={sectionHelp(DIST_HELP)} side={<DistSection />} sideWidth={260} />}>
+      info={<HelpButton label="the distortion" useContent={sectionHelp(DIST_HELP)} side={<DistSection />} sideWidth={340} />}>
       <Assignable def={type.def}>
         <Lit ids={["dist_type"]}>
           <Stepper
@@ -264,7 +261,7 @@ export function DistSection() {
       <div className="row">
         <ParamLed id="dist_color" label="COLOR" />
       </div>
-      <div className="knobgrid">
+      <div className="knobrow">
         <ParamKnob id="dist_drive" label="DRIVE" />
         <ParamKnob id="dist_bottom" label="BOTTOM" />
         <ParamKnob id="dist_tone" label="TONE" />
@@ -275,13 +272,13 @@ export function DistSection() {
   );
 }
 
-// The LFO's waves, each knob under a picture of its wave.
-const LFO_WAVES: readonly [Wave, string, string][] = [
-  ["saw", "lfo_saw", "SAW"],
-  ["sqr", "lfo_sqr", "SQR"],
-  ["tri", "lfo_tri", "TRI"],
-  ["sin", "lfo_sin", "SIN"],
-  ["sh", "lfo_sh", "S&H"],
+// The LFO's wave mix knobs.
+const LFO_WAVES: readonly [string, string][] = [
+  ["lfo_saw", "SAW"],
+  ["lfo_sqr", "SQR"],
+  ["lfo_tri", "TRI"],
+  ["lfo_sin", "SIN"],
+  ["lfo_sh", "S&H"],
 ];
 
 // A wave picture as wide as its section.
@@ -323,11 +320,8 @@ export function LfoSection() {
     >
       <FillWave ys={ys} height={120} />
       <div className="knobrow lforow">
-        {LFO_WAVES.map(([wave, id, label]) => (
-          <div key={id} className="wavek">
-            <WaveIcon wave={wave} />
-            <ParamKnob id={id} label={label} bare />
-          </div>
+        {LFO_WAVES.map(([id, label]) => (
+          <ParamKnob key={id} id={id} label={label} />
         ))}
         <span className="knobsep" />
         <ParamKnob id="lfo_rate" label="RATE" />

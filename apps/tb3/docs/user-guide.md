@@ -168,11 +168,10 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
   handles to shape it. The first sets attack, the second sets decay (sideways) and sustain (up and
   down), and the last sets release. The A, D, S and R values along the bottom of the graph edit
   the same settings: drag one up or down, scroll it, or double-click it to zero.
-- **AMPLIFIER** (the VCA): the amp envelope, edited in the same way, with the master volume and a
-  red **LFO** knob (how much the LFO moves the level: tremolo) under it.
+- **AMPLIFIER** (the VCA): the amp envelope, as wide as the filter's and edited in the same way, with
+  the master volume and a red **LFO** knob (how much the LFO moves the level: tremolo) under it.
 - **LFO**: the picture shows the shape the LFO makes. Under it, one row of knobs: the waveform
-  mix, each knob under a little picture of its wave (saw, square, triangle, sine and sample &
-  hold), then rate, delay and CV offset. How much the LFO moves each destination is set where it
+  mix (SAW, SQR, TRI, SIN and S&H), then rate, delay and CV offset. How much the LFO moves each destination is set where it
   lands, on the red LFO knobs in OSCILLATORS (pitch, beside TUNING), FILTER and AMPLIFIER. BPM
   SYNC locks the rate to the tempo, and RETRIG restarts the LFO on each note.
 
@@ -185,7 +184,7 @@ the bottom row. Each is titled with its effect type.
 
 - **DISTORTION**: ON switches it in. Step through the 25 types with ‹ and ›, by scrolling, or with
   the arrow keys. To see every type grouped by family, click the type's name. COLOR is the TB-3's
-  distortion COLOR switch.
+  distortion COLOR switch. Its five knobs (DRIVE, BOTTOM, TONE, EFX LVL and DRY LVL) sit in one row.
 
   ![The distortion types](images/distortion-types.png)
 

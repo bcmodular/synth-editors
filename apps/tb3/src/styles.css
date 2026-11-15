@@ -132,7 +132,7 @@ button:focus-visible {
   gap: 12px;
 }
 .shape {
-  grid-template-columns: auto auto 1fr 250px;
+  grid-template-columns: auto auto 1fr auto;
 }
 .fx {
   grid-template-columns: 1fr 1fr;
@@ -710,7 +710,7 @@ svg .pad.on > text {
   gap: 8px;
 }
 .efx > .efxbody,
-.dist > .knobgrid {
+.dist > .knobrow {
   margin-top: 10px;
 }
 /* EFX body: the type's drawing (editor/efx/) beside knobs for the settings it doesn't take. */
@@ -1455,7 +1455,7 @@ svg .handle:hover > .dot {
 .knobrow .knobcell {
   min-width: 56px;
 }
-/* LFO: the wave knobs, each under a picture of its wave, then a rule, then RATE, DELAY and CV OFFSET. */
+/* LFO: the wave knobs, then a rule, then RATE, DELAY and CV OFFSET. */
 .fillwave {
   width: 100%;
 }
@@ -1465,18 +1465,6 @@ svg .handle:hover > .dot {
 .lforow {
   justify-content: space-between;
   align-items: flex-end;
-}
-.wavek {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.waveicon path {
-  fill: none;
-  stroke: var(--led);
-  stroke-width: 1.6;
-  stroke-linejoin: round;
 }
 .knobsep {
   align-self: stretch;

@@ -24,15 +24,16 @@ function Group({ title, note, children }: { title: string; note?: string; childr
 const knobs = (tone: number, list: readonly (readonly [string, string])[]) =>
   list.map(([id, label]) => <ParamKnob key={id} def={id} tone={tone} label={label} />);
 
-// An envelope's velocity and keyfollow controls (the curve only for the filter and amp).
-function EnvelopeVelocity({ tone, prefix, curve }: ToneProps & { prefix: string; curve: boolean }) {
+// An envelope's velocity and keyfollow controls. The filter and amp have a velocity curve, and show their velocity
+// sensitivity as a VEL knob on the part itself, so it isn't repeated here.
+function EnvelopeVelocity({ tone, prefix, onPart }: ToneProps & { prefix: string; onPart: boolean }) {
   const list: [string, string][] = [
-    ...(curve ? [[`${prefix}VelCurve`, "CURVE"] as [string, string]] : []),
-    [`${prefix}VelSens`, "VEL SENS"], [`${prefix}VelTime1`, "VEL T1"], [`${prefix}VelTime4`, "VEL T4"], [`${prefix}TimeKeyfollow`, "TIME KF"],
+    ...(onPart ? [[`${prefix}VelCurve`, "CURVE"] as [string, string]] : [[`${prefix}VelSens`, "VEL SENS"] as [string, string]]),
+    [`${prefix}VelTime1`, "VEL T1"], [`${prefix}VelTime4`, "VEL T4"], [`${prefix}TimeKeyfollow`, "TIME KF"],
   ];
   return (
     <Group title="ENVELOPE BY VELOCITY AND KEY"
-      note="Vel Sens: harder playing deepens the envelope. Vel T1 / T4: harder playing (or a faster release) shortens the attack (or the release). Time KF: higher keys shorten the times.">
+      note="Vel Sens (or VEL on the part): harder playing deepens the envelope. Curve: how. Vel T1 / T4: harder playing (or a faster release) shortens the attack (or the release). Time KF: higher keys shorten the times.">
       {knobs(tone, list)}
     </Group>
   );
@@ -44,7 +45,7 @@ function PitchMore({ tone }: ToneProps) {
       <Group title="PITCH" note="Random: a random detune on each note, in cents. Keyfollow: how far the pitch moves per octave; 0 plays the same pitch on every key.">
         {knobs(tone, [["randomPitch", "RANDOM"], ["pitchKeyfollow", "KEYFOLLOW"]])}
       </Group>
-      <EnvelopeVelocity tone={tone} prefix="pitchEnv" curve={false} />
+      <EnvelopeVelocity tone={tone} prefix="pitchEnv" onPart={false} />
     </>
   );
 }
@@ -55,7 +56,7 @@ function FilterMore({ tone }: ToneProps) {
       <Group title="FILTER" note="Keyfollow: the cutoff opens further up the keyboard. Reso Vel: harder playing adds resonance.">
         {knobs(tone, [["cutoffKeyfollow", "KEYFOLLOW"], ["resonanceVelSens", "RESO VEL"]])}
       </Group>
-      <EnvelopeVelocity tone={tone} prefix="filterEnv" curve />
+      <EnvelopeVelocity tone={tone} prefix="filterEnv" onPart />
     </>
   );
 }
@@ -63,7 +64,7 @@ function FilterMore({ tone }: ToneProps) {
 function AmpMore({ tone }: ToneProps) {
   return (
     <>
-      <EnvelopeVelocity tone={tone} prefix="ampEnv" curve />
+      <EnvelopeVelocity tone={tone} prefix="ampEnv" onPart />
       <Group title="BIAS" note="Changes the level across the keyboard, above or below the Position key, as acoustic instruments do.">
         <ParamChoice def="biasDirection" tone={tone} label="Direction" />
         {knobs(tone, [["biasPosition", "POSITION"], ["biasLevel", "LEVEL"]])}
@@ -132,6 +133,12 @@ const MORE: Readonly<Record<MorePart, { title: string; View: (p: ToneProps) => R
   amp: { title: "more amp settings", View: AmpMore },
   lfo: { title: "more LFO settings", View: LfoMore },
 };
+
+// A part's "⋯" settings laid out in place (in the copy beside the part's help).
+export function PartMoreInline({ tone, part }: ToneProps & { part: MorePart }) {
+  const { View } = MORE[part];
+  return <div className="more-inline"><View tone={tone} /></div>;
+}
 
 // The "⋯" in a part's label strip.
 export function PartMore({ tone, part }: ToneProps & { part: MorePart }) {

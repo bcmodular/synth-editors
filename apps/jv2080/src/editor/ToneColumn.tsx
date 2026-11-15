@@ -20,7 +20,7 @@ import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamKnob } from "./ParamControls";
 import { WaveLibrary } from "./WaveLibrary";
 import { StructureButton } from "./Structure";
-import { PartMore, WaveMore } from "./ToneMore";
+import { PartMore, PartMoreInline, WaveMore } from "./ToneMore";
 import { PopoverButton } from "../ui/Popover";
 import { WaveIcon } from "../ui/WaveIcon";
 
@@ -143,6 +143,7 @@ function PartHelp({ tone, part, inHelp }: PartProps & { part: Part }) {
   const side = (
     <Section title={<WaveTitle tone={tone} />} className="tone" style={tintVars(TONE_COLOURS[tone]!)}>
       <PartBlock tone={tone} part={part} inHelp />
+      <PartMoreInline tone={tone} part={part} />
     </Section>
   );
   return <HelpButton label={`tone ${tone + 1}: ${help.title}`} useContent={sectionContentHook(help, tone)} side={side} sideStyle={PART_SIDE} />;
@@ -172,7 +173,7 @@ const FILTER_KNOBS = [["cutoff", "CUTOFF"], ["resonance", "RESO"], ["filterEnvDe
 
 function PitchBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="PITCH" help={<PartHelp tone={tone} part="pitch" inHelp={inHelp} />} more={<PartMore tone={tone} part="pitch" />}>
+    <Block label="PITCH" help={<PartHelp tone={tone} part="pitch" inHelp={inHelp} />} more={inHelp ? undefined : <PartMore tone={tone} part="pitch" />}>
       <KnobsAndEnvelope tone={tone} kind="pitch" knobs={PITCH_KNOBS} />
     </Block>
   );
@@ -180,7 +181,7 @@ function PitchBlock({ tone, inHelp }: PartProps) {
 
 function FilterBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="FILTER" help={<PartHelp tone={tone} part="filter" inHelp={inHelp} />} more={<PartMore tone={tone} part="filter" />}>
+    <Block label="FILTER" help={<PartHelp tone={tone} part="filter" inHelp={inHelp} />} more={inHelp ? undefined : <PartMore tone={tone} part="filter" />}>
       <ParamChoice def="filterType" tone={tone} label="Type" />
       <KnobsAndEnvelope tone={tone} kind="filter" knobs={FILTER_KNOBS} />
     </Block>
@@ -189,7 +190,7 @@ function FilterBlock({ tone, inHelp }: PartProps) {
 
 function AmpBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="AMP" help={<PartHelp tone={tone} part="amp" inHelp={inHelp} />} more={<PartMore tone={tone} part="amp" />}>
+    <Block label="AMP" help={<PartHelp tone={tone} part="amp" inHelp={inHelp} />} more={inHelp ? undefined : <PartMore tone={tone} part="amp" />}>
       <div className="envrow">
         <div className="knobgrid">
           <div className="knobs">
@@ -206,7 +207,7 @@ function AmpBlock({ tone, inHelp }: PartProps) {
 
 function LfoBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="LFO" help={<PartHelp tone={tone} part="lfo" inHelp={inHelp} />} more={<PartMore tone={tone} part="lfo" />}>
+    <Block label="LFO" help={<PartHelp tone={tone} part="lfo" inHelp={inHelp} />} more={inHelp ? undefined : <PartMore tone={tone} part="lfo" />}>
       <LfoLine tone={tone} n={1} />
       <LfoLine tone={tone} n={2} />
     </Block>

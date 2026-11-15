@@ -156,8 +156,8 @@ For the next steps (patch files, USER memory, the patch browser) and for choices
    or put it somewhere else?
 6. **The "⋯" popovers.** Are popovers right for these settings, or would you rather have them always on screen in
    an expanded view of one tone (the JV's Palette idea)?
-7. **Help for the popover settings.** Each popover explains its settings in a few lines, but the (i) panels don't
-   list them. Add them to the panels?
+7. ~~**Help for the popover settings.**~~ Done: a part's (i) shows its "⋯" settings in place under the part, with a
+   help row for each.
 8. **TAP-SYNC in Tone Delay.** The manual puts `<TAP-SYNC>` in angle brackets, which elsewhere means "not on the
    JV-2080". It sits in the middle of the list, so it can't be dropped without moving the others: hide it, or
    leave it?

@@ -2,6 +2,7 @@
 // amplifier (TVA); each has an envelope, and two LFOs can modulate all three (manual p. 70).
 
 import { at, edge, fx, node, parts, sum, tap, join, type Flow, type Gain, type NodeId } from "../efxHelp/flow";
+import { AMP_MORE, FILTER_MORE, LFO_MORE, PITCH_MORE } from "./toneMore";
 import type { SectionHelp, SectionRow } from "./types";
 
 const ENV_IDS = (prefix: string, levels: number) => [
@@ -51,6 +52,9 @@ const lfoRow = (what: string, effect: string): SectionRow => ({
     `LFOs) can be set against each other.`,
 });
 
+// The settings shown under the part beside its help.
+const MORE_NOTE = "The settings under the part here are behind the ⋯ at the foot of its label strip in the editor.";
+
 const ENVELOPE_DRAG = "Drag the points in the graph; the button at the top right returns it to a simple shape.";
 
 export const PITCH_HELP: SectionHelp = {
@@ -68,9 +72,10 @@ export const PITCH_HELP: SectionHelp = {
         `held, and to level 4 after it's released; levels are above or below the tuned pitch. ${ENVELOPE_DRAG}`,
     },
     lfoRow("pitch", "pitch (vibrato)"),
+    ...PITCH_MORE,
   ],
   notes: [
-    "The ⋯ at the foot of the label strip opens random pitch, pitch keyfollow and the envelope's velocity and key settings.",
+    MORE_NOTE,
     "A few cents of Fine between two tones playing the same wave gives a slow, natural beating, thicker than one tone.",
     "A quick pitch blip at the start of each note (a short time 1 to a high level 1, back to 0) adds bite to brass, " +
       "plucks and synth leads; a negative drop gives drum-like pitch sweeps.",
@@ -111,9 +116,10 @@ export const FILTER_HELP: SectionHelp = {
         `after it's released, relative to the Cutoff setting. ${ENVELOPE_DRAG}`,
     },
     lfoRow("filter", "cutoff (a wah or sweep)"),
+    ...FILTER_MORE,
   ],
   notes: [
-    "The ⋯ at the foot of the label strip opens cutoff keyfollow, resonance velocity and the envelope's velocity curve and times.",
+    MORE_NOTE,
     "For a plucked or synth-bass sound: LPF, a fairly low cutoff, some resonance, and a positive envelope with a " +
       "fast time 1 and a short decay, so each note opens and closes.",
     "PKG with an LFO on the cutoff makes an auto-wah; S&H on that LFO gives the random, stepping 'computer' filter.",
@@ -147,9 +153,10 @@ export const AMP_HELP: SectionHelp = {
     { label: "Vel", ids: ["ampEnvVelSens"], text: "How much playing harder makes the tone louder: its velocity sensitivity. At 0 every note plays at the same level." },
     { label: "Level", ids: ["toneLevel"], text: "The tone's level, on its mixer strip: how loud it is against the other tones." },
     { label: "Pan", ids: ["tonePan"], text: "The tone's place in the stereo field, on its mixer strip." },
+    ...AMP_MORE,
   ],
   notes: [
-    "The ⋯ at the foot of the label strip opens the envelope's velocity curve and times, bias, and the pan extras (pan LFOs, keyfollow, random and alternate pan).",
+    MORE_NOTE,
     "With a looping wave (organs, strings, pads) the envelope shapes the whole note. With a one-shot wave (drums, " +
       "plucks) the wave's own decay ends the note, however long the envelope is.",
     "A slow attack (time 1) turns a plucked wave into a bowed or swelling sound; a short release (time 4) keeps fast " +
@@ -192,12 +199,13 @@ export const LFO_HELP: SectionHelp = {
   rows: [
     { label: "Wave", ids: ["lfo1Wave", "lfo2Wave"], text: LFO_WAVES },
     { label: "Rate", ids: ["lfo1Rate", "lfo2Rate"], text: "How fast each LFO repeats." },
+    ...LFO_MORE,
     ...TARGETS.map(([id, label]) => ({
       label, ids: [`${id}Lfo1`, `${id}Lfo2`], text: `How much each LFO moves the ${label.toLowerCase()} (set in the ${label.toUpperCase()} section).`,
     })),
   ],
   notes: [
-    "The ⋯ at the foot of the label strip opens each LFO's key trigger, offset, delay, fade and clock sync.",
+    MORE_NOTE,
     "Two LFOs at slightly different rates on the same target give a less regular, more organic movement.",
     "S&H on the filter is the classic random burble; SQR on the pitch makes a trill.",
     "CHS (chaos) ignores Rate.",

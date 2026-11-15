@@ -1652,3 +1652,18 @@ input {
   font-weight: 600;
   color: var(--dim);
 }
+
+/* A part's "⋯" settings in place, under the part in the copy beside its help (editor/ToneMore.tsx). The help's rows
+   say what they do, so the popover's notes are left out. */
+.more-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.more-inline .pop-note {
+  display: none;
+}
+.more-inline .pop-knobs .kn {
+  width: 62px;
+}

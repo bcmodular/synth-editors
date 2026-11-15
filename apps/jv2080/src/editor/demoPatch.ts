@@ -15,6 +15,7 @@ const DEFAULTS: Record<string, number> = {
   filterEnvTime2: 40, filterEnvTime3: 60, filterEnvTime4: 30, filterEnvLevel1: 127, filterEnvLevel2: 90, filterEnvLevel3: 70,
   toneLevel: 110, ampEnvTime2: 50, ampEnvTime4: 30, ampEnvLevel1: 127, ampEnvLevel2: 100, ampEnvLevel3: 90,
   mixEfxSend: 127, chorusSend: 40, reverbSend: 50,
+  pitchKeyfollow: 12, // +100 %: an octave per octave
   velocityUpper: 127, keyUpper: 127, rxVolume: 1, rxBend: 1, rxHold1: 1, rxPan: 1, ampEnvVelSens: 70, filterEnvVelSens: 60,
 };
 

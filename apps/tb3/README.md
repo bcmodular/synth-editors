@@ -1,6 +1,6 @@
 # TB-3 Editor
 
-Editor and patch librarian for the Roland TB-3: every tone parameter, 16-slot patch sets, a patch
+Editor and patch librarian for the Roland TB-3: every tone parameter, 64-slot patch sets, a patch
 library, audition, morph and undo. Talks to the TB-3 over USB MIDI (SysEx).
 
 The [user guide](docs/user-guide.md) explains every feature, with screen grabs.
@@ -43,8 +43,8 @@ so build somewhere else with `TB3_RELEASE_DIR`.
 For a release, bump `version` in `apps/tb3/package.json`, then push a tag:
 
 ```bash
-git tag tb3-v0.1.0
-git push origin tb3-v0.1.0
+git tag tb3-v0.1.1
+git push origin tb3-v0.1.1
 ```
 
 GitHub Actions (`.github/workflows/tb3-release.yml`) builds the Mac and Windows installers and

@@ -1079,12 +1079,14 @@ input {
 .lfo-line .kn i {
   grid-row: span 2;
 }
-/* Knobs in a tone take the tone's colour. */
-.tone .kn i {
+/* Knobs in a tone or the EFX section take its colour. */
+.tone .kn i,
+.efx .kn i {
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--led) 85%, #fff), var(--led) 45%,
     color-mix(in srgb, var(--led) 55%, #000) 100%);
 }
-.tone .kn i::after {
+.tone .kn i::after,
+.efx .kn i::after {
   background: #111;
 }
 

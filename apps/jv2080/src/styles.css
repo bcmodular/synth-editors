@@ -1148,21 +1148,30 @@ input {
 /* Lit while a help panel points at the parameter (editor/help/hot.ts). */
 .hot-ctl {
   border-radius: 6px;
-  transition: box-shadow 0.1s, background 0.1s;
+  outline: 1.5px solid transparent;
+  outline-offset: -1.5px;
+  transition: outline-color 0.1s, background 0.1s;
 }
+/* An envelope graph: the wrapper fills the row's width but only the graph's height. */
 .hot-ctl.grow {
   flex: 1 1 auto;
+  align-self: flex-start;
   min-width: 0;
   display: flex;
 }
 .hot-ctl.grow > * {
   flex: 1 1 auto;
 }
-/* Drawn inside the control's own box (an inset ring and a tint), so neighbours lit together don't collide. */
+/* Drawn inside the control's own box, so neighbours lit together don't collide: a ring (an outline, painted over
+   the control, so it shows on graphs and drawings too) and a tint behind. */
 .hot-ctl.hot,
 .efx-panel-wrap.hot .fxdraw {
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tint) 85%, transparent);
+  outline-color: color-mix(in srgb, var(--tint) 85%, transparent);
   background: color-mix(in srgb, var(--tint) 18%, transparent);
+}
+.efx-panel-wrap .fxdraw {
+  outline: 1.5px solid transparent;
+  outline-offset: -1.5px;
 }
 .efx-choice {
   display: flex;

@@ -27,12 +27,14 @@ export function flowSize(flow: Flow): { width: number; height: number } {
 }
 
 // Half a node's size: where its paths start and end.
-// Blocks grow to fit their labels (about 6.5 px a character at the diagram's size).
-const fits = (n: FlowNode, least: number, extra = 0) => Math.max(least, (n.label ?? "").length * 6.5 + 16 + extra) / 2;
+// Blocks grow to fit their labels (about 6.5 px a character at the diagram's size) and the values after them.
+const valueCount = (n: FlowNode) => (n.value === undefined ? 0 : typeof n.value === "string" ? 1 : n.value.length);
+const fits = (n: FlowNode, least: number, perValue: number) =>
+  Math.max(least, (n.label ?? "").length * 6.5 + 16 + valueCount(n) * perValue) / 2;
 
 export function halfSize(n: FlowNode): { w: number; h: number } {
-  if (n.kind === "fx") return { w: fits(n, FLOW.fxW), h: FLOW.fxH / 2 };
-  if (n.kind === "tap") return { w: fits(n, FLOW.tapW, n.value ? 26 : 0), h: FLOW.tapH / 2 };
+  if (n.kind === "fx") return { w: fits(n, FLOW.fxW, 46), h: FLOW.fxH / 2 };
+  if (n.kind === "tap") return { w: fits(n, FLOW.tapW, 26), h: FLOW.tapH / 2 };
   if (n.kind === "sum") return { w: FLOW.sumR, h: FLOW.sumR };
   return { w: 0, h: 0 }; // in / out are points, with their labels outside
 }

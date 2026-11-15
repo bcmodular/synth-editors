@@ -21,7 +21,7 @@ export interface FlowNode {
   row: number;
   label?: string;
   params?: readonly string[]; // the parameters that shape this block
-  value?: string; // a parameter whose value is shown after the label (a tap's level)
+  value?: string | readonly string[]; // parameters whose values are shown after the label (a tap's level)
 }
 
 // A path's strength comes from its gains, multiplied: a balance's left side (D, A) or right side (W, B), a pan's

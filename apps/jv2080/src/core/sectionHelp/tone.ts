@@ -14,14 +14,14 @@ const depth = (param: string, tag: string): Gain => ({ param, tag });
 // The audio path along the top (`chain`), and its modulation summed into the block `target` from below: the
 // envelope (with its depth, if it has one) and the two LFOs, as dashed control paths.
 interface Modulated {
-  chain: readonly { id: NodeId; label: string; params?: readonly string[]; value?: string }[];
+  chain: readonly { id: NodeId; label: string; params?: readonly string[]; value?: string | readonly string[] }[];
   target: NodeId;
   env: { label: string; ids: readonly string[]; depth?: string };
   lfos: readonly [string, string];
 }
 
 function modulatedFlow({ chain, target, env, lfos }: Modulated): Flow {
-  const col = (i: number) => 0.2 + i * 1.25;
+  const col = (i: number) => 0.2 + i * 1.6;
   const blocks = chain.map((b, i) => (b.id === "in" || b.id === "out"
     ? node(b.id, b.id, at(col(i), 0), { label: b.label })
     : fx(b.id, at(col(i), 0), b.label, b.params)));
@@ -77,10 +77,11 @@ export const PITCH_HELP: SectionHelp = {
     "The JV also has Random Pitch Depth, Pitch Keyfollow and velocity control of the envelope; this editor doesn't " +
       "show them yet.",
   ],
+  units: { coarseTune: " st", fineTune: " ¢" },
   flow: modulatedFlow({
     chain: [
       { id: "in", label: "Key" },
-      { id: "tune", label: "Tuning", params: ["coarseTune", "fineTune"], value: "coarseTune" },
+      { id: "tune", label: "Tuning", params: ["coarseTune", "fineTune"], value: ["coarseTune", "fineTune"] },
       { id: "wave", label: "Wave", params: [] },
       { id: "out", label: "to the filter" },
     ],

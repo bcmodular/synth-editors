@@ -34,7 +34,10 @@ function readValue(patch: Patch | null, def: ParamDef, tone: number): number {
 
 export function sectionContent(help: SectionHelp, patch: Patch | null, tone: number): HelpContent {
   const valueOf = (id: string) => readValue(patch, param(id), tone);
-  const get: FlowGet = (id) => flowValue(param(id), valueOf(id), help.tags?.[id] ?? param(id).name);
+  const get: FlowGet = (id) => {
+    const v = flowValue(param(id), valueOf(id), help.tags?.[id] ?? param(id).name);
+    return { ...v, text: v.text + (help.units?.[id] ?? "") };
+  };
   const rows: HelpRow[] = help.rows.map((r) => {
     const def = param(r.ids[0]!);
     const value = r.ids.map((id) => param(id).display(valueOf(id))).join(" / ");

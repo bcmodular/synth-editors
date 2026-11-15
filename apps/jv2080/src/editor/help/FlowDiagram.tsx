@@ -28,6 +28,10 @@ function edgeAmount(e: FlowEdge, get: FlowGet): { gain: number; text: string } {
   return { gain, text: texts.join(" · ") };
 }
 
+// A block's values after its label: "+12 st −2 ¢".
+const valuesOf = (value: string | readonly string[], get: FlowGet) =>
+  (typeof value === "string" ? [value] : value).map((id) => get(id).text).join(" ");
+
 function NodeMark({ n, get, hot, onHover }: { n: FlowNode; get: FlowGet; hot: boolean; onHover: Props["onHover"] }) {
   const { x, y } = nodeAt(n);
   if (n.kind === "sum") return <g className="fl-sum"><circle cx={x} cy={y} r={FLOW.sumR} /><path d={`M${x - 4},${y}H${x + 4}M${x},${y - 4}V${y + 4}`} /></g>;
@@ -39,7 +43,7 @@ function NodeMark({ n, get, hot, onHover }: { n: FlowNode; get: FlowGet; hot: bo
   return (
     <g className={`fl-${n.kind} ${hot ? "hot" : ""}`} onPointerEnter={() => onHover(n.params ?? [])} onPointerLeave={() => onHover([])}>
       <rect x={x - w} y={y - h} width={2 * w} height={2 * h} rx={4} />
-      <text x={x} y={y + 4} textAnchor="middle">{n.label}{n.value && <tspan className="v"> {get(n.value).text}</tspan>}</text>
+      <text x={x} y={y + 4} textAnchor="middle">{n.label}{n.value && <tspan className="v"> {valuesOf(n.value, get)}</tspan>}</text>
     </g>
   );
 }

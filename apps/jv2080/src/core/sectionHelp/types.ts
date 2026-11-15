@@ -18,4 +18,5 @@ export interface SectionHelp {
   notes: readonly string[];
   flow: Flow;
   tags?: Readonly<Record<string, string>>; // short names for values shown in the flow ("Depth", "FB")
+  units?: Readonly<Record<string, string>>; // units after values shown in the flow (" st", " ¢")
 }

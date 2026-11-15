@@ -17,7 +17,7 @@ describe("section help", () => {
     expect(nodes.size, "node ids are unique").toBe(help.flow.nodes.length);
     for (const e of help.flow.edges) expect(nodes.has(e.from) && nodes.has(e.to), `${e.from} → ${e.to}`).toBe(true);
     const used = [
-      ...help.flow.nodes.flatMap((n) => [...(n.params ?? []), ...(n.value ? [n.value] : [])]),
+      ...help.flow.nodes.flatMap((n) => [...(n.params ?? []), ...(n.value ? [n.value].flat() : [])]),
       ...help.flow.edges.flatMap((e) => [...(e.params ?? []), ...(e.gains ?? []).map((g) => g.param), ...(e.when ? [e.when.param] : [])]),
     ];
     for (const id of used) expect(ids.has(id), id).toBe(true);

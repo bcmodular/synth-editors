@@ -2,7 +2,10 @@
 // what the TB-3 ends up holding by reading it back; against the fake TB-3 they also check which
 // blocks were sent. `npm run test:e2e` runs them on the fake, `npm run test:tb3` on the real one.
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { diffBlocks } from "../src/core/patch";
+import { setFromJson } from "../src/core/patchSet";
 import {
   allBlocks,
   blockKeys,
@@ -261,6 +264,22 @@ test("a slot's menu replaces it with the patch in the editor, after asking", asy
   await dialog.getByRole("button", { name: "REPLACE" }).click();
   await expect(slot(page, 1)).toHaveClass(/active/);
   await expect.poll(() => slotTip(page, 1)).toMatch(/^2 · A/);
+});
+
+test("SAVE keeps edited slots' edits, in the editor and in the set file", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  const edited = await editParam(page, p.a, "master_volume", "VOLUME");
+  await expectTb3(page, edited, "slot 1 with the edit");
+  await slot(page, 1).click();
+  await expectTb3(page, p.b, "slot 2");
+  await sideButton(page, "patches", "SAVE").click();
+  await expect(page.locator(".slotgrid .slot.modified")).toHaveCount(0);
+  const saved = setFromJson(await readFile(path.join(t.library, "Test set.tb3set"), "utf8"));
+  expect(saved[0]!.patch).toEqual(edited);
+  await slot(page, 0).click();
+  await expectTb3(page, edited, "slot 1 with the edit, after SAVE");
 });
 
 // A slot's tooltip text (ui/Tooltip moves `title` to `data-tip` while the pointer is over it).

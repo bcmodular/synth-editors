@@ -15,9 +15,10 @@ import { useEditor } from "./EditorContext";
 import { LiveWave } from "./LiveWave";
 import type { LiveGraph } from "./liveEngine";
 import type { Tb3Audio } from "./useTb3Audio";
-import { Assignable, ParamKnob, ParamLed, useParam } from "./Param";
+import { Assignable, ParamFader, ParamKnob, ParamLed, useParam } from "./Param";
 
-export function VcoSection() {
+// The source levels (each under its on/off switch) and the tunings: the left of the VCO group.
+function VcoControls() {
   const src: [string, string, string][] = [
     ["SAW", "vco_saw_level", "vco_saw_sw"],
     ["SQR", "vco_sqr_level", "vco_sqr_sw"],
@@ -27,7 +28,7 @@ export function VcoSection() {
     ["RING", "vco_ring_level", "vco_ring_sw"],
   ];
   return (
-    <Section title="VCO" className="vco">
+    <div className="vcoctl">
       <div className="knobrow">
         {src.map(([label, id, sw]) => (
           <div key={id} className="vsrc">
@@ -42,7 +43,7 @@ export function VcoSection() {
         <ParamKnob id="sqr_tuning" label="SQR" />
         <ParamKnob id="ring_sin_tuning" label="RING+SIN" />
       </div>
-    </Section>
+    </div>
   );
 }
 
@@ -74,10 +75,11 @@ function ViewSwitch(p: { audio: Tb3Audio }) {
   );
 }
 
-const MIX_W = 640;
+const MIX_W = 564;
 const MIX_H = 236;
 
-export function VcoSumSection(p: { audio: Tb3Audio }) {
+// VCO: the sources and tunings beside the mix (DRAWN or LIVE), in green, the TB-3's own colour, as the main voice.
+export function VcoSection(p: { audio: Tb3Audio }) {
   const { patch } = useEditor();
   const ys = patch
     ? vcoShape({
@@ -93,12 +95,15 @@ export function VcoSumSection(p: { audio: Tb3Audio }) {
       })
     : null;
   return (
-    <Section title="VCO MIX" className="vcosum" extra={<ViewSwitch audio={p.audio} />}>
-      {p.audio.view === "live" ? (
-        <LiveWave audio={p.audio} width={MIX_W} height={MIX_H} />
-      ) : (
-        <WaveView ys={ys} width={MIX_W} height={MIX_H} />
-      )}
+    <Section title="VCO" className="vco vcosum" extra={<ViewSwitch audio={p.audio} />}>
+      <div className="row top">
+        <VcoControls />
+        {p.audio.view === "live" ? (
+          <LiveWave audio={p.audio} width={MIX_W} height={MIX_H} />
+        ) : (
+          <WaveView ys={ys} width={MIX_W} height={MIX_H} />
+        )}
+      </div>
     </Section>
   );
 }
@@ -109,7 +114,7 @@ const xmId = (r: number, c: number) => `cm_${XM_SOURCES[r]!.toLowerCase()}_${XM_
 
 function XmodCell(p: { row: number; col: number }) {
   return (
-    <ParamKnob id={xmId(p.row, p.col)} label={`${XM_SOURCES[p.row]} → ${XM_DESTS[p.col]}`} size="xs" side bare signColors />
+    <ParamFader id={xmId(p.row, p.col)} label={`${XM_SOURCES[p.row]} → ${XM_DESTS[p.col]}`} width={150} signColors />
   );
 }
 
@@ -134,7 +139,7 @@ export function ModSection() {
 export function RingModSection() {
   return (
     <Section title="RING MOD" className="ring">
-      <div className="knobgrid">
+      <div className="knobrow">
         <ParamKnob id="rm_saw_depth" label="SAW" />
         <ParamKnob id="rm_sqr_depth" label="SQR" />
         <ParamKnob id="rm_ring_depth" label="RING" />
@@ -162,8 +167,8 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
       s={v("s")}
       r={v("r")}
       label={p.label}
-      width={290}
-      height={130}
+      width={232}
+      height={120}
       disabled={!ed.patch}
       readOnly={ed.armed !== null || ed.learning}
       wrapValue={(k, node) => (

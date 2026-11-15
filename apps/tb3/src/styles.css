@@ -126,13 +126,16 @@ button:focus-visible {
   grid-template-columns: 230px 300px 260px 1fr;
 }
 .osc {
-  grid-template-columns: 300px 640px 250px 1fr;
+  grid-template-columns: auto 1fr;
+}
+.modcol {
+  gap: 12px;
 }
 .shape {
-  grid-template-columns: 530px 530px 1fr;
+  grid-template-columns: auto auto 1fr 250px;
 }
 .fx {
-  grid-template-columns: 240px 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 
 /* Section: silkscreen rule + label, no card */
@@ -175,22 +178,39 @@ button:focus-visible {
   line-height: 1;
   padding-top: 3px;
 }
-/* Section tints: one soft hue per section so they're easy to tell apart. */
-.vco,
-.vcosum {
-  --tint: #e6c27a;
+/* Section colours: one hue per section, which its knobs, faders, buttons and drawings follow (as on the JV-2080):
+   --tint for the header, --led for caps, fills and lit buttons, --val for values. VCO, the main voice, keeps the
+   TB-3's green. */
+.vco {
+  --tint: #7be890;
 }
 .mod {
   --tint: #c9a3e6;
+  --led: #b585f2;
+  --led-off: #4a3466;
+  --val: #d6b8f5;
+  --sel-bg: #1d1428;
 }
 .ring {
   --tint: #e6a3c4;
+  --led: #f07cb4;
+  --led-off: #6a2c4a;
+  --val: #f5b0d2;
+  --sel-bg: #2a1220;
 }
 .vcf {
   --tint: #7fc4ea;
+  --led: #4fb3f0;
+  --led-off: #1f4a66;
+  --val: #a3d7f7;
+  --sel-bg: #0e1d28;
 }
 .vca {
   --tint: #8fdcc4;
+  --led: #3fd6a8;
+  --led-off: #1d5a48;
+  --val: #a3eadb;
+  --sel-bg: #0e2420;
 }
 /* DISTORTION follows its header's orange, as the EFX blocks and the LFO follow theirs. */
 .dist {
@@ -234,8 +254,11 @@ button:focus-visible {
   border-top: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--sec-rule) 55%, transparent);
 }
-.vco > .row.tight {
-  justify-content: space-between;
+.vcoctl {
+  width: 376px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .sec .extra .btn {
   height: 23px;
@@ -367,11 +390,13 @@ button:focus-visible {
 .hrow.dim {
   opacity: 0.35;
 }
+/* Faders (ui/Fader.tsx): a recessed slot in the left part, the value on the right (--vw). --s, --z and --p are the
+   fill's start, its length and the cap's position, as fractions of the slot; --c the centre of a bipolar one. */
 .hf {
+  --vw: 48px;
+  --slot: calc(100% - var(--vw) - 14px);
   position: relative;
-  height: 22px;
-  background: var(--well);
-  border: 1px solid var(--edge);
+  height: 24px;
   cursor: ew-resize;
   flex: 0 0 auto;
   touch-action: none;
@@ -380,41 +405,79 @@ button:focus-visible {
   flex: 1 1 0;
   min-width: 0;
 }
-.hf > i {
+.hf::before {
+  content: "";
   position: absolute;
-  background: var(--led);
+  left: 4px;
+  width: calc(var(--slot) + 6px);
+  top: 9px;
+  height: 6px;
+  border-radius: 3px;
+  background: #0b0b0d;
+  box-shadow: inset 0 1px 2px #000, 0 1px 0 #2a2b30;
 }
 .hf > i {
-  top: 0;
-  bottom: 0;
+  position: absolute;
+  top: 10px;
+  height: 4px;
+  border-radius: 2px;
+  left: calc(7px + var(--s) * var(--slot));
+  width: calc(var(--z) * var(--slot));
+  background: var(--led);
+}
+.hf > b {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 12px;
+  left: calc(1px + var(--p) * var(--slot));
+  border: 1px solid #000;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #2c2d32, #4c4e55 45%, #1d1e21);
+  box-shadow: 0 1px 2px #000;
+}
+.hf > b::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  width: 2px;
+  top: 3px;
+  bottom: 3px;
+  background: var(--led);
 }
 .hf > em {
   position: absolute;
-  right: 5px;
-  top: 3px;
+  right: 0;
+  top: 4px;
+  width: var(--vw);
+  text-align: right;
   font-style: normal;
   font-size: var(--text-l);
-  color: #fff;
-  text-shadow: 0 0 2px #000, 0 0 1px #000;
+  color: var(--val);
   pointer-events: none;
 }
 .hf.bi::after {
   content: "";
   position: absolute;
-  left: var(--c, 50%);
-  top: -3px;
-  bottom: -3px;
+  left: calc(7px + var(--c) * var(--slot));
+  top: 4px;
+  bottom: 4px;
   width: 1px;
-  background: #9a9ca3;
+  background: #6a6c73;
 }
 .hf > i.off {
   background: var(--led-off);
 }
-.hf > i.neg {
+.hf > i.neg,
+.hf.neg > b::after {
   background: var(--alt);
 }
 .hf.disabled {
   cursor: default;
+}
+.hf.disabled > b,
+.hf.disabled > i {
+  visibility: hidden;
 }
 
 /* Cross mod */
@@ -423,37 +486,16 @@ button:focus-visible {
   gap: 4px;
   align-items: center;
 }
-.xd {
-  text-align: center;
-}
 .xstack {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 4px;
 }
 .xgroup {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-.xgroup .xd {
-  width: 110px;
-}
-.hf.cell {
-  height: 24px;
-}
-.hf.cell::after {
-  top: 0;
-  bottom: 0;
-  background: #55575e;
-}
-.hf.cell > i {
-  top: 3px;
-  bottom: 3px;
-}
-.hf.cell > em {
-  color: var(--dim);
-  font-size: var(--text-m);
 }
 svg .jack {
   fill: #55575e;
@@ -559,7 +601,7 @@ svg .pad.on > text {
   margin-top: 6px;
 }
 .envvals .kn {
-  width: 66px;
+  width: 54px;
 }
 
 /* Stepper */
@@ -1257,7 +1299,7 @@ svg .handle:hover > .dot {
 .kn.xs {
   --cap: 18px;
 }
-.kn .ring {
+.kn .dial {
   position: relative;
   display: block;
   width: calc(var(--cap) + 12px);
@@ -1269,7 +1311,7 @@ svg .handle:hover > .dot {
   -webkit-mask: radial-gradient(circle, #000 calc(var(--cap) / 2 + 0.5px), transparent calc(var(--cap) / 2 + 1px),
     transparent calc(var(--cap) / 2 + 2px), #000 calc(var(--cap) / 2 + 2.5px));
 }
-.kn .ring > i {
+.kn .dial > i {
   position: absolute;
   inset: 6px;
   border-radius: 50%;
@@ -1277,7 +1319,7 @@ svg .handle:hover > .dot {
   background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--led) 70%, #fff), var(--led) 45%,
     color-mix(in srgb, var(--led) 50%, #000) 100%);
 }
-.kn .ring > i::after {
+.kn .dial > i::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -1315,7 +1357,7 @@ svg .handle:hover > .dot {
   align-items: center;
   justify-items: start;
 }
-.kn.beside .ring {
+.kn.beside .dial {
   grid-row: span 2;
 }
 .kn.beside .lbl {
@@ -1330,7 +1372,7 @@ svg .handle:hover > .dot {
   min-width: 30px;
   text-align: right;
 }
-.kn.dim .ring > i {
+.kn.dim .dial > i {
   filter: saturate(0.25) brightness(0.6);
 }
 .kn.dim em {

@@ -1,4 +1,5 @@
-// Short, fat faders. The fill grows from 0, or from the centre line for bipolar values.
+// Horizontal fader in the style of the knobs (after the JV-2080's channel faders): a recessed slot, the level in the
+// section's colour (from the centre for bipolar values), a grip cap with a coloured line, and the value beside it.
 import { useValueDrag } from "./useValueDrag";
 
 export interface FaderProps {
@@ -11,23 +12,28 @@ export interface FaderProps {
   off?: boolean; // source switched off: dim fill, keep level
   disabled?: boolean;
   signColors?: boolean; // negative fill in the alt colour (cross mod)
+  label?: string; // for screen readers
   className?: string;
 }
 
-function fill(value: number, max: number, center: number | undefined) {
-  const p = (value / max) * 100;
-  if (center === undefined) return { start: 0, size: p };
-  const c = (center / max) * 100;
-  return { start: Math.min(p, c), size: Math.abs(p - c) };
+// Fractions (0–1) of the slot: where the fill starts, how long it is, and where the cap sits.
+export function faderFill(p: Pick<FaderProps, "value" | "max" | "center">) {
+  const pos = Math.max(0, Math.min(1, p.value / Math.max(1, p.max)));
+  if (p.center === undefined) return { start: 0, size: pos, pos };
+  const c = p.center / p.max;
+  return { start: Math.min(pos, c), size: Math.abs(pos - c), pos };
 }
-
-const centerPct = (p: FaderProps) => (p.center === undefined ? undefined : `${(p.center / p.max) * 100}%`);
 
 function fillClass(p: FaderProps) {
   if (p.off) return "off";
   if (p.signColors && p.center !== undefined && p.value < p.center) return "neg";
   return "";
 }
+
+const classes = (p: FaderProps, stretch: boolean) => [
+  "hf", stretch ? "fill" : "", p.center !== undefined ? "bi" : "", fillClass(p), p.disabled ? "disabled" : "",
+  p.className ?? "",
+];
 
 // `width: "fill"` stretches the fader across the space its row leaves for it.
 export function HFader(p: FaderProps & { width?: number | "fill" }) {
@@ -42,17 +48,16 @@ export function HFader(p: FaderProps & { width?: number | "fill" }) {
     length: width,
     disabled: p.disabled,
   });
-  const f = fill(p.value, p.max, p.center);
+  const f = faderFill(p);
+  const text = p.disabled ? "" : (p.format ?? String)(p.value);
+  const vars = { "--s": f.start, "--z": f.size, "--p": f.pos, "--c": p.center === undefined ? 0 : p.center / p.max };
   return (
-    <div
-      ref={drag.ref}
-      className={`hf ${stretch ? "fill" : ""} ${p.center !== undefined ? "bi" : ""} ${p.disabled ? "disabled" : ""} ${p.className ?? ""}`}
-      style={{ width, ["--c" as string]: centerPct(p) }}
-      onPointerDown={drag.onPointerDown}
-      onDoubleClick={drag.onDoubleClick}
-    >
-      <i className={fillClass(p)} style={{ left: `${f.start}%`, width: `${f.size}%` }} />
-      <em>{p.disabled ? "" : (p.format ?? String)(p.value)}</em>
+    <div ref={drag.ref} className={classes(p, stretch).join(" ")} style={{ width, ...vars }} role="slider"
+      aria-label={p.label} aria-valuemin={0} aria-valuemax={p.max} aria-valuenow={p.value} aria-valuetext={text}
+      onPointerDown={drag.onPointerDown} onDoubleClick={drag.onDoubleClick}>
+      <i className={fillClass(p)} />
+      <b />
+      <em>{text}</em>
     </div>
   );
 }

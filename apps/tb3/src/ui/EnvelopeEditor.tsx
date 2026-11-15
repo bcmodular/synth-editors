@@ -113,7 +113,6 @@ export function EnvelopeEditor(p: EnvelopeProps) {
             <Knob
               label={k.toUpperCase()}
               size="s"
-              side
               value={p[k]}
               max={MAX}
               disabled={p.disabled}

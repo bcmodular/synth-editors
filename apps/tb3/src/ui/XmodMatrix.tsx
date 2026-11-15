@@ -1,5 +1,5 @@
-// Cross-mod matrix for two destinations, stacked: each destination gets a group, one fader per source, with a patch
-// view beside the faders. The patch view labels each row's source and the group's destination; each non-zero cell
+// Cross-mod matrix for two destinations, side by side: each destination gets a group, one fader per source, with a
+// patch view beside the faders. The patch view labels each row's source and the group's destination; each non-zero cell
 // draws a cord from its source to the destination (thickness = amount, colour = sign).
 import type { ReactNode } from "react";
 
@@ -11,7 +11,7 @@ export interface XmodMatrixProps {
   renderCell: (row: number, col: number) => ReactNode;
 }
 
-const ROW = 30; // an extra-small knob
+const ROW = 26;
 const GAP = 4;
 const VIEW_W = 130;
 const SRC_X = 46; // source jacks, after the source labels
@@ -22,7 +22,6 @@ export function XmodMatrix(p: XmodMatrixProps) {
     <div className="xstack">
       {p.dests.map((d, c) => (
         <div key={d} className="xgroup">
-          <span className="lbl xd">→ {d}</span>
           <div className="xgrid" style={{ gridTemplateColumns: `auto ${VIEW_W}px` }}>
             {p.sources.map((s, r) => (
               <div key={s} style={{ gridColumn: 1, gridRow: r + 1 }}>

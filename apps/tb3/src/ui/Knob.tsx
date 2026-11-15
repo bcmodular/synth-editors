@@ -39,7 +39,7 @@ export function Knob(p: KnobProps) {
   return (
     <div ref={drag.ref} className={cls.join(" ")} role="slider" aria-label={p.label} aria-valuemin={0} aria-valuemax={p.max}
       aria-valuenow={p.value} aria-valuetext={text} onPointerDown={drag.onPointerDown} onDoubleClick={drag.onDoubleClick}>
-      <span className="ring" style={{ ["--from" as string]: `${arc.from}deg`, ["--len" as string]: `${arc.length}deg` }}>
+      <span className="dial" style={{ ["--from" as string]: `${arc.from}deg`, ["--len" as string]: `${arc.length}deg` }}>
         <i style={{ ["--a" as string]: `${arc.pointer}deg` }} />
       </span>
       {!p.bare && <span className="lbl">{p.label}</span>}

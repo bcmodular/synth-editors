@@ -17,7 +17,6 @@ import {
   VcaSection,
   VcfSection,
   VcoSection,
-  VcoSumSection,
 } from "./editor/sections";
 import { LibraryBrowser } from "./editor/LibraryBrowser";
 import { MorphBlock, PatchBlock, SetBlock } from "./editor/PatchesBlock";
@@ -189,18 +188,19 @@ function EditorApp() {
             <AssignBlock />
           </div>
           <div className="osc">
-            <VcoSection />
-            <VcoSumSection audio={audio} />
-            <ModSection />
-            <RingModSection />
+            <VcoSection audio={audio} />
+            <div className="col modcol">
+              <ModSection />
+              <RingModSection />
+            </div>
           </div>
           <div className="shape">
             <VcfSection />
             <VcaSection />
             <LfoSection />
+            <DistSection />
           </div>
           <div className="fx">
-            <DistSection />
             <EfxSection efx={1} />
             <EfxSection efx={2} />
           </div>

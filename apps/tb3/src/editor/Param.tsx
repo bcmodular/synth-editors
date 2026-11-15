@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
 import type { ParamDef } from "../core/params";
+import { HFader } from "../ui/Fader";
 import { Knob } from "../ui/Knob";
 import { LedButton } from "../ui/controls";
 import { useEditor } from "./EditorContext";
@@ -88,6 +89,17 @@ export function ParamKnob(p: ParamKnobProps) {
         bare={p.bare}
         signColors={p.signColors}
       />
+    </Assignable>
+  );
+}
+
+// A fader for a patch parameter (cross mod), in its section's colour.
+export function ParamFader(p: { id: string; label: string; width: number; signColors?: boolean }) {
+  const { def, value, disabled, set } = useParam(p.id);
+  return (
+    <Assignable def={def}>
+      <HFader label={p.label} width={p.width} value={value} max={def.max} center={def.center} format={def.display}
+        onChange={set} disabled={disabled} signColors={p.signColors} />
     </Assignable>
   );
 }

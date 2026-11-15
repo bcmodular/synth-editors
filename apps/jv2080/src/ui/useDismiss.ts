@@ -1,12 +1,20 @@
 // Copied from apps/sp404/src/ui/useDismiss.ts.
-// Close a panel on Escape or on a press outside it.
+// Close a panel on Escape or on a press outside it. `keep` (a selector) names panels opened from this one, such as a
+// chooser: presses in them don't close it, and while one is open Escape is left to it.
 import { useEffect, type RefObject } from "react";
 
-export function useDismiss(ref: RefObject<HTMLElement | null>, onClose: () => void) {
+const keepOpen = (keep: string | undefined, target: Element) => !!keep && !!target.closest?.(keep);
+const childOpen = (keep: string | undefined) => !!keep && !!document.querySelector(keep);
+
+export function useDismiss(ref: RefObject<HTMLElement | null>, onClose: () => void, keep?: string) {
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !childOpen(keep)) onClose();
+    };
     const onDown = (e: PointerEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const target = e.target as Element;
+      const outside = ref.current && !ref.current.contains(target);
+      if (outside && !keepOpen(keep, target)) onClose();
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("pointerdown", onDown, true);
@@ -14,5 +22,5 @@ export function useDismiss(ref: RefObject<HTMLElement | null>, onClose: () => vo
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("pointerdown", onDown, true);
     };
-  }, [ref, onClose]);
+  }, [ref, onClose, keep]);
 }

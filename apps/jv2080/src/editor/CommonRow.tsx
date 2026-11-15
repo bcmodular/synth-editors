@@ -44,10 +44,12 @@ function EfxTypeButton() {
   );
 }
 
-// The type's own view, then where the EFX goes: its output and its sends, on one row.
-function Efx() {
+// The type's own view, then where the EFX goes: its output and its sends, on one row. The help panel shows a copy
+// of the section beside it (`inHelp`), without its own (i).
+function Efx({ inHelp = false }: { inHelp?: boolean }) {
+  const info = inHelp ? null : <EfxInfoButton side={<Efx inHelp />} />;
   return (
-    <Section title="EFX" className="efx" extra={<><EfxInfoButton /><EfxTypeButton /></>}>
+    <Section title="EFX" className="efx" extra={<>{info}<EfxTypeButton /></>}>
       <EfxView />
       <div className="efx-out">
         <ParamChoice def="efxOutput" label="Output" />

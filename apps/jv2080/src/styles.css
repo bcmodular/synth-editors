@@ -1264,20 +1264,40 @@ input {
   border-color: color-mix(in srgb, var(--tint) 50%, #000);
   border-radius: 50%;
 }
-.info-panel {
-  --tint: #a8b8ff;
-  --led: var(--tint);
+/* The help with a working copy of its section on the left. */
+.info-overlay {
   position: absolute;
   left: 50%;
   top: 60px;
   transform: translateX(-50%);
   z-index: 30;
-  width: min(1320px, calc(100vw - 48px));
+  width: calc(100vw - 32px);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  background: #0b0b0c;
+  border: 1px solid color-mix(in srgb, #a8b8ff 45%, #000);
+  box-shadow: 0 12px 40px #000c;
+}
+.info-side {
+  flex: 0 0 560px;
+  height: 440px;
+  display: flex;
+}
+.info-side > .sec {
+  flex: 1;
+  min-width: 0;
+  background: #121214;
+}
+.info-panel {
+  --tint: #a8b8ff;
+  --led: var(--tint);
+  flex: 1 1 auto;
+  min-width: 0;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
   background: #121214;
-  border: 1px solid color-mix(in srgb, var(--tint) 45%, #000);
-  box-shadow: 0 12px 40px #000c;
   padding: 18px 26px 22px;
   display: flex;
   flex-direction: column;

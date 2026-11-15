@@ -37,7 +37,8 @@ export function sectionContent(help: SectionHelp, patch: Patch | null, tone: num
   const get: FlowGet = (id) => flowValue(param(id), valueOf(id), help.tags?.[id] ?? param(id).name);
   const rows: HelpRow[] = help.rows.map((r) => {
     const def = param(r.ids[0]!);
-    return { label: r.label, ids: r.ids, text: r.text, value: r.noValue ? undefined : def.display(valueOf(def.id)), range: r.noValue ? undefined : rangeOf(def) };
+    const value = r.ids.map((id) => param(id).display(valueOf(id))).join(" / ");
+    return { label: r.label, ids: r.ids, text: r.text, value: r.noValue ? undefined : value, range: r.noValue ? undefined : rangeOf(def) };
   });
   return { title: help.title, summary: help.summary, rows, notes: help.notes, flow: help.flow, get };
 }

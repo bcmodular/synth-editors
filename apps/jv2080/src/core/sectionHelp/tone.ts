@@ -43,11 +43,12 @@ function modulatedFlow({ chain, target, env, lfos }: Modulated): Flow {
   ]));
 }
 
-const lfoRow = (n: 1 | 2, what: string, effect: string): SectionRow => ({
-  label: `LFO${n}`,
-  ids: [`${what}Lfo${n}`],
-  text: `How much LFO${n} moves the ${effect}. Negative values move it the other way, so two tones (or both LFOs) can ` +
-    `be set against each other.`,
+// Both LFOs' depths into one part, as one row: they work the same way.
+const lfoRow = (what: string, effect: string): SectionRow => ({
+  label: "LFO1 / LFO2",
+  ids: [`${what}Lfo1`, `${what}Lfo2`],
+  text: `How much each LFO moves the ${effect}. Negative values move it the other way, so two tones (or the two ` +
+    `LFOs) can be set against each other.`,
 });
 
 const ENVELOPE_DRAG = "Drag the points in the graph; the button at the top right returns it to a simple shape.";
@@ -66,8 +67,7 @@ export const PITCH_HELP: SectionHelp = {
       text: "Four times and four levels. From the tuned pitch the note moves through levels 1–3 while the key is " +
         `held, and to level 4 after it's released; levels are above or below the tuned pitch. ${ENVELOPE_DRAG}`,
     },
-    lfoRow(1, "pitch", "pitch (vibrato)"),
-    lfoRow(2, "pitch", "pitch"),
+    lfoRow("pitch", "pitch (vibrato)"),
   ],
   notes: [
     "A few cents of Fine between two tones playing the same wave gives a slow, natural beating, thicker than one tone.",
@@ -109,8 +109,7 @@ export const FILTER_HELP: SectionHelp = {
       text: "Four times and four levels: the cutoff moves through levels 1–3 while the key is held and to level 4 " +
         `after it's released, relative to the Cutoff setting. ${ENVELOPE_DRAG}`,
     },
-    lfoRow(1, "filter", "cutoff (a wah or sweep)"),
-    lfoRow(2, "filter", "cutoff"),
+    lfoRow("filter", "cutoff (a wah or sweep)"),
   ],
   notes: [
     "For a plucked or synth-bass sound: LPF, a fairly low cutoff, some resonance, and a positive envelope with a " +
@@ -144,8 +143,7 @@ export const AMP_HELP: SectionHelp = {
       text: "Four times and three levels: the attack (time 1), the fall through levels 2 and 3 while the key is " +
         `held, and the release (time 4) to silence. ${ENVELOPE_DRAG}`,
     },
-    lfoRow(1, "amp", "level (tremolo)"),
-    lfoRow(2, "amp", "level"),
+    lfoRow("amp", "level (tremolo)"),
     { label: "Level", ids: ["toneLevel"], text: "The tone's level, on its mixer strip: how loud it is against the other tones." },
     { label: "Pan", ids: ["tonePan"], text: "The tone's place in the stereo field, on its mixer strip." },
   ],
@@ -192,13 +190,11 @@ export const LFO_HELP: SectionHelp = {
     "Two low-frequency oscillators: slow, repeating movements that the pitch, filter and amp sections can each use " +
     "(vibrato, wah, tremolo). Here you set their shape and speed; how much each moves what is set in those sections.",
   rows: [
-    { label: "LFO1 wave", ids: ["lfo1Wave"], text: LFO_WAVES },
-    { label: "LFO1 rate", ids: ["lfo1Rate"], text: "How fast LFO1 repeats." },
-    { label: "LFO2 wave", ids: ["lfo2Wave"], text: LFO_WAVES },
-    { label: "LFO2 rate", ids: ["lfo2Rate"], text: "How fast LFO2 repeats." },
-    ...TARGETS.flatMap(([id, label]) => [1, 2].map((n) => ({
-      label: `${label} LFO${n}`, ids: [`${id}Lfo${n}`], text: `How much LFO${n} moves the ${label.toLowerCase()} (set in the ${label.toUpperCase()} section).`,
-    }))),
+    { label: "Wave", ids: ["lfo1Wave", "lfo2Wave"], text: LFO_WAVES },
+    { label: "Rate", ids: ["lfo1Rate", "lfo2Rate"], text: "How fast each LFO repeats." },
+    ...TARGETS.map(([id, label]) => ({
+      label, ids: [`${id}Lfo1`, `${id}Lfo2`], text: `How much each LFO moves the ${label.toLowerCase()} (set in the ${label.toUpperCase()} section).`,
+    })),
   ],
   notes: [
     "Two LFOs at slightly different rates on the same target give a less regular, more organic movement.",

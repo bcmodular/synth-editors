@@ -6,7 +6,7 @@ import type { Flow } from "../efxHelp/flow";
 
 export interface SectionRow {
   label: string;
-  ids: readonly string[]; // the patch parameters it stands for (core/params ids); the first one's value is shown
+  ids: readonly string[]; // the patch parameters it stands for (core/params ids); their values are shown, LFO1 / LFO2
   text: string;
   noValue?: boolean; // a group (an envelope): no single value to show
 }

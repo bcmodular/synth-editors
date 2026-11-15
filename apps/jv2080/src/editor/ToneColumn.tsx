@@ -9,6 +9,7 @@ import type { WaveEntry } from "../core/waveCategories";
 import { waveGroupBytes, waveGroupOf, waveName } from "../core/waves";
 import { Section } from "../ui/controls";
 import { EnvelopeGraph } from "../ui/EnvelopeGraph";
+import { PickTitle } from "../ui/PickTitle";
 import { useSize } from "../ui/useSize";
 import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
@@ -39,24 +40,12 @@ function WaveTitle({ tone }: ToneProps) {
   };
   return (
     <>
-      <button className="wave-title" title="Choose a wave" onClick={() => setOpen(true)}>
-        <span>{name}</span>
-        <LibraryIcon />
-      </button>
+      <PickTitle hint="Choose a wave" onClick={() => setOpen(true)}>{name}</PickTitle>
       {open && (
         <WaveLibrary title={`TONE ${tone + 1} WAVE`} colour={TONE_COLOURS[tone]!} current={{ group, number }}
           onPick={pick} onClose={() => setOpen(false)} />
       )}
     </>
-  );
-}
-
-// Four little squares: "pick from a grid".
-function LibraryIcon() {
-  return (
-    <svg className="lib-icon" width={14} height={14} viewBox="0 0 14 14" aria-hidden>
-      {[0, 8].flatMap((x) => [0, 8].map((y) => <rect key={`${x}${y}`} x={x} y={y} width={6} height={6} rx={1} />))}
-    </svg>
   );
 }
 

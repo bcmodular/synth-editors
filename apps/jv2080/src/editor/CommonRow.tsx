@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { EFX_TYPES, efxStartValue, efxType } from "../core/efx";
-import { efxGroupOf } from "../core/efxGroups";
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
 import { Section } from "../ui/controls";
+import { PickTitle } from "../ui/PickTitle";
 import { useEditor } from "./EditorContext";
 import { ChorusView, ReverbView } from "./ChorusReverbViews";
 import { EfxInfoButton } from "./efx/EfxInfo";
@@ -22,11 +22,11 @@ import { PatchSettings } from "./PatchSettings";
 // the type, and the patch is read back once they've gone to confirm what the JV holds.
 const RESYNC_AFTER_TYPE_MS = 300;
 
-function EfxTypeButton() {
+// The EFX type as the section's title, opening the chooser, as a tone's wave opens the wave library.
+function EfxTitle() {
   const { patch, setValue, resync } = useEditor();
   const [open, setOpen] = useState(false);
   const raw = getParam(patch, param("efxType"));
-  const group = efxGroupOf(raw);
   const pick = (type: number) => {
     setOpen(false);
     if (type === raw) return;
@@ -36,9 +36,7 @@ function EfxTypeButton() {
   };
   return (
     <>
-      <button className="btn efx-type" style={{ ["--grp" as string]: group?.colour }} onClick={() => setOpen(true)}>
-        {efxType(raw)?.name ?? "?"} ▾
-      </button>
+      <PickTitle hint="Choose an effect" onClick={() => setOpen(true)}>{efxType(raw)?.name ?? "EFX"}</PickTitle>
       {open && <EffectChooser current={raw} onPick={pick} onClose={() => setOpen(false)} />}
     </>
   );
@@ -47,9 +45,8 @@ function EfxTypeButton() {
 // The type's own view, then where the EFX goes: its output and its sends, on one row. The help panel shows a copy
 // of the section beside it (`inHelp`), without its own (i).
 function Efx({ inHelp = false }: { inHelp?: boolean }) {
-  const info = inHelp ? null : <EfxInfoButton side={<Efx inHelp />} />;
   return (
-    <Section title="EFX" className="efx" extra={<>{info}<EfxTypeButton /></>}>
+    <Section title={<EfxTitle />} className="efx" extra={inHelp ? undefined : <EfxInfoButton side={<Efx inHelp />} />}>
       <EfxView />
       <div className="efx-out">
         <ParamChoice def="efxOutput" label="Output" />

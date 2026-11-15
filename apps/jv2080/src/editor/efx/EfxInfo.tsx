@@ -32,11 +32,9 @@ function InfoPanel({ help, side, onClose }: PanelProps) {
     <div className="info-side">{side}</div>
     <div className="info-panel efx-info" role="dialog" aria-label={`About ${type?.name}`}>
       <div className="info-head">
-        <span className="info-num">{typeRaw + 1}</span>
-        <span className="info-title">{type?.name}</span>
+        <p className="info-summary">{help.summary}</p>
         <button className="btn info-close" onClick={onClose} aria-label="Close">✕</button>
       </div>
-      <p className="info-summary">{help.summary}</p>
       <FlowDiagram flow={help.flow} get={get} hot={hot} onHover={hover} />
       <dl className="info-params">
         {params.map((x) => (

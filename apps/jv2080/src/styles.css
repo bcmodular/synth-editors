@@ -728,11 +728,6 @@ input {
 .ch-empty {
   border: 1px dashed #26272b;
 }
-.efx-type {
-  color: var(--grp, #fff);
-  border-color: color-mix(in srgb, var(--grp, #888) 60%, #000);
-  font-weight: 600;
-}
 
 .stack {
   display: flex;
@@ -819,8 +814,8 @@ input {
   cursor: move;
 }
 
-/* The wave as a tone's title: name and library icon. */
-.wave-title {
+/* A title that opens a chooser (ui/PickTitle.tsx): a tone's wave, the EFX type. */
+.pick-title {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -832,7 +827,7 @@ input {
   cursor: pointer;
   white-space: nowrap;
 }
-.wave-title:hover {
+.pick-title:hover {
   color: #fff;
 }
 .lib-icon {
@@ -840,7 +835,7 @@ input {
   opacity: 0.7;
   flex: none;
 }
-.wave-title:hover .lib-icon {
+.pick-title:hover .lib-icon {
   opacity: 1;
 }
 
@@ -1305,23 +1300,14 @@ input {
 }
 .info-head {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-.info-num {
-  color: var(--dim);
-  font-size: 19px;
-}
-.info-title {
-  color: var(--tint);
-  font-size: 27px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  align-items: flex-start;
+  gap: 16px;
 }
 .info-close {
   margin-left: auto;
 }
 .info-summary {
+  flex: 1;
   margin: 0;
   font-size: 17px;
   line-height: 1.5;

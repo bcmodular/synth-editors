@@ -79,6 +79,13 @@ working copy of the section sits beside it, so you can try things as you read; p
 and its control lights up, or the other way round. For EFX1 and EFX2 the help follows the effect
 type. Press Esc or click outside to close it.
 
+At the top of every help panel is a map of the whole voice: the sources and their cross and ring
+modulation, the mix, filter, amplifier, distortion and the two effects, with the LFO and the
+envelopes as dashed lines. The section you're reading about is lit in its colour. The map is live:
+each path is as bright as its level or depth, switched-off sources and an off distortion are dimmed,
+and the effects show their types. Point at a block to light its settings. (The TB-3's documentation
+doesn't give the order of the distortion and the two effects; the map shows them in series.)
+
 ![The filter's help](images/help.png)
 
 ### Top strip

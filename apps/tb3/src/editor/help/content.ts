@@ -19,7 +19,7 @@ export function sectionContent(help: SectionHelp, patch: Patch | null): HelpCont
     const value = patch ? defs.map((d) => d.display(getRaw(patch, d))).join(" · ") : undefined;
     return { label: r.label, ids: r.ids, text: r.text, value, range: rangeOf(defs[0]!) };
   });
-  return { title: help.title, summary: help.summary, rows, notes: help.notes };
+  return { title: help.title, summary: help.summary, rows, notes: help.notes, voice: help.voice };
 }
 
 // A hook for a help panel: the section's content, following the patch.
@@ -56,6 +56,7 @@ export function efxContent(efx: EfxNum, patch: Patch | null): HelpContent {
     summary: help.summary,
     rows: modes ? [modes, ...rows] : rows,
     notes: [...(help.notes ?? []), ...EFX_GENERAL_NOTES],
+    voice: efx === 1 ? "efx1" : "efx2",
   };
 }
 

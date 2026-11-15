@@ -6,7 +6,9 @@ import { useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useDismiss } from "../../ui/useDismiss";
+import type { VoiceSection } from "../../core/help";
 import { HotContext, useHot } from "./hot";
+import { VoiceDiagram } from "./VoiceDiagram";
 
 export interface HelpRowView {
   label: string;
@@ -21,6 +23,7 @@ export interface HelpContent {
   summary: string;
   rows: readonly HelpRowView[];
   notes: readonly string[];
+  voice?: VoiceSection; // the section's place in the voice's flow, highlighted there
 }
 
 interface PanelProps {
@@ -70,6 +73,7 @@ function HelpPanel({ useContent, side, sideWidth, tint, onClose }: PanelProps) {
             ✕
           </button>
         </div>
+        <VoiceDiagram here={content.voice} hot={hot} hover={hover} />
         <Rows rows={content.rows} hot={hot} hover={hover} />
         {content.notes.length > 0 && (
           <ul className="info-notes">

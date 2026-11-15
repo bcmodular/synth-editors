@@ -12,7 +12,7 @@ test("the filter's (i) explains it beside a working copy, and pointing at a row 
   await expect(page.locator(".efx h2").first()).not.toHaveText("–");
   await page.getByRole("button", { name: "About the filter" }).click();
   const help = page.locator(".info-overlay");
-  await expect(help.getByRole("dialog")).toContainText("24 dB per octave");
+  await expect(help.getByRole("dialog")).toContainText("18 dB per octave");
   const row = help.locator(".info-params > div", { hasText: "RESONANCE" });
   const copy = help.locator(".info-side");
   await expect(copy.getByRole("button", { name: "About the filter" })).toHaveCount(0); // no (i) in the copy
@@ -38,4 +38,21 @@ test("an EFX's (i) follows its type", async () => {
   await expect(dialog).toContainText("A reverb");
   await page.locator(".info-side").getByRole("button", { name: "DELAY", exact: true }).click();
   await expect(dialog).toContainText("A delay");
+  // The voice's flow shows the new type in the EFX2 block.
+  await expect(dialog.locator(".vf-block.vf-efx2 .v")).toHaveText("DELAY");
+});
+
+test("the voice's flow marks the section, and lights up with its rows", async () => {
+  const { page } = (running = await start());
+  await page.locator(".strip .tb3").getByRole("button", { name: "SYNC FROM TB-3" }).click();
+  await page.getByRole("button", { name: "About the filter" }).click();
+  const dialog = page.getByRole("dialog");
+  const filter = dialog.locator(".vf-block.vf-vcf.here", { hasText: "FILTER" });
+  await expect(filter).toHaveCount(1);
+  await dialog.locator(".info-params > div").filter({ has: page.locator("dt", { hasText: /^CUTOFF/ }) }).hover();
+  await expect(filter).toHaveClass(/hot/);
+  // And the other way: pointing at the LFO block lights the LFO's paths and nothing in this section's rows.
+  await dialog.locator(".vf-block.vf-lfo").hover();
+  await expect(dialog.locator(".vf-edge.vf-lfo.hot").first()).toBeVisible();
+  await expect(dialog.locator(".info-params > div.hot")).toHaveCount(0);
 });

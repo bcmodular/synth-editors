@@ -4,6 +4,7 @@
 import type { SectionHelp } from "./types";
 
 export const OSCILLATORS_HELP: SectionHelp = {
+  voice: "osc",
   title: "Oscillators",
   summary:
     "The TB-3's sound sources, mixed: a saw and a square (the TB-303's two waves), a sine, white and pink noise, " +
@@ -27,6 +28,7 @@ export const OSCILLATORS_HELP: SectionHelp = {
 };
 
 export const CROSS_MOD_HELP: SectionHelp = {
+  voice: "xmod",
   title: "Cross modulation",
   summary:
     "One source modulating another's frequency: the square, the saw and the two noises can each push the saw (left " +
@@ -44,6 +46,7 @@ export const CROSS_MOD_HELP: SectionHelp = {
 };
 
 export const RING_MOD_HELP: SectionHelp = {
+  voice: "ring",
   title: "Ring modulation",
   summary:
     "The ring modulator multiplies its inputs together, giving the sums and differences of their frequencies: bell, " +
@@ -63,9 +66,10 @@ export const RING_MOD_HELP: SectionHelp = {
 };
 
 export const FILTER_HELP: SectionHelp = {
+  voice: "vcf",
   title: "Filter",
   summary:
-    "The VCF: a 24 dB per octave resonant low-pass filter, modelled on the TB-303's, that gives the TB-3 its acid " +
+    "The VCF: a resonant low-pass filter, modelled on the TB-303's (Roland gives it 18 dB per octave), that gives the TB-3 its acid " +
     "squelch. Its envelope sweeps the cutoff on every note.",
   rows: [
     { label: "CUTOFF", ids: ["vcf_cutoff"], text: "Where the filter starts cutting the highs: lower is darker. The front panel's CUTOFF knob." },
@@ -82,6 +86,7 @@ export const FILTER_HELP: SectionHelp = {
 };
 
 export const AMP_HELP: SectionHelp = {
+  voice: "vca",
   title: "Amplifier",
   summary: "The VCA: how each note's level rises and falls, and the patch's overall volume.",
   rows: [
@@ -95,6 +100,7 @@ export const AMP_HELP: SectionHelp = {
 };
 
 export const LFO_HELP: SectionHelp = {
+  voice: "lfo",
   title: "LFO",
   summary:
     "A low-frequency oscillator for vibrato, wah and tremolo: a mix of five waves that moves the oscillators' pitch, " +
@@ -117,6 +123,7 @@ export const LFO_HELP: SectionHelp = {
 };
 
 export const DIST_HELP: SectionHelp = {
+  voice: "dist",
   title: "Distortion",
   summary:
     "Drive and distortion before the effects: 25 types, from clean boosts through overdrives and distortions to amp " +

@@ -32,6 +32,8 @@ function readValue(patch: Patch | null, def: ParamDef, tone: number): number {
   return patch ? clampParam(def, getParam(patch, def, tone)) : def.min;
 }
 
+const ALL_TONES = [0, 1, 2, 3];
+
 export function sectionContent(help: SectionHelp, patch: Patch | null, tone: number): HelpContent {
   const valueOf = (id: string) => readValue(patch, param(id), tone);
   const get: FlowGet = (id) => {
@@ -40,7 +42,8 @@ export function sectionContent(help: SectionHelp, patch: Patch | null, tone: num
   };
   const rows: HelpRow[] = help.rows.map((r) => {
     const def = param(r.ids[0]!);
-    const value = r.ids.map((id) => param(id).display(valueOf(id))).join(" / ");
+    const tones = r.perTone ? ALL_TONES : [tone];
+    const value = r.ids.flatMap((id) => tones.map((t) => param(id).display(readValue(patch, param(id), t)))).join(" / ");
     return { label: r.label, ids: r.ids, text: r.text, value: r.noValue ? undefined : value, range: r.noValue ? undefined : rangeOf(def) };
   });
   return { title: help.title, summary: help.summary, rows, notes: help.notes, flow: help.flow, get };

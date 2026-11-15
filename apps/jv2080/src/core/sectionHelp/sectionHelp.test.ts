@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { ALL_PARAMS } from "../params";
-import { AMP_HELP, CHORUS_HELP, FILTER_HELP, LFO_HELP, PATCH_HELP, PITCH_HELP, REVERB_HELP } from ".";
+import { AMP_HELP, CHORUS_HELP, FILTER_HELP, LFO_HELP, MIXER_HELP, PATCH_HELP, PITCH_HELP, REVERB_HELP } from ".";
 
 const ids = new Set(ALL_PARAMS.map((p) => p.id));
-const sections = [PITCH_HELP, FILTER_HELP, AMP_HELP, LFO_HELP, CHORUS_HELP, REVERB_HELP, PATCH_HELP].map((help) => ({ name: help.title, help }));
+const sections = [PITCH_HELP, FILTER_HELP, AMP_HELP, LFO_HELP, CHORUS_HELP, REVERB_HELP, PATCH_HELP, MIXER_HELP].map((help) => ({ name: help.title, help }));
 
 describe("section help", () => {
   it.each(sections)("$name's rows name real parameters, each once", ({ help }) => {

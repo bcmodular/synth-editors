@@ -77,7 +77,7 @@ function Envelope({ tone, kind, height }: ToneProps & { kind: EnvelopeKind; heig
   };
   const ids = [...spec.times.map((_, i) => `${prefix}Time${i + 1}`), ...spec.levels.map((_, i) => `${prefix}Level${i + 1}`)];
   return (
-    <Lit ids={ids} grow>
+    <Lit ids={ids} fit="grow">
     <div className="envbox" ref={setBox}>
       {width > 0 && (
         <EnvelopeGraph spec={spec} width={width} height={height}

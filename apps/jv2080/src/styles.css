@@ -479,6 +479,17 @@ input {
   gap: 3px;
   width: 100%;
 }
+/* In the mixer's copy beside its help, the lit wrappers (editor/help/Lit.tsx) take the strip's width. */
+.strip > .hot-ctl {
+  align-self: stretch;
+}
+.ms > .hot-ctl {
+  flex: 1 1 0;
+  display: flex;
+}
+.ms > .hot-ctl > .btn {
+  flex: 1 1 0;
+}
 .ms .btn {
   flex: 1 1 0;
   justify-content: center;
@@ -1160,6 +1171,16 @@ input {
   display: flex;
 }
 .hot-ctl.grow > * {
+  flex: 1 1 auto;
+}
+/* A fader: the wrapper takes the fader's share of its strip. */
+.hot-ctl.fill {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.hot-ctl.fill > * {
   flex: 1 1 auto;
 }
 /* Drawn inside the control's own box, so neighbours lit together don't collide: a ring (an outline, painted over

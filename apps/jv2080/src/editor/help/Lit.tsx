@@ -4,9 +4,10 @@
 import type { ReactNode } from "react";
 import { hotProps, useHot } from "./hot";
 
-// `grow` for a control that fills its row (an envelope graph), so the wrapper does too.
-export function Lit({ ids, grow, children }: { ids: readonly string[]; grow?: boolean; children: ReactNode }) {
+// `fit` for a control that stretches: "grow" fills its row (an envelope graph), "fill" its column (a fader), so the
+// wrapper does too.
+export function Lit({ ids, fit, children }: { ids: readonly string[]; fit?: "grow" | "fill"; children: ReactNode }) {
   const hot = useHot();
   if (!hot.active) return <>{children}</>;
-  return <div {...hotProps(hot, ids, grow ? "hot-ctl grow" : "hot-ctl")}>{children}</div>;
+  return <div {...hotProps(hot, ids, fit ? `hot-ctl ${fit}` : "hot-ctl")}>{children}</div>;
 }

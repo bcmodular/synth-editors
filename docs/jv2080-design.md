@@ -80,7 +80,8 @@ After the first editor, a more compact layout, decided with the user:
   The data is in `core/efxHelp/`, by group; descriptions shared across types are in `common.ts`; the drawing is in
   `editor/help/FlowDiagram.tsx` and `flowLayout.ts`.
 - **Section help** ✅ (2026-11-15): the same kind of (i) panel for each tone's PITCH, FILTER, AMP and LFO parts (the
-  (i) at the top of the part's label strip) and for CHORUS, REVERB and PATCH (in their headers). Each opens
+  (i) at the top of the part's label strip) and for the MIXER, CHORUS, REVERB and PATCH (in their headers); the
+  mixer's rows show all four tones' values. Each opens
   beside a working copy of its part or section. Their flows are drawn with control paths (envelopes, LFOs) dashed,
   and paths that depend on a setting (Chorus Output, the reverb's DELAY types, the clock source) appear only while
   it is set. Every control in a copy, including envelopes, LFO wave buttons and the chorus and reverb drawings,
@@ -91,6 +92,7 @@ After the first editor, a more compact layout, decided with the user:
 - **Demo mode** (`?demo`): the editor on a built-in patch with nothing sent, for working without a JV. A new EFX
   type starts from neutral values (`efxStartValue`), there and on the JV: the JV keeps the previous type's bytes when
   the type changes, so the editor sends the start values after the type (decided 2026-11-15).
+- What the editor can't set yet: [jv2080-not-in-editor.md](jv2080-not-in-editor.md).
 - LFO drawing / routing view and fit zoom: dropped (2026-11-14), not needed.
 - **Chorus and reverb** get dedicated layouts like the SP-404's, stacked; the patch settings always visible beside
   them. ✅

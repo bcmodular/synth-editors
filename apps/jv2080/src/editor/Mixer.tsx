@@ -5,10 +5,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getParam, type Patch } from "../core/patch";
 import { param } from "../core/paramValue";
+import { MIXER_HELP } from "../core/sectionHelp";
 import { Segmented } from "../ui/controls";
 import { ChannelFader } from "../ui/Knob";
 import { MASTER_COLOUR, PAN_COLOUR, SECTION_COLOURS, TONE_COLOURS } from "./colours";
 import { useEditor } from "./EditorContext";
+import { HelpButton } from "./help/HelpPanel";
+import { Lit } from "./help/Lit";
+import { sectionContentHook } from "./help/sectionContent";
 import { ParamKnob } from "./ParamControls";
 import { soloedSwitches, toggleSolo } from "./solo";
 
@@ -21,12 +25,14 @@ function LevelFader({ id, colour, title }: { id: string; colour: string; title?:
   const def = param(id);
   const value = getParam(patch, def);
   return (
+    <Lit ids={[id]} fit="fill">
     <div className="lvf" style={{ ["--sc" as string]: colour }}>
       {title && <span className="st-head">{title}</span>}
       <ChannelFader label={def.name} value={value} min={def.min} max={def.max} color={colour}
         onChange={(v) => setValue(def, v)} />
       <span className="lv">{def.display(value)}</span>
     </div>
+    </Lit>
   );
 }
 
@@ -50,10 +56,14 @@ function ToneStrip({ tone, soloed, onSolo }: StripProps) {
         <ParamKnob def="reverbSend" tone={tone} label="REVERB" color={SECTION_COLOURS.reverb} />
         <ParamKnob def="tonePan" tone={tone} label="PAN" color={PAN_COLOUR} />
       </div>
-      <Segmented options={OUTPUTS.map((label, value) => ({ label, value }))} value={out}
-        onChange={(v) => setValue(param("outputAssign"), v, tone)} />
+      <Lit ids={["outputAssign"]}>
+        <Segmented options={OUTPUTS.map((label, value) => ({ label, value }))} value={out}
+          onChange={(v) => setValue(param("outputAssign"), v, tone)} />
+      </Lit>
       <div className="ms">
-        <button className={`btn mute ${on ? "" : "on"}`} onClick={() => setValue(param("toneSwitch"), on ? 0 : 1, tone)}>MUTE</button>
+        <Lit ids={["toneSwitch"]}>
+          <button className={`btn mute ${on ? "" : "on"}`} onClick={() => setValue(param("toneSwitch"), on ? 0 : 1, tone)}>MUTE</button>
+        </Lit>
         <button className={`btn solo ${soloed ? "on" : ""}`} onClick={onSolo}>SOLO</button>
       </div>
       <div className="st-level">
@@ -108,11 +118,21 @@ function useSolo() {
   return { solo, toggle: (tone: number) => setSolo((s) => toggleSolo(s, tone)) };
 }
 
-export function Mixer() {
+const MIXER_SIDE = { width: 608 };
+
+// With an (i) opening its help beside a working copy of the mixer (`inHelp`).
+export function Mixer({ inHelp = false }: { inHelp?: boolean }) {
   const { solo, toggle } = useSolo();
   return (
     <section className="sec mixer">
-      <header><h2>MIXER</h2></header>
+      <header>
+        <h2>MIXER</h2>
+        {!inHelp && (
+          <div className="extra">
+            <HelpButton label="the mixer" useContent={sectionContentHook(MIXER_HELP)} side={<Mixer inHelp />} sideStyle={MIXER_SIDE} />
+          </div>
+        )}
+      </header>
       <div className="desk">
         {TONES.map((t) => <ToneStrip key={t} tone={t} soloed={solo.has(t)} onSolo={() => toggle(t)} />)}
         <Returns />

@@ -9,6 +9,7 @@ export interface SectionRow {
   ids: readonly string[]; // the patch parameters it stands for (core/params ids); their values are shown, LFO1 / LFO2
   text: string;
   noValue?: boolean; // a group (an envelope): no single value to show
+  perTone?: boolean; // a tone parameter shown for all four tones (the mixer)
 }
 
 export interface SectionHelp {

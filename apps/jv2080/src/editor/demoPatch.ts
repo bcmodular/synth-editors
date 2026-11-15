@@ -15,6 +15,13 @@ const DEFAULTS: Record<string, number> = {
   filterEnvTime2: 40, filterEnvTime3: 60, filterEnvTime4: 30, filterEnvLevel1: 127, filterEnvLevel2: 90, filterEnvLevel3: 70,
   toneLevel: 110, ampEnvTime2: 50, ampEnvTime4: 30, ampEnvLevel1: 127, ampEnvLevel2: 100, ampEnvLevel3: 90,
   mixEfxSend: 127, chorusSend: 40, reverbSend: 50,
+  velocityUpper: 127, keyUpper: 127, rxVolume: 1, rxBend: 1, rxHold1: 1, rxPan: 1, ampEnvVelSens: 70, filterEnvVelSens: 60,
+};
+
+// A table parameter's neutral entry ("0", "0 dB"), if it has one.
+const neutral = (labels: readonly string[] | undefined) => {
+  const i = labels?.findIndex((l) => l === "0" || l === "0 dB") ?? -1;
+  return i < 0 ? undefined : i;
 };
 
 function withEfxMiddles(patch: Patch): Patch {
@@ -26,7 +33,7 @@ function withEfxMiddles(patch: Patch): Patch {
 export function demoPatch(): Patch {
   let patch: Patch = PATCH_BLOCKS.map((b) => new Array<number>(b.size).fill(0));
   for (const p of ALL_PARAMS) {
-    const value = DEFAULTS[p.id] ?? p.center ?? p.min;
+    const value = DEFAULTS[p.id] ?? p.center ?? neutral(p.labels) ?? p.min;
     const tones = p.block === "tone" ? [0, 1, 2, 3] : [0];
     for (const tone of tones) patch = setParam(patch, p, clampParam(p, value), tone);
   }

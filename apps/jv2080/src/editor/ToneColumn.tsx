@@ -19,6 +19,9 @@ import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamKnob } from "./ParamControls";
 import { WaveLibrary } from "./WaveLibrary";
+import { StructureButton } from "./Structure";
+import { PartMore, WaveMore } from "./ToneMore";
+import { PopoverButton } from "../ui/Popover";
 import { WaveIcon } from "../ui/WaveIcon";
 
 const ROW_ENV_HEIGHT = 112; // beside two rows of knobs
@@ -92,10 +95,10 @@ function Envelope({ tone, kind, height }: ToneProps & { kind: EnvelopeKind; heig
 
 // One part of the column: a thin strip on the left with the part's name reading upwards (and its (i)), its controls
 // beside it.
-function Block({ label, help, children }: { label: string; help?: ReactNode; children: ReactNode }) {
+function Block({ label, help, more, children }: { label: string; help?: ReactNode; more?: ReactNode; children: ReactNode }) {
   return (
     <div className="block">
-      <div className="vlabel">{help}<span>{label}</span></div>
+      <div className="vlabel">{help}<span>{label}</span>{more}</div>
       <div className="block-body">{children}</div>
     </div>
   );
@@ -156,6 +159,7 @@ function KnobsAndEnvelope({ tone, kind, knobs }: ToneProps & { kind: "pitch" | "
         <div className="knobs lfo">
           <ParamKnob def={`${kind}Lfo1`} tone={tone} label="LFO1" />
           <ParamKnob def={`${kind}Lfo2`} tone={tone} label="LFO2" />
+          {kind === "filter" && <ParamKnob def="filterEnvVelSens" tone={tone} label="VEL" />}
         </div>
       </div>
       <Envelope tone={tone} kind={kind} height={ROW_ENV_HEIGHT} />
@@ -168,7 +172,7 @@ const FILTER_KNOBS = [["cutoff", "CUTOFF"], ["resonance", "RESO"], ["filterEnvDe
 
 function PitchBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="PITCH" help={<PartHelp tone={tone} part="pitch" inHelp={inHelp} />}>
+    <Block label="PITCH" help={<PartHelp tone={tone} part="pitch" inHelp={inHelp} />} more={<PartMore tone={tone} part="pitch" />}>
       <KnobsAndEnvelope tone={tone} kind="pitch" knobs={PITCH_KNOBS} />
     </Block>
   );
@@ -176,7 +180,7 @@ function PitchBlock({ tone, inHelp }: PartProps) {
 
 function FilterBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="FILTER" help={<PartHelp tone={tone} part="filter" inHelp={inHelp} />}>
+    <Block label="FILTER" help={<PartHelp tone={tone} part="filter" inHelp={inHelp} />} more={<PartMore tone={tone} part="filter" />}>
       <ParamChoice def="filterType" tone={tone} label="Type" />
       <KnobsAndEnvelope tone={tone} kind="filter" knobs={FILTER_KNOBS} />
     </Block>
@@ -185,12 +189,13 @@ function FilterBlock({ tone, inHelp }: PartProps) {
 
 function AmpBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="AMP" help={<PartHelp tone={tone} part="amp" inHelp={inHelp} />}>
+    <Block label="AMP" help={<PartHelp tone={tone} part="amp" inHelp={inHelp} />} more={<PartMore tone={tone} part="amp" />}>
       <div className="envrow">
         <div className="knobgrid">
           <div className="knobs">
             <ParamKnob def="ampLfo1" tone={tone} label="LFO1" />
             <ParamKnob def="ampLfo2" tone={tone} label="LFO2" />
+            <ParamKnob def="ampEnvVelSens" tone={tone} label="VEL" />
           </div>
         </div>
         <Envelope tone={tone} kind="amp" height={AMP_ENV_HEIGHT} />
@@ -201,7 +206,7 @@ function AmpBlock({ tone, inHelp }: PartProps) {
 
 function LfoBlock({ tone, inHelp }: PartProps) {
   return (
-    <Block label="LFO" help={<PartHelp tone={tone} part="lfo" inHelp={inHelp} />}>
+    <Block label="LFO" help={<PartHelp tone={tone} part="lfo" inHelp={inHelp} />} more={<PartMore tone={tone} part="lfo" />}>
       <LfoLine tone={tone} n={1} />
       <LfoLine tone={tone} n={2} />
     </Block>
@@ -215,9 +220,17 @@ function PartBlock({ part, ...props }: PartProps & { part: Part }) {
   return <PartView {...props} />;
 }
 
+// The wave's settings (gain, FXM), tone delay and MIDI receive switches, from the tone's header.
+const waveMore = (tone: number) => (
+  <PopoverButton label="⋯" title={`Tone ${tone + 1}: wave, tone delay and MIDI`} className="more-btn">
+    <WaveMore tone={tone} />
+  </PopoverButton>
+);
+
 export function ToneColumn({ tone }: ToneProps) {
   return (
-    <Section title={<WaveTitle tone={tone} />} className="tone" style={tintVars(TONE_COLOURS[tone]!)}>
+    <Section title={<WaveTitle tone={tone} />} className="tone" style={tintVars(TONE_COLOURS[tone]!)}
+      extra={<><StructureButton tone={tone} />{waveMore(tone)}</>}>
       <PitchBlock tone={tone} />
       <FilterBlock tone={tone} />
       <AmpBlock tone={tone} />

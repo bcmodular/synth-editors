@@ -8,7 +8,7 @@ import { Section } from "../ui/controls";
 import { HelpButton } from "./help/HelpPanel";
 import { sectionContentHook } from "./help/sectionContent";
 import { useEditor } from "./EditorContext";
-import { ParamChoice, ParamKnob, ParamSwitch } from "./ParamControls";
+import { ParamChoice, ParamKnob, ParamSelect, ParamSwitch } from "./ParamControls";
 
 const DEFAULT_TEMPO = 120; // where a double-click on Tempo returns
 
@@ -40,7 +40,16 @@ export function PatchSettings({ inHelp = false }: { inHelp?: boolean }) {
           <ParamSwitch def="portamento" label="PORTA" />
         </div>
       </div>
+      <ParamChoice def="portamentoMode" label="Porta mode" />
+      <ParamChoice def="portamentoType" label="Porta type" />
+      <ParamChoice def="portamentoStart" label="Porta start" />
       <ParamChoice def="clockSource" />
+      <ParamChoice def="voicePriority" label="Priority" />
+      <ParamChoice def="stretchTune" label="Stretch" />
+      <div className="patch-feel">
+        <ParamKnob def="analogFeel" label="Analog Feel" />
+        <ParamSelect def="patchCategory" label="Category" />
+      </div>
     </Section>
   );
 }

@@ -14,6 +14,7 @@ import { HelpButton } from "./help/HelpPanel";
 import { Lit } from "./help/Lit";
 import { sectionContentHook } from "./help/sectionContent";
 import { ParamKnob } from "./ParamControls";
+import { RangesButton } from "./Ranges";
 import { soloedSwitches, toggleSolo } from "./solo";
 
 const TONES = [0, 1, 2, 3];
@@ -127,11 +128,10 @@ export function Mixer({ inHelp = false }: { inHelp?: boolean }) {
     <section className="sec mixer">
       <header>
         <h2>MIXER</h2>
-        {!inHelp && (
-          <div className="extra">
-            <HelpButton label="the mixer" useContent={sectionContentHook(MIXER_HELP)} side={<Mixer inHelp />} sideStyle={MIXER_SIDE} />
-          </div>
-        )}
+        <div className="extra">
+          <RangesButton />
+          {!inHelp && <HelpButton label="the mixer" useContent={sectionContentHook(MIXER_HELP)} side={<Mixer inHelp />} sideStyle={MIXER_SIDE} />}
+        </div>
       </header>
       <div className="desk">
         {TONES.map((t) => <ToneStrip key={t} tone={t} soloed={solo.has(t)} onSolo={() => toggle(t)} />)}

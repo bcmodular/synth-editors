@@ -62,6 +62,7 @@ export const MIXER_HELP: SectionHelp = {
     { label: "Patch level", ids: ["patchLevel"], text: "The whole patch's level; each tone's level is scaled by it." },
   ],
   notes: [
+    "RANGES in the header opens the four tones' key and velocity ranges: splits and velocity layers.",
     "SOLO is for listening only: it turns the other tones off on the JV while held, without changing the patch, and " +
       "puts them back when released.",
     "Rows for the tones show all four tones' values, tone 1 first.",

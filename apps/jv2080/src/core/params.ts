@@ -1,58 +1,16 @@
-// The v1 parameter table: Patch Common and Patch Tone parameters the editor shows (★ in docs/jv2080-sysex-map.md).
+// The parameter table: Patch Common and Patch Tone parameters the editor shows (★ in docs/jv2080-sysex-map.md, then
+// paramsMore.ts).
 // One row per parameter: block, offset, raw range and how the panel displays it. Tone rows apply to each of the
 // four tones. The EFX parameters' meaning depends on the EFX type; see efx.ts.
 
-import { fmtBendDown, fmtOffset, fmtPan, fmtSigned, fmtWaveNumber, HF_DAMP, PAN_CENTRE } from "./display";
+import { fmtBendDown, fmtPan, fmtSigned, fmtWaveNumber, HF_DAMP, PAN_CENTRE } from "./display";
+import { choice, common, depth, envRows, level, onOff, range, tone } from "./paramDefs";
+import { COMMON_MORE, TONE_MORE } from "./paramsMore";
 import { EFX_TYPES } from "./efx";
 
-export type ParamBlock = "common" | "tone";
+import type { ParamDef } from "./paramDefs";
 
-export interface ParamDef {
-  id: string;
-  name: string;
-  block: ParamBlock;
-  offset: number;
-  nibbled?: boolean; // a two-byte (#) value split into nibbles, high first, at offset and offset + 1
-  min: number;
-  max: number;
-  display: (raw: number) => string;
-  labels?: readonly string[]; // raw min…max for enums
-  center?: number; // raw value shown as 0, for bipolar parameters
-}
-
-// --- Row builders ---
-
-// Where a parameter lives and what it's called.
-interface Where {
-  block: ParamBlock;
-  id: string;
-  name: string;
-  offset: number;
-}
-
-const common = (id: string, name: string, offset: number): Where => ({ block: "common", id, name, offset });
-const tone = (id: string, name: string, offset: number): Where => ({ block: "tone", id, name, offset });
-
-type Extra = Partial<Pick<ParamDef, "nibbled" | "center" | "display">>;
-
-function range(where: Where, min: number, max: number, extra: Extra = {}): ParamDef {
-  const display = extra.display ?? (extra.center === undefined ? String : fmtOffset(extra.center));
-  return { ...where, min, max, ...extra, display };
-}
-
-function choice(where: Where, labels: readonly string[]): ParamDef {
-  return { ...where, min: 0, max: labels.length - 1, labels, display: (raw) => labels[raw] ?? String(raw) };
-}
-
-const level = (where: Where) => range(where, 0, 127);
-const depth = (where: Where) => range(where, 0, 126, { center: 63 }); // raw 0–126 shown as −63…+63
-const onOff = (where: Where) => choice(where, ["OFF", "ON"]);
-
-// Consecutive envelope times or levels: ids and names numbered from 1, eg. "Pitch Env T1"…"T4".
-function envRows(first: Where, count: number, make: (where: Where) => ParamDef): ParamDef[] {
-  return Array.from({ length: count }, (_, i) =>
-    make({ ...first, id: `${first.id}${i + 1}`, name: `${first.name}${i + 1}`, offset: first.offset + i }));
-}
+export type { ParamBlock, ParamDef } from "./paramDefs";
 
 // --- Patch Common ---
 
@@ -84,6 +42,7 @@ export const COMMON_PARAMS: readonly ParamDef[] = [
   level(common("portamentoTime", "Porta Time", 0x39)),
   range(common("octaveShift", "Octave", 0x41), 0, 6, { center: 3 }),
   choice(common("clockSource", "Clock", 0x48), ["PATCH", "SYSTEM"]),
+  ...COMMON_MORE,
 ];
 
 // --- Patch Tone ---
@@ -124,6 +83,7 @@ export const TONE_PARAMS: readonly ParamDef[] = [
   level(tone("mixEfxSend", "Mix/EFX Send", 0x7e)),
   level(tone("chorusSend", "Chorus Send", 0x7f)),
   level(tone("reverbSend", "Reverb Send", 0x80)), // offset 128: address 01 00 within the tone
+  ...TONE_MORE,
 ];
 
 export const ALL_PARAMS: readonly ParamDef[] = [...COMMON_PARAMS, ...TONE_PARAMS];

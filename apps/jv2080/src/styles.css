@@ -763,6 +763,15 @@ input {
 .patch-knobs .kn .lbl {
   max-width: 62px;
 }
+.patch-feel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 4px;
+}
+.patch-feel .prow {
+  flex: 1 1 auto;
+}
 .patch-set .off {
   opacity: 0.4;
   pointer-events: none;
@@ -1007,6 +1016,20 @@ input {
   padding: 0;
   font-size: 11px;
 }
+/* A part's "⋯" (editor/ToneMore.tsx), at the bottom of its label strip. */
+.vlabel .more-btn {
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--tint);
+  border-color: color-mix(in srgb, var(--tint) 40%, #000);
+}
 .vlabel span {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
@@ -1086,13 +1109,15 @@ input {
 /* Knobs in a tone, the EFX section or the patch settings take its colour. */
 .tone .kn i,
 .efx .kn i,
-.patch-set .kn i {
+.patch-set .kn i,
+.popover .kn i {
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--led) 85%, #fff), var(--led) 45%,
     color-mix(in srgb, var(--led) 55%, #000) 100%);
 }
 .tone .kn i::after,
 .efx .kn i::after,
-.patch-set .kn i::after {
+.patch-set .kn i::after,
+.popover .kn i::after {
   background: #111;
 }
 
@@ -1491,5 +1516,110 @@ input {
   padding-left: 20px;
   font-size: 15px;
   line-height: 1.5;
+  color: var(--dim);
+}
+
+/* A popover of less-used settings (ui/Popover.tsx), beside the button that opened it, in its colour. */
+.popover {
+  position: fixed;
+  z-index: 40;
+  max-width: 560px;
+  background: #121214;
+  border: 1px solid color-mix(in srgb, var(--tint) 50%, #000);
+  box-shadow: 0 12px 40px #000c;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  --sel-bg: color-mix(in srgb, var(--tint) 16%, #0b0b0c);
+  --led-off: color-mix(in srgb, var(--tint) 35%, #111);
+}
+.pop-title {
+  color: var(--tint);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.pop-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--tint) 25%, transparent);
+}
+.pop-head {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--tint) 80%, var(--dim));
+}
+.pop-knobs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.pop-knobs .kn {
+  width: 62px;
+}
+.pop-knobs .kn .lbl {
+  max-width: 62px;
+}
+.pop-note {
+  margin: 0;
+  font-size: var(--text-s);
+  line-height: 1.4;
+  color: var(--dim);
+}
+
+/* A tone pair's structure chip (editor/Structure.tsx) and the mixer's RANGES button (editor/Ranges.tsx). */
+.struct-btn,
+.ranges-btn {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--tint);
+  border-color: color-mix(in srgb, var(--tint) 45%, #000);
+}
+.struct-note {
+  min-height: 3.6em;
+  color: #c8cad0;
+}
+.popover > .btn {
+  align-self: flex-start;
+}
+.popover .off {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.ranges {
+  display: block;
+}
+.ranges text {
+  font-size: 10px;
+  fill: var(--dim);
+}
+.ranges .rg-head {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  fill: var(--tint);
+}
+.rg-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rg-row {
+  display: grid;
+  grid-template-columns: 54px repeat(5, 62px);
+  align-items: center;
+}
+.rg-row .kn i {
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--led) 85%, #fff), var(--led) 45%,
+    color-mix(in srgb, var(--led) 55%, #000) 100%);
+}
+.rg-tone {
+  font-size: 11px;
+  font-weight: 600;
   color: var(--dim);
 }

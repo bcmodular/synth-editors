@@ -10,7 +10,7 @@ function patchFlow(): Flow {
     node("keys", "in", at(0.5, 0), { label: "Keys" }),
     block("octave", 1.7, "Octave", ["octaveShift"], "octaveShift"),
     block("voices", 3.25, "Keys", ["keyAssign", "soloLegato"], "keyAssign"),
-    block("porta", 4.9, "Portamento", ["portamento", "portamentoTime"], "portamento"),
+    block("porta", 4.9, "Portamento", ["portamento", "portamentoTime", "portamentoMode", "portamentoType", "portamentoStart"], "portamento"),
     sum("pitch", 6.2, 0),
     node("tones", "out", at(6.8, 0), { label: "Tones" }),
     node("bender", "in", at(0.5, 1), { label: "Bender" }),
@@ -40,14 +40,19 @@ export const PATCH_HELP: SectionHelp = {
     { label: "Porta Time", ids: ["portamentoTime"], text: "How long the glide takes." },
     { label: "Clock", ids: ["clockSource"], text: "PATCH uses this patch's Tempo; SYSTEM the JV's system tempo, which can follow MIDI clock from a sequencer." },
     { label: "Tempo", ids: ["tempo"], text: "This patch's tempo, used when Clock is PATCH." },
+    { label: "Porta mode", ids: ["portamentoMode"], text: "NORMAL glides between every note; LEGATO only between notes played overlapping." },
+    { label: "Porta type", ids: ["portamentoType"], text: "RATE: the glide takes longer the further it goes; TIME: it takes the same time whatever the interval." },
+    { label: "Porta start", ids: ["portamentoStart"], text: "Playing a new note mid-glide: PITCH starts from where the pitch is now; NOTE from the note it was heading to." },
+    { label: "Priority", ids: ["voicePriority"], text: "When the JV runs out of its 64 voices: LAST keeps the newest notes, LOUDEST the loudest." },
+    { label: "Stretch", ids: ["stretchTune"], text: "Piano-style stretched tuning: the bass a little flat and the treble a little sharp, as a tuner would set a piano. 3 is the most." },
+    { label: "Analog Feel", ids: ["analogFeel"], text: "A slow, natural drift in pitch, like an analogue synth's instability." },
+    { label: "Category", ids: ["patchCategory"], text: "The patch's category, used by the JV's patch search (and by this editor's patch browser, to come)." },
   ],
   notes: [
     "SOLO with Legato and a short portamento is the classic monosynth lead: overlapping notes glide, separate ones restart.",
     "A bend range of +2 / −2 suits most playing; +12 / −12 gives guitar-style dive bombs.",
     "The tempo drives tempo-synced LFOs, the EFX types that can follow it (STEP-FLANGER's step rate, the tap " +
       "delays) and tone delay.",
-    "The JV also has portamento mode, type and start, voice priority, analog feel and stretch tuning; this editor " +
-      "doesn't show them yet.",
   ],
   flow: patchFlow(),
 };

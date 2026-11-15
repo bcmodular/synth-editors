@@ -52,7 +52,7 @@ function Rows({ rows, hot, hover }: { rows: readonly HelpRow[]; hot: ReadonlySet
 
 function HelpPanel({ useContent, side, sideStyle, tint, onClose }: PanelProps) {
   const panel = useRef<HTMLDivElement>(null);
-  useDismiss(panel, onClose, ".chooser, .wavelib");
+  useDismiss(panel, onClose, ".chooser, .wavelib, .popover");
   const content = useContent();
   const [hot, setHot] = useState<ReadonlySet<string>>(new Set());
   const hover = (names: readonly string[]) => setHot(new Set(names));

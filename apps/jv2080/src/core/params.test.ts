@@ -125,3 +125,26 @@ describe("EFX start values", () => {
     expect(efxDisplay(byName(1, "Pan"), efxStartValue(byName(1, "Pan")))).toBe("C");
   });
 });
+
+describe("the further parameters (paramsMore.ts)", () => {
+  const show = (id: string, raw: number) => param(id).display(raw);
+
+  it("display as the manual's tables (p. 190)", () => {
+    expect([show("ampEnvVelSens", 0), show("ampEnvVelSens", 50), show("ampEnvVelSens", 125)]).toEqual(["-100", "0", "+150"]);
+    expect([show("pitchKeyfollow", 0), show("pitchKeyfollow", 5), show("pitchKeyfollow", 15)]).toEqual(["-100", "0", "+200"]);
+    expect([show("ampEnvVelTime1", 7), show("biasLevel", 14)]).toEqual(["0", "+100"]);
+    expect([show("randomPitch", 10), show("randomPitch", 11), show("randomPitch", 30)]).toEqual(["10", "20", "1200"]);
+    expect([show("keyLower", 0), show("keyLower", 60), show("keyUpper", 127)]).toEqual(["C-1", "C4", "G9"]);
+    expect([show("panLfo1", 0), show("panLfo1", 63), show("panLfo1", 126)]).toEqual(["L63", "0", "63R"]);
+    expect([show("alternatePan", 1), show("alternatePan", 127)]).toEqual(["L63", "63R"]);
+    expect([show("patchCategory", 0), show("patchCategory", 38)]).toEqual(["NO ASSIGN", "COMBINATION"]);
+  });
+
+  it("sit at the manual's offsets", () => {
+    const at = (id: string) => param(id).offset;
+    expect([at("waveGain"), at("toneDelayTime"), at("keyUpper"), at("rxPan")]).toEqual([0x05, 0x0a, 0x0f, 0x14]);
+    expect([at("lfo1KeyTrigger"), at("lfo1Sync"), at("lfo2KeyTrigger"), at("lfo2Sync")]).toEqual([0x2e, 0x34, 0x36, 0x3c]);
+    expect([at("pitchEnvVelSens"), at("filterEnvVelCurve"), at("filterEnvTimeKeyfollow"), at("ampEnvTimeKeyfollow")]).toEqual([0x42, 0x56, 0x5a, 0x6d]);
+    expect([at("panLfo2"), at("structure34"), at("patchCategory")]).toEqual([0x7c, 0x46, 0x49]);
+  });
+});

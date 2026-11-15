@@ -1,5 +1,17 @@
 # JV-2080 editor — patch features not in the editor yet
 
+**Update, 2026-11-15:** everything below except the controller matrix (Patch Control Sources, Hold/Peak, the
+tones' Controller 1–3 destinations and depths) and the EFX Control Source/Depth is now in the editor
+(`core/paramsMore.ts`):
+- the visible VEL knobs in FILTER and AMP, and the rest of each part's settings in the "⋯" at the foot of its label
+  strip;
+- wave gain, FXM, tone delay and the MIDI receive switches in the "⋯" in each tone's header;
+- structure and booster from the chip in tone 1's and tone 3's headers;
+- key and velocity ranges from RANGES in the mixer's header;
+- portamento mode, type and start, voice priority, stretch tuning, Analog Feel and category in PATCH.
+
+Editing the patch name is still to do, with saving patch files and writing to USER memory.
+
 An inventory, made 2026-11-15, of every patch parameter the editor can't yet set. Taken from the SysEx map
 ([jv2080-sysex-map.md](jv2080-sysex-map.md) §4–5) against `apps/jv2080/src/core/params.ts` and the UI. The editor
 reads and sends whole patches, so the missing parameters are kept as they are, but nothing in the app changes them.

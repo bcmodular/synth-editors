@@ -70,12 +70,11 @@ export const PITCH_HELP: SectionHelp = {
     lfoRow("pitch", "pitch (vibrato)"),
   ],
   notes: [
+    "The ⋯ at the foot of the label strip opens random pitch, pitch keyfollow and the envelope's velocity and key settings.",
     "A few cents of Fine between two tones playing the same wave gives a slow, natural beating, thicker than one tone.",
     "A quick pitch blip at the start of each note (a short time 1 to a high level 1, back to 0) adds bite to brass, " +
       "plucks and synth leads; a negative drop gives drum-like pitch sweeps.",
     "Coarse +7 or +12 on a second tone gives a fifth or an octave layered on every note.",
-    "The JV also has Random Pitch Depth, Pitch Keyfollow and velocity control of the envelope; this editor doesn't " +
-      "show them yet.",
   ],
   units: { coarseTune: " st", fineTune: " ¢" },
   flow: modulatedFlow({
@@ -105,6 +104,7 @@ export const FILTER_HELP: SectionHelp = {
     { label: "Cutoff", ids: ["cutoff"], text: "Where the filter acts. With LPF lower is darker; with HPF higher is thinner." },
     { label: "Resonance", ids: ["resonance"], text: "Emphasis at the cutoff, for a more pronounced, vocal filter. Very high values ring and can distort." },
     { label: "Env", ids: ["filterEnvDepth"], text: "How far the filter envelope moves the cutoff. Negative values turn it upside down." },
+    { label: "Vel", ids: ["filterEnvVelSens"], text: "How much harder playing deepens the filter envelope, so loud notes are brighter. Negative values reverse it." },
     {
       label: "Envelope", ids: ENV_IDS("filterEnv", 4), noValue: true,
       text: "Four times and four levels: the cutoff moves through levels 1–3 while the key is held and to level 4 " +
@@ -113,13 +113,12 @@ export const FILTER_HELP: SectionHelp = {
     lfoRow("filter", "cutoff (a wah or sweep)"),
   ],
   notes: [
+    "The ⋯ at the foot of the label strip opens cutoff keyfollow, resonance velocity and the envelope's velocity curve and times.",
     "For a plucked or synth-bass sound: LPF, a fairly low cutoff, some resonance, and a positive envelope with a " +
       "fast time 1 and a short decay, so each note opens and closes.",
     "PKG with an LFO on the cutoff makes an auto-wah; S&H on that LFO gives the random, stepping 'computer' filter.",
     "On one-shot waves (pianos, drums) the wave's own attack carries the character: let the envelope shape the decay " +
       "rather than the attack.",
-    "The JV also has Cutoff Keyfollow (brighter higher up the keyboard), Resonance and envelope velocity " +
-      "sensitivity; this editor doesn't show them yet.",
   ],
   flow: modulatedFlow({
     chain: [
@@ -145,18 +144,18 @@ export const AMP_HELP: SectionHelp = {
         `held, and the release (time 4) to silence. ${ENVELOPE_DRAG}`,
     },
     lfoRow("amp", "level (tremolo)"),
+    { label: "Vel", ids: ["ampEnvVelSens"], text: "How much playing harder makes the tone louder: its velocity sensitivity. At 0 every note plays at the same level." },
     { label: "Level", ids: ["toneLevel"], text: "The tone's level, on its mixer strip: how loud it is against the other tones." },
     { label: "Pan", ids: ["tonePan"], text: "The tone's place in the stereo field, on its mixer strip." },
   ],
   notes: [
+    "The ⋯ at the foot of the label strip opens the envelope's velocity curve and times, bias, and the pan extras (pan LFOs, keyfollow, random and alternate pan).",
     "With a looping wave (organs, strings, pads) the envelope shapes the whole note. With a one-shot wave (drums, " +
       "plucks) the wave's own decay ends the note, however long the envelope is.",
     "A slow attack (time 1) turns a plucked wave into a bowed or swelling sound; a short release (time 4) keeps fast " +
       "parts clean, a long one lets notes ring on.",
     "The same LFO depth positive on one tone and negative on another, with the two panned apart, makes them " +
       "alternate: an auto-pan.",
-    "The JV also has velocity sensitivity and curves for this envelope, and level bias across the keyboard; this " +
-      "editor doesn't show them yet.",
   ],
   flow: modulatedFlow({
     chain: [
@@ -198,11 +197,10 @@ export const LFO_HELP: SectionHelp = {
     })),
   ],
   notes: [
+    "The ⋯ at the foot of the label strip opens each LFO's key trigger, offset, delay, fade and clock sync.",
     "Two LFOs at slightly different rates on the same target give a less regular, more organic movement.",
     "S&H on the filter is the classic random burble; SQR on the pitch makes a trill.",
     "CHS (chaos) ignores Rate.",
-    "On the JV each LFO also has a delay and fade (so vibrato can creep in after the note starts), key sync, an " +
-      "offset and tempo sync; this editor doesn't show them yet.",
   ],
   flow: lfoFlow(),
 };

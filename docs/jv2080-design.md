@@ -93,7 +93,9 @@ After the first editor, a more compact layout, decided with the user:
   type starts from neutral values (`efxStartValue`), there and on the JV: the JV keeps the previous type's bytes when
   the type changes, so the editor sends the start values after the type (decided 2026-11-15).
 - What the editor can't set yet: [jv2080-not-in-editor.md](jv2080-not-in-editor.md).
-- LFO drawing / routing view and fit zoom: dropped (2026-11-14), not needed.
+- LFO drawing / routing view: dropped (2026-11-14), not needed. **Fit zoom** ✅ (2026-11-15): the editor is laid out
+  at 1920 px wide and zoomed with CSS `zoom` to fit the window (`editor/useFitZoom.ts`, after the TB-3's); popovers
+  live inside it and divide screen positions by the zoom.
 - **Chorus and reverb** get dedicated layouts like the SP-404's, stacked; the patch settings always visible beside
   them. ✅
 - **Wave library:** a panel over the tones with search and instrument categories (assigned from the wave names);
@@ -185,7 +187,7 @@ Follows the TB-3's split:
    MIDI ▾, and the MIDI log goes to the console). It reads the JV's patch when the ports
    are set, edits send DT1s (coalesced per address), edits from the JV's panel come back in, SYNC FROM / TO JV and the
    bank browser work. Controls are copied from the TB-3 (`src/ui`, as the SP-404 does) until the shared-package
-   question is decided. Still to do: envelope graphs (envelopes are rows of faders for now), fit zoom, undo.
+   question is decided. Still to do: undo.
 4. **Library** — sidebar: patch files, sets, audition, GRAB / DELETE.
 5. **Controllers and packaging** — CC learn, Launchpad (optional), packaged build.
 

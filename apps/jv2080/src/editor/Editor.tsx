@@ -7,6 +7,7 @@ import { demoPatch, isDemo } from "./demoPatch";
 import { EditorContext } from "./EditorContext";
 import { ToneColumn } from "./ToneColumn";
 import { TopStrip } from "./TopStrip";
+import { useFitZoom } from "./useFitZoom";
 import { useJvSession } from "./useJvSession";
 
 // What shows before there's a patch to edit.
@@ -37,11 +38,14 @@ export function Editor({ link }: { link: JvLink }) {
   const { patch, setValue, sendParam, syncFromJv } = session;
   const ready = useFirstRead(link, demo, syncFromJv);
 
+  const [root, setRoot] = useState<HTMLElement | null>(null);
+  useFitZoom(root);
+
   const resync = useCallback(() => void (demo || syncFromJv()), [demo, syncFromJv]);
   const api = useMemo(() => (patch ? { patch, setValue, sendParam, resync } : null), [patch, setValue, sendParam, resync]);
   return (
     <EditorContext.Provider value={api}>
-      <main className="editor">
+      <main className="editor" ref={setRoot}>
         <TopStrip link={link} session={session} />
         {api ? (
           <>

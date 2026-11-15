@@ -218,6 +218,15 @@ input {
   padding: 10px 16px 30px;
   min-width: 1200px;
 }
+/* A fixed design size, zoomed to fit the window (editor/useFitZoom.ts). */
+.fit body {
+  overflow: hidden;
+}
+.fit .editor {
+  box-sizing: border-box;
+  width: 1920px;
+  margin: 0 auto;
+}
 .top {
   display: flex;
   flex-wrap: wrap;
@@ -1372,7 +1381,7 @@ input {
   top: 60px;
   transform: translateX(-50%);
   z-index: 30;
-  width: calc(100vw - 32px);
+  width: calc(100% - 32px);
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -1395,7 +1404,7 @@ input {
   --led: var(--tint);
   flex: 1 1 auto;
   min-width: 0;
-  max-height: calc(100vh - 80px);
+  max-height: calc(var(--fit-h, 100vh) - 80px);
   overflow-y: auto;
   background: #121214;
   padding: 18px 26px 22px;
@@ -1542,6 +1551,7 @@ input {
 .popover {
   position: fixed;
   z-index: 40;
+  width: max-content; /* its own width, not squeezed by the window's edge, so it can be moved back inside */
   max-width: 560px;
   background: #121214;
   border: 1px solid color-mix(in srgb, var(--tint) 50%, #000);

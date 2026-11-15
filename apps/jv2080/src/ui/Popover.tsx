@@ -1,10 +1,12 @@
 // A small panel opened from a button, next to it: for the less-used controls of a part (a tone's "more" settings,
 // the structure of a tone pair, the key and velocity ranges). It takes the colour of where its button sits, stays
-// inside the window, and closes on Escape or a press outside.
+// inside the window, and closes on Escape or a press outside. It lives inside the editor, so it zooms with it
+// (editor/useFitZoom.ts): screen positions are divided by the zoom to place it in the editor's own px.
 
 import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useDismiss } from "./useDismiss";
+import { getZoom } from "./zoom";
 
 interface Anchor {
   left: number;
@@ -22,7 +24,8 @@ function Panel({ anchor, title, onClose, children }: { anchor: Anchor; title: st
   useLayoutEffect(() => {
     const r = panel.current?.getBoundingClientRect();
     if (!r) return;
-    setShift({ x: Math.min(0, innerWidth - EDGE - r.right), y: Math.min(0, innerHeight - EDGE - r.bottom) });
+    const zoom = getZoom();
+    setShift({ x: Math.min(0, innerWidth - EDGE - r.right) / zoom, y: Math.min(0, innerHeight - EDGE - r.bottom) / zoom });
   }, []);
   const style = { left: anchor.left + shift.x, top: anchor.top + shift.y, ["--tint" as string]: anchor.tint, ["--led" as string]: anchor.tint } as CSSProperties;
   return createPortal(
@@ -30,7 +33,7 @@ function Panel({ anchor, title, onClose, children }: { anchor: Anchor; title: st
       <div className="pop-title">{title}</div>
       {children}
     </div>,
-    document.body,
+    document.querySelector(".editor") ?? document.body,
   );
 }
 
@@ -43,7 +46,8 @@ export function PopoverButton({ label, title, className, children }: {
     e.stopPropagation();
     const r = e.currentTarget.getBoundingClientRect();
     const tint = getComputedStyle(e.currentTarget).getPropertyValue("--tint").trim() || "#a8b8ff";
-    setAnchor({ left: r.right + GAP, top: r.top, tint });
+    const zoom = getZoom();
+    setAnchor({ left: r.right / zoom + GAP, top: r.top / zoom, tint });
   };
   return (
     <>

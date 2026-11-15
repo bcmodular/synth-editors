@@ -37,7 +37,7 @@ the TB-3's port, such as a DAW or MIDI-OX, before you start.
 
 The ports, channel and library folder are remembered.
 
-**AUDIO IN (LIVE)** picks the audio input for VCO MIX's live waveform: see
+**AUDIO IN (LIVE)** picks the audio input for the VCO mix's live waveform: see
 [The TB-3's output, live](#the-tb-3s-output-live). Leave it on Automatic to use the TB-3's own USB audio.
 
 **QUIET SWITCH** mutes the TB-3 for the moment it takes to switch patches. Switching while a
@@ -54,14 +54,17 @@ something isn't getting through. The LAUNCHPAD ports are for a Launchpad Pro: se
 
 Every change is sent to the TB-3 straight away, so you hear it as you edit.
 
-### Knobs
+### Knobs and faders
 
-The values are knobs, with caps in their section's colour:
+Each section has its own colour, and its knobs, faders, buttons and pictures follow it: the VCO
+group is the TB-3's green. The values are knobs, apart from cross mod's faders:
 
-- **Drag** a knob up or down to change it. The drag is relative: grab anywhere and move.
+- **Drag** a knob up or down (a fader sideways) to change it. The drag is relative: grab anywhere
+  and move.
 - Hold **Shift** while dragging for fine control.
-- **Scroll** over a knob to step its value one at a time.
-- **Double-click** a knob to reset it to zero, its centre, or its default for effect settings.
+- **Scroll** over a knob or fader to step its value one at a time.
+- **Double-click** a knob or fader to reset it to zero, its centre, or its default for effect
+  settings.
 
 The ring round each knob shows how far it's turned. On bipolar values, like the tunings and cross
 mod, the ring fills from the top, either way; cross mod's negative amounts are amber. Each knob
@@ -90,27 +93,27 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
 
 ### Oscillators
 
-![VCO, VCO MIX, CROSS MOD and RING MOD](images/row-oscillators.png)
+![VCO, CROSS MOD and RING MOD](images/row-oscillators.png)
 
 - **VCO**: a level knob for each source: saw, square, sine, white and pink noise, and the ring
   modulator. The button above each knob switches that source on and off. TUNING sets the
   pitch offsets of the saw, square, and ring + sine oscillators.
-- **VCO MIX**: with **DRAWN** selected, a picture of the mixed waveform, drawn from the settings to
-  show the shape of the mix. With **LIVE** selected, the TB-3's actual output: see below.
-- **CROSS MOD**: how much the square, saw and noise sources modulate the saw (top group, → SAW) and
-  the square (bottom group, → SQR). The diagram beside each group shows which paths are active: green
-  for positive amounts, amber for negative ones.
-- **RING MOD**: the ring modulator's source depths and overall depth.
+  Beside them, the mix: with **DRAWN** selected, a picture of the mixed waveform, drawn from the
+  settings to show the shape of the mix. With **LIVE** selected, the TB-3's actual output: see below.
+- **CROSS MOD**: how much the square, saw and noise sources modulate the saw (left group) and the
+  square (right group), one fader each. The diagram beside each group shows which paths are active,
+  ending at the destination: violet for positive amounts, amber for negative ones.
+- **RING MOD**, under it: the ring modulator's source depths and overall depth.
 
 ### The TB-3's output, live
 
-![VCO MIX in LIVE: the last 4 seconds of the TB-3's left and right output, with its level](images/vco-mix-live.png)
+![The VCO mix in LIVE: the last 4 seconds of the TB-3's left and right output, with its level](images/vco-mix-live.png)
 
-![VCO MIX's SPECTRUM: the TB-3's frequencies, with a peak line](images/vco-mix-spectrum.png)
+![The VCO mix's SPECTRUM: the TB-3's frequencies, with a peak line](images/vco-mix-spectrum.png)
 
-![VCO MIX's SPECTROGRAM: frequencies over the last 4 seconds](images/vco-mix-spectrogram.png)
+![The VCO mix's SPECTROGRAM: frequencies over the last 4 seconds](images/vco-mix-spectrogram.png)
 
-Click **LIVE** in VCO MIX to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
+Click **LIVE** in VCO to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
 so the TB-3 needs to be connected by USB, with Roland's TB-3 driver installed.
 
 - **The waveforms**, left (L) above right (R), scroll from right to left and show the last 4 seconds.
@@ -139,9 +142,9 @@ The editor finds the TB-3's audio by itself. If it can't, LIVE says so; choose t
 **AUDIO IN (LIVE)** in the MIDI settings. The editor only listens: the TB-3's sound still reaches your
 speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIVE graph, is remembered.
 
-### Filter, amp and LFO
+### Filter, amp, LFO and distortion
 
-![VCF, VCA and LFO](images/row-shaping.png)
+![VCF, VCA, LFO and DISTORTION](images/row-shaping.png)
 
 - **VCF**: cutoff, resonance, envelope depth and key follow, with the filter envelope. Drag the
   envelope's handles to shape it. The first sets attack, the second sets decay (sideways) and
@@ -154,7 +157,9 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
 
 ### Distortion and effects
 
-![DISTORTION, EFX1 and EFX2](images/row-effects.png)
+DISTORTION sits at the end of the filter row, so EFX1 and EFX2 share the bottom row.
+
+![EFX1 and EFX2](images/row-effects.png)
 
 - **DISTORTION**: ON switches it in. Step through the 25 types with ‹ and ›, by scrolling, or with
   the arrow keys. To see every type grouped by family, click the type's name. COLOR is the TB-3's

@@ -63,9 +63,12 @@ Column widths (CSS px, 1580 inside the margins):
 
 | Row | Columns |
 |-----|---------|
-| Oscillator row | VCO 300, VCO MIX 370, Cross mod 520, Ring mod rest (~350) |
-| Shape row | VCF 530, VCA 530, LFO rest |
-| FX row | Distortion 240, EFX1 and EFX2 split the rest |
+| Oscillator row | VCO group (sources and tuning 376, mix 564), then CROSS MOD over RING MOD in the rest |
+| Shape row | VCF, VCA (each as wide as its envelope and knobs), LFO rest, DISTORTION 250 |
+| FX row | EFX1 and EFX2 split the row |
+
+(Revised 2026-11: values became knobs in their section's colour; VCO and VCO MIX became one green group; cross mod
+went back to faders, its two groups side by side; DISTORTION moved up beside the LFO.)
 | Top strip | ~140 px tall |
 
 PORTA · BEND was a popover from PERFORM while PATCHES and MORPH shared the top strip. Since
@@ -93,7 +96,7 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 | Tuning | **2a**: three bipolar horizontal bars filling from the centre line (centre 127, max 151, display `def.display`). | `saw_tuning`, `sqr_tuning`, `ring_sin_tuning` |
 | VCO mix | Display-only waveform: the summed oscillator mix over two cycles (sources that are switched off are left out; tuning offsets shift each wave's pitch, 24 steps drawn as an octave; cross/ring mod depths are not modelled). The window is two cycles of the lowest-pitched wave that's playing, so a single detuned wave never goes flat, and other waves are drawn at most three octaves above it. Maths in `core/vcoShape.ts`. | `vco_*`, `*_tuning` |
 | Cross mod | **3b**, mirrored: the → SAW cells on the left, the → SQR cells on the right, and the patch view between them. The patch view labels the sources at its left and right edges, beside their cells, with SAW and SQR in the middle; each **non-zero** cell draws a cord inwards from its source to its destination, so cords from the two columns never cross. Thickness shows the amount and colour the sign (green positive, amber negative). Zero cells draw nothing. The patch view is read-only. | `cm_*` (8) |
-| Ring mod | Its own section next to CROSS MOD: six horizontal rows in two columns. | `rm_*` |
+| Ring mod | Its own section under CROSS MOD: one row of six knobs. | `rm_*` |
 | VCF | **4a** envelope editor (see below), with horizontal bars to its right for CUTOFF, RESONANCE, ENV DEPTH and KEY FOLLOW. Cutoff and resonance are u16 (0–255). | `vcf_*` |
 | VCA | **4a** envelope editor, with VOLUME to its right. | `vca_*`, `master_volume` |
 | Distortion | **6b**: type stepper, then ON and COLOR LED buttons, then DRIVE (0–120), BOTTOM and TONE (bipolar, centre 50), EFX LVL and DRY LVL. | `dist_*` |
@@ -111,8 +114,8 @@ Cutoff and resonance stay in the VCF section only; they're its biggest faders.
 - **Attack** handle: drags horizontally only, and sets A.
 - **Decay/sustain** handle: horizontal drag sets D and vertical drag sets S, both in one gesture.
 - **Release** handle: drags horizontally and sets R.
-- A row of four small A / D / S / R faders sits under the graph and edits the same values, with
-  the usual fader rules (drag, scroll, double-click resets to 0).
+- A row of four small A / D / S / R knobs sits under the graph and edits the same values, with
+  the usual knob rules (drag, scroll, double-click resets to 0).
 
 ### LFO view (5a)
 

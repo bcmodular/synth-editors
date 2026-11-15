@@ -14,6 +14,7 @@ import { createEditQueue } from "./editQueue";
 export interface JvSession {
   patch: Patch | null;
   busy: boolean;
+  readFailed: boolean; // the last read from the JV didn't complete
   setValue: (p: ParamDef, value: number, tone?: number) => void;
   sendParam: (p: ParamDef, value: number, tone?: number) => void; // to the JV only, the patch unchanged (eg. solo)
   syncFromJv: () => Promise<void>;
@@ -27,6 +28,23 @@ function useIncomingEdits(link: JvLink, busy: boolean, setPatch: (f: (p: Patch |
     const dt = busy ? undefined : parseDt1(msg);
     if (dt?.checksumOk) setPatch((p) => p && applyDt1(p, dt.addr, dt.data));
   }), [link.subscribe, busy, setPatch]);
+}
+
+// Reading the whole patch from the JV, remembering whether the last read failed.
+function useReadFromJv(link: JvLink, offline: boolean, setPatch: (p: Patch) => void, setBusy: (b: boolean) => void) {
+  const [readFailed, setReadFailed] = useState(false);
+  const syncFromJv = useCallback(async () => {
+    if (offline) return;
+    setBusy(true);
+    const buffer = emptyPatch();
+    const ok = await readPatch(link, buffer, () => {});
+    const read = ok ? bufferToPatch(buffer) : undefined;
+    if (read) setPatch(read);
+    setReadFailed(!read);
+    link.note(read ? `read "${patchName(read)}"` : "read incomplete");
+    setBusy(false);
+  }, [link, offline, setPatch, setBusy]);
+  return { syncFromJv, readFailed };
 }
 
 // With `offline` (demo mode) nothing is sent: the editor works on its own patch without touching a JV.
@@ -47,16 +65,7 @@ export function useJvSession(link: JvLink, initial: Patch | null = null, offline
     sendParam(p, value, tone);
   }, [sendParam]);
 
-  const syncFromJv = useCallback(async () => {
-    if (offline) return;
-    setBusy(true);
-    const buffer = emptyPatch();
-    const ok = await readPatch(link, buffer, () => {});
-    const read = ok ? bufferToPatch(buffer) : undefined;
-    if (read) setPatch(read);
-    link.note(read ? `read "${patchName(read)}"` : "read incomplete");
-    setBusy(false);
-  }, [link, offline]);
+  const { syncFromJv, readFailed } = useReadFromJv(link, offline, setPatch, setBusy);
 
   const syncToJv = useCallback(async () => {
     if (!patch || offline) return;
@@ -71,6 +80,6 @@ export function useJvSession(link: JvLink, initial: Patch | null = null, offline
     await syncFromJv();
   }, [link.channel, send, syncFromJv]);
 
-  return { patch, busy, setValue, sendParam, syncFromJv, syncToJv, loadFromBank };
+  return { patch, busy, readFailed, setValue, sendParam, syncFromJv, syncToJv, loadFromBank };
 }
 

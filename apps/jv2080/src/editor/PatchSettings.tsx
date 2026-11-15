@@ -32,11 +32,6 @@ export function PatchSettings() {
         </div>
       </div>
       <ParamChoice def="clockSource" />
-      <p className="note">
-        {followsSystem
-          ? "SYSTEM follows the JV's system clock, which follows incoming MIDI clock when SYSTEM › MIDI sets it to MIDI."
-          : "PATCH uses this patch's own tempo, for tempo-synced LFOs, delays and tone delay."}
-      </p>
     </Section>
   );
 }

@@ -1,10 +1,12 @@
-// Title, MIDI ports, sync with the JV, and the bank browser (bank select + program change, then read the patch).
+// Title, MIDI ports, sync with the JV, the bank browser (bank select + program change, then read the patch) and the
+// MIDI settings. A read that doesn't complete is flagged beside the patch name.
 
 import type { PortInfo } from "@synth-editors/midi";
 import { useState } from "react";
 import { BANKS, PATCHES_PER_BANK } from "../core/banks";
 import { patchName } from "../core/patch";
 import type { JvLink } from "../link/useJvLink";
+import { MidiSettings } from "./MidiSettings";
 import type { JvSession } from "./useJvSession";
 
 function PortSelect(p: { label: string; ports: PortInfo[]; value: string; onChange: (v: string) => void }) {
@@ -48,18 +50,23 @@ function BankBrowser({ session }: { session: JvSession }) {
   );
 }
 
-export function TopStrip(p: { link: JvLink; session: JvSession; onSpike: () => void }) {
+export function TopStrip(p: { link: JvLink; session: JvSession }) {
   const { link, session } = p;
   return (
     <header className="top">
       <h1>JV-2080</h1>
       <span className="name">{session.patch ? patchName(session.patch) : "—"}</span>
+      {session.readFailed && (
+        <span className="read-failed" title="Check the ports and the MIDI settings, and that the JV is on">
+          NO REPLY FROM THE JV
+        </span>
+      )}
       <PortSelect label="OUT" ports={link.outputs} value={link.outName} onChange={link.setOutName} />
       <PortSelect label="IN" ports={link.inputs} value={link.inName} onChange={link.setInName} />
       <button className="btn" disabled={session.busy} onClick={() => void session.syncFromJv()}>SYNC FROM JV</button>
       <button className="btn" disabled={session.busy || !session.patch} onClick={() => void session.syncToJv()}>SYNC TO JV</button>
       <BankBrowser session={session} />
-      <button className="btn spike-btn" onClick={p.onSpike}>SPIKE</button>
+      <MidiSettings link={link} />
     </header>
   );
 }

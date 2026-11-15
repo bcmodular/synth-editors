@@ -1,18 +1,11 @@
-// The spike's MIDI link: chosen ports (remembered by name), device ID and channel, a timed log of everything sent
-// and received, and a subscription to incoming SysEx.
+// The MIDI link to the JV: chosen ports (remembered by name), device ID and patch channel, and a subscription to
+// incoming SysEx. Everything sent and received is logged to the console (console.debug, "Verbose" in DevTools).
 
 import { findInputByName, findOutputByName, isSysex, listInputs, listOutputs, requestMidi, toHex, type PortInfo } from "@synth-editors/midi";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_DEVICE_ID } from "../core/sysex";
 
-export interface LogLine {
-  t: number; // ms since the app started
-  text: string;
-}
-
 export type SysexListener = (msg: number[], t: number) => void;
-
-const MAX_LOG = 400;
 
 function useStored(key: string, initial: string): [string, (v: string) => void] {
   const [value, setValue] = useState(() => localStorage.getItem(key) ?? initial);
@@ -23,7 +16,7 @@ function useStored(key: string, initial: string): [string, (v: string) => void] 
   return [value, set];
 }
 
-function useMidiAccess(note: (text: string) => void) {
+function useMidiAccess() {
   const [access, setAccess] = useState<MIDIAccess>();
   const [inputs, setInputs] = useState<PortInfo[]>([]);
   const [outputs, setOutputs] = useState<PortInfo[]>([]);
@@ -36,17 +29,14 @@ function useMidiAccess(note: (text: string) => void) {
       setAccess(a);
       refresh();
       a.onstatechange = refresh;
-    }).catch((e: unknown) => note(`MIDI unavailable: ${String(e)}`));
-  }, [note]);
+    }).catch((e: unknown) => console.error("MIDI unavailable:", e));
+  }, []);
   return { access, inputs, outputs };
 }
 
 export function useJvLink() {
-  const [log, setLog] = useState<LogLine[]>([]);
-  const note = useCallback((text: string) => {
-    setLog((l) => [...l.slice(-(MAX_LOG - 1)), { t: performance.now(), text }]);
-  }, []);
-  const { access, inputs, outputs } = useMidiAccess(note);
+  const note = useCallback((text: string) => console.debug(`[jv ${performance.now().toFixed(0)} ms] ${text}`), []);
+  const { access, inputs, outputs } = useMidiAccess();
   const [outName, setOutName] = useStored("jv2080.out", "");
   const [inName, setInName] = useStored("jv2080.in", "");
   const [deviceText, setDevice] = useStored("jv2080.device", String(DEFAULT_DEVICE_ID));
@@ -82,7 +72,7 @@ export function useJvLink() {
     inputs, outputs, outName, setOutName, inName, setInName,
     device: Number(deviceText), setDevice: (d: number) => setDevice(String(d)),
     channel: Number(channelText), setChannel: (c: number) => setChannel(String(c)),
-    log, note, clearLog: () => setLog([]), send, subscribe,
+    note, send, subscribe,
   };
 }
 

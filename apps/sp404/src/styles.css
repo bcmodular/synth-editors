@@ -1812,3 +1812,201 @@ button:focus-visible {
   outline: 1px solid var(--cap);
   outline-offset: -2px;
 }
+
+/* The (i) on an FX module, and the help panel it opens (fx/FxHelp.tsx): a working copy of the module on the left,
+   the effect's help on the right, both in the bus's colour. */
+.bus .info {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--acc);
+  border-radius: 50%;
+  background: #000;
+  color: var(--acc);
+  font: italic 700 var(--text-l) Georgia, serif;
+  cursor: pointer;
+}
+
+.bus .info:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.fx-help {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  transform: translateX(-50%);
+  z-index: 25;
+  width: 1560px;
+  display: flex;
+  align-items: stretch; /* the copy and the help the same height, whichever is taller */
+  box-shadow: 0 10px 40px #000c;
+}
+
+.bus.fx-help-side {
+  flex: none;
+  min-height: 470px;
+  background: var(--panel);
+  border: 1px solid var(--acc);
+  border-right: none;
+}
+
+.fx-help-panel {
+  flex: 1;
+  min-width: 0;
+  max-height: 1000px;
+  overflow-y: auto;
+  background: #18191c;
+  border: 1px solid var(--acc);
+  padding: 18px 26px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fx-help-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* The effect's name on its LCD, as on the module: click to choose another. */
+.fx-help-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px;
+  background: color-mix(in srgb, var(--acc) 14%, #000);
+  border: 1px solid #000;
+  color: var(--acc);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.fx-help-name span {
+  font-size: var(--text-m);
+}
+
+.fx-help-loads {
+  font-size: var(--text-m);
+  letter-spacing: 0.06em;
+  color: var(--dim);
+}
+
+.fx-help-head .pill {
+  margin-left: auto;
+}
+
+.fx-help-summary {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--txt);
+}
+
+.fx-help-params {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 24px;
+}
+
+.fx-help-params > div {
+  padding: 6px 10px;
+  border-left: 2px solid color-mix(in srgb, var(--acc) 50%, transparent);
+}
+
+.fx-help-params dt {
+  display: flex;
+  align-items: baseline;
+  font-weight: 600;
+  font-size: var(--text-xl);
+  letter-spacing: 0.04em;
+  color: var(--acc);
+}
+
+.fx-help-params dt small {
+  margin-left: auto;
+  padding: 0 10px;
+  font-weight: 400;
+  font-size: var(--text-s);
+  letter-spacing: 0;
+  color: var(--dim);
+}
+
+.fx-help-params dt em {
+  font-style: normal;
+  color: #fff;
+}
+
+.fx-help-params dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #c8cad0;
+}
+
+.fx-help-notes {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--txt);
+}
+
+.fx-help-notes li + li {
+  margin-top: 4px;
+}
+
+.fx-help-credit {
+  margin: 0;
+  font-size: var(--text-s);
+  color: var(--dim);
+}
+
+/* In the help panel's copy of a module, a control (and the drawing) lights while its help row is pointed at, and its
+   row while it is (fx/hot.ts): a ring drawn inside the control's own box, and a tint behind. */
+.hot-ctl {
+  outline: 1.5px solid transparent;
+  outline-offset: -1.5px;
+  transition: outline-color 0.1s, background 0.1s;
+}
+
+.hot-ctl.hot {
+  outline-color: color-mix(in srgb, var(--acc) 85%, transparent);
+  background: color-mix(in srgb, var(--acc) 18%, transparent);
+}
+
+.fx-help-params > div.hot {
+  background: color-mix(in srgb, var(--acc) 12%, transparent);
+  border-left-color: var(--acc);
+}
+
+.fx-help-params > div {
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.fx-help-params > div.hot-ctl {
+  outline: none;
+}
+
+/* A drawing's handle or bar lit from the help panel: the handle filled and ringed in the bus's colour, the bar's
+   track tinted. */
+.hdl.hot .dot {
+  fill: var(--acc);
+  stroke: var(--acc);
+}
+
+.hdl.hot .hit {
+  fill: color-mix(in srgb, var(--acc) 25%, transparent);
+}
+
+.bar.hot .dimf {
+  fill: color-mix(in srgb, var(--acc) 30%, transparent);
+}

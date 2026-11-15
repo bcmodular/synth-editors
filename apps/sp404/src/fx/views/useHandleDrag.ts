@@ -46,10 +46,17 @@ function startDrag(drag: HandleDrag, { values, onValue }: Axes, e: ReactPointerE
   el.addEventListener("pointerup", up);
 }
 
+// A handle's pointer-down, tagged with the parameters it moves (so a help panel can light the handle with them).
+export type DragHandler = ((e: ReactPointerEvent<SVGElement>) => void) & { indices: readonly number[] };
+
 export function useHandleDrag(axes: Axes) {
   const latest = useRef(axes);
   latest.current = axes;
-  return (drag: HandleDrag) => (e: ReactPointerEvent<SVGElement>) => {
-    if (e.button === 0) startDrag(drag, latest.current, e);
+  return (drag: HandleDrag): DragHandler => {
+    const handler = (e: ReactPointerEvent<SVGElement>) => {
+      if (e.button === 0) startDrag(drag, latest.current, e);
+    };
+    const indices = [drag.x?.index, drag.y?.index].filter((i): i is number => i !== undefined);
+    return Object.assign(handler, { indices });
   };
 }

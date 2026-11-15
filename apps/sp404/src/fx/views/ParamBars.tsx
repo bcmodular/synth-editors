@@ -4,6 +4,7 @@
 import { displayValue, isSyncOn, syncParam } from "../../core/fx";
 import type { FxParam } from "../../core/fxTypes";
 import { useValueDrag } from "../../ui/useValueDrag";
+import { hotSvgProps, useHot } from "../hot";
 import type { ViewProps } from "./types";
 
 interface BarProps {
@@ -34,7 +35,7 @@ function Bar({ p, slot, raw, text, x, w, height, onChange }: BarProps) {
   const drag = useValueDrag<SVGRectElement>({ value: raw, max: 127, onChange, defaultValue: 64, axis: "y", length: travel });
   const h = (raw / 127) * travel;
   return (
-    <g>
+    <g {...hotSvgProps(useHot(), [p.key], "bar")}>
       <rect className="dimf" x={x} y={TOP} width={w} height={travel} />
       <rect className="af" x={x} y={TOP + travel - h} width={w} height={h} opacity={0.75} />
       <text className="gl" x={x + w / 2} y={height - 4} textAnchor="middle">{fitLabel(p.label, slot - 2)}</text>

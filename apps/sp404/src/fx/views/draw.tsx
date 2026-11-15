@@ -2,7 +2,9 @@
 // a log frequency axis, illustrative filter maths, a frequency response panel and a draggable handle. The
 // drawings make settings readable; they aren't measurements of the SP-404.
 
-import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import { useContext, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
+import { hotSvgProps, ParamKeysContext, useHot } from "../hot";
+import type { DragHandler } from "./useHandleDrag";
 
 export const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
@@ -106,15 +108,24 @@ export interface HandleProps {
   x: Px;
   y: Px;
   label?: string;
-  onPointerDown: (e: ReactPointerEvent<SVGElement>) => void;
+  onPointerDown: DragHandler | ((e: ReactPointerEvent<SVGElement>) => void);
 }
 
-// A white dot with a larger invisible hit area and a label above it (below when near the top).
+// The parameters a handle moves, as keys (when its pointer-down came from a view's drag).
+function useHandleKeys(onPointerDown: HandleProps["onPointerDown"]): string[] {
+  const keys = useContext(ParamKeysContext);
+  const indices = "indices" in onPointerDown ? onPointerDown.indices : [];
+  return indices.map((i) => keys[i]).filter((k): k is string => k !== undefined);
+}
+
+// A white dot with a larger invisible hit area and a label above it (below when near the top). In a help panel's
+// copy it lights with the parameters it moves.
 export function Handle({ size, x, y, label, onPointerDown }: HandleProps) {
   const cx = clamp(x, 7, size.width - 7);
   const cy = clamp(y, 7, size.height - 7);
+  const lit = hotSvgProps(useHot(), useHandleKeys(onPointerDown), "hdl");
   return (
-    <g className="hdl" onPointerDown={onPointerDown} role="slider" aria-label={label}>
+    <g {...lit} onPointerDown={onPointerDown} role="slider" aria-label={label}>
       <circle className="hit" cx={cx} cy={cy} r={13} />
       <circle className="dot" cx={cx} cy={cy} r={5.5} />
       {label && <text className="hl" x={cx} y={cy < 18 ? cy + 17 : cy - 10} textAnchor="middle">{label}</text>}

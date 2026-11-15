@@ -6,6 +6,7 @@ let running: Sp404App | undefined;
 test.afterEach(async () => finish(running));
 
 const module = (r: Sp404App, bus: number) => r.page.locator(`.bus[data-bus="${bus}"]`);
+const LIT = /(^|\s)hot(\s|$)/; // lit from a help panel (not just hot-ctl)
 
 async function chooseEffect(r: Sp404App, bus: number, label: string, name: string) {
   await r.page.getByRole("button", { name: `${label} effect` }).click();
@@ -133,4 +134,40 @@ test("every effect draws its view on a bus that can load it, without errors", as
     await expect(module(r, bus).locator(".view svg"), fx.name).toBeVisible();
   }
   expect(errors).toEqual([]);
+});
+
+test("(i) opens the effect's help, with its parameters' values, and a working copy of the module", async () => {
+  const r = (running = await start());
+  await expect(module(r, 1).getByRole("button", { name: "About this effect" })).toBeDisabled();
+  await chooseEffect(r, 1, "BUS 1", "Filter + Drive");
+  await module(r, 1).getByRole("button", { name: "About Filter + Drive" }).click();
+  const help = r.page.getByRole("dialog", { name: "About Filter + Drive" });
+  await expect(help).toContainText("Bus 1, Bus 2, Bus 3, Bus 4");
+  await expect(help.locator("dt").filter({ hasText: "CUTOFF" })).toContainText("20 Hz – 16000 Hz");
+  const copy = r.page.locator(".fx-help-side");
+  const row = (label: string) =>
+    help.locator(".fx-help-params > div").filter({ has: r.page.locator("dt", { hasText: new RegExp(`^${label}`) }) });
+  await row("RESONANCE").hover(); // pointing at a row lights its control in the copy, and only that one
+  await expect(copy.locator(".slot.hot")).toHaveCount(1);
+  await expect(copy.locator(".slot.hot")).toContainText("RESONANCE");
+  await expect(copy.locator(".hdl.hot")).toHaveCount(1); // and the drawing's handle that moves it
+  await expect(copy.locator(".hdl.hot")).toHaveAttribute("aria-label", "CUT · RESO");
+  await copy.locator(".hdl", { hasText: "LOW" }).hover(); // pointing at a handle lights the rows it moves
+  await expect(row("LOW FREQ")).toHaveClass(LIT);
+  await expect(row("LOW GAIN")).toHaveClass(LIT);
+  if (process.env.HELP_SHOT) await r.page.waitForTimeout(300).then(() => r.page.screenshot({ path: process.env.HELP_SHOT }));
+  await copy.getByRole("slider", { name: "DRIVE" }).hover(); // and pointing at a control lights its row
+  await expect(row("DRIVE")).toHaveClass(LIT);
+  await expect(row("CUTOFF")).not.toHaveClass(LIT);
+  await copy.getByRole("group", { name: "FILTER TYPE" }).getByRole("button").first().click();
+  await expect.poll(async () => (await midiSent(r.page)).at(-1)).toEqual([0xb0, 80, 0]);
+  await help.getByRole("button", { name: "Choose the effect for BUS 1" }).click();
+  const chooser = r.page.getByRole("dialog", { name: "Effects for BUS 1" });
+  await chooser.getByRole("button", { name: "Reverb", exact: true }).click();
+  const reverb = r.page.getByRole("dialog", { name: "About Reverb" });
+  await expect(reverb).toBeVisible();
+  await expect(module(r, 1).locator(".name")).toHaveText("REVERB");
+  await expect.poll(async () => (await midiSent(r.page)).filter((m) => m[1] === 83).at(-1)).toEqual([0xb0, 83, 22]);
+  await r.page.keyboard.press("Escape");
+  await expect(reverb).toBeHidden();
 });

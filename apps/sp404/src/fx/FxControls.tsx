@@ -9,6 +9,7 @@ import { displayValue, isSyncOn, paramMode, stepIndex, stepLabels, syncParam } f
 import type { FxDef, FxParam } from "../core/fxTypes";
 import { BigButton, Drop, Grid, Knob, NoteMatrix, SegRow, type StepControlProps, type StepOption } from "./controls";
 import { FX_LAYOUT } from "./fxLayout";
+import { hotProps, useHot } from "./hot";
 import { SLOTS } from "../bcr/bcrMap";
 import { KillRow } from "./KillRow";
 import type { ControlKind, ControlLayout } from "./layoutTypes";
@@ -46,7 +47,7 @@ export function controlFor(p: FxParam, kind: ControlKind, synced: ControlKind | 
 
 // Where a parameter's control goes: in its slot's cell of the 3 × 2 grid (laid out as the BCR2000's encoders), or,
 // when too wide for a cell, in a full-width row above the grid (its cell then shows the name and value).
-type Placed = { cell: ReactNode; row?: ReactNode; big?: boolean; tuning?: boolean };
+type Placed = { cell: ReactNode; row?: ReactNode; big?: boolean; tuning?: boolean; keys?: readonly string[] };
 
 const Readout = ({ label, text }: { label: string; text: string }) => (
   <span className="readout"><span className="lbl">{label}</span><em>{text}</em></span>
@@ -82,7 +83,7 @@ function place(p: FxParam, kind: ControlKind, label: string | undefined, raw: nu
 }
 
 // With its own drawing, an effect's in-view parameters (and synced ones shown in the view) are set there.
-const setInView = (ctl: ControlLayout, syncOn: boolean) => ctl.kind === "inview" || (syncOn && ctl.synced === "inview");
+export const setInView = (ctl: ControlLayout, syncOn: boolean) => ctl.kind === "inview" || (syncOn && ctl.synced === "inview");
 
 interface PlaceContext {
   fx: FxDef;
@@ -135,18 +136,24 @@ function keepPlace(placed: Placed[], keep: KeepTuning | undefined): KeepAt {
 // Wide rows, then big buttons side by side, then the six cells (slots 1–3 down the left, 4–6 down the right), with
 // KEEP TUNING above the first of them that holds a tuning parameter.
 function Slots({ placed, keep }: { placed: Placed[]; keep?: KeepTuning }) {
+  const hot = useHot();
+  const lit = (x: Placed | undefined, className: string) => hotProps(hot, x?.keys ?? [], className);
   const rows = placed.filter((x) => x.row && !x.big);
   const big = placed.filter((x) => x.big);
   const keepAt = keepPlace(placed, keep);
   const keepRow = (at: KeepAt) => keep && keepAt === at && <KeepTuningRow keep={keep} />;
   return (
     <>
-      {rows.map((x, i) => <div key={`r${i}`} className="row-slot">{keepRow(x)}{x.row}</div>)}
+      {rows.map((x, i) => (
+        <div key={`r${i}`} className="row-slot">{keepRow(x)}<div {...lit(x, "row-ctl")}>{x.row}</div></div>
+      ))}
       {keepRow("big")}
-      {big.length > 0 && <div className="frow">{big.map((x, i) => <span key={i} className="big-slot">{x.row}</span>)}</div>}
+      {big.length > 0 && (
+        <div className="frow">{big.map((x, i) => <span key={i} {...lit(x, "big-slot")}>{x.row}</span>)}</div>
+      )}
       {keepRow("grid")}
       <div className="slots">
-        {Array.from({ length: SLOTS }, (_, i) => <div key={i} className="slot">{placed[i]?.cell}</div>)}
+        {Array.from({ length: SLOTS }, (_, i) => <div key={i} {...lit(placed[i], "slot")}>{placed[i]?.cell}</div>)}
       </div>
     </>
   );
@@ -161,7 +168,8 @@ export function FxControls({ fx, values, onValue, hasView, keepTuning }: FxContr
   return (
     <div className="fx-controls">
       {layout?.kill && <KillRow values={values} onValue={onValue} />}
-      <Slots placed={fx.params.map((p, i) => ({ ...placeParam(p, i, x), tuning: p.tuning }))} keep={keepTuning} />
+      <Slots placed={fx.params.map((p, i) => ({ ...placeParam(p, i, x), tuning: p.tuning, keys: [p.key] }))}
+        keep={keepTuning} />
     </div>
   );
 }

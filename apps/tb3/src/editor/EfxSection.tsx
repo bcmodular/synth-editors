@@ -91,7 +91,7 @@ export function EfxSection(p: { efx: EfxNum }) {
 
   return (
     <Section
-      title={`EFX${p.efx} · ${disabled ? "–" : type.name}`}
+      title={disabled ? "–" : type.name}
       className={`efx efx${p.efx}`}
       extra={
         sw !== undefined && (

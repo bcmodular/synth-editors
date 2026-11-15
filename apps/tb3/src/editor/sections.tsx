@@ -95,7 +95,7 @@ export function VcoSection(p: { audio: Tb3Audio }) {
       })
     : null;
   return (
-    <Section title="VCO" className="vco vcosum" extra={<ViewSwitch audio={p.audio} />}>
+    <Section title="OSCILLATORS" className="vco vcosum" extra={<ViewSwitch audio={p.audio} />}>
       <div className="row top">
         <VcoControls />
         {p.audio.view === "live" ? (
@@ -124,7 +124,7 @@ export function ModSection() {
     ? XM_SOURCES.map((_, r) => XM_DESTS.map((_, c) => getRaw(patch, paramById(xmId(r, c))) - 64))
     : null;
   return (
-    <Section title="CROSS MOD" className="mod">
+    <Section title="CROSS MODULATION" className="mod">
       <XmodMatrix
         sources={XM_SOURCES}
         dests={XM_DESTS}
@@ -138,7 +138,7 @@ export function ModSection() {
 
 export function RingModSection() {
   return (
-    <Section title="RING MOD" className="ring">
+    <Section title="RING MODULATION" className="ring">
       <div className="knobrow">
         <ParamKnob id="rm_saw_depth" label="SAW" />
         <ParamKnob id="rm_sqr_depth" label="SQR" />
@@ -183,7 +183,7 @@ function Envelope(p: { prefix: "vcf" | "vca"; label: string }) {
 
 export function VcfSection() {
   return (
-    <Section title="VCF" className="vcf">
+    <Section title="FILTER" className="vcf">
       <div className="row top">
         <Envelope prefix="vcf" label="ENV" />
         <div className="knobgrid two">
@@ -199,7 +199,7 @@ export function VcfSection() {
 
 export function VcaSection() {
   return (
-    <Section title="VCA" className="vca">
+    <Section title="AMPLIFIER" className="vca">
       <div className="row top">
         <Envelope prefix="vca" label="ENV" />
         <div className="knobgrid two">

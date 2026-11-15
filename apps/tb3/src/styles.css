@@ -199,18 +199,18 @@ button:focus-visible {
   --sel-bg: #2a1220;
 }
 .vcf {
-  --tint: #7fc4ea;
-  --led: #4fb3f0;
-  --led-off: #1f4a66;
-  --val: #a3d7f7;
-  --sel-bg: #0e1d28;
+  --tint: #8de3ee;
+  --led: #2fd0e2;
+  --led-off: #145860;
+  --val: #9eeaf2;
+  --sel-bg: #0b2326;
 }
 .vca {
-  --tint: #8fdcc4;
-  --led: #3fd6a8;
-  --led-off: #1d5a48;
-  --val: #a3eadb;
-  --sel-bg: #0e2420;
+  --tint: #ecd77a;
+  --led: #f2cf2e;
+  --led-off: #66561a;
+  --val: #f5e08a;
+  --sel-bg: #26210b;
 }
 /* DISTORTION follows its header's orange, as the EFX blocks and the LFO follow theirs. */
 .dist {
@@ -1047,8 +1047,21 @@ svg .eqfill.cut {
 .librow .tag.bad {
   color: #ff8a6a;
 }
+/* Audition: a drawn triangle (the ▶ character turns into a green emoji on macOS), dim until hovered or held. */
 .librow .play {
+  color: var(--dim);
+  padding: 3px 7px;
+}
+.librow .play:hover {
   color: var(--led);
+}
+.librow .play:active {
+  color: #fff;
+  border-color: #e8e8e8;
+}
+.playicon {
+  display: block;
+  fill: currentColor;
 }
 
 /* Context menu and dialogs (fixed, positioned in zoomed px) */

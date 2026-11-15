@@ -141,6 +141,7 @@ function PlayButton(p: { entry: LibEntry; session: Session }) {
     <button
       className="btn mini play"
       title="Hold to audition"
+      aria-label="Audition"
       onClick={(ev) => ev.stopPropagation()}
       onPointerDown={(ev) => {
         if (ev.button !== 0) return;
@@ -149,7 +150,9 @@ function PlayButton(p: { entry: LibEntry; session: Session }) {
         window.addEventListener("pointerup", () => s.endPreview(), { once: true });
       }}
     >
-      ▶
+      <svg className="playicon" width={8} height={9} viewBox="0 0 8 9" aria-hidden>
+        <path d="M0 0 L8 4.5 L0 9 Z" />
+      </svg>
     </button>
   );
 }

@@ -130,14 +130,17 @@ export function patchName(patch: Patch): string {
   return String.fromCharCode(...patch[0]!.slice(0, NAME_LENGTH)).trimEnd();
 }
 
-// Names are 12 characters of printable ASCII (32–125), space-padded.
-export function setPatchName(patch: Patch, name: string): Patch {
-  const chars = [...name.padEnd(NAME_LENGTH).slice(0, NAME_LENGTH)].map((c) => {
+// Names are 12 characters of printable ASCII (32–125), space-padded; anything else becomes a space.
+export function nameBytes(name: string): number[] {
+  return [...name.padEnd(NAME_LENGTH).slice(0, NAME_LENGTH)].map((c) => {
     const code = c.charCodeAt(0);
     return code >= 32 && code <= 125 ? code : 32;
   });
+}
+
+export function setPatchName(patch: Patch, name: string): Patch {
   const common = [...patch[0]!];
-  common.splice(0, NAME_LENGTH, ...chars);
+  common.splice(0, NAME_LENGTH, ...nameBytes(name));
   return [common, ...patch.slice(1)];
 }
 

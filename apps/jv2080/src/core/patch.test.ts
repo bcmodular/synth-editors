@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  blockComplete, bufferToPatch, decodeSyx, emptyPatch, encodeSyx, getParam, PATCH_BLOCKS, paramAddress, paramDt1,
+  blockComplete, bufferToPatch, decodeSyx, emptyPatch, encodeSyx, getParam, nameBytes, PATCH_BLOCKS, paramAddress, paramDt1,
   patchComplete, patchName, patchToDt1s, placeDt1, receivedCount, setParam, setPatchName, type Patch,
 } from "./patch";
 import { param } from "./paramValue";
@@ -108,5 +108,13 @@ describe("parameters", () => {
     expect(named[0]!.slice(0, 12)).toEqual([..."Fat Strings "].map((c) => c.charCodeAt(0)));
     expect(patchName(setPatchName(testPatch(), "A very long patch name"))).toBe("A very long");
     expect(patchName(setPatchName(testPatch(), "Café~"))).toBe("Caf");
+  });
+});
+
+describe("patch name", () => {
+  it("is 12 printable characters, space-padded, others as spaces", () => {
+    expect(nameBytes("Piano")).toEqual([80, 105, 97, 110, 111, 32, 32, 32, 32, 32, 32, 32]);
+    expect(nameBytes("A very long patch name")).toHaveLength(12);
+    expect(nameBytes("é~x")).toEqual([32, 32, 120, 32, 32, 32, 32, 32, 32, 32, 32, 32]);
   });
 });

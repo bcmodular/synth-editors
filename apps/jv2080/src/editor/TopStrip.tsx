@@ -4,9 +4,9 @@
 import type { PortInfo } from "@synth-editors/midi";
 import { useState } from "react";
 import { BANKS, PATCHES_PER_BANK } from "../core/banks";
-import { patchName } from "../core/patch";
 import type { JvLink } from "../link/useJvLink";
 import { MidiSettings } from "./MidiSettings";
+import { PatchName } from "./PatchName";
 import type { JvSession } from "./useJvSession";
 
 function PortSelect(p: { label: string; ports: PortInfo[]; value: string; onChange: (v: string) => void }) {
@@ -55,7 +55,7 @@ export function TopStrip(p: { link: JvLink; session: JvSession }) {
   return (
     <header className="top">
       <h1>JV-2080</h1>
-      <span className="name">{session.patch ? patchName(session.patch) : "—"}</span>
+      <PatchName patch={session.patch} onRename={session.setName} />
       {session.readFailed && (
         <span className="read-failed" title="Check the ports and the MIDI settings, and that the JV is on">
           NO REPLY FROM THE JV

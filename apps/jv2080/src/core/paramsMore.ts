@@ -45,7 +45,7 @@ function lfoMore(n: 1 | 2, base: number): ParamDef[] {
     level(at("Delay", "Delay", 4)),
     choice(at("FadeMode", "Fade Mode", 5), ["ON-IN", "ON-OUT", "OFF-IN", "OFF-OUT"]),
     level(at("FadeTime", "Fade Time", 6)),
-    choice(at("Sync", "Ext Sync", 7), ["OFF", "CLOCK", "TAP"]),
+    choice(at("Sync", "Ext Sync", 7), ["OFF", "CLOCK"]), // the manual's third value, <TAP>, isn't on the JV-2080
   ];
 }
 

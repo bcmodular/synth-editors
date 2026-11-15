@@ -131,3 +131,36 @@ The biggest groups:
 5. **The controller matrix** (patch control sources and each tone's destinations) and the EFX controls.
 6. The rest: keyfollows, random and alternate pan, Analog Feel, stretch tuning, voice priority, wave gain, FXM,
    tone delay, MIDI receive switches, portamento mode, type and start.
+
+## Open questions (2026-11-15)
+
+For the next steps (patch files, USER memory, the patch browser) and for choices made in this round.
+
+1. **Patch files: a library or dialogs?** Either a library like the TB-3 app's (a folder of `.syx` files with a
+   browser, rename and trash), or plain Save / Open dialogs. And one patch per file (590 bytes of DT1s for the
+   temporary patch), or also whole-bank files (all 128 USER patches)?
+2. **Writing to USER memory.** The proposed flow:
+   - a slot chooser listing the 128 USER names, read from the JV, about 128 short requests;
+   - a confirmation naming the patch to be replaced;
+   - an automatic backup of that patch to a file first.
+
+   Where should the backups go, the library folder or a fixed backups folder? And after writing, should the editor
+   also select that USER slot on the JV, so its display shows the new name?
+3. **Preset scan for the patch browser.** It means loading each of the 512 presets once (about two to three
+   minutes), and the JV's sound changes while it runs. Is that OK, and should the scan restore the patch you were
+   on afterwards? Should the browser also list USER patches and library files?
+4. **Structure diagrams.** The structure popover describes each of the 10 types in words. Flow diagrams (like the
+   help's) would be clearer, but the manual's pictures are too small to draw the wiring of each type reliably. Can
+   you check the JV's Structure page, which draws them, or should we keep the words?
+5. **FILTER's VEL knob** sits in the LFO row's free slot, under the line that marks the LFO knobs. Keep it there,
+   or put it somewhere else?
+6. **The "⋯" popovers.** Are popovers right for these settings, or would you rather have them always on screen in
+   an expanded view of one tone (the JV's Palette idea)?
+7. **Help for the popover settings.** Each popover explains its settings in a few lines, but the (i) panels don't
+   list them. Add them to the panels?
+8. **TAP-SYNC in Tone Delay.** The manual puts `<TAP-SYNC>` in angle brackets, which elsewhere means "not on the
+   JV-2080". It sits in the middle of the list, so it can't be dropped without moving the others: hide it, or
+   leave it?
+9. **Hardware check.** Every new parameter's offset is from the manual's address map, and a test checks them, but
+   none has been tried on the JV yet. Worth a pass: for example a key split, velocity sensitivity, LFO fade-in and
+   structure type 3 with the booster.

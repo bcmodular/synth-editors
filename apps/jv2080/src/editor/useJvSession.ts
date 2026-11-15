@@ -4,9 +4,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { programChange, type Bank } from "../core/banks";
-import { applyDt1, bufferToPatch, emptyPatch, paramAddress, paramDt1, patchName, patchToDt1s, setParam, type Patch } from "../core/patch";
+import {
+  applyDt1, bufferToPatch, emptyPatch, nameBytes, paramAddress, paramDt1, PATCH_BLOCKS, patchName, patchToDt1s, setParam,
+  setPatchName, type Patch,
+} from "../core/patch";
 import type { ParamDef } from "../core/params";
-import { addrHex, parseDt1 } from "../core/sysex";
+import { addrHex, dt1, parseDt1 } from "../core/sysex";
 import { readPatch, sendPaced } from "../link/readPatch";
 import type { JvLink } from "../link/useJvLink";
 import { createEditQueue } from "./editQueue";
@@ -20,6 +23,7 @@ export interface JvSession {
   syncFromJv: () => Promise<void>;
   syncToJv: () => Promise<void>;
   loadFromBank: (bank: Bank, number: number) => Promise<void>;
+  setName: (name: string) => void; // the patch's name, on the JV too
 }
 
 // DT1s that arrive outside a read update the patch.
@@ -80,6 +84,12 @@ export function useJvSession(link: JvLink, initial: Patch | null = null, offline
     await syncFromJv();
   }, [link.channel, send, syncFromJv]);
 
-  return { patch, busy, readFailed, setValue, sendParam, syncFromJv, syncToJv, loadFromBank };
+  // The name's 12 bytes go as one DT1 at the start of Patch Common.
+  const setName = useCallback((name: string) => {
+    setPatch((cur) => cur && setPatchName(cur, name));
+    queue.push("name", dt1(PATCH_BLOCKS[0]!.addr, nameBytes(name), device));
+  }, [queue, device]);
+
+  return { patch, busy, readFailed, setValue, sendParam, syncFromJv, syncToJv, loadFromBank, setName };
 }
 

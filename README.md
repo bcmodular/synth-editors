@@ -23,7 +23,7 @@ npm run typecheck
 
 To install the TB-3 Editor without Node, or to package a release, see
 [apps/tb3/README.md](apps/tb3/README.md). The [user guide](apps/tb3/docs/user-guide.md) explains
-every feature.
+every feature. The SP-404 MK2 editor has its own [user guide](apps/sp404/docs/user-guide.md).
 
 `npm run dev:browser -w @synth-editors/tb3` serves the renderer on its own for use in Chrome,
 which asks for MIDI + SysEx permission on first load.

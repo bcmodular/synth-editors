@@ -19,10 +19,11 @@ export interface Route {
 
 export const nodeAt = (n: FlowNode): Point => ({ x: FLOW.padX + n.col * FLOW.colW, y: FLOW.padY + n.row * FLOW.rowH });
 
+// Wide enough for every node, and for the outputs' labels to their right (about 7 px a character).
 export function flowSize(flow: Flow): { width: number; height: number } {
-  const cols = Math.max(...flow.nodes.map((n) => n.col));
+  const right = (n: FlowNode) => nodeAt(n).x + (n.kind === "out" ? 10 + (n.label ?? "").length * 7 : FLOW.padX);
   const rows = Math.max(...flow.nodes.map((n) => n.row));
-  return { width: 2 * FLOW.padX + cols * FLOW.colW, height: 2 * FLOW.padY + rows * FLOW.rowH };
+  return { width: Math.max(...flow.nodes.map(right)), height: 2 * FLOW.padY + rows * FLOW.rowH };
 }
 
 // Half a node's size: where its paths start and end.
@@ -114,6 +115,14 @@ function loop(ends: Ends, up: boolean): Route {
   return { points, label: { x: (x + b.x) / 2, y: y - dir * 5 + (up ? 9 : 0) }, anchor: "middle", corner: { x, y: a.y } };
 }
 
+// Straight up or down, into the target directly above or below.
+function upright({ a, b, from, to }: Ends): Route {
+  const dir = vertical(a, b);
+  const start = { x: a.x, y: a.y + dir * from.h };
+  const end = { x: b.x, y: b.y - dir * to.h };
+  return { points: [start, end], label: { x: a.x + 6, y: (start.y + end.y) / 2 + 4 }, anchor: "start" };
+}
+
 function straight({ a, b, from, to }: Ends): Route {
   const start = { x: a.x + from.w, y: a.y };
   const end = { x: b.x - to.w, y: b.y };
@@ -130,6 +139,7 @@ export function routeEdge(e: FlowEdge, from: FlowNode, to: FlowNode): Route {
   if (route === "loop") return loop(ends, e.up ?? false);
   const along = route === "hv" || route === "hvh";
   if (along && ends.a.y === ends.b.y) return straight(ends);
+  if (along && Math.abs(ends.a.x - ends.b.x) < 1) return upright(ends);
   return ROUTES[route](ends);
 }
 

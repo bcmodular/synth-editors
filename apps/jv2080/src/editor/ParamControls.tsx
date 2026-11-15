@@ -7,6 +7,7 @@ import { clampParam, param } from "../core/paramValue";
 import { LedButton, Segmented } from "../ui/controls";
 import { Knob } from "../ui/Knob";
 import { useEditor } from "./EditorContext";
+import { Lit } from "./help/Lit";
 
 export interface BoundProps {
   def: ParamDef | string; // a definition, or a parameter id
@@ -30,10 +31,12 @@ export function ParamChoice(props: BoundProps) {
   const { def, value, set, label } = useBound(props);
   const options = (def.labels ?? []).map((l, i) => ({ label: l, value: def.min + i }));
   return (
-    <div className="prow">
-      <span className="lbl">{label}</span>
-      <Segmented options={options} value={value} onChange={set} />
-    </div>
+    <Lit ids={[def.id]}>
+      <div className="prow">
+        <span className="lbl">{label}</span>
+        <Segmented options={options} value={value} onChange={set} />
+      </div>
+    </Lit>
   );
 }
 
@@ -41,18 +44,20 @@ export function ParamSelect(props: BoundProps) {
   const { def, value, set, label } = useBound(props);
   const values = Array.from({ length: def.max - def.min + 1 }, (_, i) => def.min + i);
   return (
-    <div className="prow">
-      <span className="lbl">{label}</span>
-      <select className="pick" value={value} onChange={(e) => set(Number(e.target.value))}>
-        {values.map((v) => <option key={v} value={v}>{def.display(v)}</option>)}
-      </select>
-    </div>
+    <Lit ids={[def.id]}>
+      <div className="prow">
+        <span className="lbl">{label}</span>
+        <select className="pick" value={value} onChange={(e) => set(Number(e.target.value))}>
+          {values.map((v) => <option key={v} value={v}>{def.display(v)}</option>)}
+        </select>
+      </div>
+    </Lit>
   );
 }
 
 export function ParamSwitch(props: BoundProps) {
-  const { value, set, label } = useBound(props);
-  return <LedButton label={label} on={value !== 0} onToggle={() => set(value ? 0 : 1)} />;
+  const { def, value, set, label } = useBound(props);
+  return <Lit ids={[def.id]}><LedButton label={label} on={value !== 0} onToggle={() => set(value ? 0 : 1)} /></Lit>;
 }
 
 // Double-click resets to `reset`, else the parameter's centre, else its minimum.
@@ -60,7 +65,9 @@ export function ParamKnob(props: BoundProps & { color?: string; reset?: number }
   const { def, value, set, label } = useBound(props);
   const reset = props.reset ?? def.center ?? def.min;
   return (
-    <Knob label={label} value={value} min={def.min} max={def.max} reset={reset} text={def.display(value)}
-      color={props.color} onChange={set} />
+    <Lit ids={[def.id]}>
+      <Knob label={label} value={value} min={def.min} max={def.max} reset={reset} text={def.display(value)}
+        color={props.color} onChange={set} />
+    </Lit>
   );
 }

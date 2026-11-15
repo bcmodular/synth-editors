@@ -78,7 +78,15 @@ After the first editor, a more compact layout, decided with the user:
     parameter lights up its part of the flow, and the other way round.
 
   The data is in `core/efxHelp/`, by group; descriptions shared across types are in `common.ts`; the drawing is in
-  `editor/efx/FlowDiagram.tsx` and `flowLayout.ts`. The manual itself stays in `fixtures/local/jv2080/` and is never
+  `editor/help/FlowDiagram.tsx` and `flowLayout.ts`.
+- **Section help** ✅ (2026-11-15): the same kind of (i) panel for each tone's PITCH, FILTER, AMP and LFO parts (the
+  (i) at the top of the part's label strip) and for CHORUS, REVERB and PATCH (in their headers). Each opens
+  beside a working copy of its part or section. Their flows are drawn with control paths (envelopes, LFOs) dashed,
+  and paths that depend on a setting (Chorus Output, the reverb's DELAY types, the clock source) appear only while
+  it is set. Every control in a copy, including envelopes, LFO wave buttons and the chorus and reverb drawings,
+  lights up while the help points at it, and the other way round. Notes list what the JV has that this editor
+  doesn't show yet. Data in `core/sectionHelp/` (from manual pp. 25–27, 53–55, 70–89); the panel is
+  `editor/help/HelpPanel.tsx`, shared with the EFX help. The manual itself stays in `fixtures/local/jv2080/` and is never
   committed. Nothing from it is copied word for word.
 - **Demo mode** (`?demo`): the editor on a built-in patch with nothing sent, for working without a JV. A new EFX
   type starts from neutral values (`efxStartValue`), there and on the JV: the JV keeps the previous type's bytes when

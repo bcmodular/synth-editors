@@ -31,7 +31,17 @@ export type GainSide = "left" | "right";
 export interface Gain {
   param: string;
   side?: GainSide;
+  tag?: string; // what the value on the path is called ("LFO1"), rather than the parameter's name
 }
+
+// A parameter as a flow reads it: its definition (for the patch's own parameters, an EFX-style one made from it),
+// raw value and display text.
+export interface FlowValue {
+  p: EfxParamDef;
+  raw: Raw;
+  text: Shown;
+}
+export type FlowGet = (name: ParamName) => FlowValue;
 
 // How a path is drawn:
 //   hv    along the source's row, then up or down into the target (the default into a sum)
@@ -49,9 +59,16 @@ export interface FlowEdge {
   gains?: readonly Gain[];
   params?: readonly string[]; // values shown on the path (a loop's feedback and damping)
   up?: boolean; // a loop over the block rather than under it
-  when?: { param: string; is: number }; // drawn only while that list parameter has this value
+  when?: { param: string; is: number | readonly number[] }; // drawn only while that list parameter has this value
   quiet?: boolean; // no values on the path (when another path from the same block already shows them)
+  control?: boolean; // a control signal (an envelope or LFO modulating something), drawn dashed
 }
+
+export const isShown = (e: FlowEdge, get: FlowGet): boolean => {
+  if (!e.when) return true;
+  const raw = get(e.when.param).raw;
+  return typeof e.when.is === "number" ? raw === e.when.is : e.when.is.includes(raw);
+};
 
 export interface Flow {
   nodes: readonly FlowNode[];
@@ -65,20 +82,28 @@ function panGain(raw: Raw, side: GainSide): number {
   return Math.min(1, side === "left" ? (127 - raw) / 63 : raw / 64);
 }
 
+// A signed amount's size, 0…1 of the larger end: a −63…+63 depth at ±63 passes fully, at 0 not at all.
+function signedGain(p: EfxParamDef, raw: Raw): number {
+  const first = p.first ?? 0;
+  const step = p.step ?? 1;
+  return Math.abs(first + raw * step) / Math.max(1, Math.abs(first), Math.abs(first + p.max * step));
+}
+
 export function gainOf(p: EfxParamDef, raw: Raw, side?: GainSide): number {
   const f = raw / Math.max(1, p.max);
   if (p.kind === "pan") return panGain(raw, side ?? "left");
   if (p.kind === "balance") return side === "right" ? f : 1 - f;
+  if (p.kind === "linear" && p.signed) return signedGain(p, raw);
   return f;
 }
 
-export function gainText(p: EfxParamDef, raw: Raw, text: Shown, side?: GainSide): string {
+export function gainText({ p, raw, text }: FlowValue, g: Gain): string {
   if (p.kind === "balance") {
-    const tag = side === "right" ? p.right : p.left;
-    return `${(tag ?? "").slice(0, 1)} ${Math.round(gainOf(p, raw, side) * 100)}`;
+    const tag = g.side === "right" ? p.right : p.left;
+    return `${(tag ?? "").slice(0, 1)} ${Math.round(gainOf(p, raw, g.side) * 100)}`;
   }
-  if (p.kind === "pan") return `${side === "right" ? "R" : "L"} ${Math.round(gainOf(p, raw, side) * 100)}`;
-  return valueText(p.name, text);
+  if (p.kind === "pan") return `${g.side === "right" ? "R" : "L"} ${Math.round(gainOf(p, raw, g.side) * 100)}`;
+  return g.tag ? `${g.tag} ${text}` : valueText(p.name, text);
 }
 
 // A value on a path, with a short tag for what it is: "FB +20%", "HF 8000 Hz", "Mix 64".

@@ -10,6 +10,7 @@ import { param } from "../core/paramValue";
 import { dragXY } from "../ui/dragXY";
 import { Drawing, Handle } from "../ui/Drawing";
 import { useEditor } from "./EditorContext";
+import { Lit } from "./help/Lit";
 
 const PAD = 8;
 const REPEATS = 7;
@@ -53,9 +54,11 @@ const LFO_H = 50;
 
 export function ChorusView() {
   return (
-    <Drawing height={CHORUS_H}>
-      {(w) => <ChorusDrawing width={w} />}
-    </Drawing>
+    <Lit ids={["chorusRate", "chorusDepth", "chorusPreDelay", "chorusFeedback"]}>
+      <Drawing height={CHORUS_H}>
+        {(w) => <ChorusDrawing width={w} />}
+      </Drawing>
+    </Lit>
   );
 }
 
@@ -96,9 +99,11 @@ const REVERB_H = 84;
 
 export function ReverbView() {
   return (
-    <Drawing height={REVERB_H}>
-      {(w) => <ReverbDrawing width={w} />}
-    </Drawing>
+    <Lit ids={["reverbTime", "delayFeedback"]}>
+      <Drawing height={REVERB_H}>
+        {(w) => <ReverbDrawing width={w} />}
+      </Drawing>
+    </Lit>
   );
 }
 

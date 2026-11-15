@@ -1,15 +1,14 @@
-// An EFX type's signal flow, drawn live: each path is as strong as its gains (balances, pans, levels) let through,
-// and shows their values; feedback loops show theirs; paths that depend on a setting (Feedback Mode) appear only
-// while it's set. Hovering a block or a path lights up its parameters (and the other way round, from the list
-// beside it: `hot`).
+// A signal flow (an EFX type's, or a section's), drawn live: each path is as strong as its gains (balances, pans,
+// levels, depths) let through, and shows their values; feedback loops show theirs; paths that depend on a setting
+// (Feedback Mode, Chorus Output) appear only while it's set; control signals are dashed. Hovering a block or a path
+// lights up its parameters (and the other way round, from the list beside it: `hot`).
 
-import { gainOf, gainText, valueText, type Flow, type FlowEdge, type FlowNode } from "../../core/efxHelp";
+import { gainOf, gainText, isShown, valueText, type Flow, type FlowEdge, type FlowGet, type FlowNode } from "../../core/efxHelp";
 import { FLOW, flowSize, halfSize, nodeAt, pathOf, routeEdge } from "./flowLayout";
-import type { GetParam } from "./useEfx";
 
 interface Props {
   flow: Flow;
-  get: GetParam;
+  get: FlowGet;
   hot: ReadonlySet<string>;
   onHover: (params: readonly string[]) => void;
 }
@@ -20,15 +19,16 @@ const edgeParams = (e: FlowEdge) => [...(e.gains ?? []).map((g) => g.param), ...
 const isHot = (params: readonly string[], hot: ReadonlySet<string>) => params.some((p) => hot.has(p));
 
 // How much of the signal a path carries (0…1) and what it says: its gains, then its own values.
-function edgeAmount(e: FlowEdge, get: GetParam): { gain: number; text: string } {
+function edgeAmount(e: FlowEdge, get: FlowGet): { gain: number; text: string } {
   const gains = (e.gains ?? []).map((g) => ({ g, x: get(g.param) }));
   const gain = gains.reduce((v, { g, x }) => v * gainOf(x.p, x.raw, g.side), 1);
   if (e.quiet) return { gain, text: "" };
-  const texts = [...gains.map(({ g, x }) => gainText(x.p, x.raw, x.text, g.side)), ...(e.params ?? []).map((n) => valueText(n, get(n).text))];
+  const values = (e.params ?? []).map((n) => get(n)).map((x) => valueText(x.p.name, x.text));
+  const texts = [...gains.map(({ g, x }) => gainText(x, g)), ...values];
   return { gain, text: texts.join(" · ") };
 }
 
-function NodeMark({ n, get, hot, onHover }: { n: FlowNode; get: GetParam; hot: boolean; onHover: Props["onHover"] }) {
+function NodeMark({ n, get, hot, onHover }: { n: FlowNode; get: FlowGet; hot: boolean; onHover: Props["onHover"] }) {
   const { x, y } = nodeAt(n);
   if (n.kind === "sum") return <g className="fl-sum"><circle cx={x} cy={y} r={FLOW.sumR} /><path d={`M${x - 4},${y}H${x + 4}M${x},${y - 4}V${y + 4}`} /></g>;
   if (n.kind === "in" || n.kind === "out") {
@@ -45,11 +45,11 @@ function NodeMark({ n, get, hot, onHover }: { n: FlowNode; get: GetParam; hot: b
 }
 
 function EdgeMark({ e, from, to, get, hot, onHover, branch }: {
-  e: FlowEdge; from: FlowNode; to: FlowNode; get: GetParam; hot: boolean; onHover: Props["onHover"]; branch: boolean;
+  e: FlowEdge; from: FlowNode; to: FlowNode; get: FlowGet; hot: boolean; onHover: Props["onHover"]; branch: boolean;
 }) {
   const route = routeEdge(e, from, to);
   const { gain, text } = edgeAmount(e, get);
-  const kind = e.route === "loop" ? "fb" : e.gains?.length ? "gain" : "plain";
+  const kind = [e.route === "loop" ? "fb" : "", e.control ? "ctl" : ""].join(" ");
   return (
     <g className={`fl-edge ${kind} ${hot ? "hot" : ""}`} onPointerEnter={() => onHover(edgeParams(e))} onPointerLeave={() => onHover([])}>
       <path className="hit" d={pathOf(route.points)} />
@@ -62,7 +62,7 @@ function EdgeMark({ e, from, to, get, hot, onHover, branch }: {
 
 export function FlowDiagram({ flow, get, hot, onHover }: Props) {
   const byId = new Map(flow.nodes.map((n) => [n.id, n]));
-  const edges = flow.edges.filter((e) => !e.when || get(e.when.param).raw === e.when.is);
+  const edges = flow.edges.filter((e) => isShown(e, get));
   const outs = (id: string) => edges.filter((e) => e.from === id && e.route !== "loop").length;
   const { width, height } = flowSize(flow);
   return (

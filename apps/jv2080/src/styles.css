@@ -979,11 +979,22 @@ input {
   border-top: none;
 }
 .vlabel {
+  position: relative;
   flex: 0 0 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: color-mix(in srgb, var(--tint) 14%, transparent);
+}
+/* A part's (i), at the top of its label strip. */
+.vlabel .info-btn {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-size: 11px;
 }
 .vlabel span {
   writing-mode: vertical-rl;
@@ -1134,14 +1145,22 @@ input {
   max-width: 58px;
   text-overflow: ellipsis;
 }
-/* Lit while the help panel points at the parameter (editor/efx/hot.ts). */
-.efx-ctl {
+/* Lit while a help panel points at the parameter (editor/help/hot.ts). */
+.hot-ctl {
   border-radius: 6px;
   outline: 2px solid transparent;
   outline-offset: 2px;
   transition: outline-color 0.1s, background 0.1s;
 }
-.efx-ctl.hot,
+.hot-ctl.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+}
+.hot-ctl.grow > * {
+  flex: 1 1 auto;
+}
+.hot-ctl.hot,
 .efx-panel-wrap.hot .fxdraw {
   outline: 2px solid var(--tint);
   background: color-mix(in srgb, var(--tint) 14%, transparent);
@@ -1258,14 +1277,10 @@ input {
 }
 
 /* The (i) help panels (editor/efx/EfxInfo.tsx): over the editor like the chooser, in the section's colour. */
-.sec .extra .info-btn {
+.info-btn {
   flex: none;
-  width: 23px;
-  height: 23px;
-  padding: 0 1px 0 0;
   justify-content: center;
   letter-spacing: 0;
-  font-size: var(--text-xl);
   line-height: 1;
   font-style: italic;
   font-family: Georgia, serif;
@@ -1273,6 +1288,12 @@ input {
   color: var(--tint);
   border-color: color-mix(in srgb, var(--tint) 50%, #000);
   border-radius: 50%;
+}
+.sec .extra .info-btn {
+  width: 23px;
+  height: 23px;
+  padding: 0 1px 0 0;
+  font-size: var(--text-xl);
 }
 /* The help with a working copy of its section on the left. */
 .info-overlay {
@@ -1291,8 +1312,7 @@ input {
   box-shadow: 0 12px 40px #000c;
 }
 .info-side {
-  flex: 0 0 560px;
-  height: 440px;
+  flex: none;
   display: flex;
 }
 .info-side > .sec {
@@ -1336,6 +1356,9 @@ input {
   fill: none;
   stroke: var(--tint);
   stroke-width: 1.5;
+}
+.flow .fl-edge.ctl .ln {
+  stroke-dasharray: 6 3;
 }
 .flow .fl-edge.fb .ln {
   stroke-dasharray: 4 3;

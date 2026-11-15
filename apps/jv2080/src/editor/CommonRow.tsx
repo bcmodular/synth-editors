@@ -8,7 +8,10 @@ import { Section } from "../ui/controls";
 import { PickTitle } from "../ui/PickTitle";
 import { useEditor } from "./EditorContext";
 import { ChorusView, ReverbView } from "./ChorusReverbViews";
+import { CHORUS_HELP, REVERB_HELP } from "../core/sectionHelp";
 import { EfxInfoButton } from "./efx/EfxInfo";
+import { HelpButton } from "./help/HelpPanel";
+import { sectionContentHook } from "./help/sectionContent";
 import { EffectChooser } from "./EffectChooser";
 import { isDemo } from "./demoPatch";
 import { efxSlotParam } from "./efx/efxParams";
@@ -58,18 +61,27 @@ function Efx({ inHelp = false }: { inHelp?: boolean }) {
   );
 }
 
-function Chorus() {
+// The chorus and reverb, each with an (i) opening its help beside a working copy of the section (`inHelp`).
+const STACK_SIDE = { width: 342 };
+
+function Chorus({ inHelp = false }: { inHelp?: boolean }) {
+  const help = inHelp ? undefined : (
+    <HelpButton label="the chorus" useContent={sectionContentHook(CHORUS_HELP)} side={<Chorus inHelp />} sideStyle={STACK_SIDE} />
+  );
   return (
-    <Section title="CHORUS" className="chorus">
+    <Section title="CHORUS" className="chorus" extra={help}>
       <ChorusView />
       <ParamChoice def="chorusOutput" label="Output" />
     </Section>
   );
 }
 
-function Reverb() {
+function Reverb({ inHelp = false }: { inHelp?: boolean }) {
+  const help = inHelp ? undefined : (
+    <HelpButton label="the reverb" useContent={sectionContentHook(REVERB_HELP)} side={<Reverb inHelp />} sideStyle={STACK_SIDE} />
+  );
   return (
-    <Section title="REVERB" className="reverb">
+    <Section title="REVERB" className="reverb" extra={help}>
       <ParamChoice def="reverbType" label="Type" />
       <ReverbView />
       <ParamSelect def="reverbHfDamp" label="HF Damp" />

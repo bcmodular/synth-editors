@@ -11,7 +11,7 @@ import { LfoPanel, RotaryPanel } from "./modPanels";
 import { EFX_SPECS, panelParams, type PanelSpec } from "./specs";
 import { DelayPanel, GatePanel, PitchPanel, ReverbPanel } from "./timePanels";
 import { CompressorPanel, DrivePanel, EnhancerPanel, EqPanel, LimiterPanel, SpectrumPanel } from "./tonePanels";
-import { hotProps, useEfxHot } from "./hot";
+import { hotProps, useHot } from "../help/hot";
 import { useEfx, type EfxParam, type GetParam } from "./useEfx";
 
 function panelContent(spec: PanelSpec, get: GetParam, size: Size): ReactNode {
@@ -45,7 +45,7 @@ export const shortName = (name: string) => SHORTER.reduce((n, [re, to]) => n.rep
 
 // A parameter no drawing takes, lit while the help points at it.
 function RestControl({ x }: { x: EfxParam }) {
-  return <div {...hotProps(useEfxHot(), [x.p.name], "efx-ctl")}><RestInput x={x} /></div>;
+  return <div {...hotProps(useHot(), [x.p.name], "hot-ctl")}><RestInput x={x} /></div>;
 }
 
 // Buttons for a short list, a drop-down for a long one, otherwise a knob.
@@ -74,7 +74,7 @@ function RestInput({ x }: { x: EfxParam }) {
 
 export function EfxView() {
   const { typeRaw, params, get } = useEfx();
-  const hot = useEfxHot();
+  const hot = useHot();
   const spec = EFX_SPECS[typeRaw];
   if (!spec) return null;
   const drawn = new Set(spec.panels.flatMap(panelParams));

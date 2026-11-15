@@ -764,6 +764,14 @@ input {
   --led-off: color-mix(in srgb, var(--tint) 35%, #111);
   --sel-bg: color-mix(in srgb, var(--tint) 16%, #0b0b0c);
 }
+.patch-knobs {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px 4px;
+}
+.patch-knobs .kn .lbl {
+  max-width: 62px;
+}
 .patch-set .off {
   opacity: 0.4;
   pointer-events: none;
@@ -1079,14 +1087,16 @@ input {
 .lfo-line .kn i {
   grid-row: span 2;
 }
-/* Knobs in a tone or the EFX section take its colour. */
+/* Knobs in a tone, the EFX section or the patch settings take its colour. */
 .tone .kn i,
-.efx .kn i {
+.efx .kn i,
+.patch-set .kn i {
   background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--led) 85%, #fff), var(--led) 45%,
     color-mix(in srgb, var(--led) 55%, #000) 100%);
 }
 .tone .kn i::after,
-.efx .kn i::after {
+.efx .kn i::after,
+.patch-set .kn i::after {
   background: #111;
 }
 

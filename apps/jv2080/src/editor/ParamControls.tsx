@@ -75,10 +75,12 @@ export function ParamSwitch(props: BoundProps) {
   return <LedButton label={label} on={value !== 0} onToggle={() => set(value ? 0 : 1)} />;
 }
 
-export function ParamKnob(props: BoundProps & { color?: string }) {
+// Double-click resets to `reset`, else the parameter's centre, else its minimum.
+export function ParamKnob(props: BoundProps & { color?: string; reset?: number }) {
   const { def, value, set, label } = useBound(props);
+  const reset = props.reset ?? def.center ?? def.min;
   return (
-    <Knob label={label} value={value} min={def.min} max={def.max} reset={def.center ?? def.min} text={def.display(value)}
+    <Knob label={label} value={value} min={def.min} max={def.max} reset={reset} text={def.display(value)}
       color={props.color} onChange={set} />
   );
 }

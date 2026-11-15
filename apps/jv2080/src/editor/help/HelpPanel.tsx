@@ -4,7 +4,7 @@
 // lights up the others for the same parameters (help/hot.ts). Escape or a press outside closes it; presses in a
 // chooser opened from the copy don't.
 
-import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Flow, FlowGet } from "../../core/efxHelp";
 import { useDismiss } from "../../ui/useDismiss";
@@ -32,6 +32,7 @@ interface PanelProps {
   useContent: () => HelpContent; // a hook, so the panel follows the patch live
   side: ReactNode;
   sideStyle?: CSSProperties;
+  tint?: string; // the section's colour, for the panel's headings, highlights and drawing
   onClose: () => void;
 }
 
@@ -49,7 +50,7 @@ function Rows({ rows, hot, hover }: { rows: readonly HelpRow[]; hot: ReadonlySet
   );
 }
 
-function HelpPanel({ useContent, side, sideStyle, onClose }: PanelProps) {
+function HelpPanel({ useContent, side, sideStyle, tint, onClose }: PanelProps) {
   const panel = useRef<HTMLDivElement>(null);
   useDismiss(panel, onClose, ".chooser, .wavelib");
   const content = useContent();
@@ -57,7 +58,7 @@ function HelpPanel({ useContent, side, sideStyle, onClose }: PanelProps) {
   const hover = (names: readonly string[]) => setHot(new Set(names));
   const host = document.querySelector<HTMLElement>(".editor") ?? document.body;
   return createPortal(
-    <div className="info-overlay" ref={panel}>
+    <div className="info-overlay" ref={panel} style={tint ? { ["--tint" as string]: tint } : undefined}>
       <HotContext.Provider value={{ active: true, hot, hover }}>
         <div className="info-side" style={sideStyle}>{side}</div>
       </HotContext.Provider>
@@ -75,14 +76,17 @@ function HelpPanel({ useContent, side, sideStyle, onClose }: PanelProps) {
   );
 }
 
-// The (i) that opens a help panel.
-export function HelpButton({ label, ...panel }: Omit<PanelProps, "onClose"> & { label: string }) {
-  const [open, setOpen] = useState(false);
+// The (i) that opens a help panel, in the colour of the section it sits in.
+export function HelpButton({ label, ...panel }: Omit<PanelProps, "onClose" | "tint"> & { label: string }) {
+  const [tint, setTint] = useState<string | null>(null);
+  const open = (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setTint(getComputedStyle(e.currentTarget).getPropertyValue("--tint").trim());
+  };
   return (
     <>
-      <button className="btn info-btn" aria-label={`About ${label}`} title={`About ${label}`}
-        onClick={(e) => { e.stopPropagation(); setOpen(true); }}>i</button>
-      {open && <HelpPanel {...panel} onClose={() => setOpen(false)} />}
+      <button className="btn info-btn" aria-label={`About ${label}`} title={`About ${label}`} onClick={open}>i</button>
+      {tint !== null && <HelpPanel {...panel} tint={tint || undefined} onClose={() => setTint(null)} />}
     </>
   );
 }

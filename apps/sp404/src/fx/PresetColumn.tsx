@@ -49,7 +49,7 @@ export function PresetColumn({ bus, fx }: { bus: Bus; fx: Fx }) {
   const noFx = !state.buses[bus].fxId;
   const locked = play.locks.has(bus);
   return (
-    <div className={`pcol mode-${play.mode} ${noFx ? "nofx" : ""}`}>
+    <div className={`pcol mode-${play.mode} ${play.audition ? "auditioning" : ""} ${noFx ? "nofx" : ""}`}>
       <span className="lbl">PRESETS</span>
       <div className="presets">
         {slotsOn(state, bus).map((v, i) => (

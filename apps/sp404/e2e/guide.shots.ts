@@ -121,6 +121,10 @@ async function fxShots(page: Page) {
   await shot(page, "lock", [module(page, 3)]);
   await page.getByRole("button", { name: "BUS 3 lock" }).click();
 
+  await page.getByRole("button", { name: "AUDITION" }).click();
+  await shot(page, "audition", [module(page, 4).locator(".pcol"), page.locator(".fxrow > .side")]);
+  await page.getByRole("button", { name: "AUDITION" }).click();
+
   await page.getByRole("button", { name: "DEL" }).click();
   await shot(page, "delete-mode", [module(page, 4)]);
   await page.getByRole("button", { name: "DEL" }).click();

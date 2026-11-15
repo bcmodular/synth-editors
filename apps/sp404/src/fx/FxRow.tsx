@@ -63,7 +63,7 @@ function SceneColumn({ fx }: { fx: Fx }) {
   return (
     <div className="side">
       <div className="h">FX SCENES</div>
-      <div className={`scenes mode-${fx.play.mode}`} title={SCENE_TIP}>
+      <div className={`scenes mode-${fx.play.mode} ${fx.play.audition ? "auditioning" : ""}`} title={SCENE_TIP}>
         {fx.state.scenes.map((_, i) => <Scene key={i} slot={i} fx={fx} />)}
       </div>
       <button className="btn sync" disabled={!fx.outputName} onClick={fx.syncAll}

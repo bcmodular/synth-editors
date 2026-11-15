@@ -58,12 +58,13 @@ These match the TouchOSC version's behaviour, including the lock rules.
   STORE is gone; to replace a preset, delete it and store again). DEL: a press deletes a stored preset or scene,
   and the bus number (its badge turns red) clears the bus (unloads the effect and switches it off, keeping its
   values in the recent list). AUDITION: holding a stored preset or scene plays it and letting go puts the buses
-  back; Shift held does the same without AUDITION.
+  back; Shift held does the same without AUDITION. While AUDITION is on, stored presets and scenes get a dotted
+  white outline.
 - **DEF**: recalls the effect's stored defaults, else its starting values (DEF reads brighter once defaults exist).
   Storing defaults has no control for now.
 - **SYNC** (orange, per module) sends the bus to the SP-404 again; **SYNC ALL FX** under the scenes sends every bus.
-- **GRAB** (per module, white, beside ON/OFF) is the momentary FX grab: the effect is on while held, and letting go
-  puts ON/OFF back as it was.
+- **GRAB** (per module, beside ON/OFF; grey, white while held) is the momentary FX grab: the effect is on while held,
+  and letting go puts ON/OFF back as it was.
 - **LOCK** (per module, remembered between runs, not in the library file): red, filled when on; the LCD gets a red
   edge.
 - The module header takes the bus colour: the number badge and the effect name on its LCD. The BUS labels under

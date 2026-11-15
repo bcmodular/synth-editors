@@ -223,7 +223,11 @@ select {
   cursor: pointer;
 }
 
+/* ON/OFF: a hidden OFF sits under the label, so the button is as wide as OFF either way and the header doesn't
+   shift when it toggles. */
 .ring {
+  display: inline-grid;
+  justify-items: center;
   border: 2px solid var(--acc);
   color: var(--acc);
   padding: 2px 7px;
@@ -236,6 +240,14 @@ select {
 
 .ring.off {
   opacity: 0.35;
+}
+
+.ring > span {
+  grid-area: 1 / 1;
+}
+
+.ring .sizer {
+  visibility: hidden;
 }
 
 .bus .body {
@@ -601,6 +613,13 @@ button.big.on {
   color: var(--mute);
 }
 
+/* With AUDITION on, the stored presets and scenes (the ones a hold will preview) get a dotted white outline. */
+.auditioning .presets button.stored,
+.fxrow .scenes.auditioning button.stored {
+  outline: 2px dotted #fff;
+  outline-offset: -5px;
+}
+
 .pcol.nofx .presets button {
   opacity: 0.4;
   pointer-events: none;
@@ -626,10 +645,10 @@ button.big.on {
   cursor: default;
 }
 
-/* GRAB, beside ON/OFF, is always white, filled while held. */
+/* GRAB, beside ON/OFF, is grey until held, then filled white. */
 .bus .fxgrab {
-  border: 2px solid #e8e8ea;
-  color: #e8e8ea;
+  border: 2px solid var(--rule);
+  color: var(--dim);
   padding: 2px 7px;
   font-size: var(--text-xs);
   letter-spacing: 0.08em;
@@ -641,6 +660,7 @@ button.big.on {
 
 .bus .fxgrab.on {
   background: #e8e8ea;
+  border-color: #e8e8ea;
   color: #000;
 }
 

@@ -56,7 +56,8 @@ export function FxModule({ bus, fx: lib }: FxModuleProps) {
         <BusGrab bus={bus} label={BUS_LABEL[bus]} fx={lib} disabled={!fx} />
         <button className={`ring ${state.on ? "" : "off"}`} disabled={!fx} aria-pressed={state.on}
           aria-label={`${BUS_LABEL[bus]} on`} onClick={() => lib.toggle(bus)}>
-          {state.on ? "ON" : "OFF"}
+          <span className="sizer" aria-hidden>OFF</span>
+          <span>{state.on ? "ON" : "OFF"}</span>
         </button>
       </div>
       <div className="body">

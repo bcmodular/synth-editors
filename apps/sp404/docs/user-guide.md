@@ -109,7 +109,10 @@ Each bus has eight presets for each effect. The column matches a Launchpad colum
 To replace a preset, delete it and store it again.
 
 **AUDITION** previews instead of recalling. With it on, hold a stored preset (or an FX scene) to hear it; letting go
-puts back what was playing. Holding Shift while you press does the same without turning AUDITION on.
+puts back what was playing. While it's on, the stored presets and scenes have a dotted white outline. Holding
+Shift while you press does the same without turning AUDITION on.
+
+![Presets with AUDITION on](images/audition.png)
 
 **DEL** deletes. With it on, the stored presets and scenes are outlined in red and the bus numbers turn red:
 

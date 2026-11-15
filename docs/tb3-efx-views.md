@@ -1,9 +1,10 @@
 # TB-3 EFX drawings
 
 Each EFX type except BYPASS has a drawing beside its slots, borrowed from the SP-404 MK2 editor's effect views
-(`apps/sp404/src/fx/views/`) so the two editors look and behave alike. Slots set in a drawing show as readouts
-(name and value) instead of faders, as the SP-404's in-view parameters do. Every handle sends through the editor's
-`setEfxByte`, so a drag reaches the TB-3 (paced, undoable, morph- and CC-aware) exactly as a fader move does.
+(`apps/sp404/src/fx/views/`) so the two editors look and behave alike. A drawing shows the values it sets on its
+handles and captions (two-line labels: name, then value); the other slots are knobs beside it (`ui/Knob.tsx`, after
+the JV-2080's), and the drawing takes the width they leave. Every handle sends through the editor's
+`setEfxByte`, so a drag reaches the TB-3 (paced, undoable, morph- and CC-aware) exactly as a knob turn does.
 
 ## Code
 
@@ -34,14 +35,15 @@ Each EFX type except BYPASS has a drawing beside its slots, borrowed from the SP
 | PHASER | PhaserView | MANUAL × RESONANCE |
 | DELAY | Sync Delay / Ko-Da-Ma taps | TIME (BPM SYNC when on, never down to OFF), FEEDBACK, LPF, TAP TIME in PAN |
 | PITCH SHIFT | ChromaticPsView | PITCH × PRE DLY for each voice |
-| EQ | (TB-3's own EqView) | every band setting but LEVEL |
+| EQ | (TB-3's own EqView) | every band setting but LEVEL, with frequency, gain and Q on the handles |
 | REVERB | ReverbView | TIME, PRE DLY, HPF, LPF |
 
 EFX1 is azure and EFX2 violet: `.efx1` / `.efx2` set `--tint`, `--led`, `--led-off`, `--val` and `--sel-bg`, as the
-LFO's red does, and the drawings' fills mix from `--led`, so faders, buttons, readouts and drawings all follow.
+LFO's red does, and the drawings' fills mix from `--led`, so knobs, buttons and drawings all follow.
 DISTORTION does the same in its header's orange.
 
-Drawings are 240 px wide, 167 px tall (136 under a row of mode buttons).
+Drawings are as wide as the knobs leave (two rows of knobs beside them), 167 px tall (136 under a row of mode
+buttons).
 
 ## Guesses to check on the hardware
 

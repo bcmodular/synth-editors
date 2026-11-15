@@ -54,18 +54,19 @@ something isn't getting through. The LAUNCHPAD ports are for a Launchpad Pro: se
 
 Every change is sent to the TB-3 straight away, so you hear it as you edit.
 
-### Faders
+### Knobs
 
-All the values are faders:
+The values are knobs, with caps in their section's colour:
 
-- **Drag** a fader to change it. The drag is relative: grab anywhere and move.
+- **Drag** a knob up or down to change it. The drag is relative: grab anywhere and move.
 - Hold **Shift** while dragging for fine control.
-- **Scroll** over a fader to step its value one at a time.
-- **Double-click** a fader to reset it to zero, its centre, or its default for effect settings.
+- **Scroll** over a knob to step its value one at a time.
+- **Double-click** a knob to reset it to zero, its centre, or its default for effect settings.
 
-Faders with a centre line, like the tunings and cross mod, are bipolar: they fill outwards from
-the middle. Each fader shows its value in the TB-3's own units (semitones, Hz, dB, ms, note
-lengths and so on).
+The ring round each knob shows how far it's turned. On bipolar values, like the tunings and cross
+mod, the ring fills from the top, either way; cross mod's negative amounts are amber. Each knob
+shows its value in the TB-3's own units (semitones, Hz, dB, ms, note lengths and so on). A knob
+whose source is switched off, or a rate while BPM SYNC is on, is dimmed.
 
 ### Top strip
 
@@ -91,8 +92,8 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
 
 ![VCO, VCO MIX, CROSS MOD and RING MOD](images/row-oscillators.png)
 
-- **VCO**: a level fader for each source: saw, square, sine, white and pink noise, and the ring
-  modulator. The little light above each fader switches that source on and off. TUNING sets the
+- **VCO**: a level knob for each source: saw, square, sine, white and pink noise, and the ring
+  modulator. The button above each knob switches that source on and off. TUNING sets the
   pitch offsets of the saw, square, and ring + sine oscillators.
 - **VCO MIX**: with **DRAWN** selected, a picture of the mixed waveform, drawn from the settings to
   show the shape of the mix. With **LIVE** selected, the TB-3's actual output: see below.
@@ -144,7 +145,7 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
 
 - **VCF**: cutoff, resonance, envelope depth and key follow, with the filter envelope. Drag the
   envelope's handles to shape it. The first sets attack, the second sets decay (sideways) and
-  sustain (up and down), and the last sets release. The A, D, S and R faders underneath edit the
+  sustain (up and down), and the last sets release. The A, D, S and R knobs underneath edit the
   same values.
 - **VCA**: the amp envelope, edited in the same way, and the master volume.
 - **LFO**: the waveform mix (saw, square, triangle, sine and sample & hold), rate, delay and CV
@@ -162,11 +163,11 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
   ![The distortion types](images/distortion-types.png)
 
 - **EFX1 and EFX2**: pick the effect type from the row of buttons. ON switches the effect in.
-  EFX1 is blue and EFX2 violet (and DISTORTION orange), down to their faders, readouts and
-  pictures, so they're easy to tell apart.
+  EFX1 is blue and EFX2 violet (and DISTORTION orange), down to their knobs and pictures, so
+  they're easy to tell apart.
   Some types also have mode buttons, like the reverb's AMBIENT, ROOM and HALL. Every type but
-  BYPASS has a picture of what it does, on the left, with handles to drag. A setting you change in
-  the picture shows as its name and value on the right; the other settings keep their faders.
+  BYPASS has a picture of what it does, on the left, with handles to drag. Each handle shows its
+  setting's name and value; the other settings are knobs beside the picture.
   Settings that the current mode doesn't use are dimmed.
   - Drag a handle the way its cursor shows: sideways, up and down, or both. Hold Shift for fine
     steps, and double-click a handle to reset it.
@@ -190,7 +191,8 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
   | REVERB (EFX2) | The tail, where it starts (PRE DLY) and dies away (TIME) | PRE DLY, TIME, HPF, LPF |
 
   The pictures make the settings easy to read; they aren't measurements of the TB-3's sound.
-- **EQ** (EFX1 only) shows its frequency response, with a handle for each band:
+- **EQ** (EFX1 only) shows its frequency response, with a handle for each band showing its
+  frequency, gain and (for the mid bands) Q. LEVEL is the knob beside it.
   - Drag a handle sideways to change its frequency, or up and down to change its gain.
   - Scroll over a mid band's handle to change its width (Q).
   - Double-click a handle to reset it.

@@ -250,6 +250,19 @@ test("REVERT puts every slot back as the set was opened", async () => {
   await expect(revert).toBeDisabled();
 });
 
+test("a slot's menu replaces it with the patch in the editor, after asking", async () => {
+  const { page, patches: p } = t;
+  await slot(page, 0).click();
+  await expectTb3(page, p.a, "slot 1");
+  await slot(page, 1).click({ button: "right" });
+  await page.locator(".ctxitem", { hasText: "Replace with the patch in the editor" }).click();
+  const dialog = page.locator(".dialog");
+  await expect(dialog).toContainText("Replace slot 2?");
+  await dialog.getByRole("button", { name: "REPLACE" }).click();
+  await expect(slot(page, 1)).toHaveClass(/active/);
+  await expect.poll(() => slotTip(page, 1)).toMatch(/^2 · A/);
+});
+
 // A slot's tooltip text (ui/Tooltip moves `title` to `data-tip` while the pointer is over it).
 const slotTip = (page: Tb3App["page"], i: number) =>
   slot(page, i).evaluate((el) => el.getAttribute("title") ?? el.getAttribute("data-tip"));

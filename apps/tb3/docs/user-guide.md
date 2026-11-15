@@ -254,7 +254,8 @@ breaks a set.
 - **Option-drag a slot** (Ctrl-drag on Windows) to copy it. Onto a filled slot, you're asked before it's
   replaced. You can undo it.
 - **Right-click** a slot for Store or Replace with the patch in the editor, Rename, Save as .syx,
-  Revert to saved, and Clear.
+  Revert to saved, and Clear. Store and Replace change the slot in the open set: SAVE the set to keep
+  them. Save as .syx writes the slot's patch to its own file in your library.
 
 ![A slot's menu](images/slot-menu.png)
 

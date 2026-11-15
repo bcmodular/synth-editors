@@ -1,4 +1,4 @@
-// Drawings for the modulation effects, from the designs: LFO shapes (To-Gu-Ro, Tremolo/Pan), the chorus voices
+// Drawings for the modulation effects, from the designs: LFO shapes (To-Gu-Ro, Tremolo / Pan), the chorus voices
 // over an EQ (Chorus), the Juno and JX-1 chorus buttons (JUNO Chorus), comb and phaser notches (Flanger, Phaser),
 // and the pattern and speed pads (Slicer).
 

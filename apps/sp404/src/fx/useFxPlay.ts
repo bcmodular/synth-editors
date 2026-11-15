@@ -1,5 +1,5 @@
-// Playing the FX library (docs/sp404-design.md › FX): the DEL and GRAB modes, LOCK per bus, morph per bus, and what
-// pressing a preset, DEF or a scene does. Holding a stored preset or scene with GRAB on (or Shift held) previews it,
+// Playing the FX library (docs/sp404-design.md › FX): the DEL and AUDITION modes, LOCK per bus, morph per bus, and what
+// pressing a preset, DEF or a scene does. Holding a stored preset or scene with AUDITION on (or Shift held) previews it,
 // and letting go puts back what was there.
 
 import { useCallback, useRef, useState } from "react";
@@ -47,7 +47,7 @@ function sceneChange(mode: FxMode, slot: number, locks: Locks): Change {
 
 const withBuses = (buses: Buses): Change => (s: FxState) => ({ ...s, buses });
 
-// GRAB: apply a change for as long as it's held, then put the buses back.
+// AUDITION: apply a change for as long as it's held, then put the buses back.
 function usePreview(store: FxStore) {
   const before = useRef<Buses | null>(null);
   const hold = useCallback((change: Change) => {
@@ -90,19 +90,19 @@ function useMorphs(store: FxStore) {
   return { morphs, toggleMorph, target, amount, end };
 }
 
-// The DEL and GRAB modes, and LOCK per bus (locks are remembered between runs).
+// The DEL and AUDITION modes, and LOCK per bus (locks are remembered between runs).
 function useModes() {
   const [mode, setModeShown] = useState<FxMode>("play");
   const [locks, setLocks] = useState<Set<Bus>>(readLocks);
-  const [grab, setGrab] = useState(false);
+  const [audition, setAudition] = useState(false);
   const setMode = useCallback((next: FxMode) => setModeShown((m) => (m === next ? "play" : next)), []);
   const toggleLock = useCallback((bus: Bus) => setLocks((l) => {
     const next = toggled(l, bus);
     localStorage.setItem(LOCKS_KEY, JSON.stringify([...next]));
     return next;
   }), []);
-  const toggleGrab = useCallback(() => setGrab((g) => !g), []);
-  return { mode, setMode, locks, toggleLock, grab, toggleGrab };
+  const toggleAudition = useCallback(() => setAudition((a) => !a), []);
+  return { mode, setMode, locks, toggleLock, audition, toggleAudition };
 }
 
 type Modes = ReturnType<typeof useModes>;
@@ -119,7 +119,7 @@ type Preview = ReturnType<typeof usePreview>;
 type MorphControls = ReturnType<typeof useMorphs>;
 
 function usePresses(store: FxStore, { mode, locks }: Modes, preview: Preview, morph: MorphControls) {
-  // A preset slot pressed: the morph target while morph is on; else by mode (held with GRAB or Shift: a preview).
+  // A preset slot pressed: the morph target while morph is on; else by mode (held with AUDITION or Shift: a preview).
   const pressPreset = useCallback((ref: SlotRef, held: boolean) => {
     const stored = storedSlot(store, ref);
     if (morph.morphs[ref.bus]) return void (stored && morph.target(ref.bus, ref.slot));

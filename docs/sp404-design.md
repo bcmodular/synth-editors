@@ -34,10 +34,12 @@ only: see Controllers › BCR2000.
 - **Exclude tuning**: per bus. When on, preset recall skips the effect's tuning parameters (Resonator
   ROOT and CHORD, Hyper-Reso NOTE and SCALE, and so on; marked in the effects table).
 - **Defaults (DEF)**: a stored baseline per effect per bus. DEF recalls it; storing replaces it (how to store it
-  in the app is still open, 2026-11-12).
+  in the app is still open, 2026-11-12; the user isn't happy with DEF as it is and wants to discuss it again,
+  2026-11-14).
 - **Recent values**: per bus, the app remembers the last parameter values of each effect used on it. Switching
   back to an effect brings its values back.
-- **GRAB**: preview mode. Hold a stored preset (or scene) to hear it; letting go restores what was there.
+- **AUDITION** (was GRAB in the top bar, renamed 2026-11-14 to match the TB-3): preview mode. Hold a stored preset
+  (or scene) to hear it; letting go restores what was there. **GRAB** is now only the per-bus momentary on.
 - **LOCK**: protects a bus during a performance. While locked: preset recall, defaults recall, morph and ON/OFF
   still work; store, delete, clear and scene recall don't touch the bus. Scene store still captures it.
 - **FX scenes**: 16 global snapshots of all five buses: effect, on/off, parameter values and sync.
@@ -52,23 +54,31 @@ These match the TouchOSC version's behaviour, including the lock rules.
 - **Preset slot**: empty → press to store; stored → press to recall (Exclude tuning respected). A stored slot is
   outlined in the bus colour; the slot whose values the bus matches right now is filled ("on"), so editing a knob
   turns it off.
-- **DEL** (red) and **GRAB** (white) in the top bar are global modes that stay on until pressed again (2026-11-12:
+- **DEL** (red) and **AUDITION** (white) in the top bar are global modes that stay on until pressed again (2026-11-12:
   STORE is gone; to replace a preset, delete it and store again). DEL: a press deletes a stored preset or scene,
   and the bus number (its badge turns red) clears the bus (unloads the effect and switches it off, keeping its
-  values in the recent list). GRAB: holding a stored preset or scene plays it and letting go puts the buses back;
-  Shift held does the same without GRAB.
+  values in the recent list). AUDITION: holding a stored preset or scene plays it and letting go puts the buses
+  back; Shift held does the same without AUDITION.
 - **DEF**: recalls the effect's stored defaults, else its starting values (DEF reads brighter once defaults exist).
   Storing defaults has no control for now.
 - **SYNC** (orange, per module) sends the bus to the SP-404 again; **SYNC ALL FX** under the scenes sends every bus.
-- **GRAB** (per module, in the bus colour) is the momentary FX grab: the effect is on while held, and letting go
+- **GRAB** (per module, white, beside ON/OFF) is the momentary FX grab: the effect is on while held, and letting go
   puts ON/OFF back as it was.
 - **LOCK** (per module, remembered between runs, not in the library file): red, filled when on; the LCD gets a red
   edge.
-- The module header takes the bus colour: the number badge, the effect name and its LCD, and the label below.
-- **Morph**: EXP turns it on; pressing a stored preset makes it the target (dashed outline) and the blend starts
-  from the bus's values at that moment; the track (drag or wheel, 0–100) sets the amount. EXP again turns morph
-  off and keeps the blend. Choosing another effect or clearing the bus ends the morph.
-- **KEEP TUNING** at the left of the morph row (only for effects with tuning parameters) is Exclude tuning.
+- The module header takes the bus colour: the number badge and the effect name on its LCD. The BUS labels under
+  the header and the group titles above the modules are gone (2026-11-14): the number badge says which bus it is.
+- **Morph** (its own lilac): the MORPH button turns it on; pressing a stored preset makes it the target (filled in
+  lilac) and the blend starts from the bus's values at that moment; the track (taller since 2026-11-14; drag or
+  wheel, 0–100) sets the amount. MORPH again turns morph off and keeps the blend. Choosing another effect or
+  clearing the bus ends the morph.
+- **KEEP TUNING** (only for effects with tuning parameters) is Exclude tuning. It sits with the effect's controls,
+  just above the first tuning control (Resonator: above CHORD), not on the morph row.
+- **Effect chooser** (2026-11-14): the effect name opens an 8 × 8 grid of square cells, like the Launchpad's pads,
+  the full height of the window. One row per effect group, each in its own colour paired with a Launchpad Pro palette
+  colour (`fx/fxGroups.ts`), so the Launchpad can show the same grid later. Every effect keeps its cell on every
+  bus; ones the bus can't load are dimmed. Names wrap at spaces (WrmSaturator and Tremolo/Pan became Warm Saturator
+  and Tremolo / Pan, 2026-11-14); a single long word is set narrower.
 - **FX scenes**: empty → press to store all five buses; stored → press to recall (locked buses stay as they are);
   the scene every bus matches is filled.
 
@@ -199,12 +209,13 @@ One window drawn at **1920 × 1080** and scaled to fit with CSS `zoom`, as in th
 - **Colours**: the app's accent (buttons that are on, LCD readouts, the scopes' traces and meter) is the orange of
   the SP-404 MK2's button LEDs, in place of the green the first build used. Bus 2's green stays: it's the device's
   own colour for BUS 2, and so does the level meter's, as meters are (amber near full scale); the meter column
-  has a faint orange tint, as it sits over the desk. SHOW BANKS buttons that are on, and the bank headers (which
+  has an orange tint, as it sits over the desk (made stronger 2026-11-14). Shift + wheel over a fader or knob
+  scrolls the desk sideways rather than moving the control. SHOW BANKS buttons that are on, and the bank headers (which
   run out to the bank's side bars), are in the bank colour. The mixer sits 10 px below the FX (half a bank
   header), taken from the faders.
 - **Strip** (84 px), top to bottom: pad label in the bank colour (hold to audition) and MIDI note · sample name
   (one line, click to rename) · AHR thumbnail (click to edit; the editor has RESET: attack 0, hold 100, release 0)
-  · MUTE GRP · routing DRY / 1 / 2 in the device colours (white / orange / green) · pan knob and value · MUTE ·
+  · MUTE GRP · routing DRY / 1 / 2 in the bus colours (white / pink / green) · pan knob and value · MUTE ·
   level fader (~260 px) and value. The sample name, the envelope and the level value are in the bank colour.
 - **Bank master** (76 px): BANK VOL fader in white.
 - **Keyboard overlay**: covers the mixer, not the FX.
@@ -214,23 +225,22 @@ One window drawn at **1920 × 1080** and scaled to fit with CSS `zoom`, as in th
 Every module is 358 × 520 px:
 
 ```
-┌ [1] [ EFFECT NAME (LCD, click to choose) ] [ON] ┐
-│ BUS 1                                           │
+┌ [1] [ EFFECT NAME (LCD) ] [GRAB] [ON]          ┐
 │ ┌ view ─────────────────────────────┐ PRESETS   │
 │ │ editable drawing of the effect    │  1        │
 │ │                                   │  …  8     │
 │ └───────────────────────────────────┘           │
 │ switches / button rows / drop-downs  │ DEF      │
 │ knobs (one per continuous parameter) │ SYNC     │
-│                                      │ GRAB     │
 │                                      │ LOCK     │
-│ MORPH ━━━━━━━━━━━━━━━━━━━━━ EXP                 │
+│ [MORPH] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
 └─────────────────────────────────────────────────┘
 ```
 
-- The accent colour is the bus's: BUS 1 orange, BUS 2 green, BUS 3/4 blue, INPUT lilac.
-- The **side column** (50 px) holds the 8 presets top to bottom, matching a Launchpad column, then DEF, SYNC,
-  GRAB and LOCK, as in the TouchOSC layout.
+- The accent colour is the bus's (2026-11-14): INPUT violet, BUS 1 pink, BUS 2 green, BUS 3 blue, BUS 4 yellow.
+  None is the app's orange, and the mixer's routing buttons use the same pink and green.
+- The **side column** (50 px) holds the 8 presets top to bottom, matching a Launchpad column, then DEF, SYNC and
+  LOCK.
 - No CC or knob numbers on the controls.
 
 ### Control rules
@@ -266,7 +276,7 @@ Availability: **1·2** = BUS 1/2, **3·4** = BUS 3/4, **IN** = INPUT FX, **all**
 | Wah | 1·2 3·4 | Peak: MANUAL × PEAK handle; shaded band = DEPTH | TYPE LPF/BPF; SYNC; RATE in bars |
 | Equalizer | all | TB-3-style 3-band EQ: each handle frequency (stepped) × gain (±15 dB) | Frequency drop-downs; gain readouts |
 | **Drive & character** | | | |
-| WrmSaturator | all | Saturation curve (drag for DRIVE) over a tone panel with LOW and HIGH gain handles | |
+| Warm Saturator | all | Saturation curve (drag for DRIVE) over a tone panel with LOW and HIGH gain handles | |
 | Lo-fi | all | Sine vs crushed copy; CUTOFF handle on the filter with TONE tilt | PRE FILTER and LOFI TYPE rows; CUTOFF drop-down |
 | Ring Mod | 1·2 3·4 | Carrier inside the input envelope: FREQUENCY × SENS handle | POLARITY switch; EQ LOW/HIGH stepped knobs |
 | Crusher | 1·2 3·4 | Staircase over a sine (drag for RATE); FILTER handle | |
@@ -295,7 +305,7 @@ Availability: **1·2** = BUS 1/2, **3·4** = BUS 3/4, **IN** = INPUT FX, **all**
 | JUNO Chorus | all | Large chorus buttons with LEDs (JUNO I / II / I+II, JX-1 I / II) | |
 | Flanger, Phaser | 1·2 3·4 | Notches: MANUAL × RESO handle; shaded band = DEPTH | SYNC; RATE in bars |
 | Slicer | 1·2 3·4 | Compact 4 × 8 pattern pads; large SPEED pads (note matrix) with SYNC on, a wide SPEED bar with SYNC off | MODE LEGATO/SLASH; SYNC |
-| Tremolo/Pan | 1·2 3·4 | The modulation wave; PAN swings around the centre line; drag for DEPTH | TYPE; WAVE 6-way; SYNC |
+| Tremolo / Pan | 1·2 3·4 | The modulation wave; PAN swings around the centre line; drag for DEPTH | TYPE; WAVE 6-way; SYNC |
 | **Pitch & harmonic** | | | |
 | Resonator | 1·2 3·4 | Pitch ladder of the chord tones, named; bar length = FEEDBACK, brightness = BRIGHT; drag for ROOT | CHORD 2 × 8 grid. ROOT/CHORD also from the keyboard |
 | Chromatic PS | all | XY pad, one dot per voice: pitch (−24…+12) × pan | |

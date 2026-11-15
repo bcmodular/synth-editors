@@ -1,5 +1,5 @@
 // The FX row, in the SP-404's signal order: INPUT FX, the pad buses BUS 1 and BUS 2, then the master chain BUS 3 →
-// BUS 4. The last column holds the 16 FX scenes and SYNC ALL FX. The DEL and GRAB modes are in the top bar
+// BUS 4. The last column holds the 16 FX scenes and SYNC ALL FX. The DEL and AUDITION modes are in the top bar
 // (FxModes).
 
 import type { PointerEvent } from "react";
@@ -10,8 +10,7 @@ import type { Fx } from "./useFx";
 
 function Group({ title, buses, fx }: { title: string; buses: Bus[]; fx: Fx }) {
   return (
-    <div className="grp">
-      <div className="gt">{title}</div>
+    <div className="grp" role="group" aria-label={title}>
       <div className="gb">
         {buses.map((bus) => (
           <FxModule key={bus} bus={bus} fx={fx} />
@@ -22,7 +21,7 @@ function Group({ title, buses, fx }: { title: string; buses: Bus[]; fx: Fx }) {
 }
 
 const SCENE_TIP = "A scene is all five buses. Empty: press to store. Stored: press to recall (locked buses stay); "
-  + "hold with GRAB on (or Shift) to preview";
+  + "hold with AUDITION on (or Shift) to preview";
 
 function Scene({ slot, fx }: { slot: number; fx: Fx }) {
   const { play, state } = fx;
@@ -30,7 +29,7 @@ function Scene({ slot, fx }: { slot: number; fx: Fx }) {
     if (e.button !== 0) return;
     e.preventDefault(); // no focus, so no focus ring after Shift
     e.currentTarget.setPointerCapture(e.pointerId);
-    play.pressScene(slot, play.grab || e.shiftKey);
+    play.pressScene(slot, play.audition || e.shiftKey);
   };
   const on = currentScene(state) === slot ? "on" : "";
   return (
@@ -41,9 +40,9 @@ function Scene({ slot, fx }: { slot: number; fx: Fx }) {
   );
 }
 
-// The library's modes, in the top bar: DEL (red) and GRAB (white). Each stays on until pressed again.
+// The library's modes, in the top bar: DEL (red) and AUDITION (white). Each stays on until pressed again.
 export function FxModes({ fx }: { fx: Fx }) {
-  const { mode, setMode, grab, toggleGrab } = fx.play;
+  const { mode, setMode, audition, toggleAudition } = fx.play;
   return (
     <>
       <button className={`pill mode del ${mode === "delete" ? "on" : ""}`} aria-pressed={mode === "delete"}
@@ -51,10 +50,10 @@ export function FxModes({ fx }: { fx: Fx }) {
         onClick={() => setMode("delete")}>
         DEL
       </button>
-      <button className={`pill mode grab ${grab ? "on" : ""}`} aria-pressed={grab}
-        title="GRAB: hold a stored preset or scene to hear it; letting go puts back what was there (or hold Shift)"
-        onClick={toggleGrab}>
-        GRAB
+      <button className={`pill mode audition ${audition ? "on" : ""}`} aria-pressed={audition}
+        title="AUDITION: hold a stored preset or scene to hear it; letting go puts back what was there (or hold Shift)"
+        onClick={toggleAudition}>
+        AUDITION
       </button>
     </>
   );

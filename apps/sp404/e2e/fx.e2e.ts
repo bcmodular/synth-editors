@@ -60,7 +60,7 @@ test("the effect chooser only offers what the bus can load, and the choice is re
   const r = (running = await start());
   await r.page.getByRole("button", { name: "BUS 1 effect" }).click();
   const list = r.page.getByRole("dialog", { name: "Effects for BUS 1" });
-  await expect(list.getByRole("button", { name: "Vocoder", exact: true })).toHaveCount(0); // INPUT FX only
+  await expect(list.getByRole("button", { name: "Vocoder", exact: true })).toBeDisabled(); // INPUT FX only
   await list.getByRole("button", { name: "Resonator", exact: true }).click();
   await r.page.reload();
   await expect(module(r, 1).locator(".name")).toHaveText("RESONATOR");

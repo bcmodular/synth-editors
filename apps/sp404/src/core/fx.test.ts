@@ -56,7 +56,7 @@ describe("effects table", () => {
       expect(synced.length).toBeLessThanOrEqual(1);
     }
     expect(EFFECTS.filter((e) => syncParam(e)).map((e) => e.name)).toEqual([
-      "Zan-Zou", "To-Gu-Ro", "TimeCtrlDly", "Super Filter", "Flanger", "Phaser", "Wah", "Slicer", "Tremolo/Pan",
+      "Zan-Zou", "To-Gu-Ro", "TimeCtrlDly", "Super Filter", "Flanger", "Phaser", "Wah", "Slicer", "Tremolo / Pan",
       "DJFX Delay",
     ]);
   });
@@ -130,7 +130,7 @@ describe("display values", () => {
     expect(displayValue(param("Resonator", "root"), 0)).toBe("C-1");
     expect(displayValue(param("Filter + Drive", "low_gain"), 13)).toBe("-19 dB");
     expect(displayValue(param("Filter + Drive", "low_gain"), 64)).toBe("0 dB");
-    expect(displayValue(param("WrmSaturator", "drive"), 127)).toBe("48 dB");
+    expect(displayValue(param("Warm Saturator", "drive"), 127)).toBe("48 dB");
     expect(displayValue(param("Cassette Sim", "age"), 127)).toBe("60");
     expect(displayValue(param("DJFX Looper", "length"), 0)).toBe("0.230 s");
     expect(displayValue(param("DJFX Looper", "length"), 127)).toBe("0.012 s");

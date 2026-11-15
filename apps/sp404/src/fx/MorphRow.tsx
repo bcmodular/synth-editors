@@ -1,8 +1,6 @@
-// A module's morph row (EXPERIMENTAL): EXP turns morph on, a stored preset pressed then becomes the target, and the
-// track blends the bus's values towards it. Turning morph off keeps the blend. KEEP TUNING (only for effects with
-// tuning parameters) is Exclude tuning: preset recall and morph leave ROOT, CHORD and the like alone.
+// A module's morph row (experimental): MORPH turns morph on, a stored preset pressed then becomes the target (lit in
+// the morph colour), and the track blends the bus's values towards it. Turning morph off keeps the blend.
 
-import { effectById } from "../core/fx";
 import type { Bus } from "../core/fxTypes";
 import { useValueDrag } from "../ui/useValueDrag";
 import type { Fx } from "./useFx";
@@ -28,26 +26,15 @@ function MorphTrack({ bus, fx }: { bus: Bus; fx: Fx }) {
 }
 
 export function MorphRow({ bus, fx }: { bus: Bus; fx: Fx }) {
-  const b = fx.state.buses[bus];
   const on = fx.play.morphs[bus] !== undefined;
-  const tuning = effectById(b.fxId)?.params.some((p) => p.tuning) ?? false;
-  const keep = fx.state.exclude[bus];
   return (
     <div className={`morph ${on ? "on" : ""}`}>
-      {tuning && (
-        <button className={`btn keep ${keep ? "on" : ""}`} aria-pressed={keep}
-          title="Exclude tuning: preset recall and morph leave the tuning parameters alone"
-          onClick={() => fx.toggleExclude(bus)}>
-          KEEP TUNING
-        </button>
-      )}
-      <span className="lbl">MORPH</span>
-      <MorphTrack bus={bus} fx={fx} />
-      <button className={`exp ${on ? "on" : ""}`} aria-pressed={on} aria-label={`Bus ${bus} morph on`} disabled={!b.fxId}
-        title="Morph (experimental): then press a stored preset and drag the track"
+      <button className={`mtoggle ${on ? "on" : ""}`} aria-pressed={on} aria-label={`Bus ${bus} morph on`}
+        disabled={!fx.state.buses[bus].fxId} title="Morph (experimental): then press a stored preset and drag the track"
         onClick={() => fx.play.toggleMorph(bus)}>
-        EXP
+        MORPH
       </button>
+      <MorphTrack bus={bus} fx={fx} />
     </div>
   );
 }

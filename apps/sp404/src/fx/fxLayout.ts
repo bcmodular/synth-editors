@@ -68,8 +68,8 @@ export const FX_LAYOUT: readonly FxLayout[] = [
   { name: "Super Filter", category: "Filter & EQ",
     controls: [{ kind: "knob" }, { kind: "knob" }, { kind: "seg" }, { kind: "knob" }, { kind: "knob", synced: "nv8" }, { kind: "sync" }],
     start: [70, 70, 0, 60, 55, 64], },
-  // 17 WrmSaturator
-  { name: "WrmSaturator", category: "Drive & character",
+  // 17 Warm Saturator
+  { name: "Warm Saturator", category: "Drive & character",
     controls: [{ kind: "knob" }, { kind: "knob" }, { kind: "knob" }, { kind: "knob" }],
     start: [40, 70, 60, 90], },
   // 18 303 VinylSim
@@ -116,8 +116,8 @@ export const FX_LAYOUT: readonly FxLayout[] = [
   { name: "Slicer", category: "Modulation",
     controls: [{ kind: "inview" }, { kind: "knob", synced: "inview" }, { kind: "knob" }, { kind: "knob" }, { kind: "seg" }, { kind: "sync" }],
     start: [20, 73, 90, 30, 0, 64], },
-  // 29 Tremolo/Pan
-  { name: "Tremolo/Pan", category: "Modulation",
+  // 29 Tremolo / Pan
+  { name: "Tremolo / Pan", category: "Modulation",
     controls: [{ kind: "knob" }, { kind: "knob" }, { kind: "seg" }, { kind: "seg" }, { kind: "sync" }],
     start: [90, 40, 0, 43, 64], },
   // 30 Chromatic PS

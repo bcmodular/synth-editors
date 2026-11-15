@@ -1,4 +1,4 @@
-// Drawings for the Drive & character effects, from the designs: transfer curves over tone panels (WrmSaturator,
+// Drawings for the Drive & character effects, from the designs: transfer curves over tone panels (Warm Saturator,
 // Overdrive, Distortion), sines and their crushed copies (Lo-fi, Crusher), the ring mod carrier, the compressor's
 // transfer curve and attack, and Gt Amp Sim's amp buttons over its tone stack.
 
@@ -66,7 +66,7 @@ const halves = (c: ViewContext): [Region, Region] => {
 // ---- drive and saturation
 
 // 17 · Saturation curve (drag for DRIVE) over LOW and HIGH tone handles.
-export function WrmSaturatorView(props: ViewProps) {
+export function WarmSaturatorView(props: ViewProps) {
   const c = useViewContext(props);
   const drive = 0.5 + db48(c.raw(0)) / 6;
   const [lo, hi] = [db24(c.raw(1)), db24(c.raw(2))];

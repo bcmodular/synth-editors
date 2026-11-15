@@ -40,6 +40,9 @@ function dragMover(opts: { current: ValueDragOptions }, start: { clientX: number
   };
 }
 
+// Shift + wheel (or a sideways swipe) scrolls the page across, as everywhere else, e.g. the desk.
+const scrollsAcross = (w: WheelEvent) => w.shiftKey || Math.abs(w.deltaX) > Math.abs(w.deltaY);
+
 export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOptions) {
   const opts = useRef(o);
   opts.current = o;
@@ -53,7 +56,7 @@ export function useValueDrag<T extends HTMLElement | SVGElement>(o: ValueDragOpt
     const onWheel = (e: Event) => {
       const w = e as WheelEvent;
       const { value, min = 0, max, onChange, disabled } = opts.current;
-      if (disabled) return;
+      if (disabled || scrollsAcross(w)) return;
       w.preventDefault();
       // Mouse wheels report large deltas per notch; trackpads report many small ones.
       const d = Math.abs(w.deltaY) >= 40 ? Math.sign(w.deltaY) * WHEEL_PX_PER_STEP : w.deltaY;

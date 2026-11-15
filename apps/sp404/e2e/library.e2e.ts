@@ -1,4 +1,4 @@
-// The FX library (Phase 4) against the fake SP-404's MIDI: presets, DEF, DEL, LOCK, GRAB (the mode and the bus's), morph, FX
+// The FX library (Phase 4) against the fake SP-404's MIDI: presets, DEF, DEL, LOCK, AUDITION, the bus's GRAB, morph, FX
 // scenes, and the library file in the app's (throwaway) user data folder.
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -89,12 +89,12 @@ test("LOCK keeps presets from being stored and the bus from scene recall; preset
   await expect.poll(() => sentSince(r, before)).toEqual([[0xb0, 16, 70]]);
 });
 
-test("with GRAB on, holding a stored preset plays it until let go", async () => {
+test("with AUDITION on, holding a stored preset plays it until let go", async () => {
   const r = (running = await start());
   await withDrive(r);
   await preset(r, 1).click();
   await turnCutoff(r, 6);
-  await r.page.getByRole("button", { name: "GRAB", exact: true }).click(); // the mode, in the top bar
+  await r.page.getByRole("button", { name: "AUDITION", exact: true }).click(); // the mode, in the top bar
   const before = await count(r);
   const box = (await preset(r, 1).boundingBox())!;
   await r.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);

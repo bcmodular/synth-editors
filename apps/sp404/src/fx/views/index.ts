@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import type { FxId } from "../../core/fxTypes";
 import {
-  CompressorView, CrusherView, DistortionView, GtAmpSimView, LofiView, OverdriveView, RingModView, WrmSaturatorView,
+  CompressorView, CrusherView, DistortionView, GtAmpSimView, LofiView, OverdriveView, RingModView, WarmSaturatorView,
 } from "./drive";
 import { BackSpinView, DjfxLooperView, DownerView, ScatterView, StopperView } from "./dj";
 import { CloudDelayView, DjfxDelayView, KoDaMaView, SxDelayView, SyncDelayView, TapeEchoView, TimeCtrlDlyView, ZanZouView } from "./delay";
@@ -34,7 +34,7 @@ export const VIEWS: Partial<Record<FxId, (p: ViewProps) => ReactNode>> = {
   29: TremoloPanView,
   30: ChromaticPsView,
   31: HyperResoView,
-  17: WrmSaturatorView,
+  17: WarmSaturatorView,
   18: VinylSim303View,
   19: VinylSim404View,
   20: CassetteSimView,

@@ -500,7 +500,7 @@ c=>{const fc=20*Math.pow(1000,c.r(0)/127),q=qOf(c.r(1)),ty=c.x(2);const o=resp(c
  return svg(c,R(xa,0,xb-xa,c.H,'ar','style="fill-opacity:.1"')+o.svg+H_(c,fx2(fc,c.W),o.dbY(20*Math.log10(q)),'CUT · RESO',0,1,{sx:.55})+T(c.W-4,12,'LFO '+(c.sync()?c.v(4):'RATE '+c.v(4))+' · DEPTH '+pct(c.r(3)),'gt','end'))},
 'Filter curve with a cutoff/resonance handle; the shaded band is how far the LFO sweeps (DEPTH). TYPE is a three-way switch. With SYNC on, RATE is a note-value matrix (2/1 to 1/64, with dotted and triplet).',{d:[70,70,0,60,55,64]});
 // 17
-fx('WrmSaturator',1,[17,11,11],[K(16,'DRIVE',r=>'+'+db48(r)+'dB'),K(17,'EQ LOW',r=>sg(db24(r))+'dB'),K(18,'EQ HIGH',r=>sg(db24(r))+'dB'),K(80,'LEVEL',pct)],
+fx('Warm Saturator',1,[17,11,11],[K(16,'DRIVE',r=>'+'+db48(r)+'dB'),K(17,'EQ LOW',r=>sg(db24(r))+'dB'),K(18,'EQ HIGH',r=>sg(db24(r))+'dB'),K(80,'LEVEL',pct)],
 c=>{const dr=.5+db48(c.r(0))/6,h1=c.H*.56,lo=db24(c.r(1)),hi=db24(c.r(2));
  return svg(c,xfer(c,0,0,c.W,h1-4,v=>Math.tanh(v*dr)/Math.tanh(dr),'OUT')+T(c.W/2,h1-14,'DRIVE +'+db48(c.r(0))+' dB','gt','middle')+tonePanel(c,h1+2,c.H-h1-2,f=>shLo(f,200,lo)+shHi(f,4000,hi),[[150,lo,'LOW '+sg(lo),1],[7000,hi,'HIGH '+sg(hi),2]]))},
 'Top: the saturation curve; drag up or down anywhere on it for DRIVE. Bottom: the two-band tone EQ with LOW and HIGH gain handles.',{d:[40,70,60,90]});
@@ -590,7 +590,7 @@ c=>{const W=c.W,H=c.H,pat=c.x(0),cols=8,top=16,ph=17,gw=(W-2)/cols;let g=T(4,11,
 'Compact pattern pads (32, in a 4 × 8 grid) at the top; SPEED gets the bigger buttons below, because it is changed more while playing. With SYNC on, SPEED is a note-value matrix (triplet, straight and dotted rows, every button labelled); with SYNC off it is a wide bar to drag. There is no step picture, as what each pattern does is not documented. DEPTH and SHUFFLE are knobs; MODE is a two-way switch.',{d:[20,73,90,30,0,64]});
 // 29
 const WAVES=['TRI','SQR','SIN','SAW1','SAW2','TRP'];
-fx('Tremolo/Pan',5,[29,33,0],[K(16,'DEPTH',pct),K(17,'RATE',pct,{sl:{f:wahBar}}),D(18,'TYPE',['TREMOLO','PAN'],S2,'seg'),D(80,'WAVE',WAVES,[0,22,43,64,85,107],'seg'),SYNC(81)],
+fx('Tremolo / Pan',5,[29,33,0],[K(16,'DEPTH',pct),K(17,'RATE',pct,{sl:{f:wahBar}}),D(18,'TYPE',['TREMOLO','PAN'],S2,'seg'),D(80,'WAVE',WAVES,[0,22,43,64,85,107],'seg'),SYNC(81)],
 c=>{const pan=c.x(2)===1,w=WAVES[c.x(3)],d=c.r(0)/127,cyc=c.sync()?Math.max(1,Math.min(12,1/parseFloat(c.v(1)))):2+c.r(1)/127*8;let g='';for(let i=1;i<4;i++)g+=Ln(c.W*i/4,0,c.W*i/4,c.H);
  if(pan)g+=Ln(0,c.H/2,c.W,c.H/2,'ax')+T(c.W-4,18,'L','gl','end')+T(c.W-4,c.H-6,'R','gl','end');
  const p=lfoPts(c,w,cyc,d,14,c.H-20,pan?'bi':'trem');
@@ -632,7 +632,7 @@ c=>{const W=c.W,h1=c.H*.5;let p=[],q=[];for(let x=0;x<=W;x+=2)p.push(`${x},${(h1
 // 34,35
 const odView=(hard)=>c=>{const dr=.6+c.r(0)/127*(hard?12:5),h1=c.H*.56,t=bip(c.r(1))/100*12;
  return svg(c,xfer(c,0,0,c.W,h1-4,v=>hard?clamp(v*dr,-1,1)*.9+.1*Math.tanh(v*dr):Math.tanh(v*dr)/Math.tanh(dr),'OUT')+T(c.W/2,h1-14,'DRIVE '+pct(c.r(0)),'gt','middle')+tonePanel(c,h1+2,c.H-h1-2,f=>t*(Math.log2(f/1000)/5),[[8000,t*Math.log2(8)/5,'TONE '+sg(bip(c.r(1))),1]]))};
-fx('Overdrive',1,[34,12,0],[K(16,'DRIVE',pct),K(17,'TONE',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'LEVEL',pct)],odView(0),'Soft-clipping curve (drag on it for DRIVE) above a tone tilt with one handle. Uses the same layout as WrmSaturator and Distortion so the drive effects read alike.',{d:[60,80,100,80]});
+fx('Overdrive',1,[34,12,0],[K(16,'DRIVE',pct),K(17,'TONE',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'LEVEL',pct)],odView(0),'Soft-clipping curve (drag on it for DRIVE) above a tone tilt with one handle. Uses the same layout as Warm Saturator and Distortion so the drive effects read alike.',{d:[60,80,100,80]});
 fx('Distortion',1,[35,13,0],[K(16,'DRIVE',pct),K(17,'TONE',r=>sg(bip(r))),K(18,'BALANCE',bal),K(80,'LEVEL',pct)],odView(1),'As Overdrive with a harder clipping curve.',{d:[80,70,100,70]});
 // 36
 fx('Equalizer',0,[36,7,16],[D(16,'LOW GAIN',EQ31,EQS,'inview'),D(17,'MID GAIN',EQ31,EQS,'inview'),D(18,'HIGH GAIN',EQ31,EQS,'inview'),D(80,'LOW FREQ',['20','25','31','40','50','63','80','100','125','160','200','250','315','400'],[0,10,19,28,37,46,55,64,73,82,92,101,110,119],'drop'),D(81,'MID FREQ',['200','250','315','400','500','630','800','1k','1.25k','1.6k','2k','2.5k','3.15k','4k','5k','6.3k','8k'],[0,8,15,23,30,38,45,53,60,68,75,83,90,98,105,113,120],'drop'),D(82,'HIGH FREQ',['2k','2.5k','3.15k','4k','5k','6.3k','8k','10k','12.5k','16k'],[0,13,26,39,52,64,77,90,102,115],'drop')],

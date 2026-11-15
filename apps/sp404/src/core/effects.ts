@@ -236,7 +236,7 @@ export const EFFECTS: readonly FxDef[] = [
   },
   {
     id: 17,
-    name: "WrmSaturator",
+    name: "Warm Saturator",
     cc83: { bus12: 17, bus34: 11, input: 11 },
     params: [
       { cc: 16, key: "drive", label: "DRIVE", display: "db48", unit: "dB" },
@@ -402,7 +402,7 @@ export const EFFECTS: readonly FxDef[] = [
   },
   {
     id: 29,
-    name: "Tremolo/Pan",
+    name: "Tremolo / Pan",
     cc83: { bus12: 29, bus34: 33, input: 0 },
     params: [
       { cc: 16, key: "depth", label: "DEPTH", display: "zeroOneHundred" },

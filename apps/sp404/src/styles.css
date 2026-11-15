@@ -15,8 +15,9 @@
   --meter: #3ddc5a; /* the level meter stays green, amber near full scale, as meters are */
   --meter-hot: #ffb020;
   --well: #222327;
-  --b1: #ff8a2a;
+  --b1: #ff5f9e; /* bus colours, as BUS_ACCENT in fx/FxModule.tsx */
   --b2: #3ddc5a;
+  --morph: #d8a2ff;
   --dry: #e8e8ea;
   --mute: #ff3b30;
   --solo: #ffd23a;
@@ -156,14 +157,6 @@ select {
   flex-direction: column;
 }
 
-.grp > .gt {
-  font-size: var(--text-xs);
-  letter-spacing: 0.1em;
-  color: var(--dim);
-  padding: 4px 10px 0;
-  text-transform: uppercase;
-}
-
 .grp > .gb {
   display: flex;
   flex: 1;
@@ -178,7 +171,7 @@ select {
 }
 
 .bus {
-  --acc: #ff8a2a;
+  --acc: var(--cap);
   width: 358px;
   display: flex;
   flex-direction: column;
@@ -194,7 +187,7 @@ select {
   gap: 8px;
 }
 
-/* The header takes the bus's colour: the number, the effect's name and its LCD, and the label under them. */
+/* The header takes the bus's colour: the number and the effect's name on its LCD. */
 .bus .num {
   width: 22px;
   height: 22px;
@@ -206,10 +199,6 @@ select {
   font-size: var(--text-m);
   color: var(--acc);
   padding: 0;
-}
-
-.bus > .lbl {
-  color: var(--acc);
 }
 
 .bus .num.clear {
@@ -601,8 +590,9 @@ button.big.on {
 }
 
 .presets button.target {
-  outline: 2px dashed #d8a2ff;
-  outline-offset: -3px;
+  background: var(--morph);
+  border-color: var(--morph);
+  color: #000;
 }
 
 .mode-delete .presets button.stored,
@@ -620,7 +610,7 @@ button.big.on {
   color: #e8e8ea;
 }
 
-/* SYNC is orange, LOCK red; the bus's GRAB is in its colour, filled while held. */
+/* SYNC is orange, LOCK red. */
 .btn.sync {
   border-color: color-mix(in srgb, var(--cap) 70%, #000);
   color: var(--cap);
@@ -636,19 +626,26 @@ button.big.on {
   cursor: default;
 }
 
-.pcol .btn.fxgrab {
-  border-color: color-mix(in srgb, var(--acc) 70%, #000);
-  color: var(--acc);
+/* GRAB, beside ON/OFF, is always white, filled while held. */
+.bus .fxgrab {
+  border: 2px solid #e8e8ea;
+  color: #e8e8ea;
+  padding: 2px 7px;
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  background: #000;
+  border-radius: 3px;
+  cursor: pointer;
   touch-action: none;
 }
 
-.pcol .btn.fxgrab.on {
-  background: var(--acc);
+.bus .fxgrab.on {
+  background: #e8e8ea;
   color: #000;
 }
 
-.pcol .btn.fxgrab:disabled {
-  opacity: 0.4;
+.bus .fxgrab:disabled {
+  opacity: 0.35;
   cursor: default;
 }
 
@@ -672,15 +669,17 @@ button.big.on {
   cursor: default;
 }
 
+/* Morph has its own colour: the MORPH toggle, the track and the target preset. */
 .morph {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding-top: 2px;
 }
 
 .morph .tr {
   flex: 1;
-  height: 10px;
+  height: 22px;
   background: var(--well);
   border: 1px solid var(--edge);
   position: relative;
@@ -697,42 +696,52 @@ button.big.on {
   left: 0;
   top: 0;
   bottom: 0;
-  background: #d8a2ff;
+  background: var(--morph);
 }
 
 .morph.on .tr {
-  border-color: #d8a2ff;
+  border-color: var(--morph);
 }
 
-.exp {
-  font: inherit;
+.mtoggle {
+  height: 24px;
   font-size: var(--text-xs);
-  color: #d8a2ff;
+  color: var(--morph);
   background: none;
-  border: 1px solid #d8a2ff;
-  padding: 0 3px;
-  letter-spacing: 0.06em;
+  border: 1px solid color-mix(in srgb, var(--morph) 70%, #000);
+  padding: 0 8px;
+  letter-spacing: 0.08em;
   cursor: pointer;
 }
 
-.exp.on {
-  background: #d8a2ff;
+.mtoggle.on {
+  background: var(--morph);
   color: #000;
 }
 
-.exp:disabled {
+.mtoggle:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-.morph .keep {
-  font-size: var(--text-xs);
-  padding: 3px 8px;
-  border-color: color-mix(in srgb, var(--acc) 70%, #000);
-  color: var(--acc);
+/* KEEP TUNING, above the effect's first tuning control. */
+.keeprow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2px;
 }
 
-.morph .keep.on {
+.keeprow .keep {
+  font-size: var(--text-xs);
+  padding: 1px 8px;
+  letter-spacing: 0.06em;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--acc) 70%, #000);
+  color: var(--acc);
+  cursor: pointer;
+}
+
+.keeprow .keep.on {
   background: var(--acc);
   color: #000;
 }
@@ -781,7 +790,7 @@ button.big.on {
   color: var(--mute);
 }
 
-.bar .mode.grab {
+.bar .mode.audition {
   border-color: #fff;
   color: #fff;
 }
@@ -791,47 +800,87 @@ button.big.on {
   color: #000;
 }
 
-.bar .mode.grab.on {
+.bar .mode.audition.on {
   background: #fff;
   color: #000;
 }
 
+/* The effect chooser (fx/EffectChooser.tsx): the full height of the window, square cells like the Launchpad's pads, one
+   row per group in its colour (--grp). */
 .chooser {
+  --cell: 118px;
   position: absolute;
-  left: 10px;
-  right: 10px;
-  top: 38px;
-  z-index: 15;
-  max-height: 470px;
-  overflow: auto;
-  background: #18191c;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  z-index: 30;
+  background: #121214;
   border: 1px solid var(--acc);
-  box-shadow: 0 8px 30px #000a;
-  padding: 8px;
+  box-shadow: 0 12px 40px #000c;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
-.chooser .choices {
+.chooser .ch-title {
+  font-size: var(--text-2xl);
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  padding-bottom: 6px;
+}
+
+.chooser .ch-title b {
+  color: var(--acc);
+  font-weight: 600;
+}
+
+.ch-row {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 3px;
-  margin-top: 3px;
+  grid-template-columns: 210px repeat(8, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: 5px;
 }
 
-.chooser button {
-  text-align: left;
-  background: #1d1e21;
-  border: 1px solid #000;
-  padding: 4px 6px;
-  font-size: var(--text-m);
+.ch-group {
+  align-self: center;
+  color: var(--grp);
+  font-size: var(--text-2xl);
+  letter-spacing: 0.08em;
+}
+
+.ch-fx {
+  background: color-mix(in srgb, var(--grp) 14%, #0b0b0c);
+  border: 1px solid color-mix(in srgb, var(--grp) 45%, #000);
+  color: var(--grp);
+  font-size: var(--text-3xl);
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+  padding: 0 8px;
   cursor: pointer;
 }
 
-.chooser button.on {
-  background: var(--acc);
+.ch-fx.narrow {
+  font-stretch: 62%;
+}
+
+.ch-fx:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--grp) 28%, #0b0b0c);
+}
+
+.ch-fx.on {
+  background: var(--grp);
   color: #000;
+}
+
+.ch-fx:disabled {
+  opacity: 0.22;
+  cursor: default;
+}
+
+.ch-empty {
+  border: 1px dashed #26272b;
 }
 
 .bar .warn {
@@ -1567,7 +1616,7 @@ button.wpad:active {
 .mx-right {
   width: 84px;
   flex: none;
-  background: color-mix(in srgb, var(--cap) 16%, #111113); /* a tint of the accent: it sits over the desk */
+  background: color-mix(in srgb, var(--cap) 32%, #111113); /* a tint of the accent: it sits over the desk */
   border-left: 1px solid var(--edge);
   padding: 8px 8px 10px;
   display: flex;

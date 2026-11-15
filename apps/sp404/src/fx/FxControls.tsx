@@ -18,6 +18,12 @@ export interface FxControlsProps {
   values: readonly number[];
   onValue: (index: number, raw: number) => void;
   hasView: boolean; // the effect has its own drawing: in-view parameters live there, readouts replace knobs
+  keepTuning?: KeepTuning; // Exclude tuning, for effects with tuning parameters
+}
+
+export interface KeepTuning {
+  on: boolean;
+  toggle: () => void;
 }
 
 const LONG_LIST = 16; // an in-view list longer than this becomes a stepped knob until its drawing exists
@@ -40,7 +46,7 @@ export function controlFor(p: FxParam, kind: ControlKind, synced: ControlKind | 
 
 // Where a parameter's control goes: in its slot's cell of the 3 × 2 grid (laid out as the BCR2000's encoders), or,
 // when too wide for a cell, in a full-width row above the grid (its cell then shows the name and value).
-type Placed = { cell: ReactNode; row?: ReactNode; big?: boolean };
+type Placed = { cell: ReactNode; row?: ReactNode; big?: boolean; tuning?: boolean };
 
 const Readout = ({ label, text }: { label: string; text: string }) => (
   <span className="readout"><span className="lbl">{label}</span><em>{text}</em></span>
@@ -102,14 +108,43 @@ function placeParam(p: FxParam, i: number, x: PlaceContext): Placed {
   return place(p, kind, ctl.label, raw, x.syncOn, (r) => x.onValue(i, r));
 }
 
-// Wide rows, then big buttons side by side, then the six cells (slots 1–3 down the left, 4–6 down the right).
-function Slots({ placed }: { placed: Placed[] }) {
+// KEEP TUNING (Exclude tuning) sits just above the effect's first tuning control: above its row when it has one
+// (Resonator: above CHORD), else above the grid.
+function KeepTuningRow({ keep }: { keep: KeepTuning }) {
+  return (
+    <div className="keeprow">
+      <button className={`keep ${keep.on ? "on" : ""}`} aria-pressed={keep.on} onClick={keep.toggle}
+        title="Exclude tuning: preset recall and morph leave the tuning parameters alone">
+        KEEP TUNING
+      </button>
+    </div>
+  );
+}
+
+// Where KEEP TUNING goes: above the row of the first parameter that is a tuning one, above the big buttons when
+// that's one of them, else above the grid.
+type KeepAt = Placed | "big" | "grid" | undefined;
+
+function keepPlace(placed: Placed[], keep: KeepTuning | undefined): KeepAt {
+  const tuning = keep && placed.find((x) => x.tuning);
+  if (!tuning) return undefined;
+  if (tuning.big) return "big";
+  return tuning.row ? tuning : "grid";
+}
+
+// Wide rows, then big buttons side by side, then the six cells (slots 1–3 down the left, 4–6 down the right), with
+// KEEP TUNING above the first of them that holds a tuning parameter.
+function Slots({ placed, keep }: { placed: Placed[]; keep?: KeepTuning }) {
   const rows = placed.filter((x) => x.row && !x.big);
   const big = placed.filter((x) => x.big);
+  const keepAt = keepPlace(placed, keep);
+  const keepRow = (at: KeepAt) => keep && keepAt === at && <KeepTuningRow keep={keep} />;
   return (
     <>
-      {rows.map((x, i) => <div key={`r${i}`} className="row-slot">{x.row}</div>)}
+      {rows.map((x, i) => <div key={`r${i}`} className="row-slot">{keepRow(x)}{x.row}</div>)}
+      {keepRow("big")}
       {big.length > 0 && <div className="frow">{big.map((x, i) => <span key={i} className="big-slot">{x.row}</span>)}</div>}
+      {keepRow("grid")}
       <div className="slots">
         {Array.from({ length: SLOTS }, (_, i) => <div key={i} className="slot">{placed[i]?.cell}</div>)}
       </div>
@@ -117,7 +152,7 @@ function Slots({ placed }: { placed: Placed[] }) {
   );
 }
 
-export function FxControls({ fx, values, onValue, hasView }: FxControlsProps) {
+export function FxControls({ fx, values, onValue, hasView, keepTuning }: FxControlsProps) {
   const layout = FX_LAYOUT[fx.id - 1];
   const sync = syncParam(fx);
   const syncOn = sync ? isSyncOn(values[fx.params.indexOf(sync)] ?? 0) : false;
@@ -126,7 +161,7 @@ export function FxControls({ fx, values, onValue, hasView }: FxControlsProps) {
   return (
     <div className="fx-controls">
       {layout?.kill && <KillRow values={values} onValue={onValue} />}
-      <Slots placed={fx.params.map((p, i) => placeParam(p, i, x))} />
+      <Slots placed={fx.params.map((p, i) => ({ ...placeParam(p, i, x), tuning: p.tuning }))} keep={keepTuning} />
     </div>
   );
 }

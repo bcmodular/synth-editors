@@ -68,7 +68,9 @@ Column widths (CSS px, 1580 inside the margins):
 | FX row | EFX1 and EFX2 split the row |
 
 (Revised 2026-11: values became knobs in their section's colour; VCO and VCO MIX became one green group; cross mod
-went back to faders, its two groups side by side; DISTORTION moved up beside the LFO.)
+went back to faders, its two groups side by side; DISTORTION moved up beside the LFO. Then the sections were renamed
+OSCILLATORS, CROSS MODULATION, RING MODULATION, FILTER (cyan) and AMPLIFIER (yellow), and the EFX sections are
+titled with their type alone.)
 | Top strip | ~140 px tall |
 
 PORTA · BEND was a popover from PERFORM while PATCHES and MORPH shared the top strip. Since

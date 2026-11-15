@@ -56,8 +56,8 @@ Every change is sent to the TB-3 straight away, so you hear it as you edit.
 
 ### Knobs and faders
 
-Each section has its own colour, and its knobs, faders, buttons and pictures follow it: the VCO
-group is the TB-3's green. The values are knobs, apart from cross mod's faders:
+Each section has its own colour, and its knobs, faders, buttons and pictures follow it:
+OSCILLATORS is the TB-3's green, FILTER cyan and AMPLIFIER yellow. The values are knobs, apart from cross mod's faders:
 
 - **Drag** a knob up or down (a fader sideways) to change it. The drag is relative: grab anywhere
   and move.
@@ -93,17 +93,17 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
 
 ### Oscillators
 
-![VCO, CROSS MOD and RING MOD](images/row-oscillators.png)
+![OSCILLATORS, CROSS MODULATION and RING MODULATION](images/row-oscillators.png)
 
-- **VCO**: a level knob for each source: saw, square, sine, white and pink noise, and the ring
+- **OSCILLATORS** (the VCO): a level knob for each source: saw, square, sine, white and pink noise, and the ring
   modulator. The button above each knob switches that source on and off. TUNING sets the
   pitch offsets of the saw, square, and ring + sine oscillators.
   Beside them, the mix: with **DRAWN** selected, a picture of the mixed waveform, drawn from the
   settings to show the shape of the mix. With **LIVE** selected, the TB-3's actual output: see below.
-- **CROSS MOD**: how much the square, saw and noise sources modulate the saw (left group) and the
+- **CROSS MODULATION**: how much the square, saw and noise sources modulate the saw (left group) and the
   square (right group), one fader each. The diagram beside each group shows which paths are active,
   ending at the destination: violet for positive amounts, amber for negative ones.
-- **RING MOD**, under it: the ring modulator's source depths and overall depth.
+- **RING MODULATION**, under it: the ring modulator's source depths and overall depth.
 
 ### The TB-3's output, live
 
@@ -113,7 +113,7 @@ parameter that can be assigned gets a dotted outline. Click the one you want; Es
 
 ![The VCO mix's SPECTROGRAM: frequencies over the last 4 seconds](images/vco-mix-spectrogram.png)
 
-Click **LIVE** in VCO to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
+Click **LIVE** in OSCILLATORS to see what the TB-3 is actually playing. This uses the TB-3's USB audio,
 so the TB-3 needs to be connected by USB, with Roland's TB-3 driver installed.
 
 - **The waveforms**, left (L) above right (R), scroll from right to left and show the last 4 seconds.
@@ -144,20 +144,21 @@ speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIV
 
 ### Filter, amp, LFO and distortion
 
-![VCF, VCA, LFO and DISTORTION](images/row-shaping.png)
+![FILTER, AMPLIFIER, LFO and DISTORTION](images/row-shaping.png)
 
-- **VCF**: cutoff, resonance, envelope depth and key follow, with the filter envelope. Drag the
+- **FILTER** (the VCF): cutoff, resonance, envelope depth and key follow, with the filter envelope. Drag the
   envelope's handles to shape it. The first sets attack, the second sets decay (sideways) and
   sustain (up and down), and the last sets release. The A, D, S and R knobs underneath edit the
   same values.
-- **VCA**: the amp envelope, edited in the same way, and the master volume.
+- **AMPLIFIER** (the VCA): the amp envelope, edited in the same way, and the master volume.
 - **LFO**: the waveform mix (saw, square, triangle, sine and sample & hold), rate, delay and CV
   offset, and how much the LFO moves the VCO, VCF and VCA. BPM SYNC locks the rate to the tempo,
   and RETRIG restarts the LFO on each note. The picture shows the resulting shape.
 
 ### Distortion and effects
 
-DISTORTION sits at the end of the filter row, so EFX1 and EFX2 share the bottom row.
+DISTORTION sits at the end of the filter row, so the two effects, EFX1 (left) and EFX2 (right), share
+the bottom row. Each is titled with its effect type.
 
 ![EFX1 and EFX2](images/row-effects.png)
 
@@ -167,8 +168,8 @@ DISTORTION sits at the end of the filter row, so EFX1 and EFX2 share the bottom 
 
   ![The distortion types](images/distortion-types.png)
 
-- **EFX1 and EFX2**: pick the effect type from the row of buttons. ON switches the effect in.
-  EFX1 is blue and EFX2 violet (and DISTORTION orange), down to their knobs and pictures, so
+- **EFX1 and EFX2**: pick the effect type from the row of buttons; it becomes the section's title. ON switches the effect in.
+  EFX1 is azure and EFX2 violet (and DISTORTION orange), down to their knobs and pictures, so
   they're easy to tell apart.
   Some types also have mode buttons, like the reverb's AMBIENT, ROOM and HALL. Every type but
   BYPASS has a picture of what it does, on the left, with handles to drag. Each handle shows its

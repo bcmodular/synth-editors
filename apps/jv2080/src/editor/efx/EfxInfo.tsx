@@ -4,10 +4,14 @@
 
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { efxHelp, type EfxHelp } from "../../core/efxHelp";
+import { EFX_GENERAL_NOTE, efxHelp, paramHelp, type EfxHelp } from "../../core/efxHelp";
+import type { EfxParamDef } from "../../core/efx";
 import { useDismiss } from "../../ui/useDismiss";
 import { FlowDiagram } from "./FlowDiagram";
 import { useEfx } from "./useEfx";
+
+// A parameter's range as the panel shows it; a long list as its first and last entries.
+const rangeOf = (p: EfxParamDef) => (p.labels && p.labels.length > 6 ? `${p.labels[0]}…${p.labels[p.labels.length - 1]}` : p.range);
 
 function InfoPanel({ help, onClose }: { help: EfxHelp; onClose: () => void }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -29,18 +33,17 @@ function InfoPanel({ help, onClose }: { help: EfxHelp; onClose: () => void }) {
         {params.map((x) => (
           <div key={x.p.slot} className={hot.has(x.p.name) ? "hot" : ""} onPointerEnter={() => hover([x.p.name])}
             onPointerLeave={() => hover([])}>
-            <dt>{x.p.name}<em>{x.text}</em></dt>
-            <dd>{help.params[x.p.name]}</dd>
+            <dt>{x.p.name}<small>{rangeOf(x.p)}</small><em>{x.text}</em></dt>
+            <dd>{paramHelp(typeRaw, x.p.name)}</dd>
           </div>
         ))}
       </dl>
-      {help.notes && <ul className="info-notes">{help.notes.map((n) => <li key={n}>{n}</li>)}</ul>}
+      <ul className="info-notes">{[...(help.notes ?? []), EFX_GENERAL_NOTE].map((n) => <li key={n}>{n}</li>)}</ul>
     </div>,
     host,
   );
 }
 
-// Shown only for types that have help so far.
 export function EfxInfoButton() {
   const { typeRaw } = useEfx();
   const [open, setOpen] = useState(false);

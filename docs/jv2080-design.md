@@ -70,6 +70,16 @@ After the first editor, a more compact layout, decided with the user:
   (`editor/efx/`: a spec per type names the drawings it shows and the parameters they drag; EQ, spectrum, drive,
   enhancer, compressor, limiter, LFO sweep, rotary, delay taps, pitch ladder, reverb and gate drawings; two-effect
   types joined by an arrow or stacked; the rest as knobs and buttons). Rates and times still draw from raw values.
+- **EFX help** ✅ (2026-11-15): the (i) beside the type opens a panel for the current type, with:
+  - what it does, in our own words, and tips (some from the manual, some general knowledge);
+  - each parameter with its range, current value and a line on what it does;
+  - its signal flow, redrawn from the manual's diagrams (pp. 34–53) as live SVG. Each path is drawn as strongly as
+    its balances, pans and levels let through. The Feedback Mode crossing loops appear only in CROSS. Hovering a
+    parameter lights up its part of the flow, and the other way round.
+
+  The data is in `core/efxHelp/`, by group; descriptions shared across types are in `common.ts`; the drawing is in
+  `editor/efx/FlowDiagram.tsx` and `flowLayout.ts`. The manual itself stays in `fixtures/local/jv2080/` and is never
+  committed. Nothing from it is copied word for word.
 - **Demo mode** (`?demo`): the editor on a built-in patch with nothing sent, for working without a JV. A new EFX
   type starts from neutral values (`efxStartValue`), there and on the JV: the JV keeps the previous type's bytes when
   the type changes, so the editor sends the start values after the type (decided 2026-11-15).

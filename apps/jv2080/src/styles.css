@@ -1248,9 +1248,15 @@ input {
 }
 
 /* The (i) help panels (editor/efx/EfxInfo.tsx): over the editor like the chooser, in the section's colour. */
-.info-btn {
-  width: 24px;
-  padding: 0;
+.sec .extra .info-btn {
+  flex: none;
+  width: 23px;
+  height: 23px;
+  padding: 0 1px 0 0;
+  justify-content: center;
+  letter-spacing: 0;
+  font-size: var(--text-xl);
+  line-height: 1;
   font-style: italic;
   font-family: Georgia, serif;
   font-weight: 700;
@@ -1310,9 +1316,6 @@ input {
   stroke: var(--tint);
   stroke-width: 1.5;
 }
-.flow .fl-edge.dry .ln {
-  stroke: #c8cad0;
-}
 .flow .fl-edge.fb .ln {
   stroke-dasharray: 4 3;
 }
@@ -1323,9 +1326,6 @@ input {
 }
 .flow .fl-edge .dot {
   fill: var(--tint);
-}
-.flow .fl-edge.dry .dot {
-  fill: #c8cad0;
 }
 .flow .fl-edge.hot .ln {
   stroke-width: 3;
@@ -1357,18 +1357,24 @@ input {
   stroke: #c8cad0;
   stroke-width: 1.2;
 }
-.flow .fl-fx rect {
+.flow .fl-fx rect,
+.flow .fl-tap rect {
   fill: color-mix(in srgb, var(--tint) 16%, #0b0b0c);
   stroke: var(--tint);
   stroke-width: 1.2;
 }
-.flow .fl-fx text {
+.flow .fl-fx text,
+.flow .fl-tap text {
   fill: var(--tint);
   font-size: 12px;
   font-weight: 600;
   pointer-events: none;
 }
-.flow .fl-fx.hot rect {
+.flow .fl-tap .v {
+  fill: #fff;
+}
+.flow .fl-fx.hot rect,
+.flow .fl-tap.hot rect {
   fill: color-mix(in srgb, var(--tint) 40%, #0b0b0c);
   stroke-width: 2.5;
 }
@@ -1396,6 +1402,13 @@ input {
 .info-params dt em {
   font-style: normal;
   color: #fff;
+}
+.info-params dt small {
+  margin-left: auto;
+  padding: 0 10px;
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--dim);
 }
 .info-params dd {
   margin: 2px 0 0;

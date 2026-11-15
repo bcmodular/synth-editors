@@ -1,11 +1,10 @@
-// Controls bound to a parameter of the patch: a labelled bar fader, a segmented choice, a drop-down list, an on/off
+// Controls bound to a parameter of the patch: a segmented choice, a drop-down list, an on/off
 // button and a knob. `tone` (0–3) picks the tone for tone parameters.
 
 import { getParam } from "../core/patch";
 import type { ParamDef } from "../core/params";
 import { clampParam, param } from "../core/paramValue";
 import { LedButton, Segmented } from "../ui/controls";
-import { HFader } from "../ui/Fader";
 import { Knob } from "../ui/Knob";
 import { useEditor } from "./EditorContext";
 
@@ -25,25 +24,6 @@ function useBound(props: BoundProps) {
   const tone = props.tone ?? 0;
   const value = clampParam(def, getParam(patch, def, tone));
   return { def, value, set: (v: number) => setValue(def, v, tone), label: props.label ?? def.name };
-}
-
-// The fader works from 0, so parameters that start higher (Tempo 20–250) are shifted by their minimum.
-export function ParamFader(props: BoundProps) {
-  const { def, value, set, label } = useBound(props);
-  const { min } = def;
-  return (
-    <div className="prow">
-      <span className="lbl">{label}</span>
-      <HFader
-        width="fill"
-        value={value - min}
-        max={def.max - min}
-        center={def.center === undefined ? undefined : def.center - min}
-        format={(raw) => def.display(raw + min)}
-        onChange={(raw) => set(raw + min)}
-      />
-    </div>
-  );
 }
 
 export function ParamChoice(props: BoundProps) {

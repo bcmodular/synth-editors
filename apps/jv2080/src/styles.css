@@ -90,46 +90,6 @@ input {
   z-index: 1;
 }
 
-.hf {
-  position: relative;
-  height: 22px;
-  background: var(--well);
-  border: 1px solid var(--edge);
-  cursor: ew-resize;
-  flex: 0 0 auto;
-  touch-action: none;
-}
-.hf.fill {
-  flex: 1 1 0;
-  min-width: 0;
-}
-.hf > i {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  background: var(--led);
-}
-.hf > em {
-  position: absolute;
-  right: 5px;
-  top: 3px;
-  font-style: normal;
-  font-weight: 600;
-  font-size: var(--text-l);
-  color: #fff;
-  text-shadow: 0 0 2px #000, 0 0 1px #000;
-  pointer-events: none;
-}
-.hf.bi::after {
-  content: "";
-  position: absolute;
-  left: var(--c, 50%);
-  top: -3px;
-  bottom: -3px;
-  width: 1px;
-  background: #9a9ca3;
-}
-
 .pick {
   background: var(--well);
   border: 1px solid var(--edge);

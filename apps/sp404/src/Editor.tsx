@@ -15,6 +15,7 @@ import { Desk } from "./mixer/Desk";
 import { MixerSide, type ProjectView } from "./mixer/MixerSide";
 import { useDevice, type Device } from "./mixer/useDevice";
 import { useMixer } from "./mixer/useMixer";
+import { useMixScenes } from "./mixer/useMixScenes";
 import { noActivity, type PadActivity } from "./mixer/padHits";
 import { usePadHits } from "./mixer/usePadHits";
 import { useMixerView } from "./mixer/useMixerView";
@@ -85,6 +86,7 @@ export function Editor() {
   const loadedBanks = useMemo(() => new Set(mixer.pads.map((p) => bankOf(p.pad))), [mixer.pads]);
   const banks = useShownBanks(device.device.project, loadedBanks);
   const fx = useFx();
+  const mixScenes = useMixScenes(device.device.project, mixer, fx.play.mode);
   const bcr = useBcr(fx);
   const launchpad = useLaunchpad(fx);
   const keyboard = useKeyboard(fx);
@@ -101,9 +103,10 @@ export function Editor() {
         launchpad={launchpad.name} learn={learn} onSettings={() => setSettingsOpen(true)} />
       <LearnBar learn={learn} fx={fx} />
       <FxRow fx={fx} />
-      <div className="mixer">
+      <div className={`mixer ${fx.play.mode === "delete" ? "del" : ""}`}>
         <MixerSide project={projectView(device, mixer.renameProject)} shown={banks.shown} loadedBanks={loadedBanks}
-          onToggleBank={banks.toggle} view={view} onView={setView} />
+          onToggleBank={banks.toggle} view={view} onView={setView}
+          scenes={mixScenes} />
         {view === "desk" && <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />}
         {view === "scope" && <ScopeView scopes={scope.scopes} />}
         {view === "keys" && <KeysView fx={fx} kb={keyboard} />}

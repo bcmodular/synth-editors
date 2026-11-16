@@ -112,14 +112,20 @@ These match the TouchOSC version's behaviour, including the lock rules.
 - **Audition**: holding a strip's pad number (or Space / Enter on it) sends the pad's note on to the SP-404 over
   USB MIDI at velocity 100, and letting go sends the note off, so gated and looped pads stop as on the device. The
   note follows the pad MIDI settings above (`mixer/usePadAudition.ts`). Added 2026-11-11.
-- **Mix scenes** (deferred, 2026-11-09: the SP-404 already keeps the mixer values in its projects; the model in
-  `mixer.ts` stays for later): 16, stored per SP-404 project, in the spirit of a Yamaha 02R. A scene stores the mixer values
+- **Mix scenes** (deferred 2026-11-09, built 2026-11-16 in the mixer's left column, `mixer/mixScenes.ts`,
+  `useMixScenes.ts`): 16, stored per SP-404 project, in the spirit of a Yamaha 02R. A scene stores the mixer values
   of the pads loaded when it was stored. On recall:
   - pads in the scene that are loaded now get the scene's values;
   - pads loaded now that aren't in the scene are left alone;
   - pads in the scene that aren't loaded any more are skipped (nothing is sent).
 - **Recall safe**: per value type (level, pan, routing, mute, mute group, AHR). A safe type is left alone by
   scene recall.
+- As built (guesses, to check in use): a scene keeps each loaded pad's values (the level it goes back to while
+  muted) and its MUTE button; SOLO isn't stored or recalled. A press on an empty slot stores, on a stored one
+  recalls, and with DEL on (the FX's DEL in the top bar) deletes; the slot the desk matches is filled. RECALL SAFE
+  is six toggles under the scenes, kept per project with them. Recall sends only what changes, through the same
+  queue as a fader move. Kept in localStorage per project number (`sp404.mixScenes.<n>`), like the MUTE memory, not
+  in a file yet; the slots are greyed out until a project is read.
 - **Status**: a strip's pad number flashes each time the pad plays, from the note-ons the SP-404 sends over USB
   MIDI. This needs **SEQ Note Out** (pattern playback) and **PAD Note Out** (hand hits) set to ON in the SP-404's
   system settings, MIDI tab; the user guide should say so. Without the SP-404's MIDI input the app falls back on the
@@ -551,7 +557,7 @@ Same approach as the TB-3 app: JSON files with a version field, autosave, no `.t
 
 - **FX library**: presets, defaults, recent values and FX scenes for all buses, plus Exclude tuning per bus. Built:
   see FX › FX library file.
-- **Mix scenes**: one file per SP-404 project, keyed by project number.
+- **Mix scenes**: per SP-404 project, keyed by project number (localStorage for now; a file later).
 - **Settings**: ports, MIDI mode and note offset, Direct FX assumption, Launchpad brightness, CC learn assignments.
 
 Lock state isn't in the library file (as in TouchOSC); the app remembers it between runs on its own.

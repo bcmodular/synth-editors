@@ -1,9 +1,11 @@
-// The mixer's left column: DESK / SCOPE / KEYS, the project, and SHOW BANKS (banks with no samples are greyed out).
-// Mix scenes and recall safe join it later.
+// The mixer's left column: DESK / SCOPE / KEYS, the project, SHOW BANKS (banks with no samples are greyed out), and
+// the project's mix scenes with RECALL SAFE.
 
 import { PROJECT_NAME } from "../core/serialNames";
 import { NameEdit } from "../ui/NameEdit";
 import { BANK_LETTERS, bankColourOf } from "./banks";
+import { SAFE_LABELS, SAFE_TYPES } from "./mixScenes";
+import type { MixSceneControls } from "./useMixScenes";
 import type { MixerView } from "./useMixerView";
 
 // The project as shown: a status line while there's no project to name, else its number and a name to edit.
@@ -26,6 +28,35 @@ export interface MixerSideProps {
   onToggleBank: (bank: number) => void;
   view: MixerView;
   onView: (view: MixerView) => void;
+  scenes: MixSceneControls;
+}
+
+const SCENE_TIP = "A mix scene is the loaded pads' values and MUTE buttons. Empty: press to store. Stored: press to "
+  + "recall (RECALL SAFE types stay). DEL on: press to delete";
+
+function MixScenePanel({ scenes }: { scenes: MixSceneControls }) {
+  return (
+    <>
+      <div className="lbl">MIX SCENES</div>
+      <div className="mixscenes" role="group" aria-label="Mix scenes" title={SCENE_TIP}>
+        {scenes.stored.map((stored, i) => (
+          <button key={i} className={`${stored ? "stored" : ""} ${scenes.current === i ? "on" : ""}`}
+            aria-label={`Mix scene ${i + 1}`} disabled={!scenes.ready} onClick={() => scenes.press(i)}>
+            {i + 1}
+          </button>
+        ))}
+      </div>
+      <div className="lbl">RECALL SAFE</div>
+      <div className="recallsafe" role="group" aria-label="Recall safe">
+        {SAFE_TYPES.map((t) => (
+          <button key={t} className={`btn ${scenes.safe.has(t) ? "on" : ""}`} aria-pressed={scenes.safe.has(t)}
+            title={`Scene recall leaves ${SAFE_LABELS[t].toLowerCase()} alone`} onClick={() => scenes.toggleSafe(t)}>
+            {SAFE_LABELS[t]}
+          </button>
+        ))}
+      </div>
+    </>
+  );
 }
 
 function ViewSwitch({ view, onView }: { view: MixerView; onView: (view: MixerView) => void }) {
@@ -40,7 +71,7 @@ function ViewSwitch({ view, onView }: { view: MixerView; onView: (view: MixerVie
   );
 }
 
-export function MixerSide({ project, shown, loadedBanks, onToggleBank, view, onView }: MixerSideProps) {
+export function MixerSide({ project, shown, loadedBanks, onToggleBank, view, onView, scenes }: MixerSideProps) {
   return (
     <div className="mx-left">
       <ViewSwitch view={view} onView={onView} />
@@ -59,6 +90,7 @@ export function MixerSide({ project, shown, loadedBanks, onToggleBank, view, onV
           );
         })}
       </div>
+      <MixScenePanel scenes={scenes} />
     </div>
   );
 }

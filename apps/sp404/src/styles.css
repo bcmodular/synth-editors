@@ -2211,3 +2211,52 @@ button:focus-visible {
   padding: 2px 8px;
   margin-left: 4px;
 }
+
+/* ---- mix scenes (mixer/MixerSide.tsx): 16 per project, as the FX scenes look, and RECALL SAFE */
+
+.mixscenes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+
+.mixscenes button {
+  height: 26px;
+  background: #26272b;
+  border: 1px solid #000;
+  border-radius: 2px;
+  font: inherit;
+  font-size: var(--text-s);
+  color: #555;
+}
+
+.mixscenes button.stored {
+  color: #e8e8ea;
+  background: #303136;
+  border-color: color-mix(in srgb, var(--cap) 70%, #000);
+}
+
+.mixscenes button.on {
+  background: var(--cap);
+  border-color: var(--cap);
+  color: #000;
+}
+
+.mixer.del .mixscenes button.stored {
+  border-color: var(--mute);
+}
+
+.recallsafe {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3px;
+}
+
+.recallsafe .btn {
+  padding: 3px 0;
+}
+
+.recallsafe .btn.on {
+  border-color: var(--mute);
+  color: var(--mute);
+}

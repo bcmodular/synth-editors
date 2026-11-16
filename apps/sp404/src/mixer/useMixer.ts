@@ -3,12 +3,14 @@
 // project.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { MixChange, MixField, MixerPad } from "../core/mixer";
+import type { MixChange, MixField, MixerPad, MixScene, SafeType } from "../core/mixer";
 import { bankVolumeFrame, mixChangeFrame } from "../core/serialMessages";
 import {
   editPad, emptyMixMemory, readMixMemory, setBankButtons, setBankVolume as editBankVolume, setButtons, setField, setFields,
-  toggleMute, toggleSolo, viewBank, viewPad, type BankEdit, type BankView, type Buttons, type DeskPad, type MixMemory,
+  toggleMute, toggleSolo, viewBank, viewPad, type BankEdit, type BankView, type Buttons, type ButtonsEdit, type DeskPad,
+  type MixMemory,
 } from "./mixerState";
+import { recallScene } from "./mixScenes";
 import type { Device } from "./useDevice";
 
 // The buttons and remembered levels for one project, kept in localStorage under `name`.
@@ -53,16 +55,20 @@ function usePads(device: Device["device"], session: Session) {
   const setValue = useCallback((pad: number, field: MixField, value: number) => edit(pad, setField(field, value)), [edit]);
   const setValues = useCallback((pad: number, values: Partial<MixerPad["mix"]>) => edit(pad, setFields(values)), [edit]);
 
-  const press = useCallback((buttons: Buttons) => {
-    const e = setButtons(device.pads, memory, buttons);
+  const apply = useCallback((e: ButtonsEdit) => {
     for (const block of e.blocks) session.current?.notePad(block);
     save(e.memory);
     send(e.changes);
-  }, [device.pads, memory, save, send, session]);
+  }, [save, send, session]);
+  const press = useCallback((buttons: Buttons) => apply(setButtons(device.pads, memory, buttons)),
+    [apply, device.pads, memory]);
+  // A mix scene onto the pads (mixScenes.ts).
+  const recall = useCallback((scene: MixScene, safe: ReadonlySet<SafeType>) =>
+    apply(recallScene(device.pads, memory, scene, safe)), [apply, device.pads, memory]);
   const mute = useCallback((pad: number) => press(toggleMute(memory, pad)), [press, memory]);
   const solo = useCallback((pad: number) => press(toggleSolo(memory, pad)), [press, memory]);
 
-  return { pads, setValue, setValues, mute, solo };
+  return { pads, setValue, setValues, mute, solo, recall };
 }
 
 // The bank volumes, with MUTE and SOLO across the banks.

@@ -215,6 +215,19 @@ MUTE and SOLO work the same way on whole banks.
 Drag the handles sideways for attack, hold and release (Shift for fine); double-click one to reset it. **RESET** puts
 all three back (attack 0, hold 100, release 0).
 
+### Mix scenes
+
+**MIX SCENES** in the mixer's left column are 16 snapshots of the desk, kept for each SP-404 project.
+
+- An empty slot stores the loaded pads' values (level, pan, routing, mute group, envelope) and their MUTE buttons.
+- A stored slot recalls them. Pads in the scene that are loaded now take its values; other pads are left alone, and
+  pads that aren't loaded any more are skipped. The slot the desk matches is filled.
+- With **DEL** on (top bar), pressing a stored slot deletes it.
+- **RECALL SAFE**: a type that's on (red) is left alone when a scene is recalled: LEVEL, PAN, ROUTING, MUTE, MUTE GRP
+  or AHR.
+
+SOLO isn't part of a scene.
+
 ## Scopes
 
 The **meter** on the right of the mixer is always on. It shows the SP-404's USB audio: the master out, after BUS 3

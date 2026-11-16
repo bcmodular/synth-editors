@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 import { useBcr } from "./bcr/useBcr";
 import { FxModes, FxRow } from "./fx/FxRow";
 import { useFx, type Fx } from "./fx/useFx";
+import { KeysView } from "./keys/KeysView";
+import { useKeyboard } from "./keys/useKeyboard";
 import { useLaunchpad } from "./launchpad/useLaunchpad";
 import { bankOf } from "./mixer/banks";
 import { Desk } from "./mixer/Desk";
@@ -81,6 +83,7 @@ export function Editor() {
   const fx = useFx();
   const bcr = useBcr(fx);
   const launchpad = useLaunchpad(fx);
+  const keyboard = useKeyboard(fx);
   const [settings, setSettings] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const midiHits = usePadHits(settings.padMidi);
@@ -95,11 +98,9 @@ export function Editor() {
       <div className="mixer">
         <MixerSide project={projectView(device, mixer.renameProject)} shown={banks.shown} loadedBanks={loadedBanks}
           onToggleBank={banks.toggle} view={view} onView={setView} />
-        {view === "desk" ? (
-          <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />
-        ) : (
-          <ScopeView scopes={scope.scopes} />
-        )}
+        {view === "desk" && <Desk mixer={mixer} banks={banks.list} midi={settings.padMidi} activity={activity} />}
+        {view === "scope" && <ScopeView scopes={scope.scopes} />}
+        {view === "keys" && <KeysView fx={fx} kb={keyboard} />}
         <MeterColumn scopes={scope.scopes} status={scope.audio.status} />
       </div>
       {settingsOpen && (

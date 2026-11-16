@@ -182,7 +182,7 @@ ends in a **BANK VOL** fader.
 
 The column on the left has:
 
-- **DESK** and **SCOPE**: swap the desk for the [scopes](#scopes).
+- **DESK**, **SCOPE** and **KEYS**: swap the desk for the [scopes](#scopes) or the [keyboard](#keyboard).
 - **PROJECT**: the project's number and name. Click the name to rename the project.
 - **SHOW BANKS**: which banks the desk shows. Banks with no samples are greyed out. Two banks fit across the window;
   with more, the desk scrolls sideways (Shift + scroll wheel).
@@ -303,6 +303,21 @@ USB; the editor finds it by name and puts it in Programmer layout.
   mark it (white), and again to load it. Effects the bus can't load are dark. Device again closes it.
 - **User** cycles the LED brightness (very dim, night, normal, day).
 
+## Keyboard
+
+**KEYS** (beside DESK and SCOPE, top left of the mixer) shows the keyboard. A Novation Launchkey MK4 plays it too,
+whichever view is showing; the editor finds it by name.
+
+- **KEYBOARD ON** picks what the keys play: a bus with an effect, **CHROMATIC** (the SP-404's chromatic play on MIDI
+  channel 16, C2–C4), **SOUND GEN** (channel 16, the full range) or **OFF**.
+- **Resonator**: a key sets ROOT; the pads set CHORD.
+- **Hyper-Reso**: a white key sets NOTE (middle C is degree 1); the pads set SCALE: MAJ or MIN, and a root.
+- **Vocoder** (INPUT FX): the keys play it on MIDI channel 11, up to four notes; the pads set CHORD, and the scale
+  pads on screen set SCALE.
+- On any bus, the Launchkey's six encoders turn the effect's six parameters, and their values follow the editor.
+  Set the encoders to send CC 21–26 on channel 1 (a custom mode in Novation Components). The sustain pedal and pitch
+  bend go to whatever the keys play.
+
 ## Between sessions
 
 The editor remembers:
@@ -310,7 +325,7 @@ The editor remembers:
 - the FX library: presets, defaults, each bus's remembered values, KEEP TUNING and the scenes;
 - what each bus was playing;
 - LOCK on each bus;
-- the banks shown for each project, DESK or SCOPE, and the scope's choices;
+- the banks shown for each project, DESK, SCOPE or KEYS, and the scope's choices; what the keyboard is on;
 - the settings.
 
 The pads' levels, pans and so on live in the SP-404's project, and the editor reads them when it connects.

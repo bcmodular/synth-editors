@@ -2010,3 +2010,147 @@ button:focus-visible {
 .bar.hot .dimf {
   fill: color-mix(in srgb, var(--acc) 30%, transparent);
 }
+
+/* ---- KEYS in the mixer area (keys/KeysView.tsx): the keyboard's target, a piano, the effect's pads, the encoders */
+
+.keys {
+  --acc: var(--cap);
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.keys-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.keys-attach {
+  flex: 1;
+  max-width: 900px;
+}
+
+.keys-attach .btn {
+  padding: 6px 0;
+}
+
+.keys-attach .btn.on {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.keys-what {
+  margin: 0;
+  color: var(--dim);
+  font-size: var(--text-s);
+}
+
+.keys-piano-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: 150px;
+}
+
+.keys-piano-row > .btn {
+  width: 34px;
+}
+
+/* White keys side by side; each black key sits over the gap between two whites, taking no width of its own. */
+.keys-piano {
+  flex: 1;
+  display: flex;
+  position: relative;
+}
+
+.keys-piano button {
+  border: 1px solid #000;
+  padding: 0 0 6px;
+  font: inherit;
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  touch-action: none;
+}
+
+.keys-piano .w {
+  flex: 1;
+  background: #d9dade;
+  color: #44464c;
+}
+
+.keys-piano .b {
+  width: 2.2%;
+  margin: 0 -1.1%;
+  height: 62%;
+  z-index: 1;
+  background: #1b1c1f;
+  color: transparent;
+}
+
+.keys-piano .na {
+  background: #3a3b40;
+}
+
+.keys-piano .w.on {
+  background: var(--acc);
+  color: #000;
+}
+
+.keys-piano .b.on {
+  background: var(--acc);
+}
+
+.keys-lower {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.keys-pads {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.keys-pads .grid {
+  display: grid;
+  grid-template-columns: repeat(8, 52px);
+  grid-auto-rows: 40px;
+  gap: 4px;
+}
+
+.keys-pads .grid button {
+  border: 1px solid var(--rule);
+  background: #1d1e21;
+  color: var(--txt);
+  font: inherit;
+  font-size: var(--text-xs);
+  padding: 0 2px;
+}
+
+.keys-pads .grid button.on {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #000;
+}
+
+.keys-pads .grid button.na {
+  visibility: hidden;
+}
+
+.keys-encoders {
+  display: grid;
+  grid-template-columns: repeat(3, 110px);
+  gap: 6px 12px;
+  align-content: start;
+}
+
+.keys-encoders > .lbl {
+  grid-column: 1 / -1;
+}

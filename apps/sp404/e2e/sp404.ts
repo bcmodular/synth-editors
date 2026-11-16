@@ -74,6 +74,7 @@ export const midiSent = (page: Page): Promise<number[][]> =>
 
 type FakeMidi = {
   bcrSent: number[][]; bcrPlay: (...x: number[]) => void; lpSent: number[][]; lpPlay: (...x: number[]) => void;
+  lkSent: number[][]; lkPlay: (...x: number[]) => void;
 };
 
 // A message from the fake BCR2000 (a turn or a press).
@@ -102,3 +103,11 @@ export async function launchpadLed(page: Page, led: number): Promise<number[] | 
   }
   return colour;
 }
+
+// A message from the fake Launchkey (a key, a pad, an encoder).
+export const playLaunchkey = (page: Page, ...bytes: number[]): Promise<void> =>
+  page.evaluate((b) => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.lkPlay(...b), bytes);
+
+// MIDI messages the app sent to the fake Launchkey, oldest first.
+export const launchkeySent = (page: Page): Promise<number[][]> =>
+  page.evaluate(() => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.lkSent);

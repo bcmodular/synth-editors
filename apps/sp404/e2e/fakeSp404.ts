@@ -166,8 +166,8 @@ export function fakeSp404Port(init: FakeSp404Init) {
 export type FakeSp404 = ReturnType<typeof fakeSp404Port>;
 
 // A stand-in for the SP-404's USB MIDI: an output that records what the app sends (the FX), and optionally an
-// input the tests play pad notes on. A BCR2000 and a Launchpad Pro are always there too, each with its own input and
-// output.
+// input the tests play pad notes on. A BCR2000, a Launchpad Pro and a Launchkey are always there too, each with its
+// own input and output.
 // Also self-contained, for the same reason as the serial fake.
 export function fakeSp404Midi(withInput: boolean) {
   type Listener = (e: { data: Uint8Array }) => void;
@@ -198,14 +198,17 @@ export function fakeSp404Midi(withInput: boolean) {
     outputPort("fake-lp-live-out", "Launchpad Pro Live Port", []),
     outputPort("fake-lp-out", "Launchpad Pro Standalone Port", lpSent),
   ];
-  const controllers = [bcr.input, lpLive.input, lp.input];
+  const lkSent: number[][] = [];
+  const lk = inputPort("fake-lk-in", "Launchkey MK4 37 MIDI Out");
+  outputs.push(outputPort("fake-lk-out", "Launchkey MK4 37 MIDI In", lkSent));
+  const controllers = [bcr.input, lpLive.input, lp.input, lk.input];
   const inputs = withInput ? [sp.input, ...controllers] : controllers;
   const access = {
     inputs: new Map(inputs.map((i) => [i.id, i])), outputs: new Map(outputs.map((o) => [o.id, o])), sysexEnabled: true,
     onstatechange: null, addEventListener: () => undefined, removeEventListener: () => undefined,
   };
   Object.defineProperty(navigator, "requestMIDIAccess", { value: async () => access, configurable: true });
-  return { sent, play: sp.play, bcrSent, bcrPlay: bcr.play, lpSent, lpPlay: lp.play };
+  return { sent, play: sp.play, bcrSent, bcrPlay: bcr.play, lpSent, lpPlay: lp.play, lkSent, lkPlay: lk.play };
 }
 
 // Page script for Playwright: replaces navigator.serial with one that offers the fake port, and Web MIDI with

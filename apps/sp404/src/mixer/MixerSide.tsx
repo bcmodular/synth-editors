@@ -1,4 +1,4 @@
-// The mixer's left column: DESK / SCOPE, the project, and SHOW BANKS (banks with no samples are greyed out).
+// The mixer's left column: DESK / SCOPE / KEYS, the project, and SHOW BANKS (banks with no samples are greyed out).
 // Mix scenes and recall safe join it later.
 
 import { PROJECT_NAME } from "../core/serialNames";
@@ -31,7 +31,7 @@ export interface MixerSideProps {
 function ViewSwitch({ view, onView }: { view: MixerView; onView: (view: MixerView) => void }) {
   return (
     <div className="seg" role="group" aria-label="Mixer view">
-      {(["desk", "scope"] as const).map((v) => (
+      {(["desk", "scope", "keys"] as const).map((v) => (
         <button key={v} className={`btn ${view === v ? "on" : ""}`} aria-pressed={view === v} onClick={() => onView(v)}>
           {v.toUpperCase()}
         </button>

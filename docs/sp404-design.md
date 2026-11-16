@@ -136,6 +136,7 @@ These match the TouchOSC version's behaviour, including the lock rules.
 - **Keyboard overlay** (Launchkey MK4): slides up over the mixer. It sets Resonator ROOT/CHORD, Hyper-Reso
   NOTE/SCALE and Vocoder NOTE/SCALE/CHORD, plays the vocoder on channel 11, and grabs a bus so the Launchkey
   encoders drive its six parameters. The FX modules have no keyboards of their own.
+  Built 2026-11-16 as a third mixer view, **KEYS** (DESK / SCOPE / KEYS), detailed below.
 - **CC learn**: global, as in [PLAN.md](../PLAN.md) (relative / pickup / jump; no controller feedback).
 
 #### Launchpad Pro (built 2026-11-16)
@@ -161,6 +162,30 @@ From `touchosc-controllers/sp404-mk2/lua/root.lua`, `launchpad_led.lua` and `lau
   DEL is on, Shift while AUDITION is on). Only changed LEDs are sent, in one batched SysEx.
 - **Code**: `src/launchpad/` (`lpMap.ts`, `lpControl.ts`, `lpView.ts` pure and tested; `useLaunchpad.ts`), ports
   through `midi/usePortsNamed.ts` (shared with the BCR). e2e with a fake Launchpad on the fake MIDI ports.
+
+#### Keyboard (built 2026-11-16)
+
+From `touchosc-controllers/sp404-mk2/lua/keyboard_manager.lua`.
+
+- **KEYS** in the mixer area: **KEYBOARD ON** BUS 1–4 / INPUT FX / CHROMATIC / SOUND GEN / OFF (remembered; a bus
+  needs an effect), a line saying what the keys and pads do, a three-octave piano (◀ ▶ shift octaves; held notes and
+  the tuning's note lit in the bus colour), the effect's pads, and the six parameters the encoders turn. The
+  Launchkey works whichever view is showing.
+- **Resonator**: a key sets ROOT to its note; 16 pads set CHORD. **Hyper-Reso**: a white key sets NOTE as a scale
+  degree (middle C = 1, white keys up and down, no 0, clamped to −17 … 18; black keys dimmed and ignored); the pads
+  set SCALE (top row MAJ, C#, D#, F#, G#, A#; bottom row MIN, C, D, E, F, G, A, B; a root keeps major/minor). **Vocoder**
+  (INPUT FX only): keys play it on MIDI channel 11 (pitch bend and the pedal too); 10 pads set CHORD, and the screen's
+  scale pads set SCALE (the Launchkey's pads are the chords). Any other effect: keys and pads do nothing, the encoders
+  still work.
+- **CHROMATIC**: keys play the SP-404 on channel 16, clamped to C2–C4 (36–60). **SOUND GEN**: channel 16, full range.
+- **Voices**: at most four at once, the oldest giving way; the pedal (CC 64) is sent to the channel being played and
+  holds notes let go until it's released. Attaching elsewhere ends every note.
+- **Launchkey MK4**: found by name (`Launchkey`, the MIDI port before the DAW port). Keys on any channel but 10;
+  drum pads on channel 10, notes 40–43 / 48–51 (top row) and 36–39 / 44–47 (bottom); encoders CC 21–26 on channel 1
+  (a custom mode in Novation Components) set the attached bus's slots 1–6, and the app sends each slot's value
+  back on the same CC when it changes. TouchOSC switched the Launchkey's pad modes and colours; the app doesn't.
+- **Code**: `src/keys/` (`keyboard.ts`, `launchkey.ts`, `keyRouter.ts` pure and tested; `useKeyboard.ts`,
+  `KeysView.tsx`). e2e with a fake Launchkey on the fake MIDI ports.
 
 #### BCR2000 (agreed 2026-11-13)
 

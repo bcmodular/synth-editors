@@ -74,6 +74,12 @@ npm run test:h12       # the read-only check against the real H12
   Launchkey's input (26) was routed to `2500000F` (U6MIDI Pro 1–3, OXI-1, MIDI Out 1, 3 and 6) and the pedal's (25)
   nowhere.
 
+- **Mapper inputs:** CME's page puts the MIDI inputs in word 5 bits 16–21. The H12 doesn't read those: the first
+  switch stored the mappers, but HxMIDI Tools showed them with no input, and the keys stayed on channel 1. Selecting
+  MIDI In 3 on one of them in HxMIDI Tools changed word 5 from `00040000` to `04000000`, and nothing else. So the
+  MIDI inputs are bits 24–29, the same numbering as the port index. HxMIDI kept the app's option word `05000006`
+  (init flag 5), so the factory `5A…` value isn't needed.
+
 ## Findings on the Launchkey 49 Mk4 (2026-11-16)
 
 - **The arpeggiator follows clock sent to its USB MIDI port** (`Launchkey MK4 49 MIDI In`), both generated here and

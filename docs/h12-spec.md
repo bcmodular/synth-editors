@@ -180,7 +180,7 @@ CME's page calls indices 0–15 "USB-A host ports"; the H12MIDI Pro's sockets ar
 | | 26–24 | init flag: write 5 for a mapper in use |
 | 4 USB host inputs | 31–0 | bit n = USB host port n+1 (leave 0) |
 | 5 other inputs | 15–0 | USB-C virtual cables (leave 0) |
-| | 31–16 | MIDI inputs: bit 16 = MIDI In 1 … bit 21 = MIDI In 6 |
+| | 29–24 | MIDI inputs: bit 24 = MIDI In 1 … bit 29 = MIDI In 6 (the port index). CME's page says bits 16–21; on firmware 4.7, HxMIDI Tools sets bit 26 for MIDI In 3 |
 
 ### Mapper allocation
 
@@ -188,12 +188,12 @@ Use mappers 18–23 only, leaving 0–17 free for manual use.
 
 | Mapper | Input | Match | Output |
 |---|---|---|---|
-| 18 | Launchkey (word 5 bit 18) | Note On, ch 1, all values | Note On, target channel, follow values 1 and 2 |
+| 18 | Launchkey (word 5 bit 26) | Note On, ch 1, all values | Note On, target channel, follow values 1 and 2 |
 | 19 | Launchkey | Note Off, ch 1 | Note Off, target channel, follow 1 and 2 |
 | 20 | Launchkey | CC, ch 1 | CC, target channel, follow 1 and 2 |
 | 21 | Launchkey | Pitch Bend, ch 1 | Pitch Bend, target channel, follow 1 and 2 |
 | 22 | Launchkey | Channel AT, ch 1 | Channel AT, target channel, follow 1 and 2 |
-| 23 | Pedal (word 5 bit 17) | CC, ch 1, value 1 = 11 | CC, target channel, value 1 = target pedal CC (min = max), follow value 2 |
+| 23 | Pedal (word 5 bit 25) | CC, ch 1, value 1 = 11 | CC, target channel, value 1 = target pedal CC (min = max), follow value 2 |
 
 Value ranges for "all values": word 0 and word 1 = `0x7F007F00`.
 

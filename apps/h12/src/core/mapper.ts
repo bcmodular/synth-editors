@@ -7,7 +7,9 @@ export const MAPPER_WORDS = 6;
 export const IN_USE = 5; // the init flag, word 3 bits 26–24
 const FOLLOW_VALUE_1 = 1 << 1;
 const FOLLOW_VALUE_2 = 1 << 2;
-const MIDI_INPUTS = 16; // word 5: bit 16 = MIDI In 1 … bit 21 = MIDI In 6
+// Word 5: the MIDI inputs use the H12's port numbering, bit 24 = MIDI In 1 … bit 29 = MIDI In 6. CME's page says
+// bits 16–21, but a mapper set up in HxMIDI Tools on firmware 4.7 has MIDI In 3 as bit 26 (apps/h12/README.md).
+const MIDI_INPUTS = 24;
 
 export interface Range {
   min: number;

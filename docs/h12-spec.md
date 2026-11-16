@@ -35,19 +35,23 @@ Other routes, filters and mappers must not be changed.
 | Target | Output port index | Channel | Pedal CC |
 |---|---|---|---|
 | TB-3 | 0 (U6MIDI Pro-1) | 2 | TBD (e.g. cutoff) |
-| JV-2080 | 1 (U6MIDI Pro-2) | 6 | 11 (expression) |
+| JV-2080 | 1 (U6MIDI Pro-2) | 6, or a choice of 6–10 (its parts) | 11 (expression) |
 | TR-8S | 2 (U6MIDI Pro-3) | 10 | TBD |
 | OXI (play/record into selected track) | 3 (OXI ONE MKII-1) | 14 | TBD |
 | Thru5 synths: TD-3-MO | 24 (MIDI Out 1) | 5 | TBD |
 | Thru5 synths: Volca Bass | 24 (MIDI Out 1) | 8 | TBD |
 | Thru5 synths: Volca Kick | 24 (MIDI Out 1) | 9 | TBD |
-| Thru5: TC M300 | 24 (MIDI Out 1) | 1 | TBD (M300 CCs 12–20, 50–51, 80–83) |
 | S-1 | 26 (MIDI Out 3) | 3 | TBD |
 | SP-404 Mk2, chromatic | 28 (MIDI Out 5) | 16 | TBD |
+| SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 1 | TBD |
+| SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 2 | TBD |
+| SP-404 Mk2, vocoder | 28 (MIDI Out 5) | 11 | TBD |
 | P-6 sample pads | 29 (MIDI Out 6) | 11 | TBD |
 | P-6 granular | 29 (MIDI Out 6) | 12 | TBD |
 
-Store as JSON, e.g. `{ "name": "TB-3", "output": 0, "channel": 2, "pedalCc": 74 }` (channel 1-based in the file, 0-based on the wire). Unknown pedal CCs: leave null and send no pedal mapping (route the pedal nowhere).
+Store as JSON, e.g. `{ "name": "TB-3", "output": 0, "channel": 2, "pedalCc": 74 }` (channel 1-based in the file, 0-based on the wire). Unknown pedal CCs: leave null and send no pedal mapping (route the pedal nowhere). A multitimbral synth can list its channels, e.g. `"channels": [6, 7, 8, 9, 10]`, to choose from; `channel` is the default.
+
+The TC M300 isn't a target: it only needs clock, which reaches it through its sync mode (the Thru5 group).
 
 ## Sync mode per device
 

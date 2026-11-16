@@ -171,31 +171,56 @@ button.on {
   margin-top: 14px;
 }
 
-button.target {
+.target {
   display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.target > button {
+  display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
   padding: 8px 10px;
   text-align: left;
+  border: 0;
 }
 
-button.target .name {
+.target .name {
   font-size: 15px;
   font-weight: 600;
 }
 
-button.target .where {
+.target .where {
   color: var(--dim);
   font-size: 12px;
 }
 
-button.target.on {
+.target.on {
   border-color: var(--cap);
   background: color-mix(in srgb, var(--cap) 14%, transparent);
 }
 
-button.target.on .name {
+.target.on .name {
+  color: var(--cap);
+}
+
+.channels {
+  display: flex;
+  gap: 4px;
+  padding: 0 10px 8px;
+}
+
+.channels button {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.channels button.on {
+  border-color: var(--cap);
   color: var(--cap);
 }
 

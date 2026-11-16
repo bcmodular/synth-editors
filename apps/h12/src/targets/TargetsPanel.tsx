@@ -33,15 +33,32 @@ function Result({ outcome }: { outcome: Outcome }) {
   );
 }
 
-function TargetButton({ target, t }: { target: Target; t: Targets }) {
-  const on = t.active?.name === target.name;
+// A multitimbral target's channels: one small button each, the one it's set to lit.
+function Channels({ target, t, active }: { target: Target; t: Targets; active?: number }) {
+  if (!target.channels) return null;
   return (
-    <button className={`target${on ? " on" : ""}`} aria-pressed={on} disabled={!t.ready || !!t.busy}
-      onClick={() => t.switchTo(target)}>
-      <span className="name">{target.name}</span>
-      <span className="where">{portName(target.output)} · ch {target.channel}{target.pedalCc !== null
-        && ` · pedal CC ${target.pedalCc}`}</span>
-    </button>
+    <div className="channels">
+      {target.channels.map((ch) => (
+        <button key={ch} className={ch === active ? "on" : ""} aria-pressed={ch === active}
+          aria-label={`Channel ${ch} for ${target.name}`} disabled={!t.ready || !!t.busy}
+          onClick={() => t.switchTo(target, ch)}>{ch}</button>
+      ))}
+    </div>
+  );
+}
+
+function TargetButton({ target, t }: { target: Target; t: Targets }) {
+  const active = t.active?.target.name === target.name ? t.active.channel : undefined;
+  const on = active !== undefined;
+  const pedal = target.pedalCc === null ? "" : ` · pedal CC ${target.pedalCc}`;
+  return (
+    <div className={`target${on ? " on" : ""}`}>
+      <button aria-pressed={on} disabled={!t.ready || !!t.busy} onClick={() => t.switchTo(target)}>
+        <span className="name">{target.name}</span>
+        <span className="where">{portName(target.output)} · ch {active ?? target.channel}{pedal}</span>
+      </button>
+      <Channels target={target} t={t} active={active} />
+    </div>
   );
 }
 
@@ -49,7 +66,11 @@ function Now({ t }: { t: Targets }) {
   if (t.readProblem) return <p className="bad" role="alert">{t.readProblem}</p>;
   if (!t.ready) return <p className="note">Waiting for the H12…</p>;
   if (t.busy) return <p className="note">Switching to {t.busy}…</p>;
-  if (t.active) return <p className="note">The keys and the pedal play <strong>{t.active.name}</strong>.</p>;
+  if (t.active) {
+    const { target, channel } = t.active;
+    const name = target.channels ? `${target.name} on channel ${channel}` : target.name;
+    return <p className="note">The keys and the pedal play <strong>{name}</strong>.</p>;
+  }
   return <p className="note">The H12's settings don't match any target yet.</p>;
 }
 

@@ -45,13 +45,13 @@ describe("currentTarget", () => {
   const read = (t: Target) => new Map(targetSettings(t).map((v) => [settingKey(v), v.words]));
 
   it("finds the target whose settings match", () => {
-    expect(currentTarget([TB3, JV, SP], read(JV))?.name).toBe("JV-2080");
+    expect(currentTarget([TB3, JV, SP], read(JV))?.target.name).toBe("JV-2080");
   });
 
   it("tells apart targets on one output by their channel", () => {
     const td3: Target = { name: "TD-3-MO", output: 24, channel: 5, pedalCc: null };
     const m300: Target = { name: "TC M300", output: 24, channel: 1, pedalCc: null };
-    expect(currentTarget([td3, m300], read(m300))?.name).toBe("TC M300");
+    expect(currentTarget([td3, m300], read(m300))?.target.name).toBe("TC M300");
   });
 
   it("finds nothing when a setting differs", () => {
@@ -61,10 +61,31 @@ describe("currentTarget", () => {
   });
 });
 
+describe("channel choice", () => {
+  const multi: Target = { ...JV, channels: [6, 7, 8, 9, 10] };
+
+  it("maps onto the chosen channel", () => {
+    const mapper = targetSettings(multi, 8).find((v) => v.setting === Setting.mapper && v.index === 18)!;
+    expect((mapper.words[2]! >>> 24) & 0x0f).toBe(7);
+  });
+
+  it("finds which of a target's channels the H12 is set to", () => {
+    const current = new Map(targetSettings(multi, 9).map((v) => [settingKey(v), v.words]));
+    expect(currentTarget([TB3, multi], current)).toEqual({ target: multi, channel: 9 });
+  });
+
+  it("checks the channel list", () => {
+    expect(parseTargets([{ ...multi, channels: [7, 8] }])).toEqual({
+      problems: ["JV-2080: channels must include channel 6"] });
+    expect(parseTargets([{ ...multi, channels: [6, 17] }])).toEqual({
+      problems: ["JV-2080: channels must be a list of channels from 1 to 16"] });
+  });
+});
+
 describe("parseTargets", () => {
   it("accepts the bundled list", () => {
     const parsed = parseTargets(list);
-    expect("targets" in parsed && parsed.targets).toHaveLength(12);
+    expect("targets" in parsed && parsed.targets).toHaveLength(14);
   });
 
   it("lists every problem", () => {

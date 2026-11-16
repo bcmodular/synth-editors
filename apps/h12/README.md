@@ -21,6 +21,7 @@ It never writes a setting or sends an action.
 ## Target switching
 
 One button per target in [src/targets.json](src/targets.json) (output port index, channel 1–16, pedal CC or `null`).
+A target can list `channels` to choose from, as the JV-2080 does for its parts 6–10: small channel buttons under it.
 The lit one is the target the H12 is set to now, worked out by reading its settings back. Clicking another:
 
 1. reads the routing of MIDI In 2 (pedal) and MIDI In 3 (Launchkey) and mappers 18–23;

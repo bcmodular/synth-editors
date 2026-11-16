@@ -84,7 +84,8 @@ export function useTargets(hub: HubState) {
     setBusy(undefined);
   }, [io, setCurrent]);
 
-  const switchTo = useCallback((t: Target) => apply(t.name, false, () => targetSettings(t)), [apply]);
+  const switchTo = useCallback((t: Target, channel = t.channel) =>
+    apply(t.channels ? `${t.name} ch ${channel}` : t.name, false, () => targetSettings(t, channel)), [apply]);
   const restore = useCallback(() => backup && apply("the previous settings", true, () => backup.settings),
     [apply, backup]);
 

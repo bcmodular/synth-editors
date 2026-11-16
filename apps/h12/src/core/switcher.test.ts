@@ -23,7 +23,7 @@ describe("applySettings", () => {
     expect(report.problem).toBeUndefined();
     expect(hub.writes()).toEqual(["0:25", "0:26", "3:18", "3:19", "3:20", "3:21", "3:22", "3:23"]);
     const after = await readSwitchSettings(hub.io);
-    expect("ok" in after && currentTarget([TB3, JV], after.ok)?.name).toBe("JV-2080");
+    expect("ok" in after && currentTarget([TB3, JV], after.ok)?.target.name).toBe("JV-2080");
   });
 
   it("writes nothing the second time (acceptance test 4)", async () => {

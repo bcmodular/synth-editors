@@ -3,14 +3,23 @@
 // MIDI In 3 (Launchkey), and mappers 18–23.
 
 import { ALL, MapperMessage, mapperWords, only, type MapperSpec } from "./mapper";
-import { Setting } from "./sysex";
+import { Setting, type SettingRef } from "./sysex";
 
 export interface Target {
   name: string;
   output: number; // H12 output port index, 0–29
-  channel: number; // 1–16, as in the file; 0-based on the wire
+  channel: number; // 1–16, as in the file; 0-based on the wire. With `channels`, the one a plain click picks
+  channels?: number[]; // a multitimbral synth's channels to choose from (e.g. the JV-2080's parts)
   pedalCc: number | null; // null: the pedal is routed nowhere
 }
+
+// What the keys play: a target, on one of its channels.
+export interface Choice {
+  target: Target;
+  channel: number; // 1–16
+}
+
+export const channelsOf = (t: Target): number[] => t.channels ?? [t.channel];
 
 // One H12 setting, as a list of words.
 export interface SettingValue {
@@ -45,34 +54,37 @@ export const SWITCH_SETTINGS = [
   { label: `Mapper ${PEDAL_MAPPER} (pedal)`, setting: Setting.mapper, index: PEDAL_MAPPER, words: 6 },
 ] as const;
 
-const labelOf = (setting: number, index: number) =>
-  SWITCH_SETTINGS.find((s) => s.setting === setting && s.index === index)!.label;
+const value = (ref: SettingRef, words: number[]): SettingValue => {
+  const { label } = SWITCH_SETTINGS.find((s) => s.setting === ref.setting && s.index === ref.index)!;
+  return { label, setting: ref.setting, index: ref.index, words };
+};
 
-const value = (setting: number, index: number, words: number[]): SettingValue =>
-  ({ label: labelOf(setting, index), setting, index, words });
+// Mappers 18–22, onto a channel (0-based).
+const launchkeyMappers = (channel: number): SettingValue[] =>
+  LAUNCHKEY_MAPPERS.map(({ index, message }) => value({ setting: Setting.mapper, index }, mapperWords({
+    input: { message, channel: 0, value1: ALL, value2: ALL },
+    output: { message, channel, value1: ALL, value2: ALL },
+    follow1: true, follow2: true, midiIn: LAUNCHKEY_MIDI_IN,
+  })));
 
-const launchkeyMapper = (message: number, channel: number): MapperSpec => ({
-  input: { message, channel: 0, value1: ALL, value2: ALL },
-  output: { message, channel, value1: ALL, value2: ALL },
-  follow1: true, follow2: true, midiIn: LAUNCHKEY_MIDI_IN,
-});
-
-const pedalMapper = (cc: number, channel: number): MapperSpec => ({
+const pedalMapper = (t: Target, channel: number): MapperSpec => ({
   input: { message: MapperMessage.cc, channel: 0, value1: only(PEDAL_CC), value2: ALL },
-  output: { message: MapperMessage.cc, channel, value1: only(cc), value2: ALL },
+  output: { message: MapperMessage.cc, channel, value1: only(t.pedalCc ?? 0), value2: ALL },
   follow1: false, follow2: true, midiIn: PEDAL_MIDI_IN,
 });
 
-// The settings that make a target: both inputs routed to its output only, and the mappers onto its channel. With no
-// pedal CC, the pedal's routing is cleared and mapper 23 is left as it is.
-export function targetSettings(t: Target): SettingValue[] {
+// The settings that make a target: both inputs routed to its output only, and the mappers onto its channel (the
+// target's own, unless another of its channels is chosen). With no pedal CC, the pedal's routing is cleared and
+// mapper 23 is left as it is.
+export function targetSettings(t: Target, onChannel = t.channel): SettingValue[] {
   const bit = (1 << t.output) >>> 0;
-  const channel = t.channel - 1;
-  const pedal = t.pedalCc === null ? [] : [value(Setting.mapper, PEDAL_MAPPER, mapperWords(pedalMapper(t.pedalCc, channel)))];
+  const channel = onChannel - 1;
+  const pedal = t.pedalCc === null ? []
+    : [value({ setting: Setting.mapper, index: PEDAL_MAPPER }, mapperWords(pedalMapper(t, channel)))];
   return [
-    value(Setting.routing, PEDAL_IN, [t.pedalCc === null ? 0 : bit]),
-    value(Setting.routing, LAUNCHKEY_IN, [bit]),
-    ...LAUNCHKEY_MAPPERS.map((m) => value(Setting.mapper, m.index, mapperWords(launchkeyMapper(m.message, channel)))),
+    value({ setting: Setting.routing, index: PEDAL_IN }, [t.pedalCc === null ? 0 : bit]),
+    value({ setting: Setting.routing, index: LAUNCHKEY_IN }, [bit]),
+    ...launchkeyMappers(channel),
     ...pedal,
   ];
 }
@@ -82,9 +94,13 @@ export const settingKey = (s: { setting: number; index: number }): string => `${
 export const sameWords = (a: readonly number[] | undefined, b: readonly number[]): boolean =>
   !!a && a.length === b.length && a.every((w, i) => w === b[i]);
 
-// The target the H12 is set to now, if its settings match one exactly.
-export function currentTarget(targets: readonly Target[], current: ReadonlyMap<string, number[]>): Target | undefined {
-  return targets.find((t) => targetSettings(t).every((s) => sameWords(current.get(settingKey(s)), s.words)));
+const matches = (current: ReadonlyMap<string, number[]>, wanted: SettingValue[]) =>
+  wanted.every((s) => sameWords(current.get(settingKey(s)), s.words));
+
+// The target and channel the H12 is set to now, if its settings match one exactly.
+export function currentTarget(targets: readonly Target[], current: ReadonlyMap<string, number[]>): Choice | undefined {
+  const choices = targets.flatMap((target) => channelsOf(target).map((channel) => ({ target, channel })));
+  return choices.find((c) => matches(current, targetSettings(c.target, c.channel)));
 }
 
 const isInt = (v: unknown, min: number, max: number): v is number =>
@@ -97,7 +113,14 @@ function targetProblem(t: Record<string, unknown>, i: number): string | undefine
   if (!isInt(t.output, 0, 29)) return `${which}: output must be a port index from 0 to 29`;
   if (!isInt(t.channel, 1, 16)) return `${which}: channel must be from 1 to 16`;
   if (t.pedalCc !== null && !isInt(t.pedalCc, 0, 127)) return `${which}: pedalCc must be null or from 0 to 127`;
-  return undefined;
+  return channelsProblem(t, which);
+}
+
+function channelsProblem({ channels, channel }: Record<string, unknown>, which: string): string | undefined {
+  if (channels === undefined) return undefined;
+  const ok = Array.isArray(channels) && channels.length > 0 && channels.every((c) => isInt(c, 1, 16));
+  if (!ok) return `${which}: channels must be a list of channels from 1 to 16`;
+  return channels.includes(channel as number) ? undefined : `${which}: channels must include channel ${String(channel)}`;
 }
 
 // Checks a target list read from JSON. Returns the targets, or every problem with them.

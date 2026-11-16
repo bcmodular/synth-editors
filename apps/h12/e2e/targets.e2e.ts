@@ -20,7 +20,7 @@ test("switches to a target, writing only the allowed settings", async () => {
   const r = (running = await start({ settings: BEFORE }));
   await expect(r.page.getByText("don't match any target")).toBeVisible();
   await switchTo(r.page, "JV-2080");
-  await expect(r.page.getByRole("status")).toHaveText("Switched to JV-2080: wrote 8 settings.");
+  await expect(r.page.getByRole("status")).toHaveText("Switched to JV-2080 ch 6: wrote 8 settings.");
   expect(await settingWrites(r.page)).toEqual(["0:25", "0:26", "3:18", "3:19", "3:20", "3:21", "3:22", "3:23"]);
   expect(await fakeSetting(r.page, "0:26")).toEqual([1 << 1]);
   expect(await fakeSetting(r.page, "0:25")).toEqual([1 << 1]);
@@ -62,7 +62,7 @@ test("stops at an error from the H12 and says so", async () => {
 
 test("puts the H12's previous settings back", async () => {
   const r = (running = await start({ settings: BEFORE }));
-  await switchTo(r.page, "SP-404 Mk2");
+  await switchTo(r.page, "SP-404 chromatic");
   await switchTo(r.page, "JV-2080");
   await r.page.getByRole("button", { name: "Put them back" }).click();
   await expect(r.page.getByRole("status")).toContainText("Put back the previous settings: wrote");
@@ -70,4 +70,14 @@ test("puts the H12's previous settings back", async () => {
   expect(await fakeSetting(r.page, "3:18")).toEqual(BEFORE["3:18"]);
   expect(await fakeSetting(r.page, "3:23")).toEqual([0, 0, 0, 0, 0, 0]);
   await expect(r.page.getByText("don't match any target")).toBeVisible();
+});
+
+test("plays the JV-2080 on a chosen channel", async () => {
+  const r = (running = await start({ settings: BEFORE }));
+  await r.page.getByRole("button", { name: "Channel 8 for JV-2080" }).click();
+  await expect(r.page.getByRole("button", { name: "Channel 8 for JV-2080" })).toHaveAttribute("aria-pressed", "true");
+  await expect(r.page.getByText("play JV-2080 on channel 8")).toBeVisible();
+  expect(((await fakeSetting(r.page, "3:18"))![2]! >>> 24) & 0x0f).toBe(7);
+  await r.page.getByRole("button", { name: "Channel 9 for JV-2080" }).click();
+  await expect(r.page.getByRole("status")).toHaveText("Switched to JV-2080 ch 9: wrote 6 settings, 2 already matched.");
 });

@@ -8,8 +8,7 @@ Neither writes to the H12.
 
 ## Read-only check
 
- On start-up, and whenever the H12's ports
-come or go, the app:
+On start-up, and whenever the H12's ports come or go, the app:
 
 1. sends the serial-and-firmware status request (`F0 00 20 63 0F 26 01 00 01 F7`) to each `H12MIDI-Pro` output in
    turn, Port 1 first, and stops at the first one that answers;

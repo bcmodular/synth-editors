@@ -51,6 +51,8 @@ Other routes, filters and mappers must not be changed.
 
 Store as JSON, e.g. `{ "name": "TB-3", "output": 0, "channel": 2, "pedalCc": 74 }` (channel 1-based in the file, 0-based on the wire). Unknown pedal CCs: leave null and send no pedal mapping (route the pedal nowhere). A multitimbral synth can list its channels, e.g. `"channels": [6, 7, 8, 9, 10]`, to choose from; `channel` is the default.
 
+**Monitor:** the app can also route both inputs to USB-C virtual cable 8 (index 23), so a MIDI monitor on the Mac sees what the target gets. It's off unless turned on, and a switch keeps it as it is.
+
 The TC M300 isn't a target: it only needs clock, which reaches it through its sync mode (the Thru5 group).
 
 ## Sync mode per device

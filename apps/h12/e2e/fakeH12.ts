@@ -99,7 +99,8 @@ export function fakeH12Midi(init: FakeH12Init) {
   // The Launchkey's own ports and the Nome II's clock, for the clock test.
   const launchkey = inputPort({ id: "fake-lk-in", name: "Launchkey MK4 49 MIDI Out" });
   const nome = inputPort({ id: "fake-nome-clock", name: "Nome II Clock" });
-  const inputs = [...h12In, launchkey, nome].map((p) => p.input);
+  const pedal = inputPort({ id: "fake-pedal", name: "DOREMiDi MPC-10-AFC6" });
+  const inputs = [...h12In, launchkey, nome, pedal].map((p) => p.input);
   const outputs = [...h12Out, outputPort({ id: "fake-lk-out", name: "Launchkey MK4 49 MIDI In" }),
     outputPort({ id: "fake-lk-daw", name: "Launchkey MK4 49 DAW In" })];
   const access = {
@@ -108,7 +109,8 @@ export function fakeH12Midi(init: FakeH12Init) {
   };
   Object.defineProperty(navigator, "requestMIDIAccess", { value: async () => access, configurable: true });
   const setting = (key: string) => settings.get(key);
-  return { sent, setting, playNome: nome.play, playLaunchkey: launchkey.play };
+  const playH12 = (cable: number, bytes: number[]) => h12In[cable - 1]!.play(bytes);
+  return { sent, setting, playNome: nome.play, playLaunchkey: launchkey.play, playPedal: pedal.play, playH12 };
 }
 
 export function fakeMidiScript(init: FakeH12Init): string {

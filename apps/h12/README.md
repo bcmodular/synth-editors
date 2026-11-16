@@ -36,6 +36,19 @@ the target's pedal CC; with no pedal CC, the pedal is routed nowhere and mapper 
 H12 is ever written: `core/switcher.ts` refuses any other setting. The backup is kept in the app's local storage
 (separately for `npm run dev:h12` and a packaged build).
 
+## MIDI monitor
+
+**Copy to the Mac** (Target panel) also routes the Launchkey's and the pedal's inputs to USB-C virtual cable 8
+(`H12MIDI-Pro Port 8`, which nothing else uses and which has no filters), so the Mac gets what the target gets,
+after the mappers. Switching target keeps it on or off. The **MIDI monitor** panel logs, newest first:
+
+- **H12 → Mac**: that copy (with no pedal CC set, the pedal's own CC 11 on channel 1);
+- **Launchkey**: what the keys play, from the Launchkey's own USB port;
+- **Pedal**: what the pedal converter sends, from its own USB port.
+
+Clock and active sensing are left out unless asked for. Turn the copy off when you're done: Ableton or another app
+listening on Port 8 would get the notes too.
+
 ## Launchkey clock test
 
 Does the Launchkey 49 Mk4's arpeggiator follow clock sent to its USB MIDI port? The panel sends clock to

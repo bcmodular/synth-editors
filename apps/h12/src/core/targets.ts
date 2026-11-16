@@ -13,11 +13,22 @@ export interface Target {
   pedalCc: number | null; // null: the pedal is routed nowhere
 }
 
-// What the keys play: a target, on one of its channels.
+// What the keys play: a target, on one of its channels, and whether a copy goes to the Mac for the monitor.
 export interface Choice {
   target: Target;
   channel: number; // 1–16
+  monitor: boolean;
 }
+
+export interface SwitchOptions {
+  channel?: number; // one of the target's channels; its own by default
+  monitor?: boolean; // also send the keys and the pedal to the Mac
+}
+
+// The Mac's copy goes to USB-C virtual cable 8 ("H12MIDI-Pro Port 8"): nothing else routes there, and its output
+// has no filters (read on the H12, 2026-11-16).
+export const MONITOR_OUT = 23;
+export const MONITOR_PORT = "H12MIDI-Pro Port 8";
 
 export const channelsOf = (t: Target): number[] => t.channels ?? [t.channel];
 
@@ -73,16 +84,17 @@ const pedalMapper = (t: Target, channel: number): MapperSpec => ({
   follow1: false, follow2: true, midiIn: PEDAL_MIDI_IN,
 });
 
-// The settings that make a target: both inputs routed to its output only, and the mappers onto its channel (the
-// target's own, unless another of its channels is chosen). With no pedal CC, the pedal's routing is cleared and
-// mapper 23 is left as it is.
-export function targetSettings(t: Target, onChannel = t.channel): SettingValue[] {
-  const bit = (1 << t.output) >>> 0;
-  const channel = onChannel - 1;
+// The settings that make a target: both inputs routed to its output only (and to the Mac when monitoring), and the
+// mappers onto its channel (the target's own, unless another of its channels is chosen). With no pedal CC, the
+// pedal goes nowhere but the Mac, and mapper 23 is left as it is.
+export function targetSettings(t: Target, opts: SwitchOptions = {}): SettingValue[] {
+  const mac = opts.monitor ? (1 << MONITOR_OUT) >>> 0 : 0;
+  const bit = ((1 << t.output) | mac) >>> 0;
+  const channel = (opts.channel ?? t.channel) - 1;
   const pedal = t.pedalCc === null ? []
     : [value({ setting: Setting.mapper, index: PEDAL_MAPPER }, mapperWords(pedalMapper(t, channel)))];
   return [
-    value({ setting: Setting.routing, index: PEDAL_IN }, [t.pedalCc === null ? 0 : bit]),
+    value({ setting: Setting.routing, index: PEDAL_IN }, [t.pedalCc === null ? mac : bit]),
     value({ setting: Setting.routing, index: LAUNCHKEY_IN }, [bit]),
     ...launchkeyMappers(channel),
     ...pedal,
@@ -97,10 +109,12 @@ export const sameWords = (a: readonly number[] | undefined, b: readonly number[]
 const matches = (current: ReadonlyMap<string, number[]>, wanted: SettingValue[]) =>
   wanted.every((s) => sameWords(current.get(settingKey(s)), s.words));
 
-// The target and channel the H12 is set to now, if its settings match one exactly.
+const choicesOf = (target: Target): Choice[] =>
+  channelsOf(target).flatMap((channel) => [false, true].map((monitor) => ({ target, channel, monitor })));
+
+// The target, channel and monitoring the H12 is set to now, if its settings match one exactly.
 export function currentTarget(targets: readonly Target[], current: ReadonlyMap<string, number[]>): Choice | undefined {
-  const choices = targets.flatMap((target) => channelsOf(target).map((channel) => ({ target, channel })));
-  return choices.find((c) => matches(current, targetSettings(c.target, c.channel)));
+  return targets.flatMap(choicesOf).find((c) => matches(current, targetSettings(c.target, c)));
 }
 
 const isInt = (v: unknown, min: number, max: number): v is number =>

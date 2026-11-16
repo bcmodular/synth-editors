@@ -1,7 +1,7 @@
 // The target buttons: the one the H12 is set to is lit; a click switches the Launchkey and the pedal to another.
 // Under them, what the last switch wrote, and the way back to the H12's previous settings.
 
-import type { Target } from "../core/targets";
+import { MONITOR_PORT, type Target } from "../core/targets";
 import type { Outcome, Targets } from "./useTargets";
 
 // The H12's port index as the H12 labels it (docs/h12-spec.md › Port index).
@@ -13,12 +13,11 @@ export function portName(index: number): string {
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 
-function summary({ what, restore, report: r }: Outcome): string {
-  if (r.written.length === 0 && !r.problem) return `Already on ${what}: nothing written.`;
+function summary({ wording, report: r }: Outcome): string {
+  if (r.written.length === 0 && !r.problem) return `${wording.unchanged}: nothing written.`;
   const done = `wrote ${plural(r.written.length, "setting")}`;
   const same = r.skipped.length ? `, ${r.skipped.length} already matched` : "";
-  if (r.problem) return `Stopped ${restore ? "putting back" : "switching to"} ${what} (${done}${same}).`;
-  return `${restore ? "Put back" : "Switched to"} ${what}: ${done}${same}.`;
+  return r.problem ? `${wording.stopped} (${done}${same}).` : `${wording.done}: ${done}${same}.`;
 }
 
 function Result({ outcome }: { outcome: Outcome }) {
@@ -65,13 +64,24 @@ function TargetButton({ target, t }: { target: Target; t: Targets }) {
 function Now({ t }: { t: Targets }) {
   if (t.readProblem) return <p className="bad" role="alert">{t.readProblem}</p>;
   if (!t.ready) return <p className="note">Waiting for the H12…</p>;
-  if (t.busy) return <p className="note">Switching to {t.busy}…</p>;
+  if (t.busy) return <p className="note">{t.busy}…</p>;
   if (t.active) {
     const { target, channel } = t.active;
     const name = target.channels ? `${target.name} on channel ${channel}` : target.name;
     return <p className="note">The keys and the pedal play <strong>{name}</strong>.</p>;
   }
   return <p className="note">The H12's settings don't match any target yet.</p>;
+}
+
+// Also sends what the keys and the pedal play to the Mac, after the mappers, for the MIDI monitor.
+function MonitorSwitch({ t }: { t: Targets }) {
+  return (
+    <label className="check">
+      <input type="checkbox" checked={t.active?.monitor ?? false} disabled={!t.active || !!t.busy}
+        onChange={(e) => t.setMonitor(e.target.checked)} />
+      {" "}Copy to the Mac ({MONITOR_PORT}), for the MIDI monitor
+    </label>
+  );
 }
 
 function BackupLine({ t }: { t: Targets }) {
@@ -96,6 +106,7 @@ export function TargetsPanel({ t }: { t: Targets }) {
       )}
       <Now t={t} />
       <div className="target-grid">{t.targets.map((target) => <TargetButton key={target.name} target={target} t={t} />)}</div>
+      <MonitorSwitch t={t} />
       {t.outcome && <Result outcome={t.outcome} />}
       <BackupLine t={t} />
       <p className="note">Close HxMIDI Tools before switching: the H12 should have one writer at a time.</p>

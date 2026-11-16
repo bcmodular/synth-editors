@@ -74,3 +74,8 @@ export const fakeSetting = (page: Page, key: string): Promise<number[] | undefin
 // The setting writes the app sent to the fake H12, as "setting:index", oldest first.
 export const settingWrites = async (page: Page): Promise<string[]> =>
   (await sent(page)).filter((m) => m.data[0] === 0xf0 && m.data[6] === 0x03).map((m) => `${m.data[7]}:${m.data[9]}`);
+
+// A message arriving from the fake H12 on one of its USB-C cables ("H12MIDI-Pro Port <cable>").
+export const playH12 = (page: Page, cable: number, ...bytes: number[]): Promise<void> =>
+  page.evaluate(([c, b]) => (window as unknown as { __fakeH12: { playH12: (c: number, b: number[]) => void } })
+    .__fakeH12.playH12(c as number, b as number[]), [cable, bytes] as const);

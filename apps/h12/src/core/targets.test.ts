@@ -65,13 +65,13 @@ describe("channel choice", () => {
   const multi: Target = { ...JV, channels: [6, 7, 8, 9, 10] };
 
   it("maps onto the chosen channel", () => {
-    const mapper = targetSettings(multi, 8).find((v) => v.setting === Setting.mapper && v.index === 18)!;
+    const mapper = targetSettings(multi, { channel: 8 }).find((v) => v.setting === Setting.mapper && v.index === 18)!;
     expect((mapper.words[2]! >>> 24) & 0x0f).toBe(7);
   });
 
   it("finds which of a target's channels the H12 is set to", () => {
-    const current = new Map(targetSettings(multi, 9).map((v) => [settingKey(v), v.words]));
-    expect(currentTarget([TB3, multi], current)).toEqual({ target: multi, channel: 9 });
+    const current = new Map(targetSettings(multi, { channel: 9 }).map((v) => [settingKey(v), v.words]));
+    expect(currentTarget([TB3, multi], current)).toEqual({ target: multi, channel: 9, monitor: false });
   });
 
   it("checks the channel list", () => {
@@ -79,6 +79,25 @@ describe("channel choice", () => {
       problems: ["JV-2080: channels must include channel 6"] });
     expect(parseTargets([{ ...multi, channels: [6, 17] }])).toEqual({
       problems: ["JV-2080: channels must be a list of channels from 1 to 16"] });
+  });
+});
+
+describe("monitor", () => {
+  const routing = (t: Target, index: number) =>
+    targetSettings(t, { monitor: true }).find((v) => v.setting === Setting.routing && v.index === index)!.words[0];
+
+  it("also routes the keys and the pedal to USB-C cable 8", () => {
+    expect(routing(JV, 26)).toBe(((1 << 1) | (1 << 23)) >>> 0);
+    expect(routing(JV, 25)).toBe(((1 << 1) | (1 << 23)) >>> 0);
+  });
+
+  it("sends a target without a pedal CC the pedal's raw messages on the Mac only", () => {
+    expect(routing(TB3, 25)).toBe(1 << 23);
+  });
+
+  it("is recognised in the current settings", () => {
+    const current = new Map(targetSettings(TB3, { monitor: true }).map((v) => [settingKey(v), v.words]));
+    expect(currentTarget([TB3, JV], current)).toEqual({ target: TB3, channel: 2, monitor: true });
   });
 });
 

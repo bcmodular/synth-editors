@@ -1,22 +1,44 @@
 // Target switching over the H12 link (core/switcher.ts): reads which target the H12 is set to, switches to another,
-// and puts back the H12's previous settings. Before the first write, the previous values of every setting a switch
-// may change are kept (core/backup.ts), once.
+// turns the copy to the Mac (for the monitor) on and off, and puts back the H12's previous settings. Before the first
+// write, the previous values of every setting a switch may change are kept (core/backup.ts), once.
 
 import { useCallback, useEffect, useState } from "react";
 import { backupOf, parseBackup, type Backup } from "../core/backup";
 import { applySettings, readSwitchSettings, type ApplyReport, type Current, type Io } from "../core/switcher";
-import { currentTarget, parseTargets, targetSettings, type SettingValue, type Target } from "../core/targets";
+import { currentTarget, parseTargets, targetSettings, type Choice, type SettingValue, type Target } from "../core/targets";
 import list from "../targets.json";
 import type { HubState } from "../hub/useHub";
 
 const BACKUP_KEY = "h12.backup";
 const PARSED = parseTargets(list);
 
+// How a change is reported: when it's done, when it stopped part way, and when there was nothing to write.
+export interface Wording {
+  doing: string; // "Switching to TB-3"
+  done: string; // "Switched to TB-3"
+  stopped: string; // "Stopped switching to TB-3"
+  unchanged: string; // "Already on TB-3"
+}
+
 export interface Outcome {
-  what: string; // the target's name, or "the previous settings"
-  restore: boolean;
+  wording: Wording;
   report: ApplyReport;
 }
+
+const switchWording = (name: string): Wording => ({ doing: `Switching to ${name}`, done: `Switched to ${name}`,
+  stopped: `Stopped switching to ${name}`, unchanged: `Already on ${name}` });
+
+const RESTORE: Wording = { doing: "Putting back the previous settings", done: "Put back the previous settings",
+  stopped: "Stopped putting back the previous settings", unchanged: "The previous settings are already there" };
+
+const monitorWording = (on: boolean): Wording => {
+  const what = `the copy to the Mac ${on ? "on" : "off"}`;
+  return { doing: `Turning ${what}`, done: `Turned ${what}`, stopped: `Stopped turning ${what}`,
+    unchanged: `The copy to the Mac is already ${on ? "on" : "off"}` };
+};
+
+const nameOf = (c: Pick<Choice, "target" | "channel">) =>
+  (c.target.channels ? `${c.target.name} ch ${c.channel}` : c.target.name);
 
 function loadBackup(): Backup | undefined {
   try {
@@ -67,6 +89,24 @@ function useCurrent(io: Io | undefined) {
   return { current, setCurrent, readProblem };
 }
 
+type Apply = (wording: Wording, wanted: (current: Current) => SettingValue[]) => Promise<void>;
+
+// What the panel can do: switch target (keeping the copy to the Mac as it is), turn the copy on or off, restore.
+function useActions(apply: Apply, active: Choice | undefined, backup: Backup | undefined) {
+  const monitor = active?.monitor ?? false;
+  const switchTo = useCallback((target: Target, channel = target.channel) =>
+    apply(switchWording(nameOf({ target, channel })), () => targetSettings(target, { channel, monitor })),
+  [apply, monitor]);
+  const setMonitor = useCallback((on: boolean) => {
+    if (!active) return;
+    void apply(monitorWording(on), () => targetSettings(active.target, { channel: active.channel, monitor: on }));
+  }, [apply, active]);
+  const restore = useCallback(() => {
+    if (backup) void apply(RESTORE, () => backup.settings);
+  }, [apply, backup]);
+  return { switchTo, setMonitor, restore };
+}
+
 export function useTargets(hub: HubState) {
   const io = hub.kind === "ready" ? hub.io : undefined;
   const { current, setCurrent, readProblem } = useCurrent(io);
@@ -74,25 +114,21 @@ export function useTargets(hub: HubState) {
   const [outcome, setOutcome] = useState<Outcome>();
   const [backup, setBackup] = useState(loadBackup);
 
-  const apply = useCallback(async (what: string, restore: boolean, wanted: (current: Current) => SettingValue[]) => {
+  const apply = useCallback(async (wording: Wording, wanted: (current: Current) => SettingValue[]) => {
     if (!io) return;
-    setBusy(what);
+    setBusy(wording.doing);
     const { report, after } = await run(io, wanted);
     if (after) setCurrent(after);
     setBackup(loadBackup());
-    setOutcome({ what, restore, report });
+    setOutcome({ wording, report });
     setBusy(undefined);
   }, [io, setCurrent]);
 
-  const switchTo = useCallback((t: Target, channel = t.channel) =>
-    apply(t.channels ? `${t.name} ch ${channel}` : t.name, false, () => targetSettings(t, channel)), [apply]);
-  const restore = useCallback(() => backup && apply("the previous settings", true, () => backup.settings),
-    [apply, backup]);
-
   const active = current ? currentTarget(TARGETS, current) : undefined;
+  const actions = useActions(apply, active, backup);
   return {
-    targets: TARGETS, listProblems: LIST_PROBLEMS, ready: current !== undefined && io !== undefined, active,
-    readProblem, busy, outcome, backup, switchTo, restore,
+    targets: TARGETS, listProblems: LIST_PROBLEMS, ready: !!current && !!io, active, readProblem, busy, outcome,
+    backup, ...actions,
   };
 }
 

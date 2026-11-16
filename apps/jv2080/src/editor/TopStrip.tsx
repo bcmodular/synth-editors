@@ -63,10 +63,12 @@ function UndoButtons({ session }: { session: JvSession }) {
   );
 }
 
-export function TopStrip(p: { link: JvLink; session: JvSession }) {
+export function TopStrip(p: { link: JvLink; session: JvSession; sideOpen: boolean; onToggleSide: () => void }) {
   const { link, session } = p;
   return (
     <header className="top">
+      <button className={`btn ${p.sideOpen ? "sel" : ""}`} title="Show or hide the slots and the patch library"
+        onClick={p.onToggleSide}>LIBRARY</button>
       <h1>JV-2080</h1>
       <UndoButtons session={session} />
       <PatchName patch={session.patch} onRename={session.setName} />

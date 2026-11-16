@@ -13,9 +13,11 @@ import type { ParamDef } from "../core/params";
 import { dt1, parseDt1 } from "../core/sysex";
 import { readPatch } from "../link/readPatch";
 import type { JvLink } from "../link/useJvLink";
+import { demoPatch } from "./demoPatch";
 import * as rules from "./sessionState";
 import type { SessionState } from "./sessionState";
 import { useJvSender, type JvSender } from "./useJvSender";
+import { persistSession, restoreSession } from "./sessionPersist";
 import { useLatest, type Latest } from "./useLatest";
 import { useSetEdits, type SessionCore } from "./useSetEdits";
 import { useUndo } from "./useUndo";
@@ -114,19 +116,33 @@ function useSync(link: JvLink, { store, sender, undo }: SessionCore, read: () =>
   return { syncFromJv, resync, syncToJv, loadFromBank };
 }
 
-const startState = (initial: Patch | null) =>
-  (initial ? rules.loadBuffer(rules.freshSession(), initial, null) : rules.freshSession());
+// The session survives quitting (sessionPersist.ts): saved shortly after each change, and on unload. Demo mode starts
+// from its own patch and keeps nothing.
+function usePersistedSession(offline: boolean): Store {
+  const store = useLatest<SessionState>(() =>
+    (offline ? rules.loadBuffer(rules.freshSession(), demoPatch(), null) : restoreSession()));
+  const { state, ref } = store;
+  useEffect(() => {
+    if (offline) return;
+    const t = setTimeout(() => persistSession(state), 400);
+    return () => clearTimeout(t);
+  }, [state, offline]);
+  useEffect(() => {
+    if (offline) return;
+    const flush = () => persistSession(ref.current); // quitting inside the debounce must not lose the last edits
+    window.addEventListener("beforeunload", flush);
+    return () => window.removeEventListener("beforeunload", flush);
+  }, [ref, offline]);
+  return store;
+}
 
-// With `offline` (demo mode) nothing is sent: the editor works on its own patch without touching a JV.
-export function useJvSession(link: JvLink, initial: Patch | null = null, offline = false, onError: (msg: string) => void = () => {}) {
-  const store = useLatest<SessionState>(() => startState(initial));
+// In demo mode nothing is sent: the editor works on its own patch without touching a JV.
+export function useJvSession(link: JvLink, { demo, onError }: { demo: boolean; onError: (msg: string) => void }) {
+  const offline = demo;
+  const store = usePersistedSession(offline);
   const [busy, setBusy] = useState(false);
   const previewing = useRef(false);
   const sender = useJvSender(link, offline);
-  const { holds } = sender;
-  useEffect(() => {
-    if (initial) holds(initial);
-  }, [initial, holds]);
   useIncomingEdits(link, busy, store, sender);
   const undo = useUndo({ session: store, sendPatch: sender.sendPatch, previewing, onError });
   const { read, readFailed } = useReadFromJv(link, offline, setBusy);
@@ -139,6 +155,7 @@ export function useJvSession(link: JvLink, initial: Patch | null = null, offline
   return {
     state,
     patch: setEdits.shown?.patch ?? rules.currentPatch(state), // what the editor shows
+    activePatch: rules.currentPatch(state), // the slot's or buffer's patch, whatever is being auditioned
     currentName: rules.currentName(state),
     busy,
     readFailed, // the last read from the JV didn't complete

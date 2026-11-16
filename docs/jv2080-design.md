@@ -1,6 +1,7 @@
 # JV-2080 editor — design (draft)
 
-Status: **draft, nothing built**. It started as a TouchOSC plan in `touchosc-controllers` and moved here on
+Status: **the editor, library and CC learn are built** (2026-11-16); what is left is in
+[jv2080-remaining.md](jv2080-remaining.md). It started as a TouchOSC plan in `touchosc-controllers` and moved here on
 2026-11-14 so it follows the TB-3 and SP-404 apps' stack and conventions (see [PLAN.md](../PLAN.md)).
 
 - SysEx reference, checked against Roland's owner's manual: [jv2080-sysex-map.md](jv2080-sysex-map.md). It is the
@@ -177,22 +178,34 @@ Follows the TB-3's split:
 ## Phases
 
 0. **Map** ✅ — [jv2080-sysex-map.md](jv2080-sysex-map.md).
-1. **Spike on hardware** — app shell, MIDI port picker, RQ1 the five blocks and show them decoded, send one DT1.
-   Answer the hardware questions below. *Built (`npm run dev:jv2080`), not yet run against the JV.* It reads the
-   patch and logs packets and timings per block, shows the raw Wave Group IDs, sends PC then reads after a set
-   delay, sends single DT1s (Tone 1 Reverb Send tests the address carry), sends the whole patch back, and saves it
-   as `.syx` (save JV dumps under `fixtures/local/` for Phase 2's tests).
+1. **Spike on hardware** ✅ — answered the hardware questions below; removed on 2026-11-15 once the editor did its
+   job (device ID and patch channel are under MIDI ▾, and the MIDI log goes to the console).
 2. **Core** ✅ — params, EFX and wave tables, SysEx with address carry and packets, patch encode / decode, diff;
-   tests against `.syx` dumps captured from the JV (`fixtures/local/jv2080/`, skipped when absent). The spike's
-   readout now uses the core tables (wave names, enum labels).
-3. **Editor** — common row, four tone columns, envelope editor, sync from / to the JV, bank browser.
-   *Started:* the editor is the whole app (the spike was removed on 2026-11-15; device ID and patch channel are under
-   MIDI ▾, and the MIDI log goes to the console). It reads the JV's patch when the ports
-   are set, edits send DT1s (coalesced per address), edits from the JV's panel come back in, SYNC FROM / TO JV and the
-   bank browser work. Controls are copied from the TB-3 (`src/ui`, as the SP-404 does) until the shared-package
-   question is decided. Still to do: undo.
-4. **Library** — sidebar: patch files, sets, audition, GRAB / DELETE.
-5. **Controllers and packaging** — CC learn, Launchpad (optional), packaged build.
+   tests against `.syx` dumps captured from the JV (`fixtures/local/jv2080/`, skipped when absent).
+3. **Editor** ✅ — the redesign above. It reads the JV's patch when the ports are set, edits send DT1s (coalesced per
+   address), edits from the JV's panel come back in, SYNC FROM / TO JV and the bank browser work. **Undo / redo**
+   (2026-11-16): UNDO / REDO in the top strip, ⌘Z / ⇧⌘Z; everything one pointer gesture does is one step (a drag, a
+   new EFX type with its start values, an envelope reset), other edits merge per parameter
+   (`editor/undoGesture.ts`); a restored patch goes to the JV as the bytes that differ from what it holds
+   (`editor/useJvSender.ts`). Controls are copied from the TB-3 (`src/ui`) until the shared-package question is
+   decided. Still to do: the controller matrix and EFX control (see jv2080-remaining.md).
+4. **Library** ✅ (2026-11-16) — the TB-3's sidebar without the morph, shown or hidden by LIBRARY in the top strip
+   (the fit zoom takes in its width): PATCH (SAVE AS… `.syx`), SET (16 slots, 8 × 2: recall, STORE, DELETE, GRAB,
+   swap and copy by dragging, rename, revert; NEW / SAVE / SAVE AS… `.jvset`) and the library browser (▶ to audition,
+   double-click to load or open, rename / move / trash, each an undo step). A recall, an audition or a loaded file goes
+   to the JV as the bytes that differ. The session survives quitting; on the next start its patch is sent to the JV
+   rather than the JV's being read in, so the JV plays what the editor shows. Decided for the user while they were
+   out: a library like the TB-3's rather than dialogs, one patch per `.syx`; no writes to USER memory.
+5. **Controllers and packaging** — **CC learn** ✅ (2026-11-16): CC ▾ in the top strip chooses the controller's
+   port; LEARN, then click a knob, fader or row of buttons and move a knob. A CC drives a patch parameter (in its
+   tone) or one EFX type's parameter, which only moves while that type is selected; modes relative / pickup / jump
+   (`packages/cc-learn`). Nothing from the controller is passed on to the JV. Launchpad: not wanted. Still to do: a
+   packaged build.
+
+**Tests.** `npm run test:e2e:jv2080` runs the built app in Electron against a fake JV (`apps/jv2080/e2e/fakeJv.ts`)
+that keeps its memory by address, answers RQ1s, loads presets on a program change and has a stand-in controller:
+reading on start, edits with undo, the bank browser, EFX start values, a JV that doesn't answer, the library, a
+relaunch and CC learn. There is no hardware mode yet.
 
 ## Open questions
 

@@ -12,7 +12,7 @@ This repo is public. The roadmap is in [PLAN.md](PLAN.md); design notes and to-d
 
 ```
 apps/tb3/            TB-3 editor: Electron main in electron/, React + TS renderer in src/, Playwright e2e in e2e/
-apps/jv2080/         JV-2080 editor (Phase 3 in progress; docs/jv2080-design.md)
+apps/jv2080/         JV-2080 editor and librarian (docs/jv2080-design.md; to do: docs/jv2080-remaining.md)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 ```
@@ -26,6 +26,7 @@ npm run dev:tb3                                   # Vite dev server + Electron w
 npm test                                          # Vitest unit tests
 npm run typecheck
 npm run test:e2e                                  # Playwright against a fake TB-3
+npm run test:e2e:jv2080                           # Playwright against a fake JV-2080
 TB3_PORT="H12MIDI-Pro Port 4" npm run test:tb3    # Playwright against the real TB-3 (restores its sound afterwards)
 ```
 

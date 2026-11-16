@@ -1,18 +1,19 @@
 # JV-2080 editor — remaining work
 
 An inventory made 2026-11-16 from [jv2080-design.md](jv2080-design.md), [jv2080-not-in-editor.md](jv2080-not-in-editor.md),
-PLAN.md and the code in `apps/jv2080`. Where these disagree, this list says which is current.
+PLAN.md and the code in `apps/jv2080`; updated the same day after undo, the library, CC learn and the end-to-end
+tests went in. Where these disagree, this list says which is current.
 
 ## Where it stands
 
-Phase 3 (the editor) is nearly done:
+Phases 3 and 4 are done, and Phase 5 apart from packaging. The editor has:
 - the mixer, EFX with a view for every type, chorus, reverb, patch settings, four tone columns with envelope
   graphs, the wave library;
 - (i) help for every section;
 - fit zoom, demo mode;
-- every patch parameter except the controller matrix and the EFX control.
-
-Nothing for Phases 4 (library) or 5 (controllers, packaging) has been started.
+- every patch parameter except the controller matrix and the EFX control;
+- undo / redo, the library sidebar (slots, sets, patch files, auditions), and CC learn from a controller;
+- end-to-end tests against a fake JV.
 
 ## 1. Check on the JV
 
@@ -31,11 +32,15 @@ Much of the recent work has only been tested in demo mode or against the manual.
       - FXM.
 - [ ] Renaming the patch from the top strip.
 - [ ] The knob-based PATCH panel; Tempo dims when the clock is SYSTEM.
+- [ ] Undo after a drag, a new EFX type and a bank load: the JV follows each step back.
+- [ ] Recall a slot, hold ▶ on a file, GRAB a slot: each audition plays on the JV and the release goes back.
+- [ ] Quit and reopen: the editor's patch goes to the JV.
+- [ ] CC learn with a real controller: a knob in pickup and relative modes, and an EFX knob that stops when the
+      type changes.
 
 ## 2. Finish Phase 3 (editor)
 
-- [ ] **Undo / redo.** Still to do in the design. The TB-3's session and undo hooks are the model. The top strip
-      has no UNDO / REDO yet.
+- [x] **Undo / redo** (2026-11-16).
 - [ ] **Controller matrix:**
       - Patch Control Source 2–3 and Control 1–3 Hold/Peak;
       - each tone's Controller 1–3 × Destination 1–4 with their depths.
@@ -52,8 +57,8 @@ Much of the recent work has only been tested in demo mode or against the manual.
 
 From the open questions in [jv2080-not-in-editor.md](jv2080-not-in-editor.md#open-questions-2026-11-15):
 
-1. **Patch files:** a library like the TB-3's, or Save / Open dialogs? One patch per file, or whole USER banks
-   too?
+1. ~~**Patch files:** a library like the TB-3's, or Save / Open dialogs?~~ Built as a library like the TB-3's, with
+   one patch per `.syx`, while you were out (2026-11-16). Whole USER bank files are still open.
 2. **Writing to USER memory** (out of scope in v1 so far). If it comes in:
    - the slot chooser;
    - the confirmation;
@@ -66,40 +71,31 @@ From the open questions in [jv2080-not-in-editor.md](jv2080-not-in-editor.md#ope
 6. **The "⋯" popovers**, or an expanded single-tone view (the JV's Palette idea)?
 7. **TAP-SYNC in Tone Delay:** probably not on the JV-2080. Hide it, or leave it?
 8. From the design: copy the TB-3's library and controls again, or extract `packages/ui` and
-   `packages/bank-files` first?
+   `packages/bank-files` first? *Copied again for now* (each copied file says so in its first line); extracting is
+   still worth doing now that three apps share them.
 9. **Morph** (the TB-3's, byte-wise): v1 or later?
 
-## 4. Phase 4 — library
+## 4. Phase 4 — library ✅
 
-Not started; shaped by decisions 1, 2 and 8.
-
-- [ ] A sidebar like the TB-3's:
-      - PATCH: name, slot, SAVE AS…;
-      - SET: 16 slots, GRAB / DELETE, NEW / SAVE / SAVE AS…;
-      - LIBRARY: a tree of `.syx` and `.jvset` files, search, ▶ audition.
-- [ ] `core/patchSet.ts` (`.jvset`) and the Electron file IPC. `encodeSyx` / `decodeSyx` already exist in
-      `core/patch.ts`.
-- [ ] Room for the sidebar: the layout is fixed at 1920 px and fit-zoomed, so the sidebar means narrowing the
-      tones or zooming down.
+Built 2026-11-16 (see jv2080-design.md, Phases). Left over:
+- [ ] Whole-bank `.syx` files (128 USER patches), if wanted (decision 1).
+- [ ] The library has no keyboard shortcuts of its own beyond ⌘Z / ⇧⌘Z.
 
 ## 5. Phase 5 — controllers and packaging
 
-- [ ] CC learn (`packages/cc-learn`), and a CC button in the top strip.
-- [ ] Launchpad slots, if wanted.
+- [x] CC learn (2026-11-16): CC ▾ in the top strip.
+- [ ] CC learn for the envelope graphs and the EFX drawings' handles: they have no single control to click. Their
+      parameters can still be learned where a knob shows them.
+- [x] Launchpad: not wanted.
 - [ ] A packaged build. The TB-3 has an `electron-builder` config; the JV app has only `vite build`.
 
 ## 6. Tests
 
-- [ ] **End-to-end tests:** the TB-3 and SP-404 have Playwright harnesses, the JV has none. A fake JV, like
-      `apps/tb3/e2e/fakeTb3.ts`, that answers RQ1s and records DT1s would cover:
-      - read and sync;
-      - the bank browser;
-      - edits;
-      - the EFX start values;
-      - a failed read.
-
-      Demo mode already covers the UI on its own. Add a root `test:e2e:jv2080` script.
-- [ ] Unit tests cover `core/`, `link/readPatch` and solo; the editor components have none.
+- [x] **End-to-end tests** (`npm run test:e2e:jv2080`, 15 tests) against a fake JV with a stand-in controller.
+- [ ] A hardware mode for them, like the TB-3's `TB3_HW=1`, that restores the JV's patch afterwards.
+- [ ] Edits from the JV's own panel coming back into the editor aren't covered yet.
+- [ ] Unit tests cover `core/`, the session rules, undo history, set files, CC targets and solo; the React
+      components are covered only by the end-to-end tests.
 
 ## 7. Later, by decision
 
@@ -110,10 +106,6 @@ These were left out of v1 on purpose:
 - system settings;
 - expansion boards.
 
-## 8. Docs housekeeping
+## 8. Docs housekeeping ✅
 
-Some of the docs are out of date:
-- [ ] `jv2080-design.md` still opens with "Status: draft, nothing built". Its Phase 1 entry still describes the
-      spike, which is now removed.
-- [ ] `jv2080-not-in-editor.md` says editing the patch name is still to do; it was done in 5ceb25d.
-- [ ] PLAN.md's JV-2080 section still says "Nothing built yet".
+Done 2026-11-16: the design's status and phases, jv2080-not-in-editor.md's note on the patch name, and PLAN.md.

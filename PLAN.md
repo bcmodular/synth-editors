@@ -99,12 +99,13 @@ Reuses `midi`, `launchpad`, `cc-learn`, `bank-files`, `ui`. Scope: 5 buses, 46 e
 recent values, scenes / morph, Launchkey keyboard effects (Hyper Reso, Resonator, Vocoder),
 Launchpad triggering.
 
-## JV-2080 — planned (2026-11-14)
+## JV-2080 — built (2026-11-14 to 2026-11-16)
 
 A third app, `apps/jv2080`: a simple patch editor and librarian (Patch mode only, four tones side by side, EFX,
 chorus, reverb), in the TB-3 app's style. Design: [docs/jv2080-design.md](docs/jv2080-design.md); SysEx reference
 checked against Roland's manual: [docs/jv2080-sysex-map.md](docs/jv2080-sysex-map.md); mockup:
-[docs/jv2080-mockups/1-layout.html](docs/jv2080-mockups/1-layout.html). Nothing built yet.
+[docs/jv2080-mockups/1-layout.html](docs/jv2080-mockups/1-layout.html). The editor, library, undo and CC learn are
+built; what is left is in [docs/jv2080-remaining.md](docs/jv2080-remaining.md).
 
 ## Dropped from the TouchOSC versions
 

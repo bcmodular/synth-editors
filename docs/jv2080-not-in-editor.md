@@ -10,7 +10,8 @@ tones' Controller 1–3 destinations and depths) and the EFX Control Source/Dept
 - key and velocity ranges from RANGES in the mixer's header;
 - portamento mode, type and start, voice priority, stretch tuning, Analog Feel and category in PATCH.
 
-Editing the patch name is still to do, with saving patch files and writing to USER memory.
+Editing the patch name is done (the name in the top strip), and so are patch files (the library, 2026-11-16).
+Writing to USER memory is still out of scope.
 
 An inventory, made 2026-11-15, of every patch parameter the editor can't yet set. Taken from the SysEx map
 ([jv2080-sysex-map.md](jv2080-sysex-map.md) §4–5) against `apps/jv2080/src/core/params.ts` and the UI. The editor

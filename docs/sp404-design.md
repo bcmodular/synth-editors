@@ -132,10 +132,35 @@ These match the TouchOSC version's behaviour, including the lock rules.
 - **Launchpad Pro Mk1**, as in the TouchOSC version: columns 1–5 = the 8 presets of buses 1–5 (the
   modules' preset columns match), columns 7–8 = the 16 FX scenes, top buttons = bus ON/OFF, left-side modifiers
   for grab, defaults, delete, morph and the effect chooser, bottom row = bus lock, pressure = morph amount.
+  Built 2026-11-16 (`src/launchpad/`), detailed below.
 - **Keyboard overlay** (Launchkey MK4): slides up over the mixer. It sets Resonator ROOT/CHORD, Hyper-Reso
   NOTE/SCALE and Vocoder NOTE/SCALE/CHORD, plays the vocoder on channel 11, and grabs a bus so the Launchkey
   encoders drive its six parameters. The FX modules have no keyboards of their own.
 - **CC learn**: global, as in [PLAN.md](../PLAN.md) (relative / pickup / jump; no controller feedback).
+
+#### Launchpad Pro (built 2026-11-16)
+
+From `touchosc-controllers/sp404-mk2/lua/root.lua`, `launchpad_led.lua` and `launchpad_fx_chooser.lua`.
+
+- **Port**: found by name (`Launchpad Pro`, the Standalone port first), as the BCR is. Programmer layout and every LED
+  off on connect, dark again when the window closes. The channel isn't checked.
+- **Grid**: columns 1–5 = presets 1–8 of buses 1–5 (`81 + (bus − 1) − 10 × (preset − 1)`), columns 7–8 = scenes
+  1–8 and 9–16, top down; column 6 is unused. A pad presses the preset or scene as on screen; Shift held (or
+  AUDITION on) previews while held. With morph on, a stored preset pad picks the target (a press on the target keeps
+  its blend) and its pressure (poly, or channel pressure while it's held) sets the amount.
+- **Round buttons**: top 1–5 (CC 91–95) = bus ON/OFF (only with an effect loaded); bottom 1–5 (CC 1–5) = LOCK.
+  Modifiers, held, then a bus button: Device (97) = chooser, Delete (50) = clear bus, Quantise (40) = morph on/off,
+  Click (70) = store defaults, Undo (60) = recall defaults, Shift (80) = GRAB while the bus button is held. Delete
+  held is DEL mode for presets and scenes. User (98) cycles brightness (very dim / night / normal / day, remembered).
+- **Chooser**: the screen chooser's 8 × 8 (`fx/fxGroups.ts`) instead of TouchOSC's 8 × 6 in SP-404 order. First
+  press marks (white), second press on the same pad loads (TouchOSC also took a double tap; the second press covers
+  it). Effects the bus can't load are dark; the current one is bright; only the chosen bus's button is lit.
+- **LEDs**: bus colours from the screen (`BUS_ACCENT`, not TouchOSC's RGB primaries); stored presets idle, the
+  matching one full; morph pads lilac, the target full; DEL red; scenes white, the matching one full; bus buttons
+  full when on, very dim when off; LOCK red; each modifier its TouchOSC colour, full while held (Delete also while
+  DEL is on, Shift while AUDITION is on). Only changed LEDs are sent, in one batched SysEx.
+- **Code**: `src/launchpad/` (`lpMap.ts`, `lpControl.ts`, `lpView.ts` pure and tested; `useLaunchpad.ts`), ports
+  through `midi/usePortsNamed.ts` (shared with the BCR). e2e with a fake Launchpad on the fake MIDI ports.
 
 #### BCR2000 (agreed 2026-11-13)
 

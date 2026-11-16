@@ -5,8 +5,8 @@
 import { useCallback, useRef, useState } from "react";
 import type { Bus } from "../core/fxTypes";
 import {
-  clearBus, deletePresetAt, deleteSceneAt, recallDefaults, recallPresetAt, recallSceneAt, slotsOn, storePresetAt,
-  storeSceneAt, type Locks, type SlotRef,
+  clearBus, deletePresetAt, deleteSceneAt, recallDefaults, recallPresetAt, recallSceneAt, slotsOn, storeDefaultsOn,
+  storePresetAt, storeSceneAt, type Locks, type SlotRef,
 } from "./fxLibrary";
 import { applyMorph, morphTarget, startMorph, type BusMorph } from "./fxMorph";
 import type { Buses } from "../core/fxModel";
@@ -133,6 +133,8 @@ function usePresses(store: FxStore, { mode, locks }: Modes, preview: Preview, mo
   }, [mode, locks, preview, store]);
 
   const pressDefaults = useCallback((bus: Bus) => store.apply((s) => recallDefaults(s, bus)), [store]);
+  // Store the bus's values as its effect's defaults (the Launchpad's Click + bus button).
+  const storeDefaults = useCallback((bus: Bus) => store.apply((s) => storeDefaultsOn(s, bus, locks)), [locks, store]);
 
   // A bus number in DEL mode clears the bus.
   const pressBus = useCallback((bus: Bus) => {
@@ -141,7 +143,7 @@ function usePresses(store: FxStore, { mode, locks }: Modes, preview: Preview, mo
     store.apply((s) => clearBus(s, bus, locks));
   }, [mode, locks, morph, store]);
 
-  return { pressPreset, pressScene, pressDefaults, pressBus };
+  return { pressPreset, pressScene, pressDefaults, storeDefaults, pressBus };
 }
 
 export function useFxPlay(store: FxStore) {

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useBcr } from "./bcr/useBcr";
 import { FxModes, FxRow } from "./fx/FxRow";
 import { useFx, type Fx } from "./fx/useFx";
+import { useLaunchpad } from "./launchpad/useLaunchpad";
 import { bankOf } from "./mixer/banks";
 import { Desk } from "./mixer/Desk";
 import { MixerSide, type ProjectView } from "./mixer/MixerSide";
@@ -26,14 +27,16 @@ interface TopBarProps {
   fx: Fx;
   midiInput?: string;
   bcr?: string;
+  launchpad?: string;
   onSettings: () => void;
 }
 
-const BcrPill = ({ name }: { name?: string }) => (
-  <span className={`pill ${name ? "on" : ""}`} title={name ?? "No BCR2000 connected"}>{name ? "BCR2000 ●" : "BCR2000 ○"}</span>
+// A controller's link pill: lit with its port's name when connected.
+const LinkPill = ({ label, name }: { label: string; name?: string }) => (
+  <span className={`pill ${name ? "on" : ""}`} title={name ?? `No ${label} connected`}>{`${label} ${name ? "●" : "○"}`}</span>
 );
 
-function TopBar({ device, fx, midiInput, bcr, onSettings }: TopBarProps) {
+function TopBar({ device, fx, midiInput, bcr, launchpad, onSettings }: TopBarProps) {
   const { link, device: d, error, connect } = device;
   const midiOutput = fx.outputName;
   const project = d.project === undefined ? "" : ` · PROJECT ${String(d.project + 1).padStart(2, "0")}`;
@@ -47,8 +50,8 @@ function TopBar({ device, fx, midiInput, bcr, onSettings }: TopBarProps) {
       {midiOutput && !midiInput && <span className="warn">NO PAD NOTES IN</span>}
       <span className={`pill ${link === "on" ? "on" : ""}`}>{usb}</span>
       {link === "off" && <button className="pill" onClick={connect}>CONNECT USB</button>}
-      <span className="pill">LAUNCHPAD</span>
-      <BcrPill name={bcr} />
+      <LinkPill label="LAUNCHPAD" name={launchpad} />
+      <LinkPill label="BCR2000" name={bcr} />
       {error && <span className="error" role="alert">{error}</span>}
       <span className="sp" />
       <FxModes fx={fx} />
@@ -77,6 +80,7 @@ export function Editor() {
   const banks = useShownBanks(device.device.project, loadedBanks);
   const fx = useFx();
   const bcr = useBcr(fx);
+  const launchpad = useLaunchpad(fx);
   const [settings, setSettings] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const midiHits = usePadHits(settings.padMidi);
@@ -86,7 +90,7 @@ export function Editor() {
   return (
     <div className="ld" ref={setRoot}>
       <TopBar device={device} fx={fx} midiInput={midiHits.inputName} bcr={bcr.name}
-        onSettings={() => setSettingsOpen(true)} />
+        launchpad={launchpad.name} onSettings={() => setSettingsOpen(true)} />
       <FxRow fx={fx} />
       <div className="mixer">
         <MixerSide project={projectView(device, mixer.renameProject)} shown={banks.shown} loadedBanks={loadedBanks}

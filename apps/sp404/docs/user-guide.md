@@ -41,7 +41,7 @@ From the left:
   the SP-404 but isn't hearing its notes, so the pad lights fall back on what the serial port reports (hand hits
   only).
 - **USB**: the serial link and the project number. **CONNECT USB** appears while it's off.
-- **LAUNCHPAD**: not working yet. The Launchpad Pro is planned.
+- **LAUNCHPAD**: lit when a Launchpad Pro is connected. See [Launchpad Pro](#launchpad-pro).
 - **BCR2000**: lit when a Behringer BCR2000 is connected (see [BCR2000](#bcr2000)).
 - **DEL** (red) and **AUDITION** (white): modes for the presets and scenes. Each stays on until you press it again.
   See [Presets](#presets).
@@ -273,6 +273,35 @@ name is used.
 - The BCR's buttons do nothing.
 
 With one BCR, switch it to its second preset to reach INPUT FX. The first turn after switching doesn't jump.
+
+## Launchpad Pro
+
+A Launchpad Pro (the original, Mk1) plays the FX library, laid out as in the SP-404 TouchOSC layout. Connect it by
+USB; the editor finds it by name and puts it in Programmer layout.
+
+- **Columns 1–5** are the eight presets of BUS 1, 2, 3, 4 and INPUT FX, preset 1 at the top. A pad does what the
+  preset does on screen: an empty one stores, a stored one recalls. Stored presets are lit in the bus colour, and
+  the one the bus matches is bright.
+- **Columns 7–8** are the 16 FX scenes (1–8 down column 7, 9–16 down column 8), lit white.
+- **Top buttons 1–5** switch the buses' effects on and off (bright when on).
+- **Bottom buttons 1–5** are LOCK for each bus (red).
+- **Hold a round button, then press a bus button:**
+
+  | Hold | Bus button does |
+  |------|-----------------|
+  | Device | Opens the effect chooser on the grid |
+  | Delete | Clears the bus |
+  | Quantise | Turns morph on or off |
+  | Click | Stores the bus's values as the effect's defaults |
+  | Undo | Recalls the defaults (DEF) |
+  | Shift | GRAB: the effect is on for as long as the bus button is held |
+
+- **Delete** held is DEL mode: a preset or scene pad deletes it. **Shift** held is AUDITION: a stored preset or scene
+  plays while its pad is held.
+- **Morph**: with morph on, a stored preset pad picks the target (lilac), and pressing harder on it sets the amount.
+- **Effect chooser**: the grid shows the screen chooser's 8 × 8, one row per effect group. Press an effect once to
+  mark it (white), and again to load it. Effects the bus can't load are dark. Device again closes it.
+- **User** cycles the LED brightness (very dim, night, normal, day).
 
 ## Between sessions
 

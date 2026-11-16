@@ -6,7 +6,7 @@ import { MidiSender } from "../fx/midiSender";
 import type { Fx } from "../fx/useFx";
 import { BcrLink, ringsFor, type Rings } from "./bcrLink";
 import type { BcrEvent } from "./bcrMap";
-import { useBcrPorts } from "./bcrPorts";
+import { usePortsNamed, type PortMatch } from "../midi/usePortsNamed";
 
 function useRings(fx: Fx): Rings {
   const { buses, play } = fx;
@@ -53,8 +53,11 @@ function useLink(output: MIDIOutput | undefined, want: React.RefObject<Rings>): 
   return link;
 }
 
+// The BCR's ports (Port 1 when it offers several).
+const BCR: PortMatch = { name: /BCR\s?2000/i };
+
 export function useBcr(fx: Fx): { name?: string } {
-  const { input, output } = useBcrPorts();
+  const { input, output } = usePortsNamed(BCR);
   const rings = useRings(fx);
   const want = useRef(rings);
   want.current = rings;

@@ -1,4 +1,5 @@
-// The BCR2000's own MIDI ports (named BCR2000), followed as they come and go.
+// A controller's own MIDI ports, found by name and followed as they come and go (the BCR2000, the Launchpad Pro, the
+// Launchkey). With several matching ports, `rank` picks: the lowest rank, then the name.
 
 import { requestMidi } from "@synth-editors/midi";
 import { useEffect, useState } from "react";
@@ -8,19 +9,26 @@ export interface Ports {
   output?: MIDIOutput;
 }
 
-const isBcr = (p: MIDIPort) => /BCR\s?2000/i.test(p.name ?? "") && p.state === "connected";
-// The first BCR port by name (Port 1 when the BCR offers several).
-const firstBcr = <T extends MIDIPort>(ports: Iterable<T>): T | undefined =>
-  [...ports].filter(isBcr).sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""))[0];
+export interface PortMatch {
+  name: RegExp;
+  rank?: (name: string) => number;
+}
 
-export function useBcrPorts(): Ports {
+const pick = <T extends MIDIPort>(ports: Iterable<T>, m: PortMatch): T | undefined => {
+  const rank = (p: T) => m.rank?.(p.name ?? "") ?? 0;
+  return [...ports]
+    .filter((p) => m.name.test(p.name ?? "") && p.state === "connected")
+    .sort((a, b) => rank(a) - rank(b) || (a.name ?? "").localeCompare(b.name ?? ""))[0];
+};
+
+export function usePortsNamed(match: PortMatch): Ports {
   const [ports, setPorts] = useState<Ports>({});
   useEffect(() => {
     let access: MIDIAccess | undefined;
     let cancelled = false;
     const update = () => {
       if (!access) return;
-      const next = { input: firstBcr(access.inputs.values()), output: firstBcr(access.outputs.values()) };
+      const next = { input: pick(access.inputs.values(), match), output: pick(access.outputs.values(), match) };
       setPorts((was) => (was.input === next.input && was.output === next.output ? was : next));
     };
     requestMidi().then((a) => {
@@ -33,6 +41,6 @@ export function useBcrPorts(): Ports {
       cancelled = true;
       access?.removeEventListener("statechange", update);
     };
-  }, []);
+  }, [match]);
   return ports;
 }

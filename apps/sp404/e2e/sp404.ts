@@ -72,7 +72,9 @@ export const playMidi = (page: Page, ...bytes: number[]): Promise<void> =>
 export const midiSent = (page: Page): Promise<number[][]> =>
   page.evaluate(() => (window as unknown as { __fakeSp404Midi: { sent: number[][] } }).__fakeSp404Midi.sent);
 
-type FakeMidi = { bcrSent: number[][]; bcrPlay: (...x: number[]) => void };
+type FakeMidi = {
+  bcrSent: number[][]; bcrPlay: (...x: number[]) => void; lpSent: number[][]; lpPlay: (...x: number[]) => void;
+};
 
 // A message from the fake BCR2000 (a turn or a press).
 export const playBcr = (page: Page, ...bytes: number[]): Promise<void> =>
@@ -81,3 +83,22 @@ export const playBcr = (page: Page, ...bytes: number[]): Promise<void> =>
 // MIDI messages the app sent to the fake BCR2000, oldest first.
 export const bcrSent = (page: Page): Promise<number[][]> =>
   page.evaluate(() => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.bcrSent);
+
+// A message from the fake Launchpad Pro (a pad, a button, pressure).
+export const playLaunchpad = (page: Page, ...bytes: number[]): Promise<void> =>
+  page.evaluate((b) => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.lpPlay(...b), bytes);
+
+// MIDI messages the app sent to the fake Launchpad Pro, oldest first.
+export const launchpadSent = (page: Page): Promise<number[][]> =>
+  page.evaluate(() => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.lpSent);
+
+// The colour last sent to a Launchpad LED (from batched RGB SysEx), or undefined if never sent.
+export async function launchpadLed(page: Page, led: number): Promise<number[] | undefined> {
+  let colour: number[] | undefined;
+  for (const m of await launchpadSent(page)) {
+    if (m[6] === 0x0e) colour = [0, 0, 0]; // all LEDs off
+    if (m[6] !== 0x0b) continue;
+    for (let i = 7; i + 3 < m.length; i += 4) if (m[i] === led) colour = m.slice(i + 1, i + 4);
+  }
+  return colour;
+}

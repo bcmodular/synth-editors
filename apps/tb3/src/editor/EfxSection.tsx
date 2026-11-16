@@ -7,7 +7,9 @@ import { getEfxRaw, getEfxType } from "../core/patch";
 import { Knob } from "../ui/Knob";
 import { useSize } from "../ui/useSize";
 import { LedButton, Section, Segmented } from "../ui/controls";
+import { efxTarget } from "./ccTargets";
 import { useEditor } from "./EditorContext";
+import { Pickable } from "./Param";
 import { EFX_VIEWS } from "./efx";
 import { efxHelp, efxId } from "./help/content";
 import { HelpButton } from "./help/HelpPanel";
@@ -40,7 +42,8 @@ function SlotKnobs({ efx, slots, byte }: KnobsProps) {
   return (
     <div className="efxknobs">
       {slots.map((s) => (
-        <Lit key={s.offset} ids={[efxId(s.offset)]}>
+        <Pickable key={s.offset} spec={{ name: s.name, target: efxTarget(efx, s.offset), assign: null }} className="knobcell">
+        <Lit ids={[efxId(s.offset)]}>
         <Knob
           label={s.name}
           value={byte(s.offset)}
@@ -53,6 +56,7 @@ function SlotKnobs({ efx, slots, byte }: KnobsProps) {
           dim={s.disabledBy.some((o) => byte(o) !== 0)}
         />
         </Lit>
+        </Pickable>
       ))}
     </div>
   );

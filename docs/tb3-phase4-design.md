@@ -46,7 +46,7 @@ A keyboard (the Launchkey MK4 on the TouchOSC panel) on **KEYS IN**, as in `touc
 - **Pass-through**: note on/off and pitch bend go to the TB-3, rechannelled to TB-3 CHANNEL, through the pacer like
   every send. Unassigned CCs pass through the same way. Other messages (clock, aftertouch, SysEx) are dropped.
 - **Targets** (`ccTargets.ts`): a patch parameter (`param:<id>`, edited as from its fader, so on screen, sent as DT1
-  and in the undo history), GLOBAL TUNE (`tuning`), the morph AMOUNT (`morph`, only with a target), or one of the
+  and in the undo history), an EFX parameter (`efx:<1|2>:<offset>`, edited like its knob), GLOBAL TUNE (`tuning`), the morph AMOUNT (`morph`, only with a target), or one of the
   TB-3's performance CCs (`tb3cc:<n>`: EFFECT knob 17, PAD X 12, PAD Y 13, XY MOD 1), sent on as that CC.
 - **Seeded defaults** from the TouchOSC panel: 74 cutoff, 71 resonance, 16 accent, 17 / 12 / 13 / 1 the TB-3 CCs, 104
   tuning, 105 morph. Seeds match any channel; learned CCs keep the channel they came on.
@@ -56,7 +56,13 @@ A keyboard (the Launchkey MK4 on the TouchOSC panel) on **KEYS IN**, as in `touc
   the TB-3 CCs have no known value, so they're jump only.
 - **Learning**: the CC popover's LEARN arms picking, reusing ASSIGN's click capture (every parameter is clickable);
   the next CC from KEYS IN is assigned to the picked target, replacing that CC's and that target's old assignment.
-  A row's LEARN skips the picking. Esc cancels. EFX parameters aren't learnable yet (they aren't `ParamDef`s).
+  A row's LEARN skips the picking. Esc cancels.
+- **EFX parameters**: each type keeps its values at offsets of its own in the EFX block (`core/efx.test.ts` checks), so
+  `efx:<n>:<offset>` names one parameter of one type, labelled e.g. "EFX1 COMP THRESHOLD" (`core/efx.ts` `efxParamAt`).
+  The CC moves it only while that type is selected, so a knob never changes a value that can't be seen; the TB-3
+  keeps every type's values, so they're there when the type comes back. While picking, the EFX knobs are clickable
+  like any parameter, and so are the drawings' handles (`efx/viewContext.ts`): a handle that sets two values (COMP's
+  THRESHOLD · GAIN) asks which. The ON switch, mode buttons and the type itself aren't learnable.
 - **Storage**: `cc.assignments` in the app's local storage (global, not per set). Feedback to the controller: none,
   as decided in PLAN.md.
 - **Code**: `packages/cc-learn` (assignments, `ccValue`), `ccTargets.ts`, `launchkeyControl.ts` (input → sends and

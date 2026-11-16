@@ -248,3 +248,21 @@ const TYPES: Record<EfxNum, EfxType[]> = {
 
 // Types indexed by the type byte (data byte 0 of the EFX block).
 export const efxTypes = (efxNum: EfxNum): readonly EfxType[] => TYPES[efxNum];
+
+// The slot at `offset` in an EFX block, with the type it belongs to. Each type keeps its values at offsets of its
+// own (efx.test.ts checks), so an offset names one parameter of one type.
+export interface EfxParam {
+  efx: EfxNum;
+  typeIndex: number;
+  type: EfxType;
+  slot: EfxSlot;
+}
+
+export function efxParamAt(efx: EfxNum, offset: number): EfxParam | undefined {
+  const types = TYPES[efx];
+  for (let typeIndex = 0; typeIndex < types.length; typeIndex++) {
+    const slot = types[typeIndex]!.slots.find((s) => s?.offset === offset);
+    if (slot) return { efx, typeIndex, type: types[typeIndex]!, slot };
+  }
+  return undefined;
+}

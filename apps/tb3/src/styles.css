@@ -1230,6 +1230,14 @@ svg .eqfill.cut {
 .assigning .assignable * {
   cursor: copy !important;
 }
+/* CC learn: the EFX drawings' handles pick what they set (editor/efx/viewContext.ts). */
+.learning .efxdraw {
+  outline: 1px dashed var(--led);
+  outline-offset: 2px;
+}
+.learning .efxdraw * {
+  cursor: copy !important;
+}
 /* An envelope's value tags are placed absolutely, so their wrapper has no size: outline the tag itself. */
 .assigning .assignable:has(> .envtag) {
   outline: none;

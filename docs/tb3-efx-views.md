@@ -57,4 +57,3 @@ buttons).
 
 - `ui/draw.tsx` and `ui/useHandleDrag.ts` are close copies of the SP-404's; once both editors settle, move them
   into a shared package (`packages/fx-draw`, say) with the style classes as a stylesheet.
-- EFX parameters still aren't CC-learnable (they aren't `ParamDef`s).

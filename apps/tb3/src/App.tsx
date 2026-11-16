@@ -23,7 +23,6 @@ import { MorphBlock, PatchBlock, SetBlock } from "./editor/PatchesBlock";
 import { AssignBlock, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
 import { useFitZoom } from "./editor/useFitZoom";
-import { paramTarget } from "./editor/ccTargets";
 import { useCcLearn } from "./editor/useCcLearn";
 import type { CcLearn } from "./editor/useCcLearn";
 import { useLaunchkey } from "./editor/useLaunchkey";
@@ -131,7 +130,7 @@ function EditorApp() {
         setArmed(null);
       },
       learning: ccLearn.learning === "pick",
-      learnTo: (def) => listenFor(paramTarget(def.id)),
+      learnTo: listenFor,
     };
   }, [patch, armed, session, ccLearn.learning, listenFor]);
 
@@ -143,6 +142,7 @@ function EditorApp() {
   useLaunchkey(midi, ccLearn, {
     patch: session.activePatch,
     setParam: editor.setParam,
+    setEfxByte: editor.setEfxByte,
     tuning,
     setTuning: changeTuning,
     morph: session.morphTarget === null ? null : session.morphAmount,
@@ -159,7 +159,7 @@ function EditorApp() {
 
   return (
     <EditorContext.Provider value={editor}>
-      <main ref={setMainEl} className={`app ${editor.armed || editor.learning ? "assigning" : ""} ${auditioning}`}>
+      <main ref={setMainEl} className={`app ${editor.armed || editor.learning ? "assigning" : ""} ${editor.learning ? "learning" : ""} ${auditioning}`}>
         <aside className="side">
           <PatchBlock session={session} actions={actions} hasLibrary={Boolean(library.root)} />
           <SetBlock session={session} actions={actions} findPatch={findPatch} />

@@ -7,6 +7,8 @@ import type { ParamDef } from "../core/params";
 import { HFader } from "../ui/Fader";
 import { Knob } from "../ui/Knob";
 import { LedButton } from "../ui/controls";
+import { paramTarget } from "./ccTargets";
+import type { CcTarget } from "./ccTargets";
 import { useEditor } from "./EditorContext";
 import { Lit } from "./help/Lit";
 import type { Editor } from "./EditorContext";
@@ -30,16 +32,24 @@ const block = (e: Blockable) => {
   e.preventDefault();
 };
 
-// What a click on `def` does now: picks it (assign mode, if it's assignable; CC learn, any param), or nothing.
-function picking(ed: Editor, def: ParamDef) {
-  if (ed.learning) return { armed: true, pick: ed.learnTo, verb: "Learn a CC for" };
-  if (ed.armed === null) return { armed: false, pick: null, verb: "" };
-  return { armed: true, pick: def.assignId === undefined ? null : ed.assignTo, verb: "Assign" };
+// What a control can be picked as: its name, its CC learn target, and what assign mode does with it (null: it
+// isn't assignable).
+export interface PickSpec {
+  name: string;
+  target: CcTarget;
+  assign: (() => void) | null;
 }
 
-// In assign mode, clicks on an assignable param pick it instead of editing it; in CC learn, any param.
-export function Assignable(p: { def: ParamDef; className?: string; children: ReactNode }) {
-  const { armed, pick, verb } = picking(useEditor(), p.def);
+// What a click on the control does now: picks it (CC learn, anything; assign mode, if it's assignable), or nothing.
+function picking(ed: Editor, spec: PickSpec) {
+  if (ed.learning) return { armed: true, pick: () => ed.learnTo(spec.target), verb: "Learn a CC for" };
+  if (ed.armed === null) return { armed: false, pick: null, verb: "" };
+  return { armed: true, pick: spec.assign, verb: "Assign" };
+}
+
+// In assign mode, clicks on an assignable control pick it instead of editing it; in CC learn, any control.
+export function Pickable(p: { spec: PickSpec; className?: string; children: ReactNode }) {
+  const { armed, pick, verb } = picking(useEditor(), p.spec);
   const blocking = (e: Blockable) => (armed || swallowing()) && block(e);
   return (
     <div
@@ -48,15 +58,27 @@ export function Assignable(p: { def: ParamDef; className?: string; children: Rea
         if (!pick) return blocking(e);
         block(e);
         swallowUntil = performance.now() + SWALLOW_MS;
-        pick(p.def);
+        pick();
       }}
       onClickCapture={blocking}
       onDoubleClickCapture={blocking}
       onWheelCapture={(e) => armed && e.stopPropagation()}
-      title={pick ? `${verb} ${p.def.name}` : undefined}
+      title={pick ? `${verb} ${p.spec.name}` : undefined}
     >
       {p.children}
     </div>
+  );
+}
+
+// A patch parameter's control: CC-learnable, and assignable when the param has an assign id.
+export function Assignable(p: { def: ParamDef; className?: string; children: ReactNode }) {
+  const ed = useEditor();
+  const { def } = p;
+  const assign = def.assignId === undefined ? null : () => ed.assignTo(def);
+  return (
+    <Pickable spec={{ name: def.name, target: paramTarget(def.id), assign }} className={p.className}>
+      {p.children}
+    </Pickable>
   );
 }
 

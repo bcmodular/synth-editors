@@ -1,9 +1,12 @@
-// What a learned CC can drive in the TB-3 editor (docs/tb3-phase4-design.md): a patch parameter, GLOBAL TUNE, the
-// morph AMOUNT, or one of the TB-3's own performance CCs (the EFFECT knob, the XY pad), passed on as that CC.
+// What a learned CC can drive in the TB-3 editor (docs/tb3-phase4-design.md): a patch parameter, an EFX parameter,
+// GLOBAL TUNE, the morph AMOUNT, or one of the TB-3's own performance CCs (the EFFECT knob, the XY pad), passed on
+// as that CC.
 import type { CcAssignment, CcMode } from "@synth-editors/cc-learn";
+import { efxParamAt } from "../core/efx";
+import type { EfxNum, EfxParam } from "../core/efx";
 import { paramById, PARAMS } from "../core/params";
 
-// "param:<id>" | "tuning" | "morph" | "tb3cc:<n>"
+// "param:<id>" | "efx:<1|2>:<offset>" | "tuning" | "morph" | "tb3cc:<n>"
 export type CcTarget = string;
 
 export const TB3_CCS: readonly { cc: number; label: string }[] = [
@@ -21,11 +24,20 @@ export const paramOf = (t: CcTarget): string | null => {
   return id && PARAMS.some((p) => p.id === id) ? id : null;
 };
 
+// An EFX parameter, by its byte offset in the EFX block: one parameter of one type (core/efx.ts efxParamAt).
+export const efxTarget = (efx: EfxNum, offset: number): CcTarget => `efx:${efx}:${offset}`;
+export function efxOf(t: CcTarget): EfxParam | null {
+  const m = /^efx:([12]):(\d+)$/.exec(t);
+  return (m && efxParamAt(Number(m[1]) as EfxNum, Number(m[2]))) ?? null;
+}
+
 const FIXED_LABELS: Record<string, string> = { tuning: "GLOBAL TUNE", morph: "MORPH AMOUNT" };
 
 export function targetLabel(t: CcTarget): string {
   const id = paramOf(t);
   if (id) return paramById(id).name;
+  const efx = efxOf(t);
+  if (efx) return `EFX${efx.efx} ${efx.type.name} ${efx.slot.name}`;
   const cc = tb3CcOf(t);
   return FIXED_LABELS[t] ?? TB3_CCS.find((c) => c.cc === cc)?.label ?? t;
 }

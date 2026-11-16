@@ -404,7 +404,9 @@ the MIDI settings to its port.
 CC 74 CUTOFF, 71 RESONANCE, 16 ACCENT, 17 the EFFECT knob, 12 and 13 the XY pad, 104 GLOBAL TUNE, 105 MORPH
 AMOUNT and 1 (the mod wheel) XY MOD. **DEFAULTS** goes back to these.
 
-To assign a knob, click **LEARN**, click a parameter (they're highlighted), then move the knob. Each row's own
+To assign a knob, click **LEARN**, click a parameter (they're highlighted), then move the knob. EFX parameters
+learn the same way, from their knobs or from the handles in the EFX drawings; a handle that sets two values asks
+which one. A knob learned for an EFX parameter moves it only while that effect type is selected. Each row's own
 **LEARN** gives that row a new knob, and **×** forgets it. Esc stops learning. A knob drives one thing, and each
 thing has one knob: learning replaces the old assignment.
 

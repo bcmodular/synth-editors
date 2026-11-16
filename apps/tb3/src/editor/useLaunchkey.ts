@@ -1,10 +1,11 @@
 // The keyboard controller on KEYS IN (docs/tb3-phase4-design.md), wired to the TB-3 and the editor's targets.
 import { useEffect, useMemo, useRef } from "react";
 import { findInputByName } from "@synth-editors/midi";
-import { getRaw } from "../core/patch";
+import type { EfxNum } from "../core/efx";
+import { getEfxRaw, getEfxType, getRaw } from "../core/patch";
 import type { Patch } from "../core/patch";
 import { paramById } from "../core/params";
-import { paramOf, tb3CcOf } from "./ccTargets";
+import { efxOf, paramOf, tb3CcOf } from "./ccTargets";
 import type { CcTarget } from "./ccTargets";
 import { launchkeyHandler } from "./launchkeyControl";
 import type { TargetValue } from "./launchkeyControl";
@@ -15,6 +16,7 @@ import type { Tb3Midi } from "./useTb3Midi";
 export interface CcTargetsCtx {
   patch: Patch | null;
   setParam: (id: string, raw: number) => void;
+  setEfxByte: (efx: EfxNum, offset: number, raw: number) => void;
   tuning: number;
   setTuning: (v: number) => void;
   morph: number | null; // the morph amount, null with no target
@@ -23,20 +25,31 @@ export interface CcTargetsCtx {
 
 const UNKNOWN: TargetValue = { current: null, max: 127 };
 
-function readTarget(c: CcTargetsCtx, t: CcTarget): TargetValue {
+export function readTarget(c: CcTargetsCtx, t: CcTarget): TargetValue {
   const id = paramOf(t);
   if (id) {
     const def = paramById(id);
     return { current: c.patch ? getRaw(c.patch, def) : null, max: def.max };
   }
+  const efx = efxOf(t);
+  if (efx) return { current: c.patch ? getEfxRaw(c.patch, efx.efx, efx.slot.offset) : null, max: efx.slot.max };
   if (t === "tuning") return { current: c.tuning, max: 127 };
   if (t === "morph") return { current: c.morph, max: 127 };
   return UNKNOWN;
 }
 
-function writeTarget(c: CcTargetsCtx, t: CcTarget, value: number, sendCc: (cc: number, v: number) => void) {
+// An EFX parameter only moves while its type is the one selected, so a knob never changes what can't be seen.
+function writeEfx(c: CcTargetsCtx, t: CcTarget, value: number): boolean {
+  const efx = efxOf(t);
+  if (!efx) return false;
+  if (c.patch && getEfxType(c.patch, efx.efx) === efx.typeIndex) c.setEfxByte(efx.efx, efx.slot.offset, value);
+  return true;
+}
+
+export function writeTarget(c: CcTargetsCtx, t: CcTarget, value: number, sendCc: (cc: number, v: number) => void) {
   const id = paramOf(t);
   const cc = tb3CcOf(t);
+  if (writeEfx(c, t, value)) return;
   if (id) c.patch && c.setParam(id, value);
   else if (t === "tuning") c.setTuning(value);
   else if (t === "morph") c.morph !== null && c.setMorph(value);

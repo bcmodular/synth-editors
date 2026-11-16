@@ -4,6 +4,7 @@ import { createContext, useContext } from "react";
 import type { EfxNum } from "../core/efx";
 import type { Patch } from "../core/patch";
 import type { ParamDef } from "../core/params";
+import type { CcTarget } from "./ccTargets";
 
 // In display order: the pads on the first row, effect knob and XY mod on the second.
 export const ASSIGN_SLOTS = [
@@ -24,7 +25,7 @@ export interface Editor {
   arm: (slot: AssignSlotId | null) => void;
   assignTo: (def: ParamDef) => void;
   learning: boolean; // CC learn: the next parameter clicked gets the next CC
-  learnTo: (def: ParamDef) => void;
+  learnTo: (target: CcTarget) => void;
 }
 
 export const EditorContext = createContext<Editor | null>(null);

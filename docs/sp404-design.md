@@ -664,3 +664,12 @@ LIBRARY. e2e in `e2e/library.e2e.ts`. Not yet tried on the device.
 
 ### Phase 6 — Packaging
 - Signed build, remembered ports with reconnect, settings window.
+
+Status (2026-11-16): packaged as the TB-3 app is: electron-builder config in `apps/sp404/package.json` (version
+0.1.0, `com.bcmodular.sp404editor`, `.dmg` for arm64 and x64, NSIS for Windows, ad-hoc signed, microphone and
+Bluetooth usage descriptions), `npm run package:sp404` (`scripts/package.mjs`, `SP404_RELEASE_DIR` outside iCloud),
+and `.github/workflows/sp404-release.yml` on `sp404-v*` tags; installing and releasing in `apps/sp404/README.md`. A
+packaged arm64 build was built and launched. Ports: every controller and the SP-404's MIDI are found by name and
+followed as they come and go; the serial port reconnects when the SP-404 is plugged back in (a port granted once).
+Settings stay a panel over the window (the TB-3's separate settings window isn't needed at this size). Still to do:
+Developer ID signing and notarisation (needs the certificate), an app icon, and trying the Windows build.

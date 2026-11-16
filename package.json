@@ -16,7 +16,8 @@
     "test:e2e:jv2080": "npm run e2e -w @synth-editors/jv2080",
     "test:tb3": "npm run e2e:hw -w @synth-editors/tb3",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "package:tb3": "npm run package -w @synth-editors/tb3"
+    "package:tb3": "npm run package -w @synth-editors/tb3",
+    "package:sp404": "npm run package -w @synth-editors/sp404"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

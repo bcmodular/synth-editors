@@ -9,7 +9,7 @@ Status: **TB-3 Phase 0 spike**. See [PLAN.md](PLAN.md).
 ## Requirements
 
 - Node.js 22+ (`brew install node`)
-- macOS for development (the packaged TB-3 Editor also builds for Windows, untested there)
+- macOS for development (the packaged editors also build for Windows, untested there)
 
 ## Development
 
@@ -23,7 +23,8 @@ npm run typecheck
 
 To install the TB-3 Editor without Node, or to package a release, see
 [apps/tb3/README.md](apps/tb3/README.md). The [user guide](apps/tb3/docs/user-guide.md) explains
-every feature. The SP-404 MK2 editor has its own [user guide](apps/sp404/docs/user-guide.md).
+every feature. The SP-404 MK2 editor has its own [README](apps/sp404/README.md) (installing, releasing) and
+[user guide](apps/sp404/docs/user-guide.md).
 
 `npm run dev:browser -w @synth-editors/tb3` serves the renderer on its own for use in Chrome,
 which asks for MIDI + SysEx permission on first load.
@@ -32,7 +33,7 @@ which asks for MIDI + SysEx permission on first load.
 
 ```
 apps/tb3/            TB-3 editor (Electron main in electron/, React renderer in src/)
-apps/sp404/          SP-404 MK2 editor (in progress: the core in src/core/)
+apps/sp404/          SP-404 MK2 editor (FX, pad mixer, scopes, controllers)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 ```

@@ -1,6 +1,6 @@
 {
   "name": "@synth-editors/sp404",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",
@@ -9,7 +9,8 @@
     "build": "vite build",
     "start": "vite build && electron .",
     "e2e": "vite build && playwright test",
-    "guide:shots": "vite build && playwright test -c playwright.guide.config.ts"
+    "guide:shots": "vite build && playwright test -c playwright.guide.config.ts",
+    "package": "vite build && node scripts/package.mjs"
   },
   "devDependencies": {
     "@fontsource-variable/archivo": "^5.3.0",
@@ -22,10 +23,56 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "electron": "45.2.1",
+    "electron-builder": "^26.18.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "vite": "^8.3.5"
   },
   "description": "FX and pad mixer editor for the Roland SP-404 MK2",
-  "author": "BC Modular"
+  "author": "BC Modular",
+  "build": {
+    "appId": "com.bcmodular.sp404editor",
+    "productName": "SP-404 MK2 Editor",
+    "artifactName": "SP-404-Editor-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**",
+      "dist/**",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.music",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "SP-404 MK2 Editor listens to the SP-404's USB audio for its meter and scopes.",
+        "NSBluetoothAlwaysUsageDescription": "SP-404 MK2 Editor looks for the SP-404's USB serial port; it doesn't use Bluetooth."
+      }
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
 }

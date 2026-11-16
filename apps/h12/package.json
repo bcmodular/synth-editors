@@ -1,0 +1,28 @@
+{
+  "name": "@synth-editors/h12",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "vite build",
+    "start": "vite build && electron .",
+    "e2e": "vite build && playwright test",
+    "e2e:hw": "vite build && playwright test -c playwright.hw.config.ts"
+  },
+  "devDependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@playwright/test": "^1.65.0",
+    "@synth-editors/midi": "*",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "45.2.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "vite": "^8.3.5"
+  },
+  "description": "Target switcher for the CME H12MIDI Pro: the Launchkey and pedal play one chosen synth",
+  "author": "BC Modular"
+}

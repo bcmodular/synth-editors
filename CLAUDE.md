@@ -13,6 +13,7 @@ This repo is public. The roadmap is in [PLAN.md](PLAN.md); design notes and to-d
 ```
 apps/tb3/            TB-3 editor: Electron main in electron/, React + TS renderer in src/, Playwright e2e in e2e/
 apps/jv2080/         JV-2080 editor and librarian (docs/jv2080-design.md; to do: docs/jv2080-remaining.md)
+apps/h12/            H12 target switcher: read-only check so far (requirements: docs/h12-spec.md)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 ```
@@ -45,6 +46,20 @@ open and tests on the hardware as work goes along, so keep the app runnable betw
 - End-to-end tests (`apps/tb3/e2e/`): `tb3.ts` is the harness. It gives each test a throwaway profile and library,
   reads the TB-3 back with RQ1, and restores the TB-3's sound at the end. `fakeTb3.ts` stands in for the hardware.
   With real hardware, a debug app instance must stub `MIDIOutput.prototype.send` before selecting any port.
+
+## H12 target switcher
+
+- Requirements are in `docs/h12-spec.md`. Read it before starting; it lists the only H12 settings the app may change.
+- Build order: a read-only check first (done: finds the SysEx port, reads firmware and preset), then a test of
+  whether the Launchkey's arpeggiator follows clock sent to its USB MIDI port, then target switching, sync modes and
+  the clock forwarder. Findings on the real H12 are in `apps/h12/README.md`.
+- `src/core/` is pure logic (frames, encodings, the port probe) with vitest tests beside it; `src/hub/` is Web MIDI
+  and React. `e2e/fakeH12.ts` stands in for the hub; `npm run test:h12` runs the check on the real one (read-only).
+- The spec suggests a native MIDI library (`@julusian/midi`) in the Electron main process. The other apps use Web MIDI
+  through `packages/midi`. Prefer `packages/midi` for SysEx; only use a native library for the clock forwarder if Web
+  MIDI timing turns out not to be good enough.
+- Never write to the H12 without reading back afterwards, and skip writes that match current values (flash wear).
+  HxMIDI Tools must be closed while the app writes.
 
 ## Conventions
 

@@ -8,6 +8,7 @@ export interface RangeProps {
   max: number;
   onChange: (raw: number) => void;
   reset?: number; // double-click target; default min
+  ccTarget?: string | null; // what a learned CC drives here (editor/ccTargets.ts), picked by clicking while learning
 }
 
 const fraction = (p: RangeProps) => (p.value - (p.min ?? 0)) / Math.max(1, p.max - (p.min ?? 0));
@@ -20,6 +21,7 @@ export function Knob(p: RangeProps & { label: string; text: string; color?: stri
   });
   return (
     <div className={`kn ${p.color ? "col" : ""}`} style={p.color ? { ["--kc" as string]: p.color } : undefined} ref={drag.ref} role="slider" aria-label={p.label} aria-valuemin={p.min ?? 0}
+      data-cc-target={p.ccTarget ?? undefined}
       aria-valuemax={p.max} aria-valuenow={p.value} aria-valuetext={p.text}
       onPointerDown={drag.onPointerDown} onDoubleClick={drag.onDoubleClick}>
       <i style={{ ["--a" as string]: `${-135 + fraction(p) * 270}deg` }} />
@@ -45,6 +47,7 @@ export function ChannelFader(p: RangeProps & { label: string; color: string; dim
       aria-valuemin={p.min ?? 0}
       aria-valuemax={p.max}
       aria-valuenow={p.value}
+      data-cc-target={p.ccTarget ?? undefined}
       onPointerDown={drag.onPointerDown}
       onDoubleClick={drag.onDoubleClick}
     >

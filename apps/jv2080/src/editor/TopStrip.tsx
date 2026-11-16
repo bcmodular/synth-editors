@@ -2,7 +2,7 @@
 // MIDI settings. A read that doesn't complete is flagged beside the patch name.
 
 import type { PortInfo } from "@synth-editors/midi";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BANKS, PATCHES_PER_BANK } from "../core/banks";
 import type { JvLink } from "../link/useJvLink";
 import { MidiSettings } from "./MidiSettings";
@@ -63,7 +63,7 @@ function UndoButtons({ session }: { session: JvSession }) {
   );
 }
 
-export function TopStrip(p: { link: JvLink; session: JvSession; sideOpen: boolean; onToggleSide: () => void }) {
+export function TopStrip(p: { link: JvLink; session: JvSession; sideOpen: boolean; onToggleSide: () => void; cc: ReactNode }) {
   const { link, session } = p;
   return (
     <header className="top">
@@ -82,7 +82,10 @@ export function TopStrip(p: { link: JvLink; session: JvSession; sideOpen: boolea
       <button className="btn" disabled={session.busy} onClick={() => void session.syncFromJv()}>SYNC FROM JV</button>
       <button className="btn" disabled={session.busy || !session.patch} onClick={() => void session.syncToJv()}>SYNC TO JV</button>
       <BankBrowser session={session} />
-      <MidiSettings link={link} />
+      <div className="row tight end">
+        {p.cc}
+        <MidiSettings link={link} />
+      </div>
     </header>
   );
 }

@@ -305,8 +305,11 @@ input {
 .empty {
   color: var(--dim);
 }
-.midi-set {
+.top > .end {
   margin-left: auto;
+}
+.midi-set,
+.cc-set {
   position: relative;
 }
 .midi-pop {
@@ -2102,4 +2105,83 @@ input {
   color: #ffd2c4;
   font-size: var(--text-m);
   cursor: pointer;
+}
+
+/* --- CC learn (editor/CcSettings.tsx, useLearnPick.ts; after apps/tb3/src/styles.css) --- */
+.cc-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #121214;
+  border: 1px solid var(--rule);
+  box-shadow: 0 12px 40px #000c;
+}
+.cc-pop .prow > .lbl {
+  flex-basis: 100px;
+}
+.cc-pop .note {
+  margin: 0;
+  font-size: var(--text-s);
+  color: var(--dim);
+  font-stretch: 100%;
+  word-spacing: normal;
+}
+.cclist {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--text-m);
+}
+.cclist td {
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.cclist .ccnum,
+.cclist .ccch {
+  color: var(--dim);
+}
+.cclist .cctarget {
+  width: 100%;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cclist .ccbtns {
+  display: flex;
+  gap: 3px;
+}
+.learnbar {
+  position: fixed;
+  z-index: 50;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: #10261a;
+  border: 1px solid #3ddc5a;
+  color: #fff;
+  font-size: var(--text-m);
+  font-stretch: 100%;
+  word-spacing: normal;
+}
+/* Learning: every control a CC can drive is outlined and picks on a press. */
+.app.learning [data-cc-target] {
+  outline: 1px dashed #3ddc5a;
+  outline-offset: 2px;
+  cursor: copy;
+}
+.app.learning [data-cc-target] * {
+  cursor: copy !important;
+}
+.cc-listening {
+  outline: 2px solid #3ddc5a !important;
+  outline-offset: 2px;
 }

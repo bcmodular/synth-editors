@@ -1,5 +1,6 @@
-// The MIDI link to the JV: chosen ports (remembered by name), device ID and patch channel, and a subscription to
-// incoming SysEx. Everything sent and received is logged to the console (console.debug, "Verbose" in DevTools).
+// The MIDI link to the JV: chosen ports (remembered by name), device ID and patch channel, the controller's port, and
+// a subscription to incoming SysEx. Everything sent and received is logged to the console (console.debug, "Verbose"
+// in DevTools).
 
 import { findInputByName, findOutputByName, isSysex, listInputs, listOutputs, requestMidi, toHex, type PortInfo } from "@synth-editors/midi";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -41,6 +42,7 @@ export function useJvLink() {
   const [inName, setInName] = useStored("jv2080.in", "");
   const [deviceText, setDevice] = useStored("jv2080.device", String(DEFAULT_DEVICE_ID));
   const [channelText, setChannel] = useStored("jv2080.channel", "0");
+  const [ctrlName, setCtrlName] = useStored("jv2080.ctrlIn", ""); // a controller for learned CCs (editor/useController.ts)
   const listeners = useRef(new Set<SysexListener>());
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export function useJvLink() {
   }, []);
 
   return {
-    inputs, outputs, outName, setOutName, inName, setInName,
+    access, inputs, outputs, outName, setOutName, inName, setInName, ctrlName, setCtrlName,
     device: Number(deviceText), setDevice: (d: number) => setDevice(String(d)),
     channel: Number(channelText), setChannel: (c: number) => setChannel(String(c)),
     note, send, subscribe,

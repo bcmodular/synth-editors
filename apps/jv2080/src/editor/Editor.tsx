@@ -1,9 +1,11 @@
 // The app: the library sidebar (PATCH, SET and the library, shown or hidden from the top strip), then the patch editor:
-// top strip, common row and the four tone columns. The whole of it is zoomed to fit the window.
+// top strip, common row and the four tone columns. The whole of it is zoomed to fit the window. A controller's learned
+// CCs drive the editor's controls (CC ▾ in the top strip).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { JvLink } from "../link/useJvLink";
 import { DialogHost } from "../ui/Dialog";
+import { CcSettings, LearnBar } from "./CcSettings";
 import { CommonRow } from "./CommonRow";
 import { isDemo } from "./demoPatch";
 import { EditorContext } from "./EditorContext";
@@ -11,8 +13,11 @@ import { LibraryBrowser } from "./LibraryBrowser";
 import { PatchBlock, SetBlock } from "./PatchesBlock";
 import { ToneColumn } from "./ToneColumn";
 import { TopStrip } from "./TopStrip";
+import { useCcLearn } from "./useCcLearn";
+import { useController } from "./useController";
 import { useFitZoom } from "./useFitZoom";
 import { useJvSession, type JvSession } from "./useJvSession";
+import { useLearnPick } from "./useLearnPick";
 import { useLibrary, walk, type Library } from "./useLibrary";
 import { useSetActions } from "./useSetActions";
 import { useUndoKeys } from "./useUndoKeys";
@@ -116,6 +121,9 @@ function EditorApp({ link }: { link: JvLink }) {
   useEscape(session);
   const library = useLibrary();
   const side = useSidebar();
+  const learn = useCcLearn();
+  useController(link, learn, session.patchNow, setValue);
+  useLearnPick(learn);
 
   const [root, setRoot] = useState<HTMLElement | null>(null);
   useFitZoom(root);
@@ -124,10 +132,12 @@ function EditorApp({ link }: { link: JvLink }) {
   const api = useMemo(() => (patch ? { patch, setValue, sendParam, resync } : null), [patch, setValue, sendParam, resync]);
   return (
     <EditorContext.Provider value={api}>
-      <main className={`app ${session.previewKey ? "auditioning" : ""}`} ref={setRoot}>
+      <main className={`app ${session.previewKey ? "auditioning" : ""} ${learn.learning === "pick" ? "learning" : ""}`}
+        ref={setRoot}>
         {side.open && <Sidebar session={session} library={library} onError={setError} />}
         <div className="editor">
-          <TopStrip link={link} session={session} sideOpen={side.open} onToggleSide={side.toggle} />
+          <TopStrip link={link} session={session} sideOpen={side.open} onToggleSide={side.toggle}
+            cc={<CcSettings link={link} learn={learn} />} />
           {api ? (
             <>
               <CommonRow />
@@ -140,6 +150,7 @@ function EditorApp({ link }: { link: JvLink }) {
           )}
         </div>
       </main>
+      <LearnBar learn={learn} />
       {error && <div className="toast" onClick={() => setError(null)}>{error}</div>}
     </EditorContext.Provider>
   );

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Segmented } from "../../ui/controls";
 import { Drawing } from "../../ui/Drawing";
 import { Knob } from "../../ui/Knob";
+import { efxTarget } from "../ccTargets";
 import type { Size } from "./drawKit";
 import { LfoPanel, RotaryPanel } from "./modPanels";
 import { EFX_SPECS, panelParams, type PanelSpec } from "./specs";
@@ -44,8 +45,9 @@ const SHORTER: readonly (readonly [RegExp, string])[] = [
 export const shortName = (name: string) => SHORTER.reduce((n, [re, to]) => n.replace(re, to), name);
 
 // A parameter no drawing takes, lit while the help points at it.
-function RestControl({ x }: { x: EfxParam }) {
-  return <div {...hotProps(useHot(), [x.p.name], "hot-ctl")}><RestInput x={x} /></div>;
+// `cc`: what a learned CC drives here (editor/ccTargets.ts).
+function RestControl({ x, cc }: { x: EfxParam; cc: string }) {
+  return <div {...hotProps(useHot(), [x.p.name], "hot-ctl")} data-cc-target={cc}><RestInput x={x} /></div>;
 }
 
 // Buttons for a short list, a drop-down for a long one, otherwise a knob.
@@ -90,7 +92,7 @@ export function EfxView() {
         ))}
       </div>
       <div className="efx-rest">
-        {rest.map((x) => <RestControl key={`${typeRaw}-${x.p.slot}`} x={x} />)}
+        {rest.map((x) => <RestControl key={`${typeRaw}-${x.p.slot}`} x={x} cc={efxTarget(typeRaw, x.p.slot)} />)}
       </div>
     </div>
   );

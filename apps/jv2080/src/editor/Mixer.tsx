@@ -15,6 +15,7 @@ import { Lit } from "./help/Lit";
 import { sectionContentHook } from "./help/sectionContent";
 import { ParamKnob } from "./ParamControls";
 import { RangesButton } from "./Ranges";
+import { paramTarget } from "./ccTargets";
 import { soloedSwitches, toggleSolo } from "./solo";
 
 const TONES = [0, 1, 2, 3];
@@ -30,7 +31,7 @@ function LevelFader({ id, colour, title }: { id: string; colour: string; title?:
     <div className="lvf" style={{ ["--sc" as string]: colour }}>
       {title && <span className="st-head">{title}</span>}
       <ChannelFader label={def.name} value={value} min={def.min} max={def.max} color={colour}
-        onChange={(v) => setValue(def, v)} />
+        onChange={(v) => setValue(def, v)} ccTarget={paramTarget(def)} />
       <span className="lv">{def.display(value)}</span>
     </div>
     </Lit>

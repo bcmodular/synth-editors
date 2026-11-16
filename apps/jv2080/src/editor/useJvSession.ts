@@ -151,11 +151,13 @@ export function useJvSession(link: JvLink, { demo, onError }: { demo: boolean; o
   const sync = useSync(link, core, read);
   const setEdits = useSetEdits(core);
   const { state } = store;
+  const patchNow = useCallback(() => rules.currentPatch(store.ref.current), [store.ref]);
 
   return {
     state,
     patch: setEdits.shown?.patch ?? rules.currentPatch(state), // what the editor shows
     activePatch: rules.currentPatch(state), // the slot's or buffer's patch, whatever is being auditioned
+    patchNow, // the active patch as it is this moment, ahead of the next render
     currentName: rules.currentName(state),
     busy,
     readFailed, // the last read from the JV didn't complete

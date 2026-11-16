@@ -15,6 +15,7 @@ import { installFakeJv, type FakeJvInit } from "./fakeJv";
 
 const APP_DIR = fileURLToPath(new URL("..", import.meta.url));
 const FAKE_PORT = "JV-2080 (test)";
+export const CONTROLLER_PORT = `${FAKE_PORT} controller`;
 export const PATCH_CHANNEL = 5; // 0-based: the JV's patch receive channel 6, as in the studio
 
 const named = (p: Patch, name: string, cutoff: number) => setParam(setPatchName(p, name), param("cutoff"), cutoff);
@@ -124,6 +125,11 @@ export async function expectJv(page: Page, want: Patch, what: string) {
 }
 
 export const cutoffOf = (p: Patch, tone = 0) => getParam(p, param("cutoff"), tone);
+
+// A CC from the fake controller.
+export const sendCc = (page: Page, channel: number, cc: number, value: number) =>
+  page.evaluate(([ch, n, v]) =>
+    (window as unknown as { __fakeJv: { cc(ch: number, n: number, v: number): void } }).__fakeJv.cc(ch!, n!, v!), [channel, cc, value]);
 
 // Messages sent to the fake JV since the last call.
 export async function takeSent(page: Page): Promise<number[][]> {

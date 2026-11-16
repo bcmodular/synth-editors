@@ -1,95 +1,157 @@
-// The editor's session: the patch being edited, kept in step with the JV's temporary patch. Edits update the patch
-// and go to the JV as DT1s (coalesced per address, so a drag sends at most one per frame); DT1s from the JV (eg. an
-// edit on its panel) update the patch. The whole patch can be read from the JV or sent to it.
+// The editor's session: the patch being edited (a slot of the open set, or the unslotted buffer), kept in step with
+// the JV's temporary patch, with undo. Edits update the patch and go to the JV as DT1s (coalesced per address, so a
+// drag sends at most one per frame); DT1s from the JV (eg. an edit on its panel) update the patch. The whole patch
+// can be read from the JV or sent to it. The state rules are plain functions in sessionState.ts; what goes to the
+// JV is in useJvSender.ts; slot and set actions are in useSetEdits.ts.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { programChange, type Bank } from "../core/banks";
 import {
-  applyDt1, bufferToPatch, emptyPatch, nameBytes, paramAddress, paramDt1, PATCH_BLOCKS, patchName, patchToDt1s, setParam,
-  setPatchName, type Patch,
+  applyDt1, bufferToPatch, emptyPatch, nameBytes, PATCH_BLOCKS, patchName, paramDt1, setParam, setPatchName, type Patch,
 } from "../core/patch";
 import type { ParamDef } from "../core/params";
-import { addrHex, dt1, parseDt1 } from "../core/sysex";
-import { readPatch, sendPaced } from "../link/readPatch";
+import { dt1, parseDt1 } from "../core/sysex";
+import { readPatch } from "../link/readPatch";
 import type { JvLink } from "../link/useJvLink";
-import { createEditQueue } from "./editQueue";
+import * as rules from "./sessionState";
+import type { SessionState } from "./sessionState";
+import { useJvSender, type JvSender } from "./useJvSender";
+import { useLatest, type Latest } from "./useLatest";
+import { useSetEdits, type SessionCore } from "./useSetEdits";
+import { useUndo } from "./useUndo";
 
-export interface JvSession {
-  patch: Patch | null;
-  busy: boolean;
-  readFailed: boolean; // the last read from the JV didn't complete
-  setValue: (p: ParamDef, value: number, tone?: number) => void;
-  sendParam: (p: ParamDef, value: number, tone?: number) => void; // to the JV only, the patch unchanged (eg. solo)
-  syncFromJv: () => Promise<void>;
-  syncToJv: () => Promise<void>;
-  loadFromBank: (bank: Bank, number: number) => Promise<void>;
-  setName: (name: string) => void; // the patch's name, on the JV too
-}
+type Store = Latest<SessionState>;
 
-// DT1s that arrive outside a read update the patch.
-function useIncomingEdits(link: JvLink, busy: boolean, setPatch: (f: (p: Patch | null) => Patch | null) => void) {
+// DT1s that arrive outside a read update the patch (not an undo step: the JV's panel isn't ours to take back).
+function useIncomingEdits(link: JvLink, busy: boolean, store: Store, sender: JvSender) {
+  const { holds } = sender;
   useEffect(() => link.subscribe((msg) => {
     const dt = busy ? undefined : parseDt1(msg);
-    if (dt?.checksumOk) setPatch((p) => p && applyDt1(p, dt.addr, dt.data));
-  }), [link.subscribe, busy, setPatch]);
+    const cur = rules.currentPatch(store.ref.current);
+    if (!dt?.checksumOk || !cur) return;
+    const next = applyDt1(cur, dt.addr, dt.data);
+    holds(next);
+    store.commit(rules.replaceCurrent(store.ref.current, next));
+  }), [link.subscribe, busy, store, holds]);
 }
 
-// Reading the whole patch from the JV, remembering whether the last read failed.
-function useReadFromJv(link: JvLink, offline: boolean, setPatch: (p: Patch) => void, setBusy: (b: boolean) => void) {
+// Reading the whole patch from the JV, remembering whether the last read failed. Resolves to the patch, or
+// undefined when the read didn't complete (or offline).
+function useReadFromJv(link: JvLink, offline: boolean, setBusy: (b: boolean) => void) {
   const [readFailed, setReadFailed] = useState(false);
-  const syncFromJv = useCallback(async () => {
-    if (offline) return;
+  const read = useCallback(async (): Promise<Patch | undefined> => {
+    if (offline) return undefined;
     setBusy(true);
     const buffer = emptyPatch();
     const ok = await readPatch(link, buffer, () => {});
-    const read = ok ? bufferToPatch(buffer) : undefined;
-    if (read) setPatch(read);
-    setReadFailed(!read);
-    link.note(read ? `read "${patchName(read)}"` : "read incomplete");
+    const patch = ok ? bufferToPatch(buffer) : undefined;
+    setReadFailed(!patch);
+    link.note(patch ? `read "${patchName(patch)}"` : "read incomplete");
     setBusy(false);
-  }, [link, offline, setPatch, setBusy]);
-  return { syncFromJv, readFailed };
+    return patch;
+  }, [link, offline, setBusy]);
+  return { read, readFailed };
 }
 
-// With `offline` (demo mode) nothing is sent: the editor works on its own patch without touching a JV.
-export function useJvSession(link: JvLink, initial: Patch | null = null, offline = false): JvSession {
-  const [patch, setPatch] = useState<Patch | null>(initial);
-  const [busy, setBusy] = useState(false);
-  const { device } = link;
-  const send = useMemo(() => (offline ? () => {} : link.send), [offline, link.send]);
-  const queue = useMemo(() => createEditQueue((msg) => send(msg, "DT1 edit")), [send]);
-  useIncomingEdits(link, busy, setPatch);
-
-  const sendParam = useCallback((p: ParamDef, value: number, tone = 0) => {
-    queue.push(addrHex(paramAddress(p, tone)), paramDt1(p, value, tone, device));
-  }, [queue, device]);
+// Edits to the active patch: each is an undo step (merged while a drag or a run of CCs goes on) and a DT1.
+function usePatchEdits({ store, sender, undo, previewing }: SessionCore, device: number) {
+  const { remember } = undo;
+  const { sendEdit } = sender;
+  const edit = useCallback((fn: (p: Patch) => Patch, key: string, msg: number[], label: string) => {
+    const result = previewing.current ? null : rules.editCurrent(store.ref.current, fn); // auditioning: read only
+    if (!result) return;
+    remember(label, key);
+    store.commit(result.session);
+    sendEdit(result.patch, key, msg);
+  }, [previewing, remember, sendEdit, store]);
 
   const setValue = useCallback((p: ParamDef, value: number, tone = 0) => {
-    setPatch((cur) => cur && setParam(cur, p, value, tone));
-    sendParam(p, value, tone);
-  }, [sendParam]);
+    const label = p.block === "tone" ? `${p.name} (tone ${tone + 1})` : p.name;
+    edit((cur) => setParam(cur, p, value, tone), `${p.id}/${tone}`, paramDt1(p, value, tone, device), label);
+  }, [edit, device]);
 
-  const { syncFromJv, readFailed } = useReadFromJv(link, offline, setPatch, setBusy);
+  // The name's 12 bytes go as one DT1 at the start of Patch Common.
+  const setName = useCallback((name: string) =>
+    edit((cur) => setPatchName(cur, name), "name", dt1(PATCH_BLOCKS[0]!.addr, nameBytes(name), device), "Rename patch"),
+  [edit, device]);
+
+  return { setValue, setName };
+}
+
+// Reads and writes of the whole patch: SYNC FROM / TO JV, the bank browser, and the quiet re-read after a change the
+// JV may answer with values of its own.
+function useSync(link: JvLink, { store, sender, undo }: SessionCore, read: () => Promise<Patch | undefined>) {
+  const { holds, sendWhole, send } = sender;
+  const { remember } = undo;
+  const loadRead = useCallback(async (label: string) => {
+    const patch = await read();
+    if (!patch) return;
+    holds(patch);
+    remember(label);
+    store.commit(rules.loadBuffer(store.ref.current, patch, null));
+  }, [holds, read, remember, store]);
+
+  const syncFromJv = useCallback(() => loadRead("Sync from JV"), [loadRead]);
+
+  const resync = useCallback(async () => {
+    const patch = await read();
+    if (!patch) return;
+    holds(patch);
+    store.commit(rules.replaceCurrent(store.ref.current, patch));
+  }, [holds, read, store]);
 
   const syncToJv = useCallback(async () => {
-    if (!patch || offline) return;
-    setBusy(true);
-    await sendPaced(link, patchToDt1s(patch, device), "DT1 patch");
-    setBusy(false);
-  }, [link, patch, device, offline]);
+    const cur = rules.currentPatch(store.ref.current);
+    if (cur) await sendWhole(cur);
+  }, [sendWhole, store]);
 
   // The JV handles MIDI in order, so the read can follow the program change straight away.
   const loadFromBank = useCallback(async (bank: Bank, number: number) => {
     programChange(bank, number, link.channel).forEach((m, i) => send(m, ["bank MSB", "bank LSB", "program"][i]!));
-    await syncFromJv();
-  }, [link.channel, send, syncFromJv]);
+    await loadRead(`Load ${bank.name} ${number}`);
+  }, [link.channel, loadRead, send]);
 
-  // The name's 12 bytes go as one DT1 at the start of Patch Common.
-  const setName = useCallback((name: string) => {
-    setPatch((cur) => cur && setPatchName(cur, name));
-    queue.push("name", dt1(PATCH_BLOCKS[0]!.addr, nameBytes(name), device));
-  }, [queue, device]);
-
-  return { patch, busy, readFailed, setValue, sendParam, syncFromJv, syncToJv, loadFromBank, setName };
+  return { syncFromJv, resync, syncToJv, loadFromBank };
 }
 
+const startState = (initial: Patch | null) =>
+  (initial ? rules.loadBuffer(rules.freshSession(), initial, null) : rules.freshSession());
+
+// With `offline` (demo mode) nothing is sent: the editor works on its own patch without touching a JV.
+export function useJvSession(link: JvLink, initial: Patch | null = null, offline = false, onError: (msg: string) => void = () => {}) {
+  const store = useLatest<SessionState>(() => startState(initial));
+  const [busy, setBusy] = useState(false);
+  const previewing = useRef(false);
+  const sender = useJvSender(link, offline);
+  const { holds } = sender;
+  useEffect(() => {
+    if (initial) holds(initial);
+  }, [initial, holds]);
+  useIncomingEdits(link, busy, store, sender);
+  const undo = useUndo({ session: store, sendPatch: sender.sendPatch, previewing, onError });
+  const { read, readFailed } = useReadFromJv(link, offline, setBusy);
+  const core: SessionCore = { store, sender, undo, previewing };
+  const edits = usePatchEdits(core, link.device);
+  const sync = useSync(link, core, read);
+  const setEdits = useSetEdits(core);
+  const { state } = store;
+
+  return {
+    state,
+    patch: setEdits.shown?.patch ?? rules.currentPatch(state), // what the editor shows
+    currentName: rules.currentName(state),
+    busy,
+    readFailed, // the last read from the JV didn't complete
+    sendParam: sender.sendParam, // to the JV only, the patch unchanged (eg. solo)
+    undo: undo.undo,
+    redo: undo.redo,
+    undoLabel: undo.undoLabel, // the step undo would take back; null = nothing to undo
+    redoLabel: undo.redoLabel,
+    rememberFile: undo.rememberFile, // a library file step, once done
+    ...edits,
+    ...sync,
+    ...setEdits,
+  };
+}
+
+export type JvSession = ReturnType<typeof useJvSession>;

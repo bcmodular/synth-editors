@@ -50,11 +50,25 @@ function BankBrowser({ session }: { session: JvSession }) {
   );
 }
 
+// UNDO / REDO, each titled with the step it would take back or redo (⌘Z, ⇧⌘Z).
+function UndoButtons({ session }: { session: JvSession }) {
+  const { undoLabel, redoLabel } = session;
+  return (
+    <div className="row tight">
+      <button className="btn" disabled={!undoLabel} title={undoLabel ? `Undo ${undoLabel} (⌘Z)` : "Nothing to undo"}
+        onClick={session.undo}>UNDO</button>
+      <button className="btn" disabled={!redoLabel} title={redoLabel ? `Redo ${redoLabel} (⇧⌘Z)` : "Nothing to redo"}
+        onClick={session.redo}>REDO</button>
+    </div>
+  );
+}
+
 export function TopStrip(p: { link: JvLink; session: JvSession }) {
   const { link, session } = p;
   return (
     <header className="top">
       <h1>JV-2080</h1>
+      <UndoButtons session={session} />
       <PatchName patch={session.patch} onRename={session.setName} />
       {session.readFailed && (
         <span className="read-failed" title="Check the ports and the MIDI settings, and that the JV is on">

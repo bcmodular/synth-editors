@@ -9,6 +9,7 @@ import { ToneColumn } from "./ToneColumn";
 import { TopStrip } from "./TopStrip";
 import { useFitZoom } from "./useFitZoom";
 import { useJvSession } from "./useJvSession";
+import { useUndoKeys } from "./useUndoKeys";
 
 // What shows before there's a patch to edit.
 function waitingMessage(portsReady: boolean, readFailed: boolean): string {
@@ -19,7 +20,7 @@ function waitingMessage(portsReady: boolean, readFailed: boolean): string {
 const portsReady = (link: JvLink) => link.outName !== "" && link.inName !== "" && link.outputs.length > 0;
 
 // Read the JV's patch once, as soon as the ports are known (never in demo mode). Returns whether they are.
-function useFirstRead(link: JvLink, demo: boolean, syncFromJv: () => Promise<void>): boolean {
+function useFirstRead(link: JvLink, demo: boolean, syncFromJv: () => Promise<unknown>): boolean {
   const ready = portsReady(link);
   const shouldRead = ready && !demo;
   const triedRead = useRef(false);
@@ -35,13 +36,14 @@ export function Editor({ link }: { link: JvLink }) {
   const [demo] = useState(isDemo);
   const [initial] = useState(() => (demo ? demoPatch() : null));
   const session = useJvSession(link, initial, demo);
-  const { patch, setValue, sendParam, syncFromJv } = session;
+  const { patch, setValue, sendParam, syncFromJv, resync: reread } = session;
+  useUndoKeys(session);
   const ready = useFirstRead(link, demo, syncFromJv);
 
   const [root, setRoot] = useState<HTMLElement | null>(null);
   useFitZoom(root);
 
-  const resync = useCallback(() => void (demo || syncFromJv()), [demo, syncFromJv]);
+  const resync = useCallback(() => void (demo || reread()), [demo, reread]);
   const api = useMemo(() => (patch ? { patch, setValue, sendParam, resync } : null), [patch, setValue, sendParam, resync]);
   return (
     <EditorContext.Provider value={api}>

@@ -3,8 +3,8 @@
 // Every problem (no answer, an error answer, a bad checksum) is reported, never skipped over.
 
 import { ask, type Lane, type Listen, type Reply } from "./link";
-import { firmwareOk, isHub, parseFirmware, parsePreset, Setting, type Firmware, type Preset } from "./status";
-import { readSetting } from "./sysex";
+import { firmwareOk, isHub, parseFirmware, parsePreset, type Firmware, type Preset } from "./status";
+import { readSetting, Setting } from "./sysex";
 
 export interface HubReport {
   output: string; // the H12 output that answered SysEx
@@ -48,7 +48,7 @@ export async function readHub(lane: Lane, firmwareReply: Reply, listen: Listen):
   const problems: string[] = [];
   const firmware = read("Firmware", firmwareReply, parseFirmware, problems);
   const ok = checkFirmware(firmware, problems);
-  const presetReply = await ask(lane, listen, readSetting(Setting.currentPreset, 1, 0));
+  const presetReply = await ask(lane, listen, readSetting({ setting: Setting.currentPreset, index: 0 }, 1));
   const preset = read("Current preset", presetReply, parsePreset, problems);
   return { output: lane.name, input: firmwareReply.input, firmware, firmwareOk: ok, preset, problems };
 }

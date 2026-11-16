@@ -1,12 +1,16 @@
 // A stand-in for the H12MIDI Pro's Web MIDI ports: eight virtual cables, "H12MIDI-Pro Port 1" to "Port 8", in and
 // out. One output (Port 1 by default) answers the hub's SysEx. The Launchkey's MIDI and DAW ports and the Nome II's
-// clock port are there too. Every message the app sends, on any port, is recorded. Self-contained (no imports, no closures over module scope): it is stringified into the page.
+// clock port are there too. The hub keeps the settings target switching reads and writes (routing, mappers, the
+// current preset). Every message the app sends, on any port, is recorded. Self-contained (no imports, no closures
+// over module scope): it is stringified into the page.
 
 export interface FakeH12Init {
   answersOn?: number; // the virtual cable that answers SysEx; 0 = none
   firmware?: number; // major.minor in nibbles: 0x47 = 4.7
   preset?: number; // 0-based
   corruptPreset?: boolean; // the preset answer has a wrong checksum
+  settings?: Record<string, number[]>; // "setting:index" → words; unset settings read as zeros
+  failWrite?: string; // "setting:index" whose write is answered with error 0x7C
 }
 
 export interface FakeSent {
@@ -24,14 +28,37 @@ export function fakeH12Midi(init: FakeH12Init) {
   const byte = (v: number) => [v & 0x0f, (v >> 4) & 0x0f];
   const status = (id: number, payload: number[]) => frame([0x41, id, payload.length, ...payload]);
 
+  const unword = (d: number[], at: number) => ((d[at]! & 0x0f) | (d[at + 1]! << 4) | (d[at + 2]! << 11)
+    | (d[at + 3]! << 18) | (d[at + 4]! << 25)) >>> 0;
+  const settings = new Map<string, number[]>(Object.entries(init.settings ?? {}));
+  settings.set("4:0", [init.preset ?? 0]);
+  const SIZES: Record<number, number> = { 0: 1, 3: 6, 4: 1 };
+
   const firmware = () => status(0, [...byte(init.firmware ?? 0x47), ...byte(0x26), ...word(1), ...word(2), ...word(3)]);
-  const preset = () => frame([0x42, 0x04, 0x01, 0x00, ...word(init.preset ?? 0)]);
   const corrupt = (d: number[]) => [...d.slice(0, -2), (d[d.length - 2]! + 1) & 0x7f, 0xf7];
+  const read = (id: number, index: number) => {
+    const words = settings.get(`${id}:${index}`) ?? new Array<number>(SIZES[id]!).fill(0);
+    const a = frame([0x42, id, words.length, index, ...words.flatMap(word)]);
+    return id === 4 && init.corruptPreset ? corrupt(a) : a;
+  };
+  const write = (d: number[]) => {
+    const key = `${d[7]}:${d[9]}`;
+    if (key === init.failWrite) return frame([0x43, 0x7c]);
+    settings.set(key, Array.from({ length: d[8]! }, (_, i) => unword(d, 10 + i * 5)));
+    return frame([0x43, d[7]!, 0, d[9]!]);
+  };
+  // By command: status 0 (firmware), setting reads, and writes (never to the current preset). Anything else is an
+  // error, as the H12 answers what it doesn't know.
+  const known = (d: number[]) => d[7]! in SIZES;
+  const handlers: Record<number, (d: number[]) => number[] | undefined> = {
+    0x01: (d) => (d[7] === 0x00 ? firmware() : undefined),
+    0x02: (d) => (known(d) ? read(d[7]!, d[9]!) : undefined),
+    0x03: (d) => (known(d) && d[7] !== 4 ? write(d) : undefined),
+  };
+  const isHub = (d: number[]) => d.length >= 10 && HEAD.every((b, i) => d[i] === b);
   const answer = (d: number[]): number[] | undefined => {
-    if (d.length < 10 || HEAD.some((b, i) => d[i] !== b)) return undefined;
-    if (d[6] === 0x02 && d[7] === 0x04) return init.corruptPreset ? corrupt(preset()) : preset();
-    if (d[6] === 0x01 && d[7] === 0x00) return firmware();
-    return frame([d[6]! | 0x40, 0x7f]); // the check only reads the firmware status and the preset
+    if (!isHub(d)) return undefined;
+    return handlers[d[6]!]?.(d) ?? frame([d[6]! | 0x40, 0x7f]);
   };
 
   const sent: FakeSent[] = [];
@@ -80,7 +107,8 @@ export function fakeH12Midi(init: FakeH12Init) {
     sysexEnabled: true, onstatechange: null, addEventListener: () => undefined, removeEventListener: () => undefined,
   };
   Object.defineProperty(navigator, "requestMIDIAccess", { value: async () => access, configurable: true });
-  return { sent, playNome: nome.play, playLaunchkey: launchkey.play };
+  const setting = (key: string) => settings.get(key);
+  return { sent, setting, playNome: nome.play, playLaunchkey: launchkey.play };
 }
 
 export function fakeMidiScript(init: FakeH12Init): string {

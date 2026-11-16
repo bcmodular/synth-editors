@@ -1,0 +1,14 @@
+[
+  { "name": "TB-3", "output": 0, "channel": 2, "pedalCc": null },
+  { "name": "JV-2080", "output": 1, "channel": 6, "pedalCc": 11 },
+  { "name": "TR-8S", "output": 2, "channel": 10, "pedalCc": null },
+  { "name": "OXI", "output": 3, "channel": 14, "pedalCc": null },
+  { "name": "TD-3-MO", "output": 24, "channel": 5, "pedalCc": null },
+  { "name": "Volca Bass", "output": 24, "channel": 8, "pedalCc": null },
+  { "name": "Volca Kick", "output": 24, "channel": 9, "pedalCc": null },
+  { "name": "TC M300", "output": 24, "channel": 1, "pedalCc": null },
+  { "name": "S-1", "output": 26, "channel": 3, "pedalCc": null },
+  { "name": "SP-404 Mk2", "output": 28, "channel": 16, "pedalCc": null },
+  { "name": "P-6 pads", "output": 29, "channel": 11, "pedalCc": null },
+  { "name": "P-6 granular", "output": 29, "channel": 12, "pedalCc": null }
+]

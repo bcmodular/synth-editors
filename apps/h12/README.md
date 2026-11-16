@@ -3,8 +3,8 @@
 Picks one target synth for the Launchkey 49 Mk4 and the DOREMIDI pedal by writing routing and mapper settings to the
 CME H12MIDI Pro over SysEx. Requirements: [docs/h12-spec.md](../../docs/h12-spec.md).
 
-So far the app has steps 1 and 2 of the build order: a **read-only check** of the H12 and a **Launchkey clock test**.
-Neither writes to the H12.
+So far the app has steps 1–3 of the build order: a **read-only check** of the H12, a **Launchkey clock test** and
+**target switching**, the only part that writes to the H12.
 
 ## Read-only check
 
@@ -17,6 +17,23 @@ On start-up, and whenever the H12's ports come or go, the app:
 4. lists every problem: no answer, an error answer from the H12, or an answer with a wrong checksum.
 
 It never writes a setting or sends an action.
+
+## Target switching
+
+One button per target in [src/targets.json](src/targets.json) (output port index, channel 1–16, pedal CC or `null`).
+The lit one is the target the H12 is set to now, worked out by reading its settings back. Clicking another:
+
+1. reads the routing of MIDI In 2 (pedal) and MIDI In 3 (Launchkey) and mappers 18–23;
+2. the first time ever, keeps those values as a backup, so **Put them back** can restore them;
+3. refuses unless the H12 is on preset 1;
+4. writes only the settings that differ, each read back before the next, and stops at the first problem (an error
+   answer, no answer, a bad checksum, or a value that reads back differently).
+
+The Launchkey's input is routed to the target's output only, and mappers 18–22 turn its channel 1 (Note On, Note Off,
+CC, Pitch Bend, Channel AT) into the target's channel. The pedal follows the keys and mapper 23 turns its CC 11 into
+the target's pedal CC; with no pedal CC, the pedal is routed nowhere and mapper 23 is left alone. Nothing else on the
+H12 is ever written: `core/switcher.ts` refuses any other setting. The backup is kept in the app's local storage
+(separately for `npm run dev:h12` and a packaged build).
 
 ## Launchkey clock test
 
@@ -50,6 +67,12 @@ npm run test:h12       # the read-only check against the real H12
   OXI ONE MKII-1/2/3 on 4/5/6 (indices 3/4/5), inputs and outputs alike, as the spec's target table assumes. All six
   are reserved, so the numbers don't depend on the order the devices are found. CME's page calls these "USB-A
   host ports"; the sockets are USB-C and HxMIDI Tools calls them "USB-C Host".
+
+- **Before the first switch** (read 2026-11-16): mappers 0–23 all hold the factory value, with no inputs enabled
+  (words 4 and 5 zero): `7F007F00 7F007F00 00F00F0F 5A000187 0 0`. Word 3's init flag reads 2, and bits 27, 28 and 30
+  are set, which CME doesn't document; a mapper written as the spec says has init flag 5 and those bits clear. The
+  Launchkey's input (26) was routed to `2500000F` (U6MIDI Pro 1–3, OXI-1, MIDI Out 1, 3 and 6) and the pedal's (25)
+  nowhere.
 
 ## Findings on the Launchkey 49 Mk4 (2026-11-16)
 

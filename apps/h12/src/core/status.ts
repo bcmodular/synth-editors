@@ -5,7 +5,6 @@ import { decodeByte, decodeWord, HUB } from "./sysex";
 // Status 2 (the USB device on a host port) isn't used: on firmware 4.7 it ignores the index and answers with what
 // looks like raw memory (apps/h12/README.md › Findings).
 export const Status = { firmware: 0x00 } as const;
-export const Setting = { currentPreset: 0x04 } as const;
 
 // The firmware the spec was written against; anything older warns.
 export const MIN_FIRMWARE = { major: 4, minor: 7 } as const;
@@ -42,7 +41,8 @@ export interface Preset {
 
 // Setting 4, answered as F0 00 20 63 0F 26 42 04 01 00 <word> ck F7.
 export function parsePreset(d: readonly number[]): Preset | undefined {
-  if (d.length !== 17) return undefined;
-  const v = decodeWord(d, 10);
-  return { index: v & 0x1f, reload: (v & 0x80000000) !== 0 };
+  return d.length === 17 ? presetOf(decodeWord(d, 10)) : undefined;
 }
+
+// Setting 4's word: bits 0–4 the preset, bit 31 reload.
+export const presetOf = (v: number): Preset => ({ index: v & 0x1f, reload: (v & 0x80000000) !== 0 });

@@ -1,9 +1,11 @@
 // The H12 over Web MIDI: finds its ports by name, finds which output answers SysEx and reads the hub (core/hub.ts).
-// Runs again when ports come or go, and on demand. Read-only: nothing here writes a setting.
+// Runs again when ports come or go, and on demand. Read-only; once ready it hands on the link (io) that target
+// switching writes through.
 
 import { useCallback, useEffect, useState } from "react";
 import { readHub, type HubReport } from "../core/hub";
 import { findSysexPort, type Lane, type Listen } from "../core/link";
+import type { Io } from "../core/switcher";
 import { portsNamed, type Midi } from "../midi/useMidi";
 
 const H12 = /H12MIDI/i;
@@ -14,7 +16,7 @@ export type HubState =
   | { kind: "absent" } // no H12 ports
   | { kind: "probing" }
   | { kind: "silent"; tried: string[] } // H12 ports, but none answered
-  | { kind: "ready"; report: HubReport };
+  | { kind: "ready"; report: HubReport; io: Io };
 
 const lanesOf = (access: MIDIAccess): Lane[] =>
   portsNamed(access.outputs.values(), H12).map((o) => ({ name: o.name ?? o.id, send: (data) => o.send(data) }));
@@ -36,7 +38,7 @@ async function check(access: MIDIAccess, isCancelled: () => boolean): Promise<Hu
   const listen = listenerOf(access);
   const probe = await findSysexPort(lanes, listen, isCancelled);
   if (probe.kind === "silent") return probe;
-  return { kind: "ready", report: await readHub(probe.lane, probe.reply, listen) };
+  return { kind: "ready", report: await readHub(probe.lane, probe.reply, listen), io: { lane: probe.lane, listen } };
 }
 
 // Re-checks only when the H12's own ports change, not when another device comes or goes.

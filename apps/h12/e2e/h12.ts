@@ -65,3 +65,12 @@ export const playLaunchkey = (page: Page, ...bytes: number[]): Promise<void> =>
 // What the app sent to one port, oldest first.
 export const sentTo = async (page: Page, port: string): Promise<FakeSent[]> =>
   (await sent(page)).filter((m) => m.port === port);
+
+// A setting the fake H12 holds now ("setting:index"), or undefined if never set.
+export const fakeSetting = (page: Page, key: string): Promise<number[] | undefined> =>
+  page.evaluate((k) => (window as unknown as { __fakeH12: { setting: (k: string) => number[] | undefined } })
+    .__fakeH12.setting(k), key);
+
+// The setting writes the app sent to the fake H12, as "setting:index", oldest first.
+export const settingWrites = async (page: Page): Promise<string[]> =>
+  (await sent(page)).filter((m) => m.data[0] === 0xf0 && m.data[6] === 0x03).map((m) => `${m.data[7]}:${m.data[9]}`);

@@ -10,7 +10,12 @@ test("the H12 answers SysEx and runs firmware 4.7 or later", async () => {
   const r = (running = await start("real"));
   const f = await facts(r.page);
   const problems = await r.page.locator(".problems li").allInnerTexts();
-  console.log({ ...f, problems });
+  // The settings target switching would write, read only: whether they read, and what target they match.
+  const targets = r.page.locator(".targets");
+  await expect(targets.getByText("Waiting for the H12")).toHaveCount(0);
+  const now = await targets.locator("> p").first().innerText();
+  console.log({ ...f, problems, targets: now });
+  expect(now).not.toMatch(/answer/);
   expect(f["SysEx port"]).toMatch(/H12MIDI/);
   expect(f.Firmware).toMatch(/^\d+\.\d+$/); // no "older than" warning
   expect(problems).toEqual([]);

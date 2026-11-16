@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  checksum, decodeByte, decodeInt16, decodeWord, encodeWord, parseAnswer, readSetting, readStatus,
+  checksum, decodeByte, decodeInt16, decodeWord, encodeWord, parseAnswer, readSetting, readStatus, writeSetting,
 } from "./sysex";
 
 // The examples in CME's MIDI implementation for the H12MIDI Pro.
@@ -14,8 +14,19 @@ describe("requests", () => {
   });
 
   it("builds setting reads", () => {
-    expect(readSetting(0x04, 1, 0)).toEqual([0xf0, 0x00, 0x20, 0x63, 0x0f, 0x26, 0x02, 0x04, 0x01, 0x00, 0x07, 0xf7]);
-    expect(readSetting(0x03, 6, 0)).toEqual([0xf0, 0x00, 0x20, 0x63, 0x0f, 0x26, 0x02, 0x03, 0x06, 0x00, 0x0b, 0xf7]);
+    expect(readSetting({ setting: 0x04, index: 0 }, 1)).toEqual([0xf0, 0x00, 0x20, 0x63, 0x0f, 0x26, 0x02, 0x04, 0x01, 0x00, 0x07, 0xf7]);
+    expect(readSetting({ setting: 0x03, index: 0 }, 6)).toEqual([0xf0, 0x00, 0x20, 0x63, 0x0f, 0x26, 0x02, 0x03, 0x06, 0x00, 0x0b, 0xf7]);
+  });
+
+  it("builds CME's routing write example (input 0 to MIDI Outs 1–6)", () => {
+    expect(writeSetting({ setting: 0x00, index: 0 }, [0x3f000000])).toEqual(
+      [0xf0, 0x00, 0x20, 0x63, 0x0f, 0x26, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x40, 0x1f, 0x63, 0xf7]);
+  });
+
+  it("builds a six-word mapper write", () => {
+    const d = writeSetting({ setting: 0x03, index: 18 }, [1, 2, 3, 4, 5, 6]);
+    expect(d.slice(6, 10)).toEqual([0x03, 0x03, 0x06, 18]);
+    expect(d).toHaveLength(10 + 6 * 5 + 2);
   });
 
   it("keeps the low 7 bits of the checksum", () => {

@@ -44,10 +44,24 @@ export async function finish(running: H12App | undefined): Promise<void> {
 export const sent = (page: Page): Promise<FakeSent[]> =>
   page.evaluate(() => (window as unknown as { __fakeH12: { sent: FakeSent[] } }).__fakeH12.sent);
 
-// The facts list in the hub panel, as { label: value }.
+// The facts list in the H12 panel, as { label: value }.
 export async function facts(page: Page): Promise<Record<string, string>> {
-  await page.locator(".facts").waitFor();
-  const labels = await page.locator(".facts dt").allInnerTexts();
-  const values = await page.locator(".facts dd").allInnerTexts();
+  await page.locator(".hub .facts").waitFor();
+  const labels = await page.locator(".hub .facts dt").allInnerTexts();
+  const values = await page.locator(".hub .facts dd").allInnerTexts();
   return Object.fromEntries(labels.map((l, i) => [l, values[i] ?? ""]));
 }
+
+type FakeMidi = { playNome: (b: number[]) => void; playLaunchkey: (b: number[]) => void };
+
+// A message from the fake Nome II's clock port.
+export const playNome = (page: Page, ...bytes: number[]): Promise<void> =>
+  page.evaluate((b) => (window as unknown as { __fakeH12: FakeMidi }).__fakeH12.playNome(b), bytes);
+
+// A message from the fake Launchkey's own MIDI output.
+export const playLaunchkey = (page: Page, ...bytes: number[]): Promise<void> =>
+  page.evaluate((b) => (window as unknown as { __fakeH12: FakeMidi }).__fakeH12.playLaunchkey(b), bytes);
+
+// What the app sent to one port, oldest first.
+export const sentTo = async (page: Page, port: string): Promise<FakeSent[]> =>
+  (await sent(page)).filter((m) => m.port === port);

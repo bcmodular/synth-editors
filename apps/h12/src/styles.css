@@ -31,16 +31,18 @@ body {
 main {
   padding: 24px;
   max-width: 820px;
+  display: grid;
+  gap: 16px;
 }
 
-.hub {
+.panel {
   background: var(--panel);
   border: 1px solid var(--rule);
   border-radius: 6px;
   padding: 16px 20px;
 }
 
-.hub header {
+.panel header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -113,4 +115,51 @@ button:disabled {
 .mono {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 12px;
+}
+
+.dim {
+  color: var(--dim);
+  font-weight: 500;
+}
+
+button.on {
+  border-color: var(--cap);
+  color: var(--cap);
+}
+
+.choices {
+  border: 0;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  gap: 20px;
+}
+
+.choices legend {
+  color: var(--dim);
+  padding: 0;
+  margin-bottom: 6px;
+}
+
+.tempo,
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tempo input[type="range"] {
+  flex: 1;
+  accent-color: var(--cap);
+}
+
+.tempo input[type="number"] {
+  width: 64px;
+  font: inherit;
+  color: var(--txt);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 2px 6px;
 }

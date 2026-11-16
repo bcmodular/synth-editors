@@ -3,7 +3,12 @@
 Picks one target synth for the Launchkey 49 Mk4 and the DOREMIDI pedal by writing routing and mapper settings to the
 CME H12MIDI Pro over SysEx. Requirements: [docs/h12-spec.md](../../docs/h12-spec.md).
 
-So far only step 1 of the build order is done: a **read-only check**. On start-up, and whenever the H12's ports
+So far the app has steps 1 and 2 of the build order: a **read-only check** of the H12 and a **Launchkey clock test**.
+Neither writes to the H12.
+
+## Read-only check
+
+ On start-up, and whenever the H12's ports
 come or go, the app:
 
 1. sends the serial-and-firmware status request (`F0 00 20 63 0F 26 01 00 01 F7`) to each `H12MIDI-Pro` output in
@@ -13,6 +18,19 @@ come or go, the app:
 4. lists every problem: no answer, an error answer from the H12, or an answer with a wrong checksum.
 
 It never writes a setting or sends an action.
+
+## Launchkey clock test
+
+Does the Launchkey 49 Mk4's arpeggiator follow clock sent to its USB MIDI port? The panel sends clock to
+`Launchkey MK4 49 MIDI In` (never its DAW port), from one of two sources:
+
+- **Generated here**, at the tempo set on the slider (30–300 BPM). Ticks are scheduled 100 ms ahead with Web MIDI
+  timestamps, so timer jitter doesn't reach them. A tempo change takes effect at once, without restarting.
+- **Forwarded from the Nome II**: each message from `Nome II Clock` is sent on as it arrives. The panel shows the
+  tempo the Nome II is sending.
+
+Clock only by default; **Also send Start, Stop and Continue** adds transport, in case the arpeggiator needs it to
+reset its phase. Turn Ableton's Sync off for the Launchkey's ports while testing, so it gets one clock only.
 
 ```bash
 npm run dev:h12        # Vite dev server + Electron window

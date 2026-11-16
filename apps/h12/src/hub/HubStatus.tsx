@@ -61,7 +61,7 @@ function Report({ report }: { report: HubReport }) {
 export function HubStatus({ state, recheck }: { state: HubState; recheck: () => void }) {
   const busy = state.kind === "starting" || state.kind === "probing";
   return (
-    <section className="hub" aria-busy={busy}>
+    <section className="panel hub" aria-busy={busy}>
       <header>
         <h1>H12MIDI Pro</h1>
         <button onClick={recheck} disabled={busy}>Check again</button>

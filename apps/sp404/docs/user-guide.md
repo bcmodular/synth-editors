@@ -318,6 +318,19 @@ whichever view is showing; the editor finds it by name.
   Set the encoders to send CC 21–26 on channel 1 (a custom mode in Novation Components). The sustain pedal and pitch
   bend go to whatever the keys play.
 
+## CC learn
+
+Knobs and faders on any other controller can drive the effects.
+
+1. Press **LEARN** in the top bar. The cells under the drawings get dashed outlines.
+2. Click a parameter's cell (or a bus's morph track).
+3. Move the knob or fader. Esc or CANCEL stops learning.
+
+An assignment drives that slot of the bus, whatever effect is loaded. It starts in **pickup** mode: the knob does
+nothing until it reaches the value, then follows. Settings › **CC LEARN** lists the assignments: change a mode to
+**jump** (follows at once) or **relative** (for encoders that send steps), learn a new CC, or forget it. The SP-404's,
+the BCR2000's and the Launchpad's ports aren't used for learning.
+
 ## Between sessions
 
 The editor remembers:

@@ -1,7 +1,7 @@
 // Settings: how the SP-404 is set up for MIDI, which the app can't read from it, and the scopes' audio and clock
-// inputs. Opens from the top bar.
+// inputs, and CC learn. Opens from the top bar.
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { noteName, padNote, type MidiMode, type PadMidiSettings } from "../core/padNotes";
 import type { ScopeSet } from "../scope/useScopeSet";
 import type { Fx } from "../fx/useFx";
@@ -16,6 +16,7 @@ export interface SettingsPanelProps {
   fx: Fx;
   onChange: (s: Settings) => void;
   onClose: () => void;
+  children?: ReactNode; // more sections at the end (CC learn)
 }
 
 const range = (min: number, max: number) => Array.from({ length: max - min + 1 }, (_, i) => min + i);
@@ -115,7 +116,7 @@ function ScopeFields({ settings, scope, onChange }: Pick<SettingsPanelProps, "se
   );
 }
 
-export function SettingsPanel({ settings, midiInput, scope, fx, onChange, onClose }: SettingsPanelProps) {
+export function SettingsPanel({ settings, midiInput, scope, fx, onChange, onClose, children }: SettingsPanelProps) {
   const panel = useRef<HTMLDivElement>(null);
   useDismiss(panel, onClose);
   const midi = settings.padMidi;
@@ -143,6 +144,7 @@ export function SettingsPanel({ settings, midiInput, scope, fx, onChange, onClos
         Out and PAD Note Out set to ON on the SP-404 (System › MIDI).
       </div>
       <ScopeFields settings={settings} scope={scope} onChange={onChange} />
+      {children}
     </div>
   );
 }

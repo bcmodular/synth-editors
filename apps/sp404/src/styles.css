@@ -2154,3 +2154,60 @@ button:focus-visible {
 .keys-encoders > .lbl {
   grid-column: 1 / -1;
 }
+
+/* ---- CC learn (cc/CcPane.tsx): the bar while learning, the cells to pick from, Settings › CC LEARN */
+
+.learnbar {
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--lcd);
+  color: var(--lcdtxt);
+  border: 1px solid var(--cap);
+  font-size: var(--text-s);
+}
+
+.learnbar .btn {
+  padding: 3px 10px;
+}
+
+.cc-pick .bus [data-slot],
+.cc-pick .bus .morph .tr {
+  outline: 1px dashed var(--cap);
+  outline-offset: -1px;
+  cursor: crosshair;
+}
+
+.cc-pick .bus [data-slot]:hover,
+.cc-pick .bus .morph .tr:hover {
+  outline-style: solid;
+  background: rgba(255, 122, 26, 0.12);
+}
+
+.settings .cclist {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-s);
+}
+
+.settings .cclist td {
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--edge);
+  white-space: nowrap;
+}
+
+.settings .cclist .cctarget {
+  width: 100%;
+  color: var(--lcdtxt);
+}
+
+.settings .cclist .btn {
+  padding: 2px 8px;
+  margin-left: 4px;
+}

@@ -74,7 +74,7 @@ export const midiSent = (page: Page): Promise<number[][]> =>
 
 type FakeMidi = {
   bcrSent: number[][]; bcrPlay: (...x: number[]) => void; lpSent: number[][]; lpPlay: (...x: number[]) => void;
-  lkSent: number[][]; lkPlay: (...x: number[]) => void;
+  lkSent: number[][]; lkPlay: (...x: number[]) => void; knobsPlay: (...x: number[]) => void;
 };
 
 // A message from the fake BCR2000 (a turn or a press).
@@ -111,3 +111,7 @@ export const playLaunchkey = (page: Page, ...bytes: number[]): Promise<void> =>
 // MIDI messages the app sent to the fake Launchkey, oldest first.
 export const launchkeySent = (page: Page): Promise<number[][]> =>
   page.evaluate(() => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.lkSent);
+
+// A message from another controller (for CC learn).
+export const playKnobs = (page: Page, ...bytes: number[]): Promise<void> =>
+  page.evaluate((b) => (window as unknown as { __fakeSp404Midi: FakeMidi }).__fakeSp404Midi.knobsPlay(...b), bytes);

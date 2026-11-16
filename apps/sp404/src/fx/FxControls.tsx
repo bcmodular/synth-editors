@@ -47,7 +47,10 @@ export function controlFor(p: FxParam, kind: ControlKind, synced: ControlKind | 
 
 // Where a parameter's control goes: in its slot's cell of the 3 × 2 grid (laid out as the BCR2000's encoders), or,
 // when too wide for a cell, in a full-width row above the grid (its cell then shows the name and value).
-type Placed = { cell: ReactNode; row?: ReactNode; big?: boolean; tuning?: boolean; keys?: readonly string[] };
+type Placed = {
+  cell: ReactNode; row?: ReactNode; big?: boolean; tuning?: boolean; keys?: readonly string[];
+  slot?: number; // the parameter's slot, for CC learn's picking (data-slot)
+};
 
 const Readout = ({ label, text }: { label: string; text: string }) => (
   <span className="readout"><span className="lbl">{label}</span><em>{text}</em></span>
@@ -137,7 +140,8 @@ function keepPlace(placed: Placed[], keep: KeepTuning | undefined): KeepAt {
 // KEEP TUNING above the first of them that holds a tuning parameter.
 function Slots({ placed, keep }: { placed: Placed[]; keep?: KeepTuning }) {
   const hot = useHot();
-  const lit = (x: Placed | undefined, className: string) => hotProps(hot, x?.keys ?? [], className);
+  const lit = (x: Placed | undefined, className: string) =>
+    ({ ...hotProps(hot, x?.keys ?? [], className), "data-slot": x?.slot });
   const rows = placed.filter((x) => x.row && !x.big);
   const big = placed.filter((x) => x.big);
   const keepAt = keepPlace(placed, keep);
@@ -168,7 +172,7 @@ export function FxControls({ fx, values, onValue, hasView, keepTuning }: FxContr
   return (
     <div className="fx-controls">
       {layout?.kill && <KillRow values={values} onValue={onValue} />}
-      <Slots placed={fx.params.map((p, i) => ({ ...placeParam(p, i, x), tuning: p.tuning, keys: [p.key] }))}
+      <Slots placed={fx.params.map((p, i) => ({ ...placeParam(p, i, x), tuning: p.tuning, keys: [p.key], slot: i }))}
         keep={keepTuning} />
     </div>
   );

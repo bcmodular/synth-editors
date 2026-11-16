@@ -138,6 +138,11 @@ These match the TouchOSC version's behaviour, including the lock rules.
   encoders drive its six parameters. The FX modules have no keyboards of their own.
   Built 2026-11-16 as a third mixer view, **KEYS** (DESK / SCOPE / KEYS), detailed below.
 - **CC learn**: global, as in [PLAN.md](../PLAN.md) (relative / pickup / jump; no controller feedback).
+  Built 2026-11-16 (`src/cc/`), on `packages/cc-learn` as the TB-3's: **LEARN** in the top bar, then click a
+  parameter's cell in an FX module (its slot, `data-slot`) or a morph track, then move a knob or fader. A target is a
+  bus's slot, whatever effect is there (as the BCR's encoders), or a bus's morph amount (once it has a target). Every
+  MIDI input is listened to except the SP-404's, the BCR2000's and the Launchpad's. New assignments start in pickup;
+  Settings › CC LEARN lists them with their mode, LEARN again and ×. No defaults. Remembered in localStorage.
 
 #### Launchpad Pro (built 2026-11-16)
 

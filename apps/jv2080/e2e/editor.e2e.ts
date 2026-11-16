@@ -4,7 +4,10 @@ import { expect, test } from "@playwright/test";
 import { getParam, setParam } from "../src/core/patch";
 import { EFX_TYPES, efxParamOffset, efxStartValue } from "../src/core/efx";
 import { param } from "../src/core/paramValue";
-import { cutoffOf, expectJv, finish, knob, PATCHES, patchTitle, PATCH_CHANNEL, PRESET_PROGRAM, programsChosen, readJv, start, type JvApp } from "./jv";
+import {
+  cutoffOf, expectJv, finish, knob, panelEdit, PATCHES, patchTitle, PATCH_CHANNEL, PRESET_PROGRAM, programsChosen, readJv, start,
+  type JvApp,
+} from "./jv";
 
 let running: JvApp | undefined;
 test.afterEach(async () => finish(running));
@@ -63,4 +66,12 @@ test("a JV that doesn't answer is reported", async () => {
   const { page } = (running = await start({ silent: true }));
   await expect(page.locator(".read-failed")).toHaveText("NO REPLY FROM THE JV", { timeout: 10_000 });
   await expect(page.locator(".empty")).toContainText("No reply from the JV");
+});
+
+test("an edit on the JV's panel shows in the editor", async () => {
+  const { page } = (running = await start());
+  await expect(patchTitle(page)).toHaveText("ON THE JV");
+  await panelEdit(page, { block: 2, offset: param("cutoff").offset, bytes: [33] }); // tone 2's cutoff
+  await expect(knob(page, "CUTOFF", 1)).toHaveAttribute("aria-valuenow", "33");
+  await expect(knob(page, "CUTOFF", 0)).toHaveAttribute("aria-valuenow", String(cutoffOf(PATCHES.jv)));
 });

@@ -18,18 +18,18 @@ test("learn a CC for a knob, then the controller moves it on the JV", async () =
   await cutoff.click();
   await expect(page.locator(".learnbar")).toContainText("Tone 1 · Cutoff");
   await expect(cutoff).toHaveAttribute("aria-valuenow", String(cutoffOf(PATCHES.jv))); // the click didn't move it
-  await sendCc(page, 3, 74, 0);
+  await sendCc(page, { channel: 3, cc: 74, value: 0 });
   await expect(page.locator(".learnbar")).toHaveCount(0);
 
   // Pick-up: the knob must reach the value before it takes over.
   const now = cutoffOf(PATCHES.jv);
-  await sendCc(page, 3, 74, 10);
+  await sendCc(page, { channel: 3, cc: 74, value: 10 });
   await expect(cutoff).toHaveAttribute("aria-valuenow", String(now));
-  await sendCc(page, 3, 74, now);
-  await sendCc(page, 3, 74, 100);
+  await sendCc(page, { channel: 3, cc: 74, value: now });
+  await sendCc(page, { channel: 3, cc: 74, value: 100 });
   await expect(cutoff).toHaveAttribute("aria-valuenow", "100");
   await expectJv(page, setParam(PATCHES.jv, param("cutoff"), 100), "the cutoff the controller set");
-  await sendCc(page, 4, 74, 100); // another channel: not this CC
+  await sendCc(page, { channel: 4, cc: 74, value: 100 }); // another channel: not this CC
   await page.getByRole("button", { name: /^CC 1/ }).click();
   await expect(page.locator(".cclist .cctarget")).toHaveText("Tone 1 · Cutoff");
   await expect(page.locator(".cclist .ccch")).toHaveText("ch 3");
@@ -44,6 +44,6 @@ test("learned CCs are remembered", async () => {
   }, CONTROLLER_PORT);
   await page.reload();
   await expect(patchTitle(page)).toHaveText("ON THE JV");
-  await sendCc(page, 1, 71, 77);
+  await sendCc(page, { channel: 1, cc: 71, value: 77 });
   await expect(knob(page, "RESO")).toHaveAttribute("aria-valuenow", "77");
 });

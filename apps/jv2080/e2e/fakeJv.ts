@@ -68,6 +68,12 @@ export function installFakeJv(init: FakeJvInit) {
     const body = [...toAddr(at), ...Array.from({ length: size }, (_, i) => mem.get(at + i) ?? 0)];
     setTimeout(() => deliver([...HEADER, 0x12, ...body, checksum(body), 0xf7]), 2);
   };
+  // An edit on the JV's own panel: it changes its memory and sends a DT1 of the change.
+  const panel = (at: Location, bytes: number[]) => {
+    bytes.forEach((b, i) => mem.set(at + i, b));
+    const body = [...toAddr(at), ...bytes];
+    deliver([...HEADER, 0x12, ...body, checksum(body), 0xf7]);
+  };
   const program = (m: Message) => {
     programs.push(m[1]!);
     const preset = init.presets?.[m[1]!];
@@ -96,5 +102,5 @@ export function installFakeJv(init: FakeJvInit) {
   Object.defineProperty(navigator, "requestMIDIAccess", { value: async () => access, configurable: true });
   // What the tests read: the memory a range at a time, everything sent, the programs chosen.
   const read = (at: Location, size: number) => Array.from({ length: size }, (_, i) => mem.get(at + i) ?? 0);
-  (window as unknown as { __fakeJv: unknown }).__fakeJv = { read, sent, programs, state, cc };
+  (window as unknown as { __fakeJv: unknown }).__fakeJv = { read, sent, programs, state, cc, panel };
 }

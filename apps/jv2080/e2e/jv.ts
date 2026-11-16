@@ -18,16 +18,20 @@ const FAKE_PORT = "JV-2080 (test)";
 export const CONTROLLER_PORT = `${FAKE_PORT} controller`;
 export const PATCH_CHANNEL = 5; // 0-based: the JV's patch receive channel 6, as in the studio
 
-const named = (p: Patch, name: string, cutoff: number) => setParam(setPatchName(p, name), param("cutoff"), cutoff);
+interface Variant {
+  name: string;
+  cutoff: number;
+}
+const named = ({ name, cutoff }: Variant) => setParam(setPatchName(demoPatch(), name), param("cutoff"), cutoff);
 
 // The patches each test uses: what the JV holds at the start, three in the test set, one file, one preset.
 export const PATCHES = {
-  jv: named(demoPatch(), "ON THE JV", 90),
-  a: named(demoPatch(), "SLOT A", 10),
-  b: named(demoPatch(), "SLOT B", 20),
-  c: named(demoPatch(), "SLOT C", 30),
-  file: named(demoPatch(), "FROM A FILE", 40),
-  preset: named(demoPatch(), "A PRESET", 50),
+  jv: named({ name: "ON THE JV", cutoff: 90 }),
+  a: named({ name: "SLOT A", cutoff: 10 }),
+  b: named({ name: "SLOT B", cutoff: 20 }),
+  c: named({ name: "SLOT C", cutoff: 30 }),
+  file: named({ name: "FROM A FILE", cutoff: 40 }),
+  preset: named({ name: "A PRESET", cutoff: 50 }),
 };
 export const PRESET_PROGRAM = 4; // PR-A 005
 
@@ -126,10 +130,28 @@ export async function expectJv(page: Page, want: Patch, what: string) {
 
 export const cutoffOf = (p: Patch, tone = 0) => getParam(p, param("cutoff"), tone);
 
+export interface CcMessage {
+  channel: number; // 1–16
+  cc: number;
+  value: number;
+}
+
 // A CC from the fake controller.
-export const sendCc = (page: Page, channel: number, cc: number, value: number) =>
-  page.evaluate(([ch, n, v]) =>
-    (window as unknown as { __fakeJv: { cc(ch: number, n: number, v: number): void } }).__fakeJv.cc(ch!, n!, v!), [channel, cc, value]);
+export const sendCc = (page: Page, m: CcMessage) =>
+  page.evaluate((m) =>
+    (window as unknown as { __fakeJv: { cc(ch: number, n: number, v: number): void } }).__fakeJv.cc(m.channel, m.cc, m.value), m);
+
+export interface PanelEdit {
+  block: number; // 0 = Common, 1–4 = the tones
+  offset: number;
+  bytes: number[];
+}
+
+// An edit made on the JV's own panel.
+export const panelEdit = (page: Page, e: PanelEdit) =>
+  page.evaluate(([at, b]) =>
+    (window as unknown as { __fakeJv: { panel(at: number, b: number[]): void } }).__fakeJv.panel(at as number, b as number[]),
+  [addrToInt(PATCH_BLOCKS[e.block]!.addr) + e.offset, e.bytes] as const);
 
 // Messages sent to the fake JV since the last call.
 export async function takeSent(page: Page): Promise<number[][]> {

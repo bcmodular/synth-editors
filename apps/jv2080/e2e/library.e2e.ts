@@ -47,6 +47,20 @@ test("holding ▶ auditions a file on the JV, and releasing puts the patch back"
   await expect(patchTitle(page)).toHaveText("ON THE JV");
 });
 
+test("GRAB, then holding a slot, auditions it; the editor shows it read only", async () => {
+  const { page } = t;
+  await openTestSet(page);
+  await page.locator(".side .patches").getByRole("button", { name: "GRAB" }).click();
+  await hold(page, slot(page, 2), async () => {
+    await expectJv(page, PATCHES.c, "the grabbed slot");
+    await expect(patchTitle(page)).toHaveText("SLOT C");
+    await expect(page.locator("main.app")).toHaveClass(/auditioning/);
+  });
+  await expectJv(page, PATCHES.jv, "the patch from before");
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".slotgrid")).not.toHaveClass(/grab/);
+});
+
 test("double-clicking a file loads it, and undo goes back", async () => {
   const { page } = t;
   await row(page, "patch", "Audition").dblclick();

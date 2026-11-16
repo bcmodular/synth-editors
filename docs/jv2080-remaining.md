@@ -91,9 +91,9 @@ Built 2026-11-16 (see jv2080-design.md, Phases). Left over:
 
 ## 6. Tests
 
-- [x] **End-to-end tests** (`npm run test:e2e:jv2080`, 15 tests) against a fake JV with a stand-in controller.
+- [x] **End-to-end tests** (`npm run test:e2e:jv2080`, 17 tests) against a fake JV with a stand-in controller.
 - [ ] A hardware mode for them, like the TB-3's `TB3_HW=1`, that restores the JV's patch afterwards.
-- [ ] Edits from the JV's own panel coming back into the editor aren't covered yet.
+- [x] Edits from the JV's own panel coming back into the editor.
 - [ ] Unit tests cover `core/`, the session rules, undo history, set files, CC targets and solo; the React
       components are covered only by the end-to-end tests.
 

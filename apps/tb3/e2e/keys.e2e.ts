@@ -51,13 +51,14 @@ test("LEARN, a click on a parameter and a knob assign it; the knob then moves it
   await expect(list).toContainText("VCF RESONANCE");
   await page.locator(".ccsettings").getByRole("button", { name: "LEARN", exact: true }).first().click();
   await page.getByRole("slider", { name: "RESONANCE", exact: true }).click();
-  await expect(page.locator(".ccsettings .status")).toContainText("Move a knob or fader for VCF RESONANCE");
+  await expect(page.locator(".learnbar")).toContainText("Move a knob or fader for VCF RESONANCE");
   await play(page, [0xb0, 21, 5]);
   const row = list.locator("tr", { hasText: "VCF RESONANCE" });
   await expect(row).toContainText("CC 21");
   await expect(row).toContainText("ch 1");
   await expect(list).not.toContainText("CC 71"); // the default it replaced
   await row.locator("select").selectOption("jump");
+  await page.getByRole("button", { name: "CLOSE", exact: true }).click();
   await play(page, [0xb0, 21, 127]);
   await expectTb3(page, setRaw(t.patches.a, paramById("vcf_resonance"), 255), "resonance from the knob");
 });
@@ -75,11 +76,12 @@ test("an EFX knob learns a CC, which moves it only while its type is selected", 
   await page.locator(".tb3").getByRole("button", { name: "CC", exact: true }).click();
   await page.locator(".ccsettings").getByRole("button", { name: "LEARN", exact: true }).first().click();
   await knob.click();
-  await expect(page.locator(".ccsettings .status")).toContainText(`Move a knob or fader for EFX1 COMP ${name}`);
+  await expect(page.locator(".learnbar")).toContainText(`Move a knob or fader for EFX1 COMP ${name}`);
   await play(page, [0xb0, 22, 5]);
   const row = page.locator(".cclist tr", { hasText: `EFX1 COMP ${name}` });
   await expect(row).toContainText("CC 22");
   await row.locator("select").selectOption("jump");
+  await page.getByRole("button", { name: "CLOSE", exact: true }).click();
   await play(page, [0xb0, 22, 127]);
   const comp = setEfxType(t.patches.a, 1, COMP);
   const offset = compOffset(name);
@@ -99,7 +101,7 @@ test("a drawing handle that sets two values asks which one learns the CC", async
   await page.locator(".ccsettings").getByRole("button", { name: "LEARN", exact: true }).first().click();
   await efx1.locator(".efxdraw").getByRole("slider", { name: "THRESHOLD" }).locator(".hit").click();
   await page.locator(".dialog").getByRole("button", { name: "GAIN", exact: true }).click();
-  await expect(page.locator(".ccsettings .status")).toContainText("Move a knob or fader for EFX1 COMP GAIN");
+  await expect(page.locator(".learnbar")).toContainText("Move a knob or fader for EFX1 COMP GAIN");
   await play(page, [0xb0, 23, 5]);
   await expect(page.locator(".cclist tr", { hasText: "EFX1 COMP GAIN" })).toContainText("CC 23");
 });

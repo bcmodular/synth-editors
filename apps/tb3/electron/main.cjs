@@ -1,6 +1,6 @@
 // Electron main process: one window, Web MIDI + SysEx permissions granted to our own page, and
 // the patch library's file access (IPC handlers below, exposed to the page by preload.cjs).
-const { app, BrowserWindow, dialog, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } = require("electron");
 const fs = require("node:fs");
 const fsp = require("node:fs/promises");
 const path = require("node:path");
@@ -136,6 +136,28 @@ function registerLibraryIpc() {
   ipcMain.handle("lib:reveal", (_e, rel) => shell.showItemInFolder(abs(rel)));
 }
 
+// The standard menus, with Settings… (⌘,) in the app menu on the Mac and in File on Windows. The page opens its
+// settings window when told (preload.cjs onSettings).
+function buildMenu() {
+  const settings = {
+    label: "Settings…",
+    accelerator: "CmdOrCtrl+,",
+    click: () => win && !win.isDestroyed() && win.webContents.send("app:settings"),
+  };
+  const mac = process.platform === "darwin";
+  const appMenu = {
+    label: app.name,
+    submenu: [
+      { role: "about" }, { type: "separator" }, settings, { type: "separator" }, { role: "services" },
+      { type: "separator" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" },
+      { role: "quit" },
+    ],
+  };
+  const fileMenu = mac ? { role: "fileMenu" } : { label: "File", submenu: [settings, { type: "separator" }, { role: "quit" }] };
+  const menus = [...(mac ? [appMenu] : []), fileMenu, { role: "editMenu" }, { role: "viewMenu" }, { role: "windowMenu" }];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+}
+
 app.whenReady().then(() => {
   if (HIDDEN) app.dock?.hide();
   // MIDI, and audio input for VCO MIX's LIVE view (never the camera).
@@ -149,6 +171,7 @@ app.whenReady().then(() => {
       MIDI_PERMISSIONS.has(permission) || (permission === "media" && details.mediaType === "audio"),
   );
   registerLibraryIpc();
+  buildMenu();
   createWindow();
 });
 

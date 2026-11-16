@@ -147,14 +147,18 @@ async function openDemo(t: Tb3App) {
   await settle(page);
 }
 
-// Before the first sync: the MIDI settings, then SYNC FROM TB-3.
+// Before the first sync: the settings window's tabs, then SYNC FROM TB-3.
 async function shootFirstLaunch(page: Page, tb3: Locator) {
   await full(page, "first-launch");
-  await tb3.getByRole("button", { name: "MIDI", exact: true }).click();
-  await shot(page, "midi-settings", [tb3, page.locator(".popover.settings")]);
-  await page.getByRole("button", { name: "CLOSE" }).click();
-  await tb3.getByRole("button", { name: "CC", exact: true }).click();
-  await shot(page, "cc-settings", [tb3, page.locator(".ccsettings")]);
+  const win = page.locator(".settingswin");
+  const tab = (name: string) => win.locator(".settings-tabs").getByRole("button", { name, exact: true });
+  await tb3.getByRole("button", { name: "SETTINGS", exact: true }).click();
+  await tab("MIDI").click();
+  await shot(page, "midi-settings", [win]);
+  await tab("CONTROLLERS").click();
+  await shot(page, "controller-settings", [win]);
+  await tab("CC").click();
+  await shot(page, "cc-settings", [win]);
   await page.getByRole("button", { name: "CLOSE" }).click();
 
   await tb3.getByRole("button", { name: "SYNC FROM TB-3" }).click();

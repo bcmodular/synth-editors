@@ -5,7 +5,7 @@ import { findInputByName, findOutputByName } from "@synth-editors/midi";
 import {
   allLedsOff, ledsRgb, nextProfile, parseLaunchpad, profileNamed, programmerLayout,
 } from "@synth-editors/launchpad";
-import type { Rgb } from "@synth-editors/launchpad";
+import type { ProfileName, Rgb } from "@synth-editors/launchpad";
 import { launchpadHandler } from "./launchpadControl";
 import type { LaunchpadSession } from "./launchpadControl";
 import { changedLeds, launchpadLeds } from "./launchpadView";
@@ -15,15 +15,20 @@ import type { Tb3Midi } from "./useTb3Midi";
 const PROFILE_KEY = "launchpad.brightness";
 const NO_HELD: ReadonlySet<number> = new Set();
 
+// The brightness profile, remembered: cycled from the Launchpad's User button, or chosen in the settings.
 function useBrightness() {
-  const [profile, setProfile] = useState(() => profileNamed(load(PROFILE_KEY)));
+  const [profile, setState] = useState(() => profileNamed(load(PROFILE_KEY)));
+  const setProfile = (next: ProfileName) => {
+    save(PROFILE_KEY, next);
+    setState(next);
+  };
   const cycle = () =>
-    setProfile((p) => {
+    setState((p) => {
       const next = nextProfile(p);
       save(PROFILE_KEY, next);
       return next;
     });
-  return { profile, cycle };
+  return { profile, setProfile, cycle };
 }
 
 // Into Programmer layout with every LED off when the output is chosen, and dark again when it's left or the
@@ -48,7 +53,7 @@ export function useLaunchpad(midi: Tb3Midi, session: LaunchpadSession) {
   // `inputs` / `outputs` change on (re)connect.
   const out = useMemo(() => access && findOutputByName(access, ports.lpOut), [access, ports.lpOut, outputs]);
   const input = useMemo(() => access && findInputByName(access, ports.lpIn), [access, ports.lpIn, inputs]);
-  const { profile, cycle } = useBrightness();
+  const { profile, setProfile, cycle } = useBrightness();
   const [held, setHeld] = useState(NO_HELD);
   const sent = useRef(new Map<number, Rgb>());
   const latest = useRef({ session, sync: midi.syncFromTb3, cycle });
@@ -83,4 +88,7 @@ export function useLaunchpad(midi: Tb3Midi, session: LaunchpadSession) {
     out.send(ledsRgb(changed));
     for (const [led, c] of changed) sent.current.set(led, c);
   });
+  return { profile, setProfile };
 }
+
+export type LaunchpadSettings = ReturnType<typeof useLaunchpad>;

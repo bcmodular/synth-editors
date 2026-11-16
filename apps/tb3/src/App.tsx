@@ -23,6 +23,8 @@ import { MorphBlock, PatchBlock, SetBlock } from "./editor/PatchesBlock";
 import { AssignBlock, PerformBlock, Tb3Block } from "./editor/TopStrip";
 import { demoPatch } from "./editor/demoPatch";
 import { useFitZoom } from "./editor/useFitZoom";
+import { LearnBar } from "./editor/CcSettings";
+import { SettingsWindow } from "./editor/SettingsWindow";
 import { useCcLearn } from "./editor/useCcLearn";
 import type { CcLearn } from "./editor/useCcLearn";
 import { useLaunchkey } from "./editor/useLaunchkey";
@@ -31,6 +33,7 @@ import { useLibrary, walk } from "./editor/useLibrary";
 import { useSession } from "./editor/useSession";
 import type { Session } from "./editor/useSession";
 import { useSetActions } from "./editor/useSetActions";
+import { useSettingsWindow } from "./editor/useSettingsWindow";
 import { useTb3Audio } from "./editor/useTb3Audio";
 import { useTb3Midi } from "./editor/useTb3Midi";
 import { useUndoKeys } from "./editor/useUndoKeys";
@@ -75,8 +78,9 @@ function EditorApp() {
   const audio = useTb3Audio();
   const session = useSession(midi.tb3, setError, midi.quietSwitch);
   sessionRef.current = session;
-  useLaunchpad(midi, session);
+  const launchpad = useLaunchpad(midi, session);
   const ccLearn = useCcLearn();
+  const settings = useSettingsWindow(ccLearn);
   const library = useLibrary();
   const folders = useMemo(
     () => ["", ...Array.from(walk(library.tree), (e) => (e.kind === "dir" ? e.path : null)).filter((f) => f !== null)],
@@ -177,8 +181,7 @@ function EditorApp() {
           <div className="strip">
             <Tb3Block
               midi={midi}
-              audio={audio}
-              ccLearn={ccLearn}
+              onSettings={settings.open}
               hasPatch={Boolean(session.activePatch)}
               onSyncTo={session.sendAll}
               history={session}
@@ -209,6 +212,12 @@ function EditorApp() {
           <div className="toast" onClick={() => setError(null)}>
             {error}
           </div>
+        )}
+        {settings.isOpen ? (
+          <SettingsWindow state={settings} midi={midi} audio={audio} ccLearn={ccLearn} launchpad={launchpad}
+            library={library} />
+        ) : (
+          <LearnBar learn={ccLearn} />
         )}
       </main>
     </EditorContext.Provider>

@@ -1,4 +1,5 @@
-// Preload: exposes the patch library's file access (handled in main.cjs) as window.tb3Files.
+// Preload: exposes the patch library's file access (handled in main.cjs) as window.tb3Files, and the app menu's
+// Settings… as window.tb3App.
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("tb3Files", {
@@ -16,5 +17,13 @@ contextBridge.exposeInMainWorld("tb3Files", {
     const listener = () => cb();
     ipcRenderer.on("lib:changed", listener);
     return () => ipcRenderer.removeListener("lib:changed", listener);
+  },
+});
+
+contextBridge.exposeInMainWorld("tb3App", {
+  onSettings: (cb) => {
+    const listener = () => cb();
+    ipcRenderer.on("app:settings", listener);
+    return () => ipcRenderer.removeListener("app:settings", listener);
   },
 });

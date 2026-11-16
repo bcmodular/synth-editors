@@ -90,6 +90,7 @@ those blocks through a typed parameter table. This replaces the TouchOSC split b
 
 ### Phase 5 — Packaging
 - Signed Electron build, remembered ports with reconnect, settings window.
+- Settings window done: [docs/tb3-phase5-design.md](docs/tb3-phase5-design.md).
 
 ## SP-404 MK2 — after TB-3
 

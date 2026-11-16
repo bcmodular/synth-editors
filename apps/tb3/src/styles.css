@@ -748,13 +748,94 @@ svg .eqfill.cut {
 .tb3 .btn.wide {
   width: 100%;
 }
-.settings {
+/* The settings window (editor/SettingsWindow.tsx): in <body>, over the editor, tabs down the left. */
+.settings-back {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 70px;
+  background: rgba(0, 0, 0, 0.45);
+}
+.settingswin {
+  width: 640px;
+  max-height: calc(100vh - 100px);
+  display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 320px;
+  gap: 12px;
+  padding: 16px 18px;
+  background: #1b1c1f;
+  border: 1px solid var(--rule);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+}
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings-head h3 {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--text-2xl);
+  letter-spacing: 0.04em;
+}
+.settings-body {
+  display: flex;
+  gap: 18px;
+  min-height: 300px;
+  overflow: hidden;
+}
+.settings-tabs {
+  flex: none;
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.settings-pane {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.port .hint {
+  color: var(--dim);
+  font-size: var(--text-s);
+  font-stretch: 100%;
+  word-spacing: normal;
+}
+.libroot {
+  color: var(--val);
+  font-stretch: 100%;
+  word-spacing: normal;
+  overflow-wrap: anywhere;
 }
 .ccsettings {
-  width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* CC learn with the settings window out of the way: what it waits for (editor/CcSettings.tsx LearnBar). */
+.learnbar {
+  position: fixed;
+  z-index: 50;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--sel-bg);
+  border: 1px solid var(--led);
+  color: #fff;
+  font-size: var(--text-m);
+  font-stretch: 100%;
+  word-spacing: normal;
 }
 .cclist {
   border-collapse: collapse;

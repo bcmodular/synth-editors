@@ -1,5 +1,5 @@
-// The CC popover (docs/tb3-phase4-design.md): the learned CC assignments with their modes, LEARN, and the Launchkey
-// defaults.
+// The settings window's CC tab (docs/tb3-phase4-design.md): the learned CC assignments with their modes, LEARN, and
+// the Launchkey defaults; and the bar that says what learning waits for while the window is out of the way.
 import type { CcAssignment, CcMode } from "@synth-editors/cc-learn";
 import { modesFor, targetLabel } from "./ccTargets";
 import type { CcLearn } from "./useCcLearn";
@@ -54,19 +54,18 @@ function Row(p: { a: CcAssignment; learn: CcLearn }) {
   );
 }
 
-export function CcSettings(p: { learn: CcLearn; hasKeys: boolean; onClose: () => void }) {
+// `onPick`: LEARN, which steps the window aside so a parameter can be clicked.
+export function CcPane(p: { learn: CcLearn; hasKeys: boolean; onPick: () => void }) {
   const l = p.learn;
   return (
-    <div className="popover settings ccsettings">
+    <div className="ccsettings">
       <div className="row">
-        <button
-          className={`btn ${l.learning === "pick" ? "sel blink" : ""}`}
-          title="Click a parameter, then move a knob or fader"
-          onClick={l.togglePick}
-        >
+        <button className="btn" title="Click a parameter, then move a knob or fader" onClick={p.onPick}>
           LEARN
         </button>
-        <span className="status">{p.hasKeys ? learnStatus(l) : "Choose KEYS IN in MIDI settings"}</span>
+        <span className="status">
+          {p.hasKeys ? learnStatus(l) || "LEARN, then click a parameter and move a knob." : "Choose KEYS IN under CONTROLLERS."}
+        </span>
       </div>
       <table className="cclist">
         <tbody>
@@ -79,10 +78,20 @@ export function CcSettings(p: { learn: CcLearn; hasKeys: boolean; onClose: () =>
         <button className="btn" title="Back to the Launchkey assignments" onClick={l.resetDefaults}>
           DEFAULTS
         </button>
-        <button className="btn" onClick={p.onClose}>
-          CLOSE
-        </button>
       </div>
+    </div>
+  );
+}
+
+// While learning with the settings window closed: what it waits for, and CANCEL.
+export function LearnBar(p: { learn: CcLearn }) {
+  if (p.learn.learning === null) return null;
+  return (
+    <div className="learnbar" role="status">
+      <span>{learnStatus(p.learn)}</span>
+      <button className="btn mini" onClick={p.learn.cancel}>
+        CANCEL
+      </button>
     </div>
   );
 }

@@ -2,8 +2,8 @@
 export const IS_MAC = /Mac/i.test(navigator.platform || navigator.userAgent);
 
 export const KEYS = IS_MAC
-  ? { undo: "⌘Z", redo: "⇧⌘Z", copy: "Option" }
-  : { undo: "Ctrl+Z", redo: "Ctrl+Y", copy: "Ctrl" };
+  ? { undo: "⌘Z", redo: "⇧⌘Z", copy: "Option", settings: "⌘," }
+  : { undo: "Ctrl+Z", redo: "Ctrl+Y", copy: "Ctrl", settings: "Ctrl+," };
 
 // The platform's copy-drag key (Option on the Mac, Ctrl elsewhere) is held during a drag. It's the key the OS itself
 // treats as copy; macOS cancels a drag outright while ⌘ is held.

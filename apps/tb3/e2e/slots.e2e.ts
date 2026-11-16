@@ -74,8 +74,9 @@ test("QUIET SWITCH (on to start with) mutes the TB-3 while recalling, and restor
   const { page, patches: p } = t;
   await slot(page, 0).click();
   await expectTb3(page, p.a, "slot 1");
-  await page.locator(".strip .tb3").getByRole("button", { name: "MIDI", exact: true }).click();
+  await page.locator(".strip .tb3").getByRole("button", { name: "SETTINGS", exact: true }).click();
   await expect(page.getByRole("button", { name: "QUIET SWITCH" })).toHaveClass(/\bon\b/);
+  await page.getByRole("button", { name: "CLOSE", exact: true }).click();
   await takeSent(page);
   await slot(page, 1).click();
   await expectTb3(page, p.b, "slot 2, volume back");

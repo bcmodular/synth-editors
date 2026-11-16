@@ -16,8 +16,9 @@ test("LIVE asks for an input when there's no TB-3 audio, then shows the chosen o
   await vcoMix(page).getByRole("button", { name: "LIVE" }).click();
   await expect(vcoMix(page).locator(".livestatus")).toContainText("No TB-3 audio input");
 
-  await page.locator(".strip .tb3").getByRole("button", { name: "MIDI", exact: true }).click();
-  const menu = page.locator(".settings label", { hasText: "AUDIO IN" }).locator("select");
+  await page.locator(".strip .tb3").getByRole("button", { name: "SETTINGS", exact: true }).click();
+  await page.locator(".settings-tabs").getByRole("button", { name: "AUDIO", exact: true }).click();
+  const menu = page.locator(".settingswin label", { hasText: "AUDIO IN" }).locator("select");
   const fake = await menu.locator("option").nth(1).getAttribute("value");
   expect(fake).toMatch(/fake/i);
   await menu.selectOption(fake!);

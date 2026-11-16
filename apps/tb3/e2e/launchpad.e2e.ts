@@ -79,3 +79,13 @@ test("MORPH picks a target and pad pressure sets the amount", async () => {
   await press(page, [0xb0, 40, 127]);
   await expect(sideButton(page, "morph", "PICK")).not.toHaveClass(/sel/);
 });
+
+test("LAUNCHPAD BRIGHTNESS in the settings sets the idle level, and is remembered", async () => {
+  const page = await withLaunchpad();
+  await expect.poll(() => ledOf(page, 82)).toEqual([0, 12, 19]); // slot 2 at "normal" (0.3)
+  await page.locator(".strip .tb3").getByRole("button", { name: "SETTINGS", exact: true }).click();
+  await page.locator(".settings-tabs").getByRole("button", { name: "CONTROLLERS", exact: true }).click();
+  await page.locator(".settingswin label", { hasText: "LAUNCHPAD BRIGHTNESS" }).locator("select").selectOption("day");
+  await expect.poll(() => ledOf(page, 82)).toEqual([0, 18, 28]); // 0.45
+  expect(await page.evaluate(() => localStorage.getItem("launchpad.brightness"))).toBe("day");
+});

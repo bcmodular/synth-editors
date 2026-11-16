@@ -1,21 +1,18 @@
-// Top strip: TB-3 sync + MIDI settings, perform controls (accent, global tuning) and parameter
+// Top strip: TB-3 sync, undo and the settings window's buttons, perform controls (accent, global tuning) and parameter
 // assign. PORTA · BEND is in sections.tsx; PATCH, SET and MORPH are in PatchesBlock.tsx.
-import { useState } from "react";
 import { GLOBAL_TUNING_DISPLAY } from "../core/display";
 import { getRaw } from "../core/patch";
 import { paramById } from "../core/params";
 import { Knob } from "../ui/Knob";
 import { Section } from "../ui/controls";
 import { KEYS } from "../ui/platform";
-import { CcSettings } from "./CcSettings";
 import { ASSIGN_SLOTS, useEditor } from "./EditorContext";
 import { PERFORM_HELP } from "../core/help";
 import { sectionHelp } from "./help/content";
 import { HelpButton } from "./help/HelpPanel";
 import { ParamKnob } from "./Param";
-import type { CcLearn } from "./useCcLearn";
-import type { Tb3Audio } from "./useTb3Audio";
-import type { PortRole, Tb3Midi } from "./useTb3Midi";
+import type { SettingsTab } from "./useSettingsWindow";
+import type { Tb3Midi } from "./useTb3Midi";
 
 // UNDO / REDO; hovering names the step.
 export interface UndoControls {
@@ -51,14 +48,11 @@ function UndoButtons(p: { history: UndoControls }) {
 
 export function Tb3Block(p: {
   midi: Tb3Midi;
-  audio: Tb3Audio;
-  ccLearn: CcLearn;
+  onSettings: (tab?: SettingsTab) => void; // no tab: the one last shown
   onSyncTo: () => void;
   hasPatch: boolean;
   history: UndoControls;
 }) {
-  const [open, setOpen] = useState<"midi" | "cc" | null>(null);
-  const toggle = (which: "midi" | "cc") => setOpen((o) => (o === which ? null : which));
   const { sync } = p.midi;
   const status = p.midi.error
     ? `MIDI unavailable: ${p.midi.error}`
@@ -76,11 +70,11 @@ export function Tb3Block(p: {
       extra={
         <span className="row tight">
           <UndoButtons history={p.history} />
-          <button className={`btn ${open === "cc" ? "sel" : ""}`} title="Controller CCs" onClick={() => toggle("cc")}>
+          <button className="btn" title="Controller CCs: learn and assign" onClick={() => p.onSettings("cc")}>
             CC
           </button>
-          <button className={`btn ${open === "midi" ? "sel" : ""}`} onClick={() => toggle("midi")}>
-            MIDI
+          <button className="btn" title={`Ports, controllers, audio and library (${KEYS.settings})`} onClick={() => p.onSettings()}>
+            SETTINGS
           </button>
         </span>
       }
@@ -92,86 +86,7 @@ export function Tb3Block(p: {
         SYNC TO TB-3
       </button>
       <span className={`status ${sync.kind === "error" || p.midi.error ? "err" : ""}`}>{status}</span>
-      {open === "midi" && <MidiSettings midi={p.midi} audio={p.audio} onClose={() => setOpen(null)} />}
-      {open === "cc" && (
-        <CcSettings learn={p.ccLearn} hasKeys={Boolean(p.midi.ports.keysIn)} onClose={() => setOpen(null)} />
-      )}
     </Section>
-  );
-}
-
-function MidiSettings(p: { midi: Tb3Midi; audio: Tb3Audio; onClose: () => void }) {
-  const m = p.midi;
-  const [showLog, setShowLog] = useState(false);
-  const select = (role: PortRole, label: string, list: { id: string; name: string }[]) => (
-    <label className="port">
-      <span className="lbl">{label}</span>
-      <select value={m.ports[role] ?? ""} onChange={(e) => m.choosePort(role, e.target.value)}>
-        <option value="">— none —</option>
-        {list.map((port) => (
-          <option key={port.id} value={port.name}>
-            {port.name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-  return (
-    <div className="popover settings">
-      {select("tb3In", "TB-3 IN", m.inputs)}
-      {select("tb3Out", "TB-3 OUT", m.outputs)}
-      {select("lpIn", "LAUNCHPAD IN", m.inputs)}
-      {select("lpOut", "LAUNCHPAD OUT", m.outputs)}
-      {select("keysIn", "KEYS IN", m.inputs)}
-      <label className="port">
-        <span className="lbl">TB-3 CHANNEL</span>
-        <select value={m.channel} onChange={(e) => m.setChannel(Number(e.target.value))}>
-          {Array.from({ length: 16 }, (_, i) => (
-            <option key={i} value={i + 1}>
-              {i + 1}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button
-        className={`btn ${m.quietSwitch ? "on" : ""}`}
-        title="Mute the TB-3 while switching patches, so a switch during a pattern is a short gap rather than a pop"
-        onClick={() => m.setQuietSwitch(!m.quietSwitch)}
-      >
-        <span className="l" />
-        QUIET SWITCH
-      </button>
-      <AudioInputChoice audio={p.audio} />
-      <div className="row">
-        <button className="btn" onClick={() => setShowLog((s) => !s)}>
-          {showLog ? "HIDE LOG" : "SHOW LOG"}
-        </button>
-        <button className="btn" onClick={p.onClose}>
-          CLOSE
-        </button>
-      </div>
-      {showLog && <pre className="log">{m.log.join("\n")}</pre>}
-    </div>
-  );
-}
-
-// The audio input for VCO MIX's LIVE view. Names only show once audio input has been allowed, which
-// the first LIVE asks for; until then the menu just offers the automatic choice.
-function AudioInputChoice(p: { audio: Tb3Audio }) {
-  const a = p.audio;
-  const named = a.inputs.filter((d) => d.name);
-  return (
-    <label className="port">
-      <span className="lbl">AUDIO IN (LIVE)</span>
-      <select value={a.inputName ?? ""} onChange={(e) => a.chooseInput(e.target.value)}>
-        <option value="">Automatic (TB-3)</option>
-        {named.map((d) => (
-          <option key={d.id} value={d.name}>
-            {d.name}
-          </option>
-        ))}
-      </select>
-    </label>
   );
 }
 

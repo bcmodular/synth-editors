@@ -21,23 +21,37 @@ Keys are given for the Mac. On Windows, use Ctrl for ⌘.
 ## Getting started
 
 1. Connect the TB-3 by USB, either directly or through a MIDI interface, and open TB-3 Editor.
-2. Click **MIDI** in the TB-3 block. Set **TB-3 IN** and **TB-3 OUT** to the TB-3's ports. When
-   the TB-3 is connected directly, both are called TB-3. Set **TB-3 CHANNEL** to the TB-3's MIDI
-   channel. Only GLOBAL TUNE uses the channel; everything else works on any channel.
+2. Click **SETTINGS** in the TB-3 block (or press ⌘,). On the **MIDI** tab, set **TB-3 IN** and
+   **TB-3 OUT** to the TB-3's ports. When the TB-3 is connected directly, both are called TB-3. Set
+   **TB-3 CHANNEL** to the TB-3's MIDI channel. Only GLOBAL TUNE uses the channel; everything else
+   works on any channel.
 3. Click **SYNC FROM TB-3**. The editor reads the sound the TB-3 is playing and shows it.
 4. Click **CHOOSE…** in the LIBRARY block and pick a folder for your patches and sets. It can
    be an empty folder, or one that already holds `.syx` patch files.
 
 ![Before the first sync](images/first-launch.png)
 
-![MIDI settings](images/midi-settings.png)
+![The settings window's MIDI tab](images/midi-settings.png)
+
+### Settings
+
+**SETTINGS** in the TB-3 block, ⌘, or **Settings…** in the app menu (the File menu on Windows) opens the settings
+window. Its tabs:
+
+- **MIDI**: the TB-3's ports and channel, QUIET SWITCH, and SHOW LOG.
+- **CONTROLLERS**: the Launchpad's ports and brightness, and KEYS IN for a keyboard.
+- **CC**: the knobs assigned with CC learn (**CC** in the TB-3 block opens this tab).
+- **AUDIO**: the input the live view listens to.
+- **LIBRARY**: the library folder, and CHANGE… to choose another.
+
+It reopens on the tab you used last. Esc, CLOSE or a click outside it closes it.
 
 On Windows, a MIDI port can only be used by one app at a time. Close anything else that is using
 the TB-3's port, such as a DAW or MIDI-OX, before you start.
 
 The ports, channel and library folder are remembered.
 
-**AUDIO IN (LIVE)** picks the audio input for the VCO mix's live waveform: see
+**AUDIO IN (LIVE)**, on the AUDIO tab, picks the audio input for the VCO mix's live waveform: see
 [The TB-3's output, live](#the-tb-3s-output-live). Leave it on Automatic to use the TB-3's own USB audio.
 
 **QUIET SWITCH** mutes the TB-3 for the moment it takes to switch patches. Switching while a
@@ -45,8 +59,8 @@ pattern plays can pop or screech, because for a few milliseconds the TB-3 plays 
 old patch and the new one. With QUIET SWITCH on, you hear a short gap instead. It's on to start
 with; if you turn it off, that's remembered.
 
-**SHOW LOG** in the MIDI settings lists the messages going to and from the TB-3, which helps when
-something isn't getting through. The LAUNCHPAD ports are for a Launchpad Pro: see
+**SHOW LOG** on the MIDI tab lists the messages going to and from the TB-3, which helps when
+something isn't getting through. The CONTROLLERS tab's LAUNCHPAD ports are for a Launchpad Pro: see
 [Launchpad Pro](#launchpad-pro). **KEYS IN** is for a keyboard controller such as a Launchkey: see
 [Keyboard and knobs](#keyboard-and-knobs).
 
@@ -156,7 +170,7 @@ Mac calls any audio input a microphone. If you said no, allow TB-3 Editor in Sys
 Privacy & Security → Microphone.
 
 The editor finds the TB-3's audio by itself. If it can't, LIVE says so; choose the input under
-**AUDIO IN (LIVE)** in the MIDI settings. The editor only listens: the TB-3's sound still reaches your
+**AUDIO IN (LIVE)** on the settings window's AUDIO tab. The editor only listens: the TB-3's sound still reaches your
 speakers the way it always has. Whether DRAWN or LIVE is selected, and which LIVE graph, is remembered.
 
 ### Filter, amp, LFO and distortion
@@ -362,8 +376,11 @@ patch.
 ## Launchpad Pro
 
 A Launchpad Pro (the first model, Mk1) plays the set's slots and drives morph, as on the TouchOSC
-panel. Set **LAUNCHPAD IN** and **LAUNCHPAD OUT** in the MIDI settings to its ports (usually its
-*Standalone* port). The editor switches it to Programmer layout and
+panel. Set **LAUNCHPAD IN** and **LAUNCHPAD OUT** on the settings window's CONTROLLERS tab to its ports (usually
+its *Standalone* port).
+
+![The CONTROLLERS tab](images/controller-settings.png)
+ The editor switches it to Programmer layout and
 lights it from then on. Other Launchpad models aren't supported.
 
 The **8 × 8 grid** is the 64 slots, laid out as on screen: slots 1–8 along the top row, 9–16 along
@@ -380,7 +397,7 @@ The buttons down the side:
 | **Shift** | GRAB: hold it, then hold a pad to audition that slot. Releasing the pad goes back to the active patch. Filled slots turn white. |
 | **Quantise** | MORPH: press to start picking a target (filled slots turn orange), and again to stop. Press a pad to make it the target (bright orange), then press harder or softer on it to set AMOUNT. |
 | **Click** | SYNC FROM TB-3. It lights green while the editor reads the TB-3. |
-| **User** | Cycles the Launchpad's brightness: very dim, night, normal, day. The choice is remembered. |
+| **User** | Cycles the Launchpad's brightness: very dim, night, normal, day. The choice is remembered, and LAUNCHPAD BRIGHTNESS on the CONTROLLERS tab sets it too. |
 
 The morph amount follows the pressure on the target pad, so letting go returns to the patch you started
 from. To keep a blend, hold the pad, then store it in a slot or SAVE AS… with the mouse. Pressing the
@@ -391,8 +408,8 @@ menu. With aftertouch off, the pads still pick the target and AMOUNT works from 
 
 ## Keyboard and knobs
 
-A keyboard controller, such as a Launchkey, plays the TB-3 and its knobs can drive the editor. Set **KEYS IN** in
-the MIDI settings to its port.
+A keyboard controller, such as a Launchkey, plays the TB-3 and its knobs can drive the editor. Set **KEYS IN** on
+the settings window's CONTROLLERS tab to its port.
 
 - **Notes and pitch bend** go straight to the TB-3 on TB-3 CHANNEL, whatever channel the keyboard sends on.
 - **Knobs and faders** (MIDI CCs) drive what they're assigned to. A CC that isn't assigned goes to the TB-3 as it
@@ -400,11 +417,13 @@ the MIDI settings to its port.
 
 ![CC assignments](images/cc-settings.png)
 
-**CC** in the TB-3 block lists the assignments. It starts with the Launchkey's knobs from the TouchOSC panel:
+**CC** in the TB-3 block opens the settings window's CC tab, which lists the assignments. It starts with the Launchkey's knobs from the TouchOSC panel:
 CC 74 CUTOFF, 71 RESONANCE, 16 ACCENT, 17 the EFFECT knob, 12 and 13 the XY pad, 104 GLOBAL TUNE, 105 MORPH
 AMOUNT and 1 (the mod wheel) XY MOD. **DEFAULTS** goes back to these.
 
-To assign a knob, click **LEARN**, click a parameter (they're highlighted), then move the knob. EFX parameters
+To assign a knob, click **LEARN**, click a parameter (they're highlighted), then move the knob. The settings
+window steps aside while you do, with a bar at the top saying what it's waiting for, and comes back once the knob
+is learned. EFX parameters
 learn the same way, from their knobs or from the handles in the EFX drawings; a handle that sets two values asks
 which one. A knob learned for an EFX parameter moves it only while that effect type is selected. Each row's own
 **LEARN** gives that row a new knob, and **×** forgets it. Esc stops learning. A knob drives one thing, and each

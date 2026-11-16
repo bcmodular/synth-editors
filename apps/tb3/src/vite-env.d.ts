@@ -25,4 +25,7 @@ interface Window {
     reveal(path: string): Promise<void>;
     onChanged(cb: () => void): () => void;
   };
+  tb3App?: {
+    onSettings(cb: () => void): () => void; // the app menu's Settings… (⌘,)
+  };
 }

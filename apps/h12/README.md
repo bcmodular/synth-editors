@@ -48,3 +48,11 @@ npm run test:h12       # the read-only check against the real H12
   and its payload looks like raw memory (`64 0B 00 20` = 0x20000B64). Answers come doubled or truncated. So the
   USB-A host port numbers in the spec's target table still need checking another way: on the device, in HxMIDI
   Tools, or with the reports that action 0x06 (start reports) sends.
+
+## Findings on the Launchkey 49 Mk4 (2026-11-16)
+
+- **The arpeggiator follows clock sent to its USB MIDI port** (`Launchkey MK4 49 MIDI In`), both generated here and
+  forwarded from the Nome II: changing the tempo changes the arpeggio rate. Forwarding through Web MIDI in the
+  renderer sounded fine, so a native MIDI library isn't needed so far.
+- **Start (`FA`) restarts the arpeggio** from its first step, so forwarding Start keeps it in phase with the Nome II.
+- **Stop (`FC`) doesn't stop it**: the arpeggio runs while keys are held, whatever the transport. That is expected.

@@ -104,8 +104,8 @@ The Launchkey 49 Mk4 has no MIDI input, so the H12 can't clock it. Its USB is co
 
 - **Source:** the Nome II's own USB port "Nome II Clock" (macOS MIDI source). It sends clock in both dawless and Ableton modes (in Ableton mode the Nome II follows Ableton via U-SYNC), and doesn't depend on the H12.
 - **Destination:** the Launchkey's **MIDI** port (not its DAW port).
-- **Forward:** Timing Clock (`F8`) only by default. Start/Stop/Continue (`FA FC FB`) behind an option, in case the arpeggiator needs them to reset its phase.
-- **Timing:** forward each message as soon as it arrives, with no batching or timers. Use a native MIDI library (e.g. `@julusian/midi` in the Electron main process) rather than Web MIDI in the renderer, to keep jitter low.
+- **Forward:** Timing Clock (`F8`) only by default. Start/Stop/Continue (`FA FC FB`) behind an option, in case the arpeggiator needs them to reset its phase. Tested: Start restarts the arpeggio from its first step; Stop doesn't stop it (it runs while keys are held). See apps/h12/README.md.
+- **Timing:** forward each message as soon as it arrives, with no batching or timers. Use a native MIDI library (e.g. `@julusian/midi` in the Electron main process) rather than Web MIDI in the renderer, to keep jitter low. Tested: forwarding through Web MIDI in the renderer sounded fine, so start with that.
 - **One clock only:** if Ableton is set to send clock to the Launchkey's port (Sync output on), the app must not forward as well. Show a warning, or provide a toggle and a note in the Ableton setup.
 - **Toggle:** on/off in the app, remembered between runs. Pause automatically if the source or destination port disappears, and resume when it comes back.
 - **No loops:** never forward anything coming from the Launchkey's own ports back to it.

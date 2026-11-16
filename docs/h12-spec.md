@@ -146,11 +146,11 @@ Example: `0x12345678` → `08 67 0A 0D 09`. An Int16 becomes 3 bytes (bits 0–1
 
 | Index | Port |
 |---|---|
-| 0–15 | USB-A host ports 1–16 (U6MIDI Pro-1/2/3 = 0/1/2, OXI ONE MKII-1/2/3 = 3/4/5 in this rig) |
+| 0–15 | USB host ports 1–16 (U6MIDI Pro-1/2/3 = 0/1/2, OXI ONE MKII-1/2/3 = 3/4/5 in this rig) |
 | 16–23 | USB-C virtual cables 1–8 (to/from the Mac) |
 | 24–29 | MIDI (TRS) 1–6 |
 
-Confirm the host-port numbers on the device: they depend on enumeration order and port reservation.
+CME's page calls indices 0–15 "USB-A host ports"; the H12MIDI Pro's sockets are USB-C, and HxMIDI Tools shows them as "USB-C Host Ins/Outs". The numbers depend on enumeration order unless reserved. Confirmed in HxMIDI Tools (2026-11-16): U6MIDI Pro-1/2/3 on host ports 1/2/3 and OXI ONE MKII-1/2/3 on 4/5/6, inputs and outputs alike, all reserved.
 
 ### Settings used
 
@@ -178,7 +178,7 @@ Confirm the host-port numbers on the device: they depend on enumeration order an
 | 3 options | 0 | follow channel (leave 0) |
 | | 1 / 2 | follow value 1 / follow value 2 |
 | | 26–24 | init flag: write 5 for a mapper in use |
-| 4 USB-A inputs | 31–0 | bit n = USB-A host port n+1 (leave 0) |
+| 4 USB host inputs | 31–0 | bit n = USB host port n+1 (leave 0) |
 | 5 other inputs | 15–0 | USB-C virtual cables (leave 0) |
 | | 31–16 | MIDI inputs: bit 16 = MIDI In 1 … bit 21 = MIDI In 6 |
 
@@ -229,6 +229,6 @@ Value ranges for "all values": word 0 and word 1 = `0x7F007F00`.
 ## Open questions
 
 - ~~Which H12 port answers SysEx~~ Answered: `H12MIDI-Pro Port 1` (USB-C virtual cable 1). See apps/h12/README.md.
-- How to confirm the USB-A host port numbers: status 0x02 is unusable on firmware 4.7 (apps/h12/README.md).
+- ~~How to confirm the host port numbers~~ Answered: confirmed and reserved in HxMIDI Tools (status 0x02 is unusable on firmware 4.7; apps/h12/README.md).
 - Whether a note held during a target switch hangs on the old synth; if so, send All Notes Off (CC 123) on the old target before switching.
 - Pedal CC per target (fill in the TBDs).

@@ -45,9 +45,11 @@ npm run test:h12       # the read-only check against the real H12
 - **Answer flags:** answers can have bit 4 of the command byte set as well as bit 6 (`0x51` for a status answer).
   CME says to ignore the high bits; the parser keeps only the low four.
 - **Status 0x02 (USB device on a port) can't be used.** Whatever index is asked for, the answer has port 0 in byte 9,
-  and its payload looks like raw memory (`64 0B 00 20` = 0x20000B64). Answers come doubled or truncated. So the
-  USB-A host port numbers in the spec's target table still need checking another way: on the device, in HxMIDI
-  Tools, or with the reports that action 0x06 (start reports) sends.
+  and its payload looks like raw memory (`64 0B 00 20` = 0x20000B64). Answers come doubled or truncated.
+- **Host ports, checked in HxMIDI Tools instead:** U6MIDI Pro-1/2/3 are on host ports 1/2/3 (indices 0/1/2) and
+  OXI ONE MKII-1/2/3 on 4/5/6 (indices 3/4/5), inputs and outputs alike, as the spec's target table assumes. All six
+  are reserved, so the numbers don't depend on the order the devices are found. CME's page calls these "USB-A
+  host ports"; the sockets are USB-C and HxMIDI Tools calls them "USB-C Host".
 
 ## Findings on the Launchkey 49 Mk4 (2026-11-16)
 

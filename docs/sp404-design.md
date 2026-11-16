@@ -566,7 +566,7 @@ Lock state isn't in the library file (as in TouchOSC); the app remembers it betw
 
 | Risk | Plan |
 |------|------|
-| The serial protocol is reverse-engineered and may change between firmware versions (notes are for 5.52) | Phase 0 spike on the user's device; check the firmware version on connect and warn if it differs |
+| The serial protocol is reverse-engineered and may change between firmware versions (notes are for 5.52) | Phase 0 spike on the user's device. Built 2026-11-16 (`core/firmware.ts`, `firmware/`): the serial protocol has no version query, so the app sends the MIDI Universal Identity Request when the SP-404's MIDI ports appear and reads the Roland reply's revision bytes after the leading zeros as the version (00 05 05 02 → 5.52; the layout is a guess, to check against a real reply). The top bar shows FW 5.52 quietly; another version shows FW x.yy · UNTESTED (amber) until clicked, which remembers that version; no reply in 2 s shows FW ?. Nothing is blocked. |
 | The serial port may clash with other software using it | Open it only while connected; clear error if busy |
 | Direct FX slots on BUS 1/2 may not hold the factory effects | Setting plus a note (the user's device has the factory ones) |
 | The old controller switched effects off with CC 83 = 0, not CC 19 | Done: both work; the app uses CC 19 |

@@ -169,7 +169,7 @@ export type FakeSp404 = ReturnType<typeof fakeSp404Port>;
 // input the tests play pad notes on. A BCR2000, a Launchpad Pro and a Launchkey are always there too, each with its
 // own input and output, and another controller's input (for CC learn).
 // Also self-contained, for the same reason as the serial fake.
-export function fakeSp404Midi(withInput: boolean) {
+export function fakeSp404Midi(withInput: boolean, firmware: number[] = [0, 5, 5, 2]) {
   type Listener = (e: { data: Uint8Array }) => void;
   const port = (id: string, name: string, type: string) => ({
     id, name, manufacturer: "test", type, state: "connected", connection: "open", onstatechange: null,
@@ -189,12 +189,20 @@ export function fakeSp404Midi(withInput: boolean) {
   const sent: number[][] = [];
   const bcrSent: number[][] = [];
   const sp = inputPort("fake-sp404-in", "SP-404MKII");
+  // The SP-404 answers a Universal Identity Request (on its MIDI input) instead of recording it.
+  const spOut = outputPort("fake-sp404-out", "SP-404MKII", sent);
+  const record = spOut.send;
+  spOut.send = (data: ArrayLike<number>) => {
+    const d = Array.from(data);
+    if (d[0] !== 0xf0 || d[1] !== 0x7e || d[4] !== 0x01) return record(data);
+    if (withInput) setTimeout(() => sp.play(0xf0, 0x7e, 0x10, 0x06, 0x02, 0x41, 0x47, 0x04, 0x00, 0x00, ...firmware, 0xf7));
+  };
   const bcr = inputPort("fake-bcr-in", "BCR2000 Port 1");
   const lpSent: number[][] = [];
   const lp = inputPort("fake-lp-in", "Launchpad Pro Standalone Port");
   const lpLive = inputPort("fake-lp-live-in", "Launchpad Pro Live Port");
   const outputs = [
-    outputPort("fake-sp404-out", "SP-404MKII", sent), outputPort("fake-bcr-out", "BCR2000 Port 1", bcrSent),
+    spOut, outputPort("fake-bcr-out", "BCR2000 Port 1", bcrSent),
     outputPort("fake-lp-live-out", "Launchpad Pro Live Port", []),
     outputPort("fake-lp-out", "Launchpad Pro Standalone Port", lpSent),
   ];
@@ -214,11 +222,11 @@ export function fakeSp404Midi(withInput: boolean) {
 
 // Page script for Playwright: replaces navigator.serial with one that offers the fake port, and Web MIDI with
 // the fake SP-404 MIDI output (or none).
-export function fakeSerialScript(init: FakeSp404Init, midiInput = true): string {
+export function fakeSerialScript(init: FakeSp404Init, midiInput = true, firmware?: number[]): string {
   return `(() => {
     const fake = (${fakeSp404Port.toString()})(${JSON.stringify(init)});
     window.__fakeSp404 = fake;
-    window.__fakeSp404Midi = (${fakeSp404Midi.toString()})(${midiInput});
+    window.__fakeSp404Midi = (${fakeSp404Midi.toString()})(${midiInput}, ${JSON.stringify(firmware)});
     Object.defineProperty(navigator, "serial", { configurable: true, value: {
       requestPort: async () => fake.port,
       getPorts: async () => [fake.port],

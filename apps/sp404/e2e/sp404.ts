@@ -30,7 +30,8 @@ export const DEVICE: FakeSp404Init = {
   bankVolumes: [127, 100, 127, 127, 127, 127, 127, 127, 127, 127],
 };
 
-export async function start(init: FakeSp404Init = DEVICE, opts: { midiInput?: boolean } = {}): Promise<Sp404App> {
+export async function start(init: FakeSp404Init = DEVICE, opts: { midiInput?: boolean; firmware?: number[] } = {},
+): Promise<Sp404App> {
   const profile = await mkdtemp(path.join(tmpdir(), "sp404-e2e-profile-"));
   const env = Object.fromEntries(
     Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && e[0] !== "VITE_DEV_SERVER_URL"),
@@ -42,7 +43,7 @@ export async function start(init: FakeSp404Init = DEVICE, opts: { midiInput?: bo
     env: { ...env, SP404_NO_REAL_SERIAL: "1", E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1" },
   });
   const page = await app.firstWindow();
-  await page.addInitScript({ content: fakeSerialScript(init, opts.midiInput ?? true) });
+  await page.addInitScript({ content: fakeSerialScript(init, opts.midiInput ?? true, opts.firmware) });
   await page.reload();
   await page.locator(".ws[data-pad]").first().waitFor();
   return { app, page, profile };

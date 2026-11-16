@@ -41,6 +41,10 @@ From the left:
   the SP-404 but isn't hearing its notes, so the pad lights fall back on what the serial port reports (hand hits
   only).
 - **USB**: the serial link and the project number. **CONNECT USB** appears while it's off.
+- **FW**: the SP-404's firmware, asked over MIDI when it connects. The USB link was worked out on firmware 5.52;
+  on another version the pill turns amber and says **UNTESTED**. Pad values and names may then go wrong: if they do,
+  stop using the USB link (the effects, over MIDI, aren't affected). Click the pill to stop the warning for that
+  version. **FW ?** means the SP-404 didn't answer.
 - **LAUNCHPAD**: lit when a Launchpad Pro is connected. See [Launchpad Pro](#launchpad-pro).
 - **BCR2000**: lit when a Behringer BCR2000 is connected (see [BCR2000](#bcr2000)).
 - **DEL** (red) and **AUDITION** (white): modes for the presets and scenes. Each stays on until you press it again.

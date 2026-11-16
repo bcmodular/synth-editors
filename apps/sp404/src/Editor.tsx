@@ -6,6 +6,8 @@ import { useBcr } from "./bcr/useBcr";
 import { CcFields, LearnBar, LearnPill } from "./cc/CcPane";
 import { useCcLearn, type CcLearn } from "./cc/useCcLearn";
 import { FxModes, FxRow } from "./fx/FxRow";
+import { FirmwarePill } from "./firmware/FirmwarePill";
+import { useFirmware, type Firmware } from "./firmware/useFirmware";
 import { useFx, type Fx } from "./fx/useFx";
 import { KeysView } from "./keys/KeysView";
 import { useKeyboard } from "./keys/useKeyboard";
@@ -34,6 +36,7 @@ interface TopBarProps {
   bcr?: string;
   launchpad?: string;
   learn: CcLearn;
+  firmware: Firmware;
   onSettings: () => void;
 }
 
@@ -42,7 +45,7 @@ const LinkPill = ({ label, name }: { label: string; name?: string }) => (
   <span className={`pill ${name ? "on" : ""}`} title={name ?? `No ${label} connected`}>{`${label} ${name ? "●" : "○"}`}</span>
 );
 
-function TopBar({ device, fx, midiInput, bcr, launchpad, learn, onSettings }: TopBarProps) {
+function TopBar({ device, fx, midiInput, bcr, launchpad, learn, firmware, onSettings }: TopBarProps) {
   const { link, device: d, error, connect } = device;
   const midiOutput = fx.outputName;
   const project = d.project === undefined ? "" : ` · PROJECT ${String(d.project + 1).padStart(2, "0")}`;
@@ -55,6 +58,7 @@ function TopBar({ device, fx, midiInput, bcr, launchpad, learn, onSettings }: To
       </span>
       {midiOutput && !midiInput && <span className="warn">NO PAD NOTES IN</span>}
       <span className={`pill ${link === "on" ? "on" : ""}`}>{usb}</span>
+      <FirmwarePill firmware={firmware} />
       {link === "off" && <button className="pill" onClick={connect}>CONNECT USB</button>}
       <LinkPill label="LAUNCHPAD" name={launchpad} />
       <LinkPill label="BCR2000" name={bcr} />
@@ -91,6 +95,7 @@ export function Editor() {
   const launchpad = useLaunchpad(fx);
   const keyboard = useKeyboard(fx);
   const learn = useCcLearn(fx);
+  const firmware = useFirmware();
   const [settings, setSettings] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const midiHits = usePadHits(settings.padMidi);
@@ -100,7 +105,8 @@ export function Editor() {
   return (
     <div className={`ld ${learn.learning === "pick" ? "cc-pick" : ""}`} ref={setRoot}>
       <TopBar device={device} fx={fx} midiInput={midiHits.inputName} bcr={bcr.name}
-        launchpad={launchpad.name} learn={learn} onSettings={() => setSettingsOpen(true)} />
+        launchpad={launchpad.name} learn={learn} firmware={firmware}
+        onSettings={() => setSettingsOpen(true)} />
       <LearnBar learn={learn} fx={fx} />
       <FxRow fx={fx} />
       <div className={`mixer ${fx.play.mode === "delete" ? "del" : ""}`}>

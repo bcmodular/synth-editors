@@ -2260,3 +2260,10 @@ button:focus-visible {
   border-color: var(--mute);
   color: var(--mute);
 }
+
+/* The firmware warning in the top bar (firmware/FirmwarePill.tsx). */
+.bar .fw-warn {
+  border-color: var(--meter-hot);
+  color: #000;
+  background: var(--meter-hot);
+}

@@ -9,7 +9,8 @@
     "build": "vite build",
     "start": "vite build && electron .",
     "e2e": "vite build && playwright test",
-    "e2e:hw": "vite build && playwright test -c playwright.hw.config.ts"
+    "e2e:hw": "vite build && playwright test -c playwright.hw.config.ts",
+    "readme:shots": "vite build && playwright test -c playwright.shots.config.ts"
   },
   "devDependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

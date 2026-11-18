@@ -24,6 +24,8 @@ One button per target in [src/targets.json](src/targets.json) (output port index
 A target can list `channels` to choose from, as the JV-2080 does for its parts 6–10: small channel buttons under it.
 The lit one is the target the H12 is set to now, worked out by reading its settings back. Clicking another:
 
+![The Target panel, on the JV-2080's channel 8, with the copy to the Mac on](docs/images/targets.png)
+
 1. reads the routing of MIDI In 2 (pedal) and MIDI In 3 (Launchkey) and mappers 18–23;
 2. the first time ever, keeps those values as a backup, so **Put them back** can restore them;
 3. refuses unless the H12 is on preset 1;
@@ -46,6 +48,8 @@ after the mappers. Switching target keeps it on or off. The **MIDI monitor** pan
 - **Launchkey**: what the keys play, from the Launchkey's own USB port;
 - **Pedal**: what the pedal converter sends, from its own USB port.
 
+![The MIDI monitor: the keys on channel 1, and the H12's copy on the JV-2080's channel 8](docs/images/monitor.png)
+
 Clock and active sensing are left out unless asked for. Turn the copy off when you're done: Ableton or another app
 listening on Port 8 would get the notes too.
 
@@ -66,6 +70,7 @@ reset its phase. Turn Ableton's Sync off for the Launchkey's ports while testing
 npm run dev:h12        # Vite dev server + Electron window
 npm run test:e2e:h12   # Playwright against a fake H12 (real MIDI refused)
 npm run test:h12       # the read-only check against the real H12
+npm run readme:shots -w @synth-editors/h12   # retake the README screenshots against the fake H12
 ```
 
 ## Findings on the real H12 (firmware 4.7, 2026-11-16)

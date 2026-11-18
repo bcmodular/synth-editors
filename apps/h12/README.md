@@ -32,7 +32,8 @@ The lit one is the target the H12 is set to now, worked out by reading its setti
 4. writes only the settings that differ, each read back before the next, and stops at the first problem (an error
    answer, no answer, a bad checksum, or a value that reads back differently).
 
-The Launchkey's input is routed to the target's output only, and mappers 18–22 turn its channel 1 (Note On, Note Off,
+The H12 must be on firmware 4.x: on 5.0 or later the app doesn't switch, as 5.0 stores mappers differently (see
+*CME's answers* below). The Launchkey's input is routed to the target's output only, and mappers 18–22 turn its channel 1 (Note On, Note Off,
 CC, Pitch Bend, Channel AT) into the target's channel. The pedal follows the keys and mapper 23 turns its CC 11 into
 the target's pedal CC; with no pedal CC, the pedal is routed nowhere and mapper 23 is left alone. Nothing else on the
 H12 is ever written: `core/switcher.ts` refuses any other setting. The backup is kept in the app's local storage
@@ -88,16 +89,29 @@ npm run readme:shots -w @synth-editors/h12   # retake the README screenshots aga
   host ports"; the sockets are USB-C and HxMIDI Tools calls them "USB-C Host".
 
 - **Before the first switch** (read 2026-11-16): mappers 0–23 all hold the factory value, with no inputs enabled
-  (words 4 and 5 zero): `7F007F00 7F007F00 00F00F0F 5A000187 0 0`. Word 3's init flag reads 2, and bits 27, 28 and 30
-  are set, which CME doesn't document; a mapper written as the spec says has init flag 5 and those bits clear. The
+  (words 4 and 5 zero): `7F007F00 7F007F00 00F00F0F 5A000187 0 0`. Word 3's top byte is 5A, firmware 4.x's init
+  byte (see *CME's answers* below). The
   Launchkey's input (26) was routed to `2500000F` (U6MIDI Pro 1–3, OXI-1, MIDI Out 1, 3 and 6) and the pedal's (25)
   nowhere.
 
 - **Mapper inputs:** CME's page puts the MIDI inputs in word 5 bits 16–21. The H12 doesn't read those: the first
   switch stored the mappers, but HxMIDI Tools showed them with no input, and the keys stayed on channel 1. Selecting
   MIDI In 3 on one of them in HxMIDI Tools changed word 5 from `00040000` to `04000000`, and nothing else. So the
-  MIDI inputs are bits 24–29, the same numbering as the port index. HxMIDI kept the app's option word `05000006`
-  (init flag 5), so the factory `5A…` value isn't needed.
+  MIDI inputs are bits 24–29, the same numbering as the port index. CME confirmed it (below).
+
+- **CME's answers to our report** (2026-11-19; their page is now version 1.1):
+  - Word 5: MIDI In n = bit 16 + number of cables + n − 1, so bits 24–29 on the H12's 8 cables, on every firmware.
+    Bits 0–7 are USB-C cables 1–8; in word 4, bit n is USB-C host port n + 1.
+  - Status 0x02 is a firmware bug (the record isn't copied into the answer), to be fixed. Until then, the connected
+    devices come from the reports: after Start reports (action 0x06) the H12 sends one record per connected device,
+    then one per connection and disconnection.
+  - **Word 3 depends on the firmware.** Before 5.0 the init flag is the whole top byte, 5A; from 5.0 it is 5 in
+    bits 26–24 with bits 31–27 written 0. On 4.x, **if any mapper lacks 5A at power-up, the H12 resets every setting
+    to factory defaults.** The app wrote flag 5 until 2026-11-19; it now writes 5A, refuses a mapper without it, and
+    won't switch targets on firmware 5.0 or later (5.0 is in beta; the H12 stays on 4.7).
+  - **It had already happened.** On 2026-11-19, after a power cycle, the H12 read factory values: MIDI In 2 routed to
+    `0002FFFF` and MIDI In 3 to `0004FFFF` (every host port plus their own cable), and mappers 18–23 back to the
+    factory value. Everything set up in HxMIDI Tools had gone with them, not only what the app wrote.
 
 ## Findings on the Launchkey 49 Mk4 (2026-11-16)
 

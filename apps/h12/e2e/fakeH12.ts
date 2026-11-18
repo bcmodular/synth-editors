@@ -9,7 +9,7 @@ export interface FakeH12Init {
   firmware?: number; // major.minor in nibbles: 0x47 = 4.7
   preset?: number; // 0-based
   corruptPreset?: boolean; // the preset answer has a wrong checksum
-  settings?: Record<string, number[]>; // "setting:index" → words; unset settings read as zeros
+  settings?: Record<string, number[]>; // "setting:index" → words; unset mappers read as factory ones, other settings as zeros
   failWrite?: string; // "setting:index" whose write is answered with error 0x7C
 }
 
@@ -36,8 +36,11 @@ export function fakeH12Midi(init: FakeH12Init) {
 
   const firmware = () => status(0, [...byte(init.firmware ?? 0x47), ...byte(0x26), ...word(1), ...word(2), ...word(3)]);
   const corrupt = (d: number[]) => [...d.slice(0, -2), (d[d.length - 2]! + 1) & 0x7f, 0xf7];
+  // A mapper never written reads as the factory one (5A: firmware 4.x's init byte); other settings as zeros.
+  const FACTORY_MAPPER = [0x7f007f00, 0x7f007f00, 0x00f00f0f, 0x5a000187, 0, 0];
+  const unset = (id: number) => (id === 3 ? FACTORY_MAPPER : new Array<number>(SIZES[id]!).fill(0));
   const read = (id: number, index: number) => {
-    const words = settings.get(`${id}:${index}`) ?? new Array<number>(SIZES[id]!).fill(0);
+    const words = settings.get(`${id}:${index}`) ?? unset(id);
     const a = frame([0x42, id, words.length, index, ...words.flatMap(word)]);
     return id === 4 && init.corruptPreset ? corrupt(a) : a;
   };

@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 import list from "../targets.json";
-import { inUse } from "./mapper";
+import { hasInit } from "./mapper";
 import { Setting } from "./sysex";
-import { currentTarget, parseTargets, settingKey, targetSettings, type Target } from "./targets";
+import { currentTarget, mappersWithoutInit, parseTargets, settingKey, targetSettings, type Target } from "./targets";
 
 const TB3: Target = { name: "TB-3", output: 0, channel: 2, pedalCc: null };
 const JV: Target = { name: "JV-2080", output: 1, channel: 6, pedalCc: 11 };
 const SP: Target = { name: "SP-404 Mk2", output: 28, channel: 16, pedalCc: null };
+
+describe("mappersWithoutInit", () => {
+  it("names the app's mappers that would reset the H12 at power-up", () => {
+    const current = new Map([["3:18", [0, 0, 0, 0x5a000006, 0, 0]], ["3:19", [0, 0, 0, 0x05000006, 0, 0]]]);
+    expect(mappersWithoutInit(current)).toEqual(["Mapper 19 (Launchkey Note Off)"]);
+  });
+});
 
 describe("targetSettings", () => {
   it("routes the Launchkey to the target's output only, and the pedal nowhere without a pedal CC", () => {
@@ -19,7 +26,7 @@ describe("targetSettings", () => {
   it("writes mappers 18–22 onto the target's channel, 0-based", () => {
     const mappers = targetSettings(TB3).filter((v) => v.setting === Setting.mapper);
     expect(mappers.map((m) => m.index)).toEqual([18, 19, 20, 21, 22]);
-    expect(mappers.every((m) => ((m.words[2]! >>> 24) & 0x0f) === 1 && inUse(m.words))).toBe(true);
+    expect(mappers.every((m) => ((m.words[2]! >>> 24) & 0x0f) === 1 && hasInit(m.words))).toBe(true);
   });
 
   it("routes the pedal with the keys and maps CC 11 to the target's pedal CC", () => {

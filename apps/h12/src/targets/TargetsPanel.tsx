@@ -84,6 +84,19 @@ function MonitorSwitch({ t }: { t: Targets }) {
   );
 }
 
+// Mappers the app wrote before it knew firmware 4.x needs 5A in word 3: switching target rewrites them.
+function InitWarning({ t }: { t: Targets }) {
+  if (t.withoutInit.length === 0) return null;
+  return (
+    <div className="problems" role="alert">
+      <p>
+        <strong>Don't power off the H12 yet.</strong> {t.withoutInit.join(", ")} lack the init byte 5A, so at
+        power-up it would reset every setting to factory defaults. Click a target to rewrite them.
+      </p>
+    </div>
+  );
+}
+
 function BackupLine({ t }: { t: Targets }) {
   if (!t.backup) return null;
   const date = new Date(t.backup.savedAt).toLocaleString();
@@ -104,6 +117,7 @@ export function TargetsPanel({ t }: { t: Targets }) {
       {t.listProblems.length > 0 && (
         <ul className="problems" role="alert">{t.listProblems.map((p) => <li key={p}>{p}</li>)}</ul>
       )}
+      <InitWarning t={t} />
       <Now t={t} />
       <div className="target-grid">{t.targets.map((target) => <TargetButton key={target.name} target={target} t={t} />)}</div>
       <MonitorSwitch t={t} />

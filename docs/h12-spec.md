@@ -183,10 +183,11 @@ CME's page calls indices 0–15 "USB-A host ports"; the H12MIDI Pro's sockets ar
 | | 28 | keep original (leave 0) |
 | 3 options | 0 | follow channel (leave 0) |
 | | 1 / 2 | follow value 1 / follow value 2 |
-| | 26–24 | init flag: write 5 for a mapper in use |
-| 4 USB host inputs | 31–0 | bit n = USB host port n+1 (leave 0) |
-| 5 other inputs | 15–0 | USB-C virtual cables (leave 0) |
-| | 29–24 | MIDI inputs: bit 24 = MIDI In 1 … bit 29 = MIDI In 6 (the port index). CME's page says bits 16–21; on firmware 4.7, HxMIDI Tools sets bit 26 for MIDI In 3 |
+| | 31–24 | init byte, before firmware 5.0: write 5A. At power-up, firmware 4.x resets every setting to factory defaults if any mapper lacks it |
+| | 26–24 | init flag, from firmware 5.0: write 5, with bits 31–27 0 (the app doesn't write this format yet) |
+| 4 USB host inputs | 31–0 | bit n = USB-C host port n+1 (leave 0) |
+| 5 other inputs | 7–0 | USB-C virtual cables 1–8 (leave 0) |
+| | 29–24 | MIDI inputs: MIDI In n = bit 16 + 8 cables + n − 1, so bit 24 = MIDI In 1 … bit 29 = MIDI In 6 (CME's page from version 1.1, on every firmware) |
 
 ### Mapper allocation
 

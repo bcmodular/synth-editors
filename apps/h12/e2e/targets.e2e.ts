@@ -7,7 +7,7 @@ let running: H12App | undefined;
 test.afterEach(async () => finish(running));
 
 // The H12 before the app ever wrote to it: the Launchkey routed everywhere, a manual mapper in slot 18.
-const BEFORE = { "0:26": [0x3fffffff], "0:25": [1 << 24], "3:18": [1, 2, 3, 4, 5, 6] };
+const BEFORE = { "0:26": [0x3fffffff], "0:25": [1 << 24], "3:18": [1, 2, 3, 0x5a000000, 5, 6] };
 
 const target = (page: Page, name: string) => page.getByRole("button", { name: new RegExp(`^${name} `) });
 
@@ -68,7 +68,7 @@ test("puts the H12's previous settings back", async () => {
   await expect(r.page.getByRole("status")).toContainText("Put back the previous settings: wrote");
   expect(await fakeSetting(r.page, "0:26")).toEqual(BEFORE["0:26"]);
   expect(await fakeSetting(r.page, "3:18")).toEqual(BEFORE["3:18"]);
-  expect(await fakeSetting(r.page, "3:23")).toEqual([0, 0, 0, 0, 0, 0]);
+  expect(await fakeSetting(r.page, "3:23")).toEqual([0x7f007f00, 0x7f007f00, 0x00f00f0f, 0x5a000187, 0, 0]); // factory
   await expect(r.page.getByText("don't match any target")).toBeVisible();
 });
 
@@ -80,4 +80,20 @@ test("plays the JV-2080 on a chosen channel", async () => {
   expect(((await fakeSetting(r.page, "3:18"))![2]! >>> 24) & 0x0f).toBe(7);
   await r.page.getByRole("button", { name: "Channel 9 for JV-2080" }).click();
   await expect(r.page.getByRole("status")).toHaveText("Switched to JV-2080 ch 9: wrote 6 settings, 2 already matched.");
+});
+
+test("won't switch on firmware 5.0, which stores mappers differently", async () => {
+  const r = (running = await start({ settings: BEFORE, firmware: 0x50 }));
+  await target(r.page, "TB-3").click();
+  await expect(r.page.locator(".targets").getByRole("alert")).toContainText("Firmware 5.0 stores mappers differently");
+  expect(await settingWrites(r.page)).toEqual([]);
+});
+
+test("warns about mappers without the init byte until a switch rewrites them", async () => {
+  const flag5 = [0x7f007f00, 0x7f007f00, 0x01000000, 0x05000006, 0, 1 << 26];
+  const r = (running = await start({ settings: { ...BEFORE, "3:18": flag5, "3:19": flag5 } }));
+  const warning = r.page.locator(".targets").getByRole("alert");
+  await expect(warning).toContainText("Mapper 18 (Launchkey Note On), Mapper 19 (Launchkey Note Off) lack");
+  await switchTo(r.page, "TB-3");
+  await expect(warning).toHaveCount(0);
 });

@@ -6,6 +6,7 @@
 
 import { answerBytes } from "./hub";
 import { ask, type Lane, type Listen } from "./link";
+import { hasInit } from "./mapper";
 import { presetOf } from "./status";
 import { readSetting, Setting, settingWords, writeSetting } from "./sysex";
 import { sameWords, settingKey, SWITCH_SETTINGS, type SettingValue } from "./targets";
@@ -78,10 +79,17 @@ export interface ApplyReport {
   problem?: string; // the first one; nothing after it was written
 }
 
+// On firmware 4.x, a mapper without 5A in word 3's top byte makes the H12 reset every setting at power-up.
+function initProblem(wanted: SettingValue[]): string | undefined {
+  const bad = wanted.find((v) => v.setting === Setting.mapper && !hasInit(v.words));
+  return bad && `${bad.label}: ${hexWords(bad.words)} lacks the init byte 5A, which would reset the H12 at power-up`;
+}
+
 // Writes the settings that differ from `current` (read just before), each read back before the next.
 export async function applySettings(io: Io, wanted: SettingValue[], current: Current): Promise<ApplyReport> {
   wanted.forEach(assertAllowed);
-  const report: ApplyReport = { written: [], skipped: [] };
+  const report: ApplyReport = { written: [], skipped: [], problem: initProblem(wanted) };
+  if (report.problem) return report;
   const changes = wanted.filter((v) => !sameWords(current.get(settingKey(v)), v.words));
   report.skipped = wanted.filter((v) => !changes.includes(v)).map((v) => v.label);
   if (changes.length === 0) return report;

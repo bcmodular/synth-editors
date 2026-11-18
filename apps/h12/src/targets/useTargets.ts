@@ -4,9 +4,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { backupOf, parseBackup, type Backup } from "../core/backup";
+import { mapperFormatProblem } from "../core/status";
 import { applySettings, readSwitchSettings, type ApplyReport, type Current, type Io } from "../core/switcher";
-import { currentTarget, parseTargets, targetSettings, type Choice, type SettingValue, type Target } from "../core/targets";
+import { currentTarget, mappersWithoutInit, parseTargets, targetSettings, type Choice, type SettingValue, type Target } from "../core/targets";
 import list from "../targets.json";
+import type { HubReport } from "../core/hub";
 import type { HubState } from "../hub/useHub";
 
 const BACKUP_KEY = "h12.backup";
@@ -56,8 +58,12 @@ function keepBackup(current: Current): Backup {
   return backup;
 }
 
-// Reads, keeps the backup if there's none yet, writes what differs, and reads again to show the result.
-async function run(io: Io, wanted: (current: Current) => SettingValue[]): Promise<{ report: ApplyReport; after?: Current }> {
+// Reads, keeps the backup if there's none yet, writes what differs, and reads again to show the result. Writes
+// nothing unless the firmware stores mappers the way the app writes them.
+async function run(io: Io, hub: HubReport, wanted: (current: Current) => SettingValue[]):
+Promise<{ report: ApplyReport; after?: Current }> {
+  const format = mapperFormatProblem(hub.firmware);
+  if (format) return { report: { written: [], skipped: [], problem: format } };
   const before = await readSwitchSettings(io);
   if ("problem" in before) return { report: { written: [], skipped: [], problem: before.problem } };
   keepBackup(before.ok);
@@ -108,26 +114,28 @@ function useActions(apply: Apply, active: Choice | undefined, backup: Backup | u
 }
 
 export function useTargets(hub: HubState) {
-  const io = hub.kind === "ready" ? hub.io : undefined;
+  const link = hub.kind === "ready" ? hub : undefined;
+  const io = link?.io;
   const { current, setCurrent, readProblem } = useCurrent(io);
   const [busy, setBusy] = useState<string>();
   const [outcome, setOutcome] = useState<Outcome>();
   const [backup, setBackup] = useState(loadBackup);
 
   const apply = useCallback(async (wording: Wording, wanted: (current: Current) => SettingValue[]) => {
-    if (!io) return;
+    if (!link) return;
     setBusy(wording.doing);
-    const { report, after } = await run(io, wanted);
-    if (after) setCurrent(after);
+    const done = await run(link.io, link.report, wanted);
+    if (done.after) setCurrent(done.after);
     setBackup(loadBackup());
-    setOutcome({ wording, report });
+    setOutcome({ wording, report: done.report });
     setBusy(undefined);
-  }, [io, setCurrent]);
+  }, [link, setCurrent]);
 
-  const active = current ? currentTarget(TARGETS, current) : undefined;
-  const actions = useActions(apply, active, backup);
+  const read = current ? { active: currentTarget(TARGETS, current), withoutInit: mappersWithoutInit(current) }
+    : { active: undefined, withoutInit: [] };
+  const actions = useActions(apply, read.active, backup);
   return {
-    targets: TARGETS, listProblems: LIST_PROBLEMS, ready: !!current && !!io, active, readProblem, busy, outcome,
+    targets: TARGETS, listProblems: LIST_PROBLEMS, ...read, ready: !!current && !!io, readProblem, busy, outcome,
     backup, ...actions,
   };
 }

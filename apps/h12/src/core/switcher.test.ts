@@ -3,7 +3,7 @@ import { backupOf, parseBackup } from "./backup";
 import { applySettings, readSwitchSettings } from "./switcher";
 import { Setting } from "./sysex";
 import { currentTarget, settingKey, targetSettings, type Target } from "./targets";
-import { testHub, type TestHubInit } from "./testHub";
+import { FACTORY_MAPPER, testHub, type TestHubInit } from "./testHub";
 
 const TB3: Target = { name: "TB-3", output: 0, channel: 2, pedalCc: null };
 const JV: Target = { name: "JV-2080", output: 1, channel: 6, pedalCc: 11 };
@@ -73,6 +73,15 @@ describe("applySettings", () => {
     expect(hub.writes()).toEqual([]);
   });
 
+  it("refuses a mapper without the init byte 5A, which would reset the H12 at power-up", async () => {
+    const hub = freshHub();
+    const mapper = { label: "Mapper 18 (Launchkey Note On)", setting: Setting.mapper, index: 18,
+      words: [0x7f007f00, 0x7f007f00, 0x01000000, 0x05000006, 0, 1 << 26] };
+    const report = await applySettings(hub.io, [mapper], new Map());
+    expect(report.problem).toContain("lacks the init byte 5A");
+    expect(hub.writes()).toEqual([]);
+  });
+
   it("only ever writes routing of inputs 25 and 26 and mappers 18–23", async () => {
     const hub = freshHub();
     await switchTo(hub, TB3);
@@ -83,7 +92,7 @@ describe("applySettings", () => {
 
 describe("backup", () => {
   it("restores the H12's previous settings", async () => {
-    const hub = freshHub({ settings: { "0:26": [7], "0:25": [8], "3:18": [1, 2, 3, 4, 5, 6] } });
+    const hub = freshHub({ settings: { "0:26": [7], "0:25": [8], "3:18": [1, 2, 3, 0x5a000000, 5, 6] } });
     const first = await readSwitchSettings(hub.io);
     if (!("ok" in first)) throw new Error();
     const backup = parseBackup(JSON.parse(JSON.stringify(backupOf(first.ok, new Date(0)))))!;
@@ -92,8 +101,8 @@ describe("backup", () => {
     const report = await applySettings(hub.io, backup.settings, "ok" in current ? current.ok : new Map());
     expect(report.problem).toBeUndefined();
     expect(hub.settings.get("0:26")).toEqual([7]);
-    expect(hub.settings.get(settingKey({ setting: 3, index: 18 }))).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(hub.settings.get("3:23")).toEqual([0, 0, 0, 0, 0, 0]);
+    expect(hub.settings.get(settingKey({ setting: 3, index: 18 }))).toEqual([1, 2, 3, 0x5a000000, 5, 6]);
+    expect(hub.settings.get("3:23")).toEqual(FACTORY_MAPPER);
   });
 
   it("refuses a backup that isn't exactly the switch settings", () => {

@@ -12,6 +12,8 @@ export interface TestHubInit {
 }
 
 const frame = (body: number[]) => [...HEADER, HUB, ...body, checksum(body), 0xf7];
+// A mapper never written reads as the factory one, with firmware 4.x's init byte 5A.
+export const FACTORY_MAPPER = [0x7f007f00, 0x7f007f00, 0x00f00f0f, 0x5a000187, 0, 0];
 const SIZES: Record<number, number> = { [Setting.routing]: 1, [Setting.mapper]: 6, [Setting.currentPreset]: 1 };
 
 export function testHub(init: TestHubInit = {}) {
@@ -21,7 +23,8 @@ export function testHub(init: TestHubInit = {}) {
   const listeners = new Set<(data: number[], input: string) => void>();
 
   const read = (id: number, index: number) => {
-    const words = settings.get(`${id}:${index}`) ?? new Array<number>(SIZES[id] ?? 1).fill(0);
+    const words = settings.get(`${id}:${index}`)
+      ?? (id === Setting.mapper ? FACTORY_MAPPER : new Array<number>(SIZES[id] ?? 1).fill(0));
     return frame([0x42, id, words.length, index, ...words.flatMap(encodeWord)]);
   };
   const write = (d: number[]) => {

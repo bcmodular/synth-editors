@@ -2,7 +2,7 @@
 // H12 settings below, which are the only ones target switching touches: the routing of MIDI In 2 (pedal) and
 // MIDI In 3 (Launchkey), and mappers 18–23.
 
-import { ALL, MapperMessage, mapperWords, only, type MapperSpec } from "./mapper";
+import { ALL, hasInit, MapperMessage, mapperWords, only, type MapperSpec } from "./mapper";
 import { Setting, type SettingRef } from "./sysex";
 
 export interface Target {
@@ -111,6 +111,13 @@ const matches = (current: ReadonlyMap<string, number[]>, wanted: SettingValue[])
 
 const choicesOf = (target: Target): Choice[] =>
   channelsOf(target).flatMap((channel) => [false, true].map((monitor) => ({ target, channel, monitor })));
+
+// The app's mappers that lack firmware 4.x's init byte 5A (written before 2026-11-19): at power-up the H12 would reset
+// every setting to factory defaults.
+export const mappersWithoutInit = (current: ReadonlyMap<string, number[]>): string[] =>
+  SWITCH_SETTINGS.filter((s) => s.setting === Setting.mapper)
+    .filter((s) => { const w = current.get(settingKey(s)); return !!w && !hasInit(w); })
+    .map((s) => s.label);
 
 // The target, channel and monitoring the H12 is set to now, if its settings match one exactly.
 export function currentTarget(targets: readonly Target[], current: ReadonlyMap<string, number[]>): Choice | undefined {

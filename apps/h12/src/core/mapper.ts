@@ -4,11 +4,14 @@
 export const MapperMessage = { noteOn: 0, noteOff: 1, cc: 2, programChange: 3, pitchBend: 4, channelAT: 5 } as const;
 
 export const MAPPER_WORDS = 6;
-export const IN_USE = 5; // the init flag, word 3 bits 26–24
+// Word 3's init flag. Before firmware 5.0 it takes the whole top byte, 5A, and at power-up the H12 resets every
+// setting to factory defaults if any mapper lacks it (CME, 2026-11-19). From 5.0 it is 5 in bits 26–24; the app only
+// writes the 4.x format, and won't switch targets on 5.0 or later (status.ts mapperFormatProblem).
+export const INIT = 0x5a;
 const FOLLOW_VALUE_1 = 1 << 1;
 const FOLLOW_VALUE_2 = 1 << 2;
-// Word 5: the MIDI inputs use the H12's port numbering, bit 24 = MIDI In 1 … bit 29 = MIDI In 6. CME's page says
-// bits 16–21, but a mapper set up in HxMIDI Tools on firmware 4.7 has MIDI In 3 as bit 26 (apps/h12/README.md).
+// Word 5: USB-C virtual cables 1–8 in bits 0–7, then the MIDI inputs: MIDI In n = bit 16 + 8 cables + n − 1, so
+// bit 24 = MIDI In 1 … bit 29 = MIDI In 6 (CME's page from version 1.1; found on the H12 first).
 const MIDI_INPUTS = 24;
 
 export interface Range {
@@ -43,10 +46,11 @@ const messages = (m: MapperSpec) =>
     | (m.output.channel << 24)) >>> 0;
 
 const options = (m: MapperSpec) =>
-  ((m.follow1 ? FOLLOW_VALUE_1 : 0) | (m.follow2 ? FOLLOW_VALUE_2 : 0) | (IN_USE << 24)) >>> 0;
+  ((m.follow1 ? FOLLOW_VALUE_1 : 0) | (m.follow2 ? FOLLOW_VALUE_2 : 0) | (INIT << 24)) >>> 0;
 
 export function mapperWords(m: MapperSpec): number[] {
   return [values(m.input), values(m.output), messages(m), options(m), 0, (1 << (MIDI_INPUTS + m.midiIn - 1)) >>> 0];
 }
 
-export const inUse = (words: readonly number[]): boolean => ((words[3]! >>> 24) & 0x07) === IN_USE;
+// Whether a mapper has the init byte firmware 4.x needs at power-up.
+export const hasInit = (words: readonly number[]): boolean => words[3]! >>> 24 === INIT;

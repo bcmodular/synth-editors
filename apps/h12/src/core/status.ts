@@ -32,6 +32,14 @@ export function parseFirmware(d: readonly number[]): Firmware | undefined {
 export const firmwareOk = (f: Pick<Firmware, "major" | "minor">): boolean =>
   f.major > MIN_FIRMWARE.major || (f.major === MIN_FIRMWARE.major && f.minor >= MIN_FIRMWARE.minor);
 
+// Firmware 5.0 changed word 3 of the mapper (core/mapper.ts INIT). The app writes the 4.x format only, so it won't
+// switch targets on 5.0 or later, nor when the firmware is unknown.
+export function mapperFormatProblem(f: Pick<Firmware, "major" | "version"> | undefined): string | undefined {
+  if (!f) return "The H12's firmware is unknown, so the app can't tell how it stores mappers";
+  if (f.major < 5) return undefined;
+  return `Firmware ${f.version} stores mappers differently from 4.x, which is all the app writes so far`;
+}
+
 export const isHub = (f: Firmware): boolean => f.productId === HUB;
 
 export interface Preset {

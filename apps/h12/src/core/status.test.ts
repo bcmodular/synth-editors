@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firmwareOk, isHub, parseFirmware, parsePreset } from "./status";
+import { firmwareOk, isHub, mapperFormatProblem, parseFirmware, parsePreset } from "./status";
 import { firmwareAnswer, presetAnswer } from "./testFrames";
 
 describe("parseFirmware", () => {
@@ -25,6 +25,14 @@ describe("firmwareOk", () => {
     expect(firmwareOk({ major: 5, minor: 0 })).toBe(true);
     expect(firmwareOk({ major: 4, minor: 6 })).toBe(false);
     expect(firmwareOk({ major: 3, minor: 9 })).toBe(false);
+  });
+});
+
+describe("mapperFormatProblem", () => {
+  it("allows the 4.x mapper format only", () => {
+    expect(mapperFormatProblem({ major: 4, version: "4.7" })).toBeUndefined();
+    expect(mapperFormatProblem({ major: 5, version: "5.0" })).toContain("Firmware 5.0 stores mappers differently");
+    expect(mapperFormatProblem(undefined)).toContain("unknown");
   });
 });
 

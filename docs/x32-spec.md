@@ -13,14 +13,14 @@ rename in X32-Edit is picked up straight away.
 
 ## Context
 
-- **Mixer:** Behringer X32 Rack, firmware 4.x (user routing), on the home network. Arrives Saturday 21 November 2026;
+- **Mixer:** Behringer X32 Rack, firmware 4.x (user routing), on the home network. Expected Monday 23 November 2026;
   30-day return window from Thomann, so the two assumptions below must be proven in the first week.
 - **Other clients:** X32-Edit on the Mac and the X-Touch (XCTL over Ethernet) run at the same time. This app must work
   alongside both.
 - **Rig and routing:** the Claude Doc "Studio routing plan: X32 Rack and X-Touch"
   (https://claude.ai/artifact/9EFM4yoc6BZSYW3f4NXwNq). It describes how the desk *should* be set up. The app reads how
   it *is* set up.
-- **Tempo bridge:** not built yet (open item in the routing plan). It's built in this app (phase 6), reading
+- **Tempo bridge:** not built yet (open item in the routing plan). It's built in this app (phase 5), reading
   "Nome II Clock" itself. CoreMIDI lets the H12 app's Launchkey forwarder read the same port at the same time.
 - **Reference:** Patrick-Gilles Maillot, "Unofficial X32/M32 OSC Remote Protocol", and his X32 emulator for testing
   without the desk. Every OSC address in this plan is a starting point, to check against that document and the real
@@ -28,8 +28,9 @@ rename in X32-Edit is picked up straight away.
 
 ## Assumptions to prove first
 
-The whole idea rests on these. Prove them on day one (phases 1 and 2) before building anything else. If either fails,
-stop and report.
+The whole idea rests on these. Prove them on day one (phase 6) before building anything more. If either fails, stop
+and report: the work done against the fake is then thrown away, which is the accepted cost of starting before the desk
+arrives (and the desk goes back within the return window).
 
 1. **Same calls as X32-Edit.** OSC over UDP port 10023: `/info` answers, `/ch/01/config/name` reads back, and a send
    level written from the app changes on the desk.
@@ -260,24 +261,48 @@ the prompt check has real phrases to test.
 
 Each phase leaves the app runnable and ends with its tests passing, like the H12 build order.
 
-0. **Before the desk arrives (19–20 Nov):** the `apps/x32` scaffold (copy of the H12 shell), `core/osc.ts`,
-   `client.ts`, `cache.ts`, `faderLaw.ts`, and `e2e/fakeX32.ts`. Run against Maillot's emulator to check the codec.
-1. **Read-only check (day one):** connect, `/info` (show model and firmware, warn if not 4.x), `/xremote`, read
-   everything in the table above, and show the **Rig panel**: sources, destinations, device pairs, FX slots and their
-   roles, spare channels, and anything odd (a bus with no matching channel, a name used twice). Proves assumption 1's
-   reads. Answers the day-one questions (below) and writes them into `apps/x32/README.md`.
-2. **Coexistence test:** one hand-picked send write with read-back, from a debug control (not chat). Watch X32-Edit and
-   the X-Touch follow; move an X-Touch fader and watch the cache update. Proves assumption 2. **Stop here and report if
-   either assumption fails.**
-3. **Sends without chat:** `rig.ts`, `guards.ts`, `planner.ts` (sendTo, removeSend, includeEffects), `applier.ts` with
-   read-back and undo, driven from a small form in the Rig panel. Acceptance tests 2–4, 6, 7 and 8 without the model.
-4. **Chat:** the Claude relay, `agent.ts`, `tools.ts`, the chat panel with plan summaries, Apply / Cancel and Undo,
-   and the chat log from the first request. Acceptance tests 1–4 and 6 by chat.
-5. **Inserts and effects:** `effects.ts` tables, insertFx, removeInsert, setFxParam, and spare-channel user routing if
-   aux channels have no inserts. Acceptance test 9.
-6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling. Acceptance test 5.
-7. **Scenes and snippets:** recall by name. Creating them only if the open question below says so.
-8. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
+Everything that doesn't depend on a hardware fact is built before the desk arrives, against `e2e/fakeX32.ts`. The
+facts that are still unknown (the day-one questions below) are kept in two places only, so day one changes little:
+OSC addresses in `core/addresses.ts`, and desk behaviour as switches on the fake (see "The fake desk" under Testing).
+Code that depends on an unknown handles both answers, and the e2e tests run it under both.
+
+**Before the desk (19–22 Nov, against the fake):**
+
+0. **Scaffold and OSC core:** the `apps/x32` scaffold (copy of the H12 shell), the UDP relay, `core/osc.ts`,
+   `client.ts`, `cache.ts`, `addresses.ts`, `faderLaw.ts`, and `e2e/fakeX32.ts` seeded with the routing plan's rig.
+   A capture switch in the relay (`X32_CAPTURE=1`) that writes every OSC message in and out to the data folder. Check
+   the codec against Maillot's emulator as a second fake.
+1. **Read path and Rig panel:** connect, `/info` (show model and firmware, warn if not 4.x), `/xremote` renewal, read
+   everything in the table above, `rig.ts`, and the **Rig panel**: sources, destinations, device pairs, FX slots and
+   their roles, spare channels, and anything odd (a bus with no matching channel, a name used twice). Acceptance tests
+   7, 8 and 10 against the fake.
+2. **Sends without chat:** `guards.ts`, `planner.ts` (sendTo, removeSend, includeEffects), `applier.ts` with
+   read-back and undo, driven from a small form in the Rig panel. Acceptance tests 2–4 and 6 without the model.
+3. **Chat:** the Claude relay, `agent.ts`, `tools.ts`, the chat panel with plan summaries, Apply / Cancel and Undo, and
+   the chat log. Uses the real model against the fake, so the system prompt and tools can be tuned, and the prompt
+   check run, before day one. Acceptance tests 1–4 and 6 by chat (1 without X32-Edit).
+4. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and
+   spare-channel user routing. Built for both answers to "do aux channels have inserts?". Acceptance test 9, and test 5
+   without the tempo.
+5. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling. The Nome II is here already, so this runs with the
+   real clock writing to the fake. Acceptance test 5 on the fake.
+
+**Day one (from 23 Nov, on the desk):**
+
+6. **Proof:** `npm run test:x32` (read-only check) with capture on. Answer the day-one questions from the capture and
+   the Rig panel, write them into `apps/x32/README.md`, then fix `addresses.ts`, set the fake's switches to match, and
+   run `npm run check:x32-fake` (the fake's replies compared with the capture) and the e2e tests again. Then the
+   coexistence test: one hand-picked send write with read-back, from a debug control (not chat), watching X32-Edit and
+   the X-Touch follow, and an X-Touch fader move reaching the cache. **Stop here and report if either assumption
+   fails.**
+7. **Acceptance on the desk:** tests 1–10 by chat with X32-Edit and the X-Touch connected, and the prompt check
+   against the real rig names.
+
+**Later:**
+
+8. **Scenes and snippets:** recall by name. Creating them only if the open question below says so. (Can also be built
+   against the fake, once scene names are in it.)
+9. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
    build controls for the common ones, such as a sampler matrix (sources × SP-404 / Koala / P-6, one click per send)
    or one-click inserts. They call the same planner and applier as the chat, so the guards, confirmation and undo
    come for free. Frequent phrases that still go to chat can get a parser that runs before the model (free and
@@ -291,6 +316,16 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
   state (seeded from this rig), answering reads, applying writes and sending `/xremote` notifications. The app is
   pointed at it with `X32_HOST=127.0.0.1:<port>`, and `X32_FAKE_CLAUDE=1` swaps the Claude relay for scripted replies.
   As in the H12 app, tests run hidden and can never reach the real desk.
+- **The fake desk:** built from Maillot's document, seeded with the routing plan's rig (names, links, sends, FX 1 and
+  2 fed by buses 3-4 and 5-6, ch 15–16 unnamed). Every day-one unknown is a switch on it: aux channels with or without
+  inserts, whether a send written to one side of a linked pair mirrors to the other, tap point per send or per bus
+  pair, FX return numbering, which slots take delays, and how many `/xremote` clients it takes. Tests that depend on
+  a switch run under each setting. The fake can also be started on its own (`npm run fake:x32`) so the dev app can
+  point at it for trying the chat by hand.
+- **Fake fidelity (day one):** `npm run check:x32-fake` replays the reads in a capture from the real desk against the
+  fake and lists every reply that differs. Captures stay in the data folder, not the repo.
+- **Chat log from the fake:** entries record `desk: "fake"` or `"real"`, so testing before day one doesn't count as use
+  when the log is mined for buttons later.
 - **Hardware (`npm run test:x32`):** the read-only check against the real desk, plus a send round trip that restores
   the value afterwards.
 - **Prompt check (on demand, costs money):** a short list of phrases ("route S-1 to the P-6", "also send the TB-3",
@@ -324,7 +359,9 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
 9. Asking to change the type of FX 1 or FX 2 is refused while buses 3-4 and 5-6 feed them (guard 3).
 10. Renaming bus 11 in X32-Edit changes what the chat can resolve without restarting the app.
 
-## Day-one questions (answer in phase 1, record in apps/x32/README.md)
+## Day-one questions (answer in phase 6, record in apps/x32/README.md)
+
+Each one is a switch on the fake (or an address in `addresses.ts`) until it's answered.
 
 - Do aux input channels have an insert point? If not, the user-routing address for moving aux in 5 onto ch 15.
 - Exact addresses on firmware 4.x for user routing, FX source selection, insert selection and output patching.

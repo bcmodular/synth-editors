@@ -1,7 +1,6 @@
-// Phase 0 (docs/x32-spec.md): the app finds the fake desk, subscribes to notifications, notices when the desk goes
-// away and comes back, and never reaches anything but this machine in tests.
+// Phase 0 (docs/x32-spec.md): the app finds the fake desk, notices when it goes away and comes back, and never reaches
+// anything but this machine in tests. Reading the desk and the rig are in rig.e2e.ts.
 import { expect, test } from "@playwright/test";
-import { send, strip } from "../src/core/addresses";
 import { facts, finish, start, status, type X32App } from "./x32";
 
 let running: X32App | undefined;
@@ -19,14 +18,6 @@ test("warns about another model or firmware", async () => {
   const r = (running = await start({ model: "X32", firmware: "3.08" }));
   await expect(r.page.locator(".problems")).toContainText("not an X32 Rack");
   await expect(r.page.locator(".problems")).toContainText("Firmware 3.08");
-});
-
-test("a change made on the desk reaches the app", async () => {
-  const r = (running = await start());
-  await expect(status(r.page)).toHaveText("Connected");
-  const before = Number((await facts(r.page))["Values known"]);
-  r.fake!.set(send(strip("auxin", 3), 11).level, 0.5);
-  await expect.poll(async () => Number((await facts(r.page))["Values known"])).toBe(before + 1);
 });
 
 test("says when the desk is unreachable, and reconnects", async () => {

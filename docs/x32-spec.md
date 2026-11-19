@@ -268,14 +268,16 @@ Code that depends on an unknown handles both answers, and the e2e tests run it u
 
 **Before the desk (19–22 Nov, against the fake):**
 
-0. **Scaffold and OSC core:** the `apps/x32` scaffold (copy of the H12 shell), the UDP relay, `core/osc.ts`,
+0. **Scaffold and OSC core (done):** the `apps/x32` scaffold (copy of the H12 shell), the UDP relay, `core/osc.ts`,
    `client.ts`, `cache.ts`, `addresses.ts`, `faderLaw.ts`, and `e2e/fakeX32.ts` seeded with the routing plan's rig.
    A capture switch in the relay (`X32_CAPTURE=1`) that writes every OSC message in and out to the data folder. Check
    the codec against Maillot's emulator as a second fake.
-1. **Read path and Rig panel:** connect, `/info` (show model and firmware, warn if not 4.x), `/xremote` renewal, read
+1. **Read path and Rig panel (done):** connect, `/info` (show model and firmware, warn if not 4.x), `/xremote` renewal, read
    everything in the table above, `rig.ts`, and the **Rig panel**: sources, destinations, device pairs, FX slots and
    their roles, spare channels, and anything odd (a bus with no matching channel, a name used twice). Acceptance tests
-   7, 8 and 10 against the fake.
+   7, 8 and 10 against the fake. Built with single reads, 16 in flight (about 2,700 addresses); `/node` batch reads
+   only if the real desk turns out slow, once a capture shows its reply format. Addresses the desk doesn't answer are
+   listed, not treated as errors, so a missing aux insert point shows up there.
 2. **Sends without chat:** `guards.ts`, `planner.ts` (sendTo, removeSend, includeEffects), `applier.ts` with
    read-back and undo, driven from a small form in the Rig panel. Acceptance tests 2–4 and 6 without the model.
 3. **Chat:** the Claude relay, `agent.ts`, `tools.ts`, the chat panel with plan summaries, Apply / Cancel and Undo, and
@@ -374,6 +376,9 @@ Each one is a switch on the fake (or an address in `addresses.ts`) until it's an
 - How many `/xremote` clients the desk takes, and whether the X-Touch counts as one.
 
 ## Open questions for later
+
+- The insert example names ch 15 "TD-3-MO" while aux 5 keeps the same name, which the Rig panel reports as a name used
+  twice. Phase 4 should rename aux 5 (or the rig should treat an aux in routed onto a channel as one source).
 
 - Should the app create snippets ("save this as TR-8S into SP-404"), or only recall them?
 - Should a delay be able to opt out of the tempo bridge (e.g. a free-running delay on FX 3)? Today every delay in the

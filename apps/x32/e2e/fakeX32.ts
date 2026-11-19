@@ -13,9 +13,9 @@ import type { AddressInfo } from "node:net";
 import { argFor } from "../src/core/argFor.ts";
 import type { Param } from "../src/core/addresses.ts";
 import { decodePacket, encodeMessage, str, type OscArg, type OscMessage } from "../src/core/osc.ts";
-import { defaultDesk } from "./rig.ts";
+import { defaultDesk, type DeskOptions } from "./rig.ts";
 
-export interface FakeSwitches {
+export interface FakeSwitches extends DeskOptions {
   maxXremoteClients: number; // how many clients get notifications at once (day-one question)
 }
 
@@ -51,10 +51,10 @@ export class FakeX32 {
   private clients: Client[] = [];
 
   private constructor(init: FakeX32Init) {
-    this.values = init.values ?? defaultDesk();
+    this.switches = { ...DEFAULT_SWITCHES, ...init.switches };
+    this.values = init.values ?? defaultDesk(this.switches);
     this.model = init.model ?? "X32RACK";
     this.firmware = init.firmware ?? "4.06";
-    this.switches = { ...DEFAULT_SWITCHES, ...init.switches };
     this.socket.on("message", (bytes, rinfo) => this.receive(bytes, rinfo));
   }
 
@@ -76,11 +76,17 @@ export class FakeX32 {
     return this.values.get(address)?.value;
   }
 
-  // A change made on the desk itself (the X-Touch, X32-Edit): stored and sent to every subscribed client.
+  // A change made on the desk itself (the X-Touch, X32-Edit): stored and sent to every subscribed client (unless the
+  // network is down, when the app misses it).
   set(param: Param, value: number | string): void {
     const arg = argFor(param, value);
     this.values.set(param.address, arg);
     this.notify({ address: param.address, args: [arg] }, null);
+  }
+
+  // Several changes made on the desk at once.
+  setAll(changes: [Param, number | string][]): void {
+    for (const [param, value] of changes) this.set(param, value);
   }
 
   // Messages the app sent, by address, oldest first.
@@ -126,6 +132,7 @@ export class FakeX32 {
 
   // Tell every subscribed client except the one that made the change.
   private notify(m: OscMessage, exceptPort: number | null): void {
+    if (this.offline) return;
     const now = Date.now();
     for (const c of this.clients) {
       if (c.until > now && c.port !== exceptPort) this.socket.send(encodeMessage(m.address, m.args), c.port, c.address);

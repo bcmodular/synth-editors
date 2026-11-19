@@ -6,6 +6,26 @@ import type { Desk } from "./useDesk";
 
 const LINK_TEXT = { connecting: "Connecting…", connected: "Connected", unreachable: "Desk not reachable" } as const;
 
+const inProgress = (r: Desk["read"]): r is NonNullable<Desk["read"]> => r !== null && r.done < r.total;
+
+function statusText(desk: Desk): string {
+  const r = desk.read;
+  if (desk.link === "connected" && inProgress(r)) return `Reading the desk… ${r.done} of ${r.total}`;
+  return LINK_TEXT[desk.link];
+}
+
+// Addresses the desk didn't answer in the last full read: expected for anything the X32 Rack doesn't have.
+function Missing({ desk }: { desk: Desk }) {
+  const missing = desk.read?.missing ?? [];
+  if (desk.read?.done !== desk.read?.total || missing.length === 0) return null;
+  return (
+    <details className="missing note">
+      <summary>{missing.length} addresses didn't answer</summary>
+      <p className="mono">{missing.join(" ")}</p>
+    </details>
+  );
+}
+
 function HostForm({ desk }: { desk: Desk }) {
   const [text, setText] = useState("");
   const [refused, setRefused] = useState(false);
@@ -32,7 +52,7 @@ function Facts({ desk }: { desk: Desk }) {
         <dd className="mono">{desk.host || "not set"}</dd>
         <dt>Status</dt>
         <dd className={desk.link === "connected" ? "good" : desk.link === "unreachable" ? "bad" : ""}
-          role={desk.link === "unreachable" ? "alert" : undefined}>{LINK_TEXT[desk.link]}</dd>
+          role={desk.link === "unreachable" ? "alert" : undefined}>{statusText(desk)}</dd>
         {desk.info && (
           <>
             <dt>Desk</dt>
@@ -47,6 +67,7 @@ function Facts({ desk }: { desk: Desk }) {
       {problems.length > 0 && (
         <ul className="problems" role="alert">{problems.map((p) => <li key={p}>{p}</li>)}</ul>
       )}
+      <Missing desk={desk} />
     </>
   );
 }

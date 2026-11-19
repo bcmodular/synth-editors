@@ -3,8 +3,11 @@
 Plain-language routing and effect changes on the Behringer X32 Rack, over OSC. The plan and build order are in
 [docs/x32-spec.md](../../docs/x32-spec.md).
 
-**Status:** phase 0. The app connects to the desk, subscribes to its notifications (`/xremote`, renewed every 8 s),
-reads `/info` and says when the desk isn't reachable. Nothing is written to the desk yet.
+**Status:** phase 1. The app connects to the desk, subscribes to its notifications (`/xremote`, renewed every 8 s),
+reads `/info` and says when the desk isn't reachable. Each time the desk becomes reachable it reads every address the
+app uses (names, links, sends, inserts, FX feeds and output patches) and shows the **Rig panel**: sources and their
+sends, destinations and where they go, device returns (a bus and a channel with the same name), FX slots and their
+roles, spare (unnamed) channels, and anything odd. Nothing is written to the desk yet.
 
 ## Running it
 

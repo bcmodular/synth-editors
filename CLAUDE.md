@@ -14,6 +14,7 @@ This repo is public. The roadmap is in [PLAN.md](PLAN.md); design notes and to-d
 apps/tb3/            TB-3 editor: Electron main in electron/, React + TS renderer in src/, Playwright e2e in e2e/
 apps/jv2080/         JV-2080 editor and librarian (docs/jv2080-design.md; to do: docs/jv2080-remaining.md)
 apps/h12/            H12 target switcher: H12 check, clock test, target switching (requirements: docs/h12-spec.md)
+apps/x32/            X32 Rack chat control over OSC (plan and build order: docs/x32-spec.md)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
 ```
@@ -28,6 +29,7 @@ npm test                                          # Vitest unit tests
 npm run typecheck
 npm run test:e2e                                  # Playwright against a fake TB-3
 npm run test:e2e:jv2080                           # Playwright against a fake JV-2080
+npm run test:e2e:x32                              # Playwright against a fake X32 (UDP, e2e/fakeX32.ts)
 TB3_PORT="H12MIDI-Pro Port 4" npm run test:tb3    # Playwright against the real TB-3 (restores its sound afterwards)
 ```
 

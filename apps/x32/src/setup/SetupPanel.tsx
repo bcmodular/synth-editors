@@ -17,7 +17,7 @@ function ChangeList({ changes }: { changes: Change[] }) {
     <ul className="changes">
       {changes.map((c) => (
         <li key={c.param.address}>
-          {c.what} <span className="dim">({show(c.from)} → {show(c.value)})</span>
+          {c.what} <span className="dim">({show(c.from, c.param.type)} → {show(c.value, c.param.type)})</span>
         </li>
       ))}
     </ul>
@@ -77,8 +77,8 @@ function Result({ result }: { result: SetupResult }) {
   if (first) {
     return (
       <p className="note bad" role="alert">
-        Stopped after {result.written} of {result.total}: {first.change.what} reads back as {show(first.got)}, not{" "}
-        {show(first.change.value)}. The desk as it was is in scene {result.backup}; load it to go back.
+        Stopped after {result.written} of {result.total}: {first.change.what} reads back as {show(first.got, first.change.param.type)}, not{" "}
+        {show(first.change.value, first.change.param.type)}. The desk as it was is in scene {result.backup}; load it to go back.
       </p>
     );
   }

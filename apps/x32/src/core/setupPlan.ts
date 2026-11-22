@@ -46,9 +46,11 @@ export function planSetup(targets: Target[], get: Lookup, manual: string[] = [])
 // The changes in the order they're written: routing first, names last.
 export const applyOrder = (changes: Change[]): Change[] => [...changes].sort((a, b) => a.step - b.step);
 
-// How a value reads in the plan.
-export function show(v: DeskValue | undefined): string {
+const showsAsDb = (v: DeskValue, type?: string): v is number => isLevel(v) || (type === "f" && typeof v === "number");
+
+// How a value reads in the plan. Pass the param's type so a fader at 0 reads as -∞, not 0.
+export function show(v: DeskValue | undefined, type?: string): string {
   if (v === undefined) return "(no answer)";
-  if (isLevel(v)) return formatDb(v);
+  if (showsAsDb(v, type)) return formatDb(v);
   return typeof v === "string" ? `"${v}"` : String(v);
 }

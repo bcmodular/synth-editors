@@ -40,5 +40,7 @@ describe("planSetup", () => {
     expect(show(undefined)).toBe("(no answer)");
     expect(show("P-6")).toBe('"P-6"');
     expect(show(3)).toBe("3");
+    expect(show(0, "f")).toBe("-∞");
+    expect(show(0, "i")).toBe("0");
   });
 });

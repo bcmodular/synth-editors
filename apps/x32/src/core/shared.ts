@@ -2,11 +2,12 @@
 // Sampler (SP-404, Koala or P-6). The rig file lists the targets; the desk's output patches say which one is live.
 
 import type { Lookup } from "./rig";
+import { config, strip } from "./addresses";
 import { OUTPUT_SOURCE, output, type Logical } from "./routing";
 import type { RigBus, RigFile } from "./rigFile";
 
 export interface SharedBus {
-  name: string; // as in the rig file ("Sampler")
+  name: string; // its role, as in the rig file ("Sampler"); on the desk it's named after the target it feeds now
   buses: number[];
   targets: { name: string; outputs: Logical[] }[];
 }
@@ -25,6 +26,8 @@ export function liveTarget(get: Lookup, shared: SharedBus): string | null {
   return shared.targets.find((t) => carries(get, t.outputs, shared.buses))?.name ?? null;
 }
 
-// The output patches a shared bus may change: its targets' outputs, and nothing else.
-export const sharedOutputAddresses = (shared: SharedBus[]): string[] =>
-  shared.flatMap((s) => s.targets.flatMap((t) => t.outputs.map((o) => output(o).address)));
+// What switching a shared bus may change: its targets' output patches and the bus's own names, and nothing else.
+export const sharedOutputAddresses = (shared: SharedBus[]): string[] => shared.flatMap((s) => [
+  ...s.targets.flatMap((t) => t.outputs.map((o) => output(o).address)),
+  ...s.buses.map((n) => config(strip("bus", n)).name.address),
+]);

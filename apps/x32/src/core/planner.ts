@@ -2,7 +2,7 @@
 // as it is now. Names are as the desk shows them. Nothing is written here; every plan is checked against the loop
 // guards, and says whether a person has to confirm it first.
 
-import { strip, send, type Param } from "./addresses";
+import { config, strip, send, type Param } from "./addresses";
 import type { Write } from "./applier";
 import type { DeskValue } from "./cache";
 import { formatDb, levelFromDb, quantizeLevel } from "./faderLaw";
@@ -92,6 +92,9 @@ export function findDestination(ctx: PlanContext, rig: Rig, req: Pick<SendReques
   if (d) return { label: d.name, buses: d.numbers, shared: sharedFor(ctx, d), target: null };
   const t = sharedTarget(ctx, req);
   if (t) return t;
+  // The shared bus by its role ("the Sampler"), whatever device it's named after now.
+  const sb = ctx.shared.find((x) => sameName(x.name, req.destination));
+  if (sb) return { label: `the ${sb.name}`, buses: sb.buses, shared: sb, target: null };
   const targets = ctx.shared.flatMap((s) => s.targets);
   throw new Refused(`No destination named "${req.destination}". Destinations: ${names([...rig.destinations, ...targets])}`);
 }
@@ -117,14 +120,18 @@ function sendOff(get: Lookup, s: Source, d: Destination): PlanChange[] {
 }
 
 // A shared bus to its named target: that target's outputs carry the bus, the others' are off.
+// A shared bus to its named target: that target's outputs carry the bus, the others' are off, and the bus is named
+// after the target, so the desk shows where it goes.
 function switchTarget(get: Lookup, d: Destination): PlanChange[] {
   const sb = d.shared!;
-  return sb.targets.flatMap((t) => t.outputs.flatMap((o, i) => {
+  const outputs = sb.targets.flatMap((t) => t.outputs.flatMap((o, i) => {
     const on = t.name === d.target;
     const where = outputLabel(o.kind, o.n);
     const value = on ? busSource(sb.buses[i]!) : OUTPUT_SOURCE.off;
     return change(get, { param: output(o), value, what: on ? `${where} ← ${sb.name} (${t.name})` : `${where} off`, step: SWITCH });
   }));
+  const names = sb.buses.flatMap((n) => change(get, { param: config(strip("bus", n)).name, value: d.target!, what: `bus ${n} named "${d.target}"`, step: SWITCH }));
+  return [...outputs, ...names];
 }
 
 const sendsTo = (s: Source, d: Destination) => s.sends.some((x) => d.buses.includes(x.bus));

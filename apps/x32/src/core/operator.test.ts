@@ -62,5 +62,7 @@ describe("Operator", () => {
     await expect(op.propose(plan)).rejects.toBeInstanceOf(NotAllowed);
     expect(chatAllowed(studioShared).some((r) => r.test("/outputs/main/05/src"))).toBe(false);
     expect(chatAllowed(studioShared).some((r) => r.test("/outputs/main/03/src"))).toBe(true); // Koala, a Sampler target
+    expect(chatAllowed(studioShared).some((r) => r.test("/bus/11/config/name"))).toBe(true); // the Sampler's name
+    expect(chatAllowed(studioShared).some((r) => r.test("/bus/09/config/name"))).toBe(false);
   });
 });

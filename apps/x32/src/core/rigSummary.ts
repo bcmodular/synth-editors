@@ -30,7 +30,7 @@ function destinationLine(d: Destination, req: SummaryRequest): string {
   const back = d.deviceReturn ? `; the device returns on ${stripLabel(d.deviceReturn)}` : "";
   const sb = req.shared.find((s) => s.buses[0] === d.numbers[0]);
   const shared = sb
-    ? `; shared: it goes to the ${liveTarget(req.get, sb) ?? "(no target)"} now, and can go to ${sb.targets.map((t) => t.name).join(", ")} (send to a target's name to switch it)`
+    ? `; this is the shared ${sb.name} bus, named after the device it feeds: it goes to the ${liveTarget(req.get, sb) ?? "(no target)"} now, and can go to ${sb.targets.map((t) => t.name).join(", ")} (send to a target's name to switch it)`
     : "";
   return `- ${d.name}: ${stripLabel(d)} → ${goesTo(d)}${back}${shared}`;
 }
@@ -52,12 +52,13 @@ function paramText(get: Lookup, f: FxSlot): string {
 
 const fxLine = (rig: Rig, f: FxSlot, get: Lookup) => `- FX ${f.slot}: ${typeName({ slot: f.slot, value: f.type })}, ${ROLE[f.role](rig, f)}${paramText(get, f)}`;
 
-const wanted = (req: SummaryRequest, d: { name: string }, extra: string[] = []) =>
+const wanted = (req: SummaryRequest, d: { name: string }, extra: string[] = []): boolean =>
   !req.names?.length || req.names.some((n) => [d.name, ...extra].some((x) => sameName(x, n)));
 
 export function rigSummary(req: SummaryRequest): string {
   const rig = deriveRig(req.get);
-  const targetsOf = (d: Destination) => req.shared.find((s) => s.buses[0] === d.numbers[0])?.targets.map((t) => t.name) ?? [];
+  const sharedOf = (d: Destination) => req.shared.find((s) => s.buses[0] === d.numbers[0]);
+  const targetsOf = (d: Destination) => [sharedOf(d)?.name ?? "", ...(sharedOf(d)?.targets.map((t) => t.name) ?? [])];
   const sources = rig.sources.filter((s) => wanted(req, s)).map((s) => sourceLine(rig, s));
   const destinations = rig.destinations.filter((d) => wanted(req, d, targetsOf(d))).map((d) => destinationLine(d, req));
   const parts = [`Sources:\n${sources.join("\n") || "- (none matched)"}`, `Destinations:\n${destinations.join("\n") || "- (none matched)"}`];

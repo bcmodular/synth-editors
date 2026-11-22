@@ -33,7 +33,7 @@ describe("desiredTargets for the studio rig", () => {
   });
 
   it("sets bus names, links, taps and outputs", () => {
-    expect(value("/bus/11/config/name")).toBe("Sampler");
+    expect(value("/bus/11/config/name")).toBe("SP-404 Mk2"); // the shared Sampler bus, named after its first target
     expect(value("/config/buslink/1-2")).toBe(1);
     expect(value("/config/buslink/9-10")).toBe(0); // King Rat is mono
     expect(value("/ch/01/mix/11/type")).toBe(3); // pre

@@ -119,8 +119,9 @@ Two conventions the app relies on, because it works everything else out from the
   example's bus 9 "King Rat" feeds a pedal that returns on ch 4 "King Rat". That is how the loop guard knows not to
   send ch 4 to bus 9.
 - **A shared bus** feeds one of several devices at a time. The example's "Sampler" bus goes to an SP-404, Koala or
-  P-6. Its `targets` list each device and its output; the first is the default. In the chat or the Sends panel,
-  sending to a target's name switches the bus to it.
+  P-6. Its `targets` list each device and its output; the first is the default. On the desk the bus is named after
+  the device it feeds now, so the mixer shows where it goes. In the chat or the Sends panel, sending to a target's
+  name switches the bus to it and renames it; its role name ("Sampler") always finds it.
 
 Name the effect buses after their effect ("Reverb", "Delay"). A slot fed by a bus with one of those names only takes
 presets of that kind.

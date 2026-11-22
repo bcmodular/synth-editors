@@ -82,9 +82,13 @@ function levelTargets(b: RigBus): Target[] {
   return b.buses.map((n) => at("buses", 6)(fader(strip("bus", n)), b.level!, `bus ${n} master at ${formatDb(b.level!)}`));
 }
 
+// A shared bus is named on the desk after the target it feeds, so the mixer shows where it goes: its first target,
+// which setup routes it to.
+const deskName = (b: RigBus) => b.targets[0]?.name ?? b.name;
+
 function busTargets(rig: RigFile): Target[] {
   const strips = rig.buses.map((b) => ({ strips: b.buses.map((n) => strip("bus", n)) }));
-  const named = rig.buses.flatMap((b) => b.buses.flatMap((n) => looks("buses", strip("bus", n), b)));
+  const named = rig.buses.flatMap((b) => b.buses.flatMap((n) => looks("buses", strip("bus", n), { ...b, name: deskName(b) })));
   const unnamed = unusedTargets(rig, "buses");
   return [...linkTargets(strips, "buses"), ...rig.buses.flatMap(tapTargets), ...named, ...unnamed, ...rig.buses.flatMap(levelTargets)];
 }

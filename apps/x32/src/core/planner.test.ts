@@ -49,13 +49,19 @@ describe("sendTo", () => {
     ]);
     ctx.apply(plan);
     expect(liveTarget(ctx.get, studioShared[0]!)).toBe("P-6");
+    expect([ctx.get("/bus/11/config/name"), ctx.get("/bus/12/config/name")]).toEqual(["P-6", "P-6"]); // named for its target
+
+    // Named "P-6" now, it's still the Sampler, and "P-6" finds it without switching again.
+    expect(sendTo(ctx, { source: "TB-3", destination: "Sampler", mode: "add" }).summary).toBe("Send TB-3 to the Sampler at 0 dB");
+    expect(sendTo(ctx, { source: "TB-3", destination: "P-6", mode: "add" }).summary).toBe("Send TB-3 to P-6 at 0 dB");
+    expect(sendTo(ctx, { source: "TB-3", destination: "Koala", mode: "add" }).changes.map((c) => c.param.address)).toContain("/bus/11/config/name");
   });
 
   it("replaces the other sources on the bus, and asks first", () => {
     const ctx = desk();
     ctx.apply(sendTo(ctx, { source: "TR-8S", destination: "Sampler", mode: "add" }));
     const plan = sendTo(ctx, { source: "S-1", destination: "Sampler", mode: "replace" });
-    expect(plan.summary).toBe("Send S-1 to Sampler at 0 dB; stop sending TR-8S to it");
+    expect(plan.summary).toBe("Send S-1 to the Sampler at 0 dB; stop sending TR-8S to it");
     expect(plan.confirm).not.toBeNull();
     ctx.apply(plan);
     expect([on(ctx, 5, 11), on(ctx, 9, 11)]).toEqual([false, true]);
@@ -70,14 +76,14 @@ describe("sendTo", () => {
 
   it("refuses a device's return to its own feed (guard 1, acceptance 4)", () => {
     expect(() => sendTo(desk(), { source: "King Rat", destination: "King Rat", mode: "add" })).toThrow("King Rat (ch 4) would be sent to its own feed");
-    expect(() => sendTo(desk(), { source: "SP-404 Mk2", destination: "Sampler", mode: "add" })).toThrow("would be sent to the Sampler bus while it goes to the SP-404 Mk2");
+    expect(() => sendTo(desk(), { source: "SP-404 Mk2", destination: "Sampler", mode: "add" })).toThrow("SP-404 Mk2 (ch 15-16) would be sent to its own feed");
     expect(() => sendTo(desk(), { source: "SP-404 Mk2", destination: "SP-404 Mk2", mode: "add" })).toThrow(Refused);
   });
 
   it("refuses switching the Sampler to a device already sent to it", () => {
     const ctx = desk();
     ctx.apply(sendTo(ctx, { source: "P-6", destination: "Sampler", mode: "add" })); // fine while it goes to the SP-404
-    expect(() => sendTo(ctx, { source: "S-1", destination: "P-6", mode: "add" })).toThrow("P-6 would be sent to the Sampler bus while it goes to the P-6");
+    expect(() => sendTo(ctx, { source: "S-1", destination: "P-6", mode: "add" })).toThrow("P-6 (ch 11-12) would be sent to its own feed");
   });
 
   it("refuses an FX return into its own FX slot (guard 2)", () => {
@@ -104,7 +110,7 @@ describe("removeSend and includeEffects", () => {
 
   it("adds the effect returns and the King Rat to a sampler bus", () => {
     const plan = includeEffects(desk(), { destination: "Sampler", on: true });
-    expect(plan.summary).toBe("Also send Reverb Rtn, Delay Rtn, FX3 Rtn, FX4 Rtn, King Rat to Sampler");
+    expect(plan.summary).toBe("Also send Reverb Rtn, Delay Rtn, FX3 Rtn, FX4 Rtn, King Rat to the Sampler");
     expect(plan.confirm).toBeNull();
   });
 });
@@ -119,6 +125,7 @@ describe("undoPlan", () => {
     expect(undo.changes[0]!.step).toBe(1); // the sends come off before the outputs switch back
     ctx.apply(undo);
     expect(liveTarget(ctx.get, studioShared[0]!)).toBe("SP-404 Mk2");
+    expect(ctx.get("/bus/11/config/name")).toBe("SP-404 Mk2");
     expect(on(ctx, 9, 11)).toBe(false);
   });
 

@@ -49,8 +49,10 @@ The app finds the rig from names, so the desk needs names that follow one rule.
    aux 5 "TD-3-MO", aux 6 "King Rat", and so on (12 characters at most). Name both sides of a stereo pair the same.
 2. **Name every bus that feeds one device after that device, exactly as its return channel is named:** bus 9
    "King Rat" to match ch 4. This is what lets the loop guard work without a list (below). A **shared bus** feeds one of
-   several devices at a time and is named for its job: bus 11-12 "Sampler" goes to the SP-404, Koala or P-6, whichever
-   output it's patched to (the rig file's `targets`, the first being the default; the others' outputs are off).
+   several devices at a time: bus 11-12, the "Sampler" in the rig file, goes to the SP-404, Koala or P-6, whichever
+   output it's patched to (the rig file's `targets`, the first being the default; the others' outputs are off). On the
+   desk it's **named after the device it feeds now** (changed 22 Nov), so the mixer shows where it goes and guard 1
+   works by name as for any device bus. Switching it rewrites its name with its outputs; "the Sampler" still finds it.
 3. **Name the effect buses after their effect** (bus 1 "Reverb", bus 3 "Delay", bus 5 "FX 3", bus 7 "FX 4": buses 1-8
    feed FX 1-4). They have no same-named channel, so they're never mistaken for a device.
 4. **Pick sensible icons:** the model reads them as hints ("drums" → the channel with the drum icon).

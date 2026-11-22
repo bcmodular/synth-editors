@@ -8,10 +8,11 @@ import { PlanView } from "../plans/PlanView";
 import { studioShared } from "../plans/studioShared";
 import type { Plans } from "../plans/useOperator";
 
-// Every name a send can go to: the named buses, and each target of a shared bus ("P-6": the Sampler, switched to it).
+// Every name a send can go to: the named buses, each shared bus by its role ("Sampler"), and each of its targets
+// ("P-6": the Sampler, switched to it).
 export function destinationNames(rig: Rig): string[] {
-  const targets = studioShared.flatMap((s) => s.targets.map((t) => t.name));
-  return [...new Set([...rig.destinations.map((d) => d.name), ...targets])];
+  const shared = studioShared.flatMap((s) => [s.name, ...s.targets.map((t) => t.name)]);
+  return [...new Set([...rig.destinations.map((d) => d.name), ...shared])];
 }
 
 function Picker({ label, value, options, set }: { label: string; value: string; options: string[]; set: (v: string) => void }) {

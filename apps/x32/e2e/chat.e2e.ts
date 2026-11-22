@@ -83,7 +83,7 @@ test("send the P-6 to the P-6 is refused with a reason (acceptance 4)", async ()
     reply([text("I can't: that would feed the P-6 back into itself.")], "end_turn"),
   ]);
   await say(r.page, "send the P-6 to the P-6");
-  await expect(panel(r.page).locator(".transcript .tool.bad")).toContainText("P-6 would be sent to the Sampler bus while it goes to the P-6");
+  await expect(panel(r.page).locator(".transcript .tool.bad")).toContainText("P-6 (ch 11-12) would be sent to its own feed");
   const result = JSON.stringify((await requests(r))[1]!.messages.at(-1));
   expect(result).toContain('"is_error":true');
   expect(r.fake!.get("/outputs/aux/01/src")).toBe(0);

@@ -3,7 +3,7 @@
 // time while it plays is audible. In the end-to-end tests there's no MIDI; window.x32TestClock feeds the meter instead.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { listInputs, requestMidi, type PortInfo } from "@synth-editors/midi";
+import { listInputs, type PortInfo } from "@synth-editors/midi";
 import { roundBpm, TempoMeter, tempoPlan } from "../core/tempo";
 import { testMode } from "../desk/relay";
 import type { Message, Plans } from "../plans/useOperator";
@@ -55,7 +55,8 @@ function useInputs(): { access: MIDIAccess | null; inputs: PortInfo[]; error: st
     void testMode().then(async (test) => {
       if (test) return setInputs([{ id: TEST_INPUT, name: TEST_INPUT }]);
       try {
-        const a = await requestMidi();
+        // Clock only: no SysEx (packages/midi's requestMidi asks for it, which the app doesn't allow).
+        const a = await navigator.requestMIDIAccess({ sysex: false });
         setAccess(a);
         setInputs(listInputs(a));
         a.onstatechange = () => setInputs(listInputs(a));

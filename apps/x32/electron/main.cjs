@@ -192,9 +192,11 @@ function createWindow() {
   else win.loadFile(path.join(__dirname, "..", "dist", "index.html"));
 }
 
-// Web MIDI, for the tempo bridge's clock input (reads only; no SysEx). The tests get none: they feed a test clock
-// instead (window.x32TestClock, src/tempo/useTempoBridge.ts).
-const allowedPermission = (permission) => !NO_REAL_DESK && permission === "midi";
+// Web MIDI, for the tempo bridge's clock input (it only listens). Electron asks for "midiSysex" even for plain MIDI
+// access, as in the H12 app, so both are allowed. The tests get none: they feed a test clock instead
+// (window.x32TestClock, src/tempo/useTempoBridge.ts).
+const MIDI_PERMISSIONS = new Set(["midi", "midiSysex"]);
+const allowedPermission = (permission) => !NO_REAL_DESK && MIDI_PERMISSIONS.has(permission);
 
 app.whenReady().then(() => {
   if (HIDDEN) app.dock?.hide();

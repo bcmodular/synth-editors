@@ -1,9 +1,10 @@
 // The rig file turned into desk values: every address it wants set, and to what (targets.ts). The card outputs are
 // worked out in cardRouting.ts.
 
-import { config, fx, link, strip, STRIP_COUNT, stripOn, tapOf, type Strip, type StripKind } from "./addresses";
+import { config, fader, fx, link, strip, STRIP_COUNT, stripOn, tapOf, type Strip, type StripKind } from "./addresses";
 import { cardTargets } from "./cardRouting";
 import { TAPS } from "./enums";
+import { formatDb } from "./faderLaw";
 import { IN_BLOCKS, IN_USER_BLOCK, output, OUTPUT_SOURCE, routingIn, userIn, USER_IN_SLOTS } from "./routing";
 import type { RigBus, RigFile, RigSource } from "./rigFile";
 import { at, label, outputLabel, type Area, type Target } from "./targets";
@@ -69,10 +70,16 @@ function tapTargets(b: RigBus): Target[] {
     }));
 }
 
+// Bus masters come last, once the bus feeds what it should: FX inputs and bus outputs are taken after the master.
+function levelTargets(b: RigBus): Target[] {
+  if (b.level === null) return [];
+  return b.buses.map((n) => at("buses", 6)(fader(strip("bus", n)), b.level!, `bus ${n} master at ${formatDb(b.level!)}`));
+}
+
 function busTargets(rig: RigFile): Target[] {
   const strips = rig.buses.map((b) => ({ strips: b.buses.map((n) => strip("bus", n)) }));
   const named = rig.buses.flatMap((b) => b.buses.flatMap((n) => looks("buses", strip("bus", n), b)));
-  return [...linkTargets(strips, "buses"), ...rig.buses.flatMap(tapTargets), ...named];
+  return [...linkTargets(strips, "buses"), ...rig.buses.flatMap(tapTargets), ...named, ...rig.buses.flatMap(levelTargets)];
 }
 
 function outputTargets(rig: RigFile): Target[] {

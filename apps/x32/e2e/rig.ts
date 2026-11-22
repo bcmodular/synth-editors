@@ -3,7 +3,7 @@
 // the real X32 Rack (fw 4.15, read 22 Nov 2026): sends on at −∞, tap points on odd buses only, no source for FX 5-8,
 // no insert point on aux inputs.
 
-import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
+import { config, fader, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
 import {
   IN_BLOCKS, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, userIn, userOut,
   USER_IN_SLOTS, USER_OUT_SLOTS,
@@ -54,7 +54,10 @@ function blankStrip(values: Values, kind: StripKind, n: number): void {
   put(values, c.icon, 1);
   put(values, c.color, 0);
   put(values, link(s), 0);
-  if (kind === "bus") return;
+  if (kind === "bus") {
+    put(values, fader(s), 0); // bus masters at −∞, as found on the real desk
+    return;
+  }
   put(values, stripOn(s), 1);
   if (kind === "ch") {
     put(values, c.source, n);

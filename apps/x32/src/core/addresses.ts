@@ -85,6 +85,7 @@ export function link(s: Strip): Param {
 
 // A strip's own mute: 1 = on (playing), 0 = muted. Not the main bus.
 export const stripOn = (s: Strip): Param => p(`${stripPath(s)}/mix/on`, "i");
+export const fader = (s: Strip): Param => p(`${stripPath(s)}/mix/fader`, "f");
 
 // Messages that aren't values: the desk's identity, renewing notifications, and batch reads.
 export const INFO = "/info";

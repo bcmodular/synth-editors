@@ -48,8 +48,16 @@ describe("desiredTargets for the studio rig", () => {
     expect(targets.some((t) => t.param.address.endsWith("/type") && t.param.address.startsWith("/fx/"))).toBe(false);
   });
 
-  it("never sets phantom power, gain, the main bus or sends", () => {
-    expect(targets.filter((t) => /headamp|\/main\/st|\/mix\/fader|\/mix\/\d+\/(on|level)$/.test(t.param.address))).toEqual([]);
+  it("never sets phantom power, gain, the main bus, sends or any fader but a bus master", () => {
+    const off = /headamp|\/main\/st|\/mix\/\d+\/(on|level)$/;
+    const channelFader = (a: string) => a.endsWith("/mix/fader") && !a.startsWith("/bus/");
+    expect(targets.filter((t) => off.test(t.param.address) || channelFader(t.param.address))).toEqual([]);
+  });
+
+  it("sets the bus masters to 0 dB, after everything else", () => {
+    const masters = targets.filter((t) => t.param.address.startsWith("/bus/") && t.param.address.endsWith("/mix/fader"));
+    expect(masters.map((t) => t.param.address.slice(5, 7))).toEqual(["01", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14"]);
+    expect(masters[1]).toMatchObject({ step: 6, what: "bus 3 master at 0 dB" });
   });
 
   it("sets each address once", () => {

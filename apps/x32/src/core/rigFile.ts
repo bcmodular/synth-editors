@@ -4,6 +4,7 @@
 
 import { strip, type Strip, type StripKind } from "./addresses";
 import { COLOURS, iconNumber } from "./enums";
+import { levelFromDb, quantizeLevel } from "./faderLaw";
 import { USER_SOURCE, type Logical } from "./routing";
 
 export class RigFileError extends Error {
@@ -34,6 +35,7 @@ export interface RigBus {
   name: string;
   colour: number | null;
   tap: "pre" | "post" | null;
+  level: number | null; // the bus master, as a fader level (0.75 is 0 dB)
   outputs: Logical[]; // one per bus, in order
   notes: string | null;
 }
@@ -151,6 +153,13 @@ function tapOf(f: Field): "pre" | "post" | null {
   return TAP_CHOICES.has(textOf(f)) ? (textOf(f) as "pre" | "post") : fail(f, 'tap must be "pre" or "post"');
 }
 
+// "0 dB", "-6 dB", "+3 dB" → the fader level the desk will store.
+function levelOf(f: Field): number | null {
+  if (f.value === undefined) return null;
+  const m = /^([+-]?\d+(?:\.\d+)?)\s*dB$/i.exec(textOf(f));
+  return m ? quantizeLevel(levelFromDb(Number(m[1]))) : fail(f, `level "${textOf(f)}" isn't like "0 dB" or "-6 dB"`);
+}
+
 // Optional per-strip values (sockets, outputs) must come one per strip.
 function onePer<T>(f: Field, items: T[], count: number): T[] {
   if (items.length && items.length !== count) fail(f, "doesn't match the number of strips or buses");
@@ -173,7 +182,8 @@ function parseBus(j: Json, i: number): RigBus {
   const buses = parseRange(at(j.bus));
   const outputs = onePer(at(j.output), j.output === undefined ? [] : parseOutputs(at(j.output)), buses.length);
   return {
-    buses, name: nameOf(at(j.name)), colour: colourOf(at(j.colour)), tap: tapOf(at(j.tap)), outputs, notes: noteOf(j.notes),
+    buses, name: nameOf(at(j.name)), colour: colourOf(at(j.colour)), tap: tapOf(at(j.tap)),
+    level: levelOf(at(j.level)), outputs, notes: noteOf(j.notes),
   };
 }
 

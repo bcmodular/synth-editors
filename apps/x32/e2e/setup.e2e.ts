@@ -41,7 +41,8 @@ test("applying backs up first, sets the desk to the rig file and saves Studio ba
   const writes = r.fake!.received.filter(isWrite);
   expect(writes[0]?.address).toBe("/save");
   expect(writes.at(-1)?.address).toBe("/save");
-  expect(writes.some((m) => /headamp|\/mix\/fader|^\/main\//.test(m.address))).toBe(false);
+  expect(writes.some((m) => /headamp|^\/(ch|auxin|fxrtn|main)\/.*\/mix\/fader|^\/main\//.test(m.address))).toBe(false);
+  expect(r.fake!.get("/bus/03/mix/fader")).toBeCloseTo(0.75, 3);
   expect(r.fake!.get("/config/userrout/in/03")).toBe(165);
   expect(r.fake!.get("/ch/11/config/name")).toBe("P-6");
   expect(r.fake!.get("/-show/showfile/scene/002/name")).toBe("Studio base");

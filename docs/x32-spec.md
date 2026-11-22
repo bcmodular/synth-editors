@@ -115,8 +115,9 @@ it refuses any address outside an allowed list, the way `switcher.ts` does on th
 
 - **Chat list:** sends, inserts, FX type/source/parameters, spare-channel routing.
 - **Setup list** (set up from rig file only): also names, colours, icons, links, tap points, output patches, input
-  and card routing, and scene save. Never phantom power, preamp gain, network, the main and monitor sections, or scene
-  safes. Guards 1–3 apply to setup plans too.
+  and card routing, bus master faders, and scene save. Never phantom power, preamp gain, channel or main faders,
+  network, the main and monitor sections, or scene safes. Bus masters were added on 22 Nov: they came from the factory
+  at −∞, and FX inputs and bus outputs are taken after the master, so the reverb and every outboard feed were silent. Guards 1–3 apply to setup plans too.
 
 ## Plans, apply, read-back, undo
 
@@ -183,8 +184,10 @@ All take names as the desk shows them, never channel numbers. All return a plan 
 
 - **Source:** "Nome II Clock" through Web MIDI in the renderer (as the H12 app's clock test does). Count Timing Clock
   (`F8`, 24 per quarter), average over two beats.
-- **When to send:** only when the tempo has moved by more than 0.5 BPM and held for a beat (avoids pitch wobble and
-  bursts during a ramp). On Stop, keep the last time.
+- **When to send: only when asked, from a button in the UI** ("Set delays to 120 BPM"), never by itself. Changing a
+  delay's time while it plays makes audible artifacts (heard 22 Nov with Tap in X32-Edit), so the app shows the clock's
+  tempo and the delays' current time, and writes only on the press. The button is disabled while the tempo is still
+  settling (moved by more than 0.5 BPM within the last beat). On Stop, keep the last tempo shown.
 - **What it writes:** for every synced delay slot, **Time = one eighth note** (60,000 ÷ BPM ÷ 2 ms, clamped to the
   effect's range). The slot's **Factor** parameter on the desk sets the note value: 1 = eighth, 3/2 = dotted eighth,
   2 = quarter, 1/2 = sixteenth, 3 = dotted quarter. Factor is per side (L/R), so ping-pong patterns work too.
@@ -425,7 +428,8 @@ that needs it waits.
 3. "Also send the TB-3 to the P-6" keeps the S-1 send.
 4. "Send the P-6 to the P-6" is refused with a reason (guard 1).
 5. "Add a synced delay as an insert on the TD-3" leaves the TD-3 heard once, through the delay at about 25–30% mix, and
-   the delay time follows a tempo change on the Nome II.
+   after a tempo change on the Nome II, pressing the tempo button sets the delay time to match (nothing changes before
+   the press).
 6. "Undo that" restores every value the last plan changed, confirmed by read-back.
 7. A fader moved on the X-Touch shows up in `getState` without a re-read.
 8. Losing the network shows "desk not reachable" and sends nothing; reconnecting re-reads the state.

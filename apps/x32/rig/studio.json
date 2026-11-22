@@ -191,6 +191,7 @@
       "name": "King Rat",
       "colour": "BL",
       "tap": "post",
+      "level": "0 dB",
       "output": "aux out 6",
       "notes": "Aux outs run at +4 dBu, hotter than the King Rat expects: start sends low. Keep bus 1's send at zero on ch 4, the King Rat return."
     },
@@ -198,19 +199,22 @@
       "bus": "3-4",
       "name": "Reverb",
       "colour": "BL",
-      "tap": "post"
+      "tap": "post",
+      "level": "0 dB"
     },
     {
       "bus": "5-6",
       "name": "Delay",
       "colour": "BL",
-      "tap": "post"
+      "tap": "post",
+      "level": "0 dB"
     },
     {
       "bus": "7-8",
       "name": "SP-404 Mk2",
       "colour": "CY",
       "tap": "pre",
+      "level": "0 dB",
       "output": "XLR out 1-2",
       "notes": "The SP-404's line inputs are unbalanced and may drop about 6 dB: raise the bus level if samples come in low. Turn input monitoring off on the SP-404. Pre-fader, so samples include the channel's inserts, EQ and dynamics."
     },
@@ -219,6 +223,7 @@
       "name": "Koala",
       "colour": "CY",
       "tap": "pre",
+      "level": "0 dB",
       "output": "XLR out 3-4",
       "notes": "Into the Scarlett's inputs. Turn input monitoring off in Koala. Pre-fader, so samples include the channel's inserts, EQ and dynamics."
     },
@@ -227,6 +232,7 @@
       "name": "P-6",
       "colour": "CY",
       "tap": "pre",
+      "level": "0 dB",
       "output": "aux out 1-2",
       "notes": "Into the P-6's MIX IN. Aux outs run at +4 dBu, hotter than MIX IN expects: start sends low. Turn input monitoring off on the P-6. Pre-fader, so samples include the channel's inserts, EQ and dynamics."
     },
@@ -234,7 +240,8 @@
       "bus": "13-14",
       "name": "FX 3",
       "colour": "BL",
-      "tap": "post"
+      "tap": "post",
+      "level": "0 dB"
     }
   ],
   "fx": [

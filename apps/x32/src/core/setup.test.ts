@@ -78,6 +78,24 @@ describe("applyChanges", () => {
   });
 });
 
+describe("levels", () => {
+  it("match on the desk's step, as the desk sends them back", async () => {
+    const zeroDb = 767 / 1023;
+    const asSent = Math.fround(zeroDb); // a 32-bit float, as it comes off the wire
+    const bus = { area: "buses", step: 6, param: { address: "/bus/03/mix/fader", type: "f" }, value: zeroDb, what: "bus 3 master at 0 dB" } as const;
+    expect(planSetup([bus], () => asSent).changes).toEqual([]);
+    expect(planSetup([bus], () => 0).changes[0]?.from).toBe(0);
+    const desk = memoryDesk(new Map([["/bus/03/mix/fader", asSent]]));
+    expect((await applyChanges(desk, [{ ...bus, from: 0 }], SETUP_ALLOWED)).mismatches).toEqual([]);
+  });
+
+  it("only bus masters may be written, not channel or main faders", () => {
+    expect(SETUP_ALLOWED.some((r) => r.test("/bus/03/mix/fader"))).toBe(true);
+    expect(SETUP_ALLOWED.some((r) => r.test("/ch/03/mix/fader"))).toBe(false);
+    expect(SETUP_ALLOWED.some((r) => r.test("/main/st/mix/fader"))).toBe(false);
+  });
+});
+
 describe("scenes", () => {
   it("backs up to the first free slot and reuses Studio base's slot", () => {
     const desk = new Map<string, DeskValue>([

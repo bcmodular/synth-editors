@@ -26,6 +26,7 @@ describe("rig file parts", () => {
     expect(one({ strip: "ch 1", name: "Kick", icon: "Theremin" })).toThrow('icon "Theremin"');
     expect(one({ strip: "ch 1-2", name: "Kick", socket: "XLR 1" })).toThrow("doesn't match the number");
     expect(one({ strip: "aux 1", name: "Kick", socket: "XLR 1" })).toThrow("only channels take a socket");
+    expect(() => parseRigFile({ buses: [{ bus: "3-4", name: "Reverb", level: "loud" }] })).toThrow('level "loud"');
   });
 });
 
@@ -39,7 +40,7 @@ describe("the studio rig file", () => {
     expect(rig.unused.map((s) => s.n)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(rig.spare).toEqual([{ strips: [{ kind: "ch", n: 21 }, { kind: "ch", n: 22 }], sockets: [15, 16] }]);
     expect(rig.buses.find((b) => b.name === "P-6")).toMatchObject({
-      buses: [11, 12], tap: "pre", outputs: [{ kind: "aux", n: 1 }, { kind: "aux", n: 2 }],
+      buses: [11, 12], tap: "pre", level: 767 / 1023, outputs: [{ kind: "aux", n: 1 }, { kind: "aux", n: 2 }],
     });
     expect(rig.fx).toEqual([
       { slot: 1, sourceBuses: [3, 4] }, { slot: 2, sourceBuses: [5, 6] }, { slot: 3, sourceBuses: [13, 14] },

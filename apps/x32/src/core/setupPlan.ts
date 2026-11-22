@@ -2,6 +2,7 @@
 // steps only a person can do (phantom power, gain). Pure: the desk's values come in through a lookup.
 
 import type { DeskValue } from "./cache";
+import { formatDb, sameLevel } from "./faderLaw";
 import type { RigFile } from "./rigFile";
 import { AREAS, type Area, type Target } from "./targets";
 
@@ -18,7 +19,11 @@ export interface SetupPlan {
 
 export type Lookup = (address: string) => DeskValue | undefined;
 
-const differs = (from: DeskValue | undefined, to: DeskValue) => from !== to;
+// Levels are floats the desk stores in steps (and sends back as 32-bit floats), so they match on the step.
+const isLevel = (v: DeskValue | undefined): v is number => typeof v === "number" && !Number.isInteger(v);
+export const sameValue = (got: DeskValue | undefined, want: DeskValue): boolean =>
+  isLevel(want) && typeof got === "number" ? sameLevel(got, want) : got === want;
+const differs = (from: DeskValue | undefined, to: DeskValue) => !sameValue(from, to);
 
 function phantomSteps(rig: RigFile): string[] {
   return rig.sources
@@ -44,5 +49,6 @@ export const applyOrder = (changes: Change[]): Change[] => [...changes].sort((a,
 // How a value reads in the plan.
 export function show(v: DeskValue | undefined): string {
   if (v === undefined) return "(no answer)";
+  if (isLevel(v)) return formatDb(v);
   return typeof v === "string" ? `"${v}"` : String(v);
 }

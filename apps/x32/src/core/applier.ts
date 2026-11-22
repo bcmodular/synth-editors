@@ -3,10 +3,11 @@
 
 import type { Param } from "./addresses";
 import type { DeskValue } from "./cache";
-import { applyOrder, type Change } from "./setupPlan";
+import { applyOrder, sameValue, type Change } from "./setupPlan";
 
-// Setup from the rig file may write these, and nothing else: never phantom power, preamp gain, sends, faders, the main
-// and monitor sections, network or MIDI settings, scene safes or FX types (docs/x32-spec.md, loop guards).
+// Setup from the rig file may write these, and nothing else: never phantom power, preamp gain, sends, channel or main
+// faders, the main and monitor sections, network or MIDI settings, scene safes or FX types (docs/x32-spec.md, loop
+// guards). Bus masters are allowed: a bus at -inf feeds nothing to its FX slot or output (found 22 Nov).
 export const SETUP_ALLOWED: RegExp[] = [
   /^\/config\/routing\/(IN|CARD)\/\d+-\d+$/,
   /^\/config\/userrout\/(in|out)\/\d\d$/,
@@ -16,6 +17,7 @@ export const SETUP_ALLOWED: RegExp[] = [
   /^\/auxin\/\d\d\/mix\/on$/,
   /^\/outputs\/(main|aux|p16)\/\d\d\/(src|pos)$/,
   /^\/fx\/[1-4]\/source\/[lr]$/,
+  /^\/bus\/\d\d\/mix\/fader$/,
 ];
 
 export class NotAllowed extends Error {
@@ -56,7 +58,7 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function readOnce(desk: DeskIO, changes: Change[]): Promise<Mismatch[]> {
   const got = await Promise.all(changes.map((c) => desk.read(c.param).catch(() => undefined)));
-  return changes.flatMap((change, i) => (got[i] === change.value ? [] : [{ change, got: got[i] }]));
+  return changes.flatMap((change, i) => (sameValue(got[i], change.value) ? [] : [{ change, got: got[i] }]));
 }
 
 async function readBack(desk: DeskIO, batch: Change[]): Promise<Mismatch[]> {

@@ -1,0 +1,80 @@
+{
+  "about": "Desired setup of the studio X32 Rack, converted once from the Claude Doc 'Studio routing plan: X32 Rack and X-Touch' (rev 41, 22 Nov 2026). This file, not the doc, is now the source of truth for setup and drift checks (docs/x32-spec.md, 'Set up from the rig file'). Anything not listed here is left alone.",
+
+  "inputs": {
+    "ch 1-16": "local 1-16",
+    "ch 17-32": "card 1-16",
+    "aux 1-6": "local aux 1-6"
+  },
+
+  "sources": [
+    { "strip": "ch 1", "name": "Volca Kick", "colour": "RD", "icon": "Kick Front", "socket": "XLR 1", "notes": "Via the Neutrik splitter box" },
+    { "strip": "ch 2", "name": "Volca Bass", "colour": "YE", "icon": "Synthesizer 1", "socket": "XLR 2", "notes": "Via the Neutrik splitter box" },
+    { "strip": "ch 3-4", "name": "JV-2080", "colour": "GN", "icon": "Keyboard", "socket": "XLR 3-4" },
+    { "strip": "ch 5-6", "name": "Koala", "colour": "CY", "icon": "Computer", "socket": "XLR 5-6", "notes": "Scarlett 6i6 outputs: the iPad and Koala" },
+    { "strip": "ch 7-8", "name": "SP-404 Mk2", "colour": "CY", "icon": "Synthesizer 3", "socket": "XLR 7-8" },
+    { "strip": "ch 9-10", "name": "TR-8S", "colour": "RD", "icon": "Drum Kit", "socket": "XLR 9-10" },
+    { "strip": "ch 11-12", "name": "TB-3", "colour": "YE", "icon": "Synthesizer 1", "socket": "XLR 11-12" },
+    { "strip": "ch 13", "name": "Mic", "colour": "MG", "icon": "Handheld Mic", "socket": "XLR 13", "phantom": "check: only if the mic is a condenser" },
+    { "strip": "ch 14", "name": "Guitar", "colour": "MG", "icon": "Les Paul Guitar", "socket": "XLR 14", "notes": "Through the DI box" },
+    { "strip": "aux 1-2", "name": "P-6", "colour": "CY", "icon": "Synthesizer 2", "socket": "aux in 1-2" },
+    { "strip": "aux 3-4", "name": "S-1", "colour": "GN", "icon": "Synthesizer 2", "socket": "aux in 3-4" },
+    { "strip": "aux 5", "name": "TD-3-MO", "colour": "YE", "icon": "Synthesizer 1", "socket": "aux in 5" },
+    { "strip": "aux 6", "name": "King Rat", "colour": "BL", "icon": "Guitar Amp", "socket": "aux in 6", "notes": "Return of the King Rat loop (fed by bus 1)" },
+    { "strip": "fxrtn 1-2", "name": "Reverb Rtn", "colour": "BL", "icon": "FX" },
+    { "strip": "fxrtn 3-4", "name": "Delay Rtn", "colour": "BL", "icon": "FX" },
+    { "strip": "fxrtn 5-6", "name": "FX3 Rtn", "colour": "BL", "icon": "FX" },
+    { "strip": "ch 17", "name": "Ableton 1", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 18", "name": "Ableton 2", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 19", "name": "Ableton 3", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 20", "name": "Ableton 4", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 21", "name": "Ableton 5", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 22", "name": "Ableton 6", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 23", "name": "Ableton 7", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 24", "name": "Ableton 8", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 25", "name": "Ableton 9", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 26", "name": "Ableton 10", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 27", "name": "Ableton 11", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 28", "name": "Ableton 12", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 29", "name": "Ableton 13", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 30", "name": "Ableton 14", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 31", "name": "Ableton 15", "colour": "WH", "icon": "Computer" },
+    { "strip": "ch 32", "name": "Ableton 16", "colour": "WH", "icon": "Computer" }
+  ],
+
+  "spare": ["ch 15-16", "bus 2", "bus 15-16"],
+
+  "buses": [
+    { "bus": "1", "name": "King Rat", "colour": "BL", "tap": "post", "output": "aux out 6", "notes": "Aux outs run at +4 dBu, hotter than the King Rat expects: start sends low. Keep bus 1's send at zero on aux 6." },
+    { "bus": "3-4", "name": "Reverb", "colour": "BL", "tap": "post" },
+    { "bus": "5-6", "name": "Delay", "colour": "BL", "tap": "post" },
+    { "bus": "7-8", "name": "SP-404 Mk2", "colour": "CY", "tap": "pre", "output": "XLR out 1-2", "notes": "The SP-404's line inputs are unbalanced and may drop about 6 dB: raise the bus level if samples come in low. Turn input monitoring off on the SP-404." },
+    { "bus": "9-10", "name": "Koala", "colour": "CY", "tap": "pre", "output": "XLR out 3-4", "notes": "Into the Scarlett's inputs. Turn input monitoring off in Koala." },
+    { "bus": "11-12", "name": "P-6", "colour": "CY", "tap": "pre", "output": "aux out 1-2", "notes": "Into the P-6's MIX IN. Aux outs run at +4 dBu, hotter than MIX IN expects: start sends low. Turn input monitoring off on the P-6." },
+    { "bus": "13-14", "name": "FX 3", "colour": "BL", "tap": "post" }
+  ],
+
+  "fx": [
+    { "slot": 1, "type": "HALL", "source": "bus 3-4", "params": { "Mix": 100 }, "notes": "Send effect: fully wet. Not tempo-based." },
+    { "slot": 2, "type": "DLY", "source": "bus 5-6", "params": { "Mix": 100, "Factor L": "3/2", "Factor R": "3/2" }, "notes": "Send effect: fully wet. Time is set by the tempo bridge (one eighth note); Factor 3/2 makes it a dotted eighth." },
+    { "slot": 3, "type": "CRS", "source": "bus 13-14", "params": { "Mix": 100 }, "notes": "Second delay or modulation: a stereo chorus to start with." }
+  ],
+
+  "card": {
+    "inputs": { "card 1-16": "ch 17-32" },
+    "outputs": [
+      { "card": "1-16", "source": "ch 1-16", "tap": "post" },
+      { "card": "17-22", "source": "aux 1-6", "tap": "post" },
+      { "card": "23-28", "source": "fxrtn 1-6", "tap": "post" },
+      { "card": "31-32", "source": "main", "tap": "post" }
+    ],
+    "notes": "Card outs 29-30 (FX 4's return in the routing plan) are left empty: the desk has one internal output too few for all 32, and FX 4 is spare."
+  },
+
+  "manual": [
+    "Set each line-level synth's preamp gain low, and save it in the scenes (the app never sets gain).",
+    "Turn input monitoring off on the SP-404, in Koala and on the P-6.",
+    "In Ableton, keep track monitoring off, listen through the X32, and match the X32's sample rate.",
+    "Use scene safes to keep preamp gains and the monitor level out of scene changes."
+  ]
+}

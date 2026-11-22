@@ -211,3 +211,48 @@ h2 {
 .found .mono {
   margin: 0 6px;
 }
+
+.sends .form,
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+select,
+.sends input {
+  font: inherit;
+  color: var(--txt);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+
+.sends input {
+  width: 64px;
+}
+
+.pending {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--cap);
+  border-radius: 4px;
+}
+
+.pending p {
+  margin: 0;
+}
+
+.pending .changes {
+  margin: 6px 0 0;
+  padding-left: 20px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.undo {
+  margin-top: 12px;
+}

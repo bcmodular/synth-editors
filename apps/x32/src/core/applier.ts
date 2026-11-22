@@ -3,7 +3,15 @@
 
 import type { Param } from "./addresses";
 import type { DeskValue } from "./cache";
-import { applyOrder, sameValue, type Change } from "./setupPlan";
+import { sameValue } from "./setupPlan";
+
+// One value to write: setup changes and chat plans both have these.
+export interface Write {
+  param: Param;
+  value: DeskValue;
+  what: string; // for people: "ch 3 input ← aux in 5"
+  step?: number; // written in step order (setup: routing first, names last)
+}
 
 // Setup from the rig file may write these, and nothing else: never phantom power, preamp gain, sends, channel or main
 // faders, the main and monitor sections, network or MIDI settings, scene safes or FX types (docs/x32-spec.md, loop
@@ -27,7 +35,7 @@ export class NotAllowed extends Error {
   }
 }
 
-export function refuseOutside(changes: Change[], allowed: RegExp[]): void {
+export function refuseOutside(changes: Write[], allowed: RegExp[]): void {
   const refused = changes.map((c) => c.param.address).filter((a) => !allowed.some((r) => r.test(a)));
   if (refused.length) throw new NotAllowed(refused);
 }
@@ -38,7 +46,7 @@ export interface DeskIO {
 }
 
 export interface Mismatch {
-  change: Change;
+  change: Write;
   got: DeskValue | undefined; // undefined: no answer
 }
 
@@ -56,12 +64,12 @@ export const SETTLE_MS = 100;
 export const READ_TRIES = 5;
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function readOnce(desk: DeskIO, changes: Change[]): Promise<Mismatch[]> {
+async function readOnce(desk: DeskIO, changes: Write[]): Promise<Mismatch[]> {
   const got = await Promise.all(changes.map((c) => desk.read(c.param).catch(() => undefined)));
   return changes.flatMap((change, i) => (sameValue(got[i], change.value) ? [] : [{ change, got: got[i] }]));
 }
 
-async function readBack(desk: DeskIO, batch: Change[]): Promise<Mismatch[]> {
+async function readBack(desk: DeskIO, batch: Write[]): Promise<Mismatch[]> {
   let mismatches = batch.map((change) => ({ change, got: undefined as DeskValue | undefined }));
   for (let tries = 0; tries < READ_TRIES && mismatches.length; tries++) {
     await pause(SETTLE_MS);
@@ -70,14 +78,16 @@ async function readBack(desk: DeskIO, batch: Change[]): Promise<Mismatch[]> {
   return mismatches;
 }
 
+const inStepOrder = (changes: Write[]): Write[] => [...changes].sort((a, b) => (a.step ?? 0) - (b.step ?? 0));
+
 export async function applyChanges(
   desk: DeskIO,
-  changes: Change[],
+  changes: Write[],
   allowed: RegExp[],
   onProgress: (written: number, total: number) => void = () => {},
 ): Promise<ApplyResult> {
   refuseOutside(changes, allowed);
-  const ordered = applyOrder(changes);
+  const ordered = inStepOrder(changes);
   let written = 0;
   for (let at = 0; at < ordered.length; at += WRITE_BATCH) {
     const batch = ordered.slice(at, at + WRITE_BATCH);

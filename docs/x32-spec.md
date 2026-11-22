@@ -371,8 +371,10 @@ that needs it waits.
    setup read list, `setupPlan.ts` (diff by area, manual steps), `applier.ts` (setup list, skip-if-equal, read-back),
    backup and "Studio base" scenes, and a **Setup panel** with the plan, area checkboxes and Apply; then the drift
    check. The first apply, with X32-Edit open, is also the coexistence test. Addendum tests 1–5.
-3. **Sends without chat:** `guards.ts`, `planner.ts` (sendTo, removeSend, includeEffects), undo, driven from a small
-   form in the Rig panel. Acceptance tests 2–4 and 6 without the model.
+3. **Sends without chat (done 22 Nov, against the fake):** `guards.ts` (checked on the desk as the plan would leave it;
+   only new loops are refused), `planner.ts` (sendTo, removeSend, includeEffects, undoPlan; a shared bus's target
+   name switches its outputs), `operator.ts` (apply or hold for Apply, chat allowed list, undo stack), and a **Sends
+   panel**. Acceptance tests 2–4 and 6 without the model (`e2e/sends.e2e.ts`).
 4. **Chat:** the Claude relay, `agent.ts`, `tools.ts` (including planFromRig, applyPlan, checkDrift), the chat panel
    with plan summaries, Apply / Cancel and Undo, and the chat log. Acceptance tests 1–4 and 6 by chat.
 5. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and

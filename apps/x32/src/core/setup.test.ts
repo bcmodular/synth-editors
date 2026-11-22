@@ -86,7 +86,7 @@ describe("levels", () => {
     expect(planSetup([bus], () => asSent).changes).toEqual([]);
     expect(planSetup([bus], () => 0).changes[0]?.from).toBe(0);
     const desk = memoryDesk(new Map([["/bus/03/mix/fader", asSent]]));
-    expect((await applyChanges(desk, [{ ...bus, from: 0 }], SETUP_ALLOWED)).mismatches).toEqual([]);
+    expect((await applyChanges(desk, [bus], SETUP_ALLOWED)).mismatches).toEqual([]);
   });
 
   it("only bus masters may be written, not channel or main faders", () => {

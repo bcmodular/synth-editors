@@ -1,13 +1,12 @@
 // Harness for the end-to-end tests: starts a fake desk (fakeX32.ts) and launches the built app in Electron with a
 // throwaway profile, pointed at it. With "real", it talks to the desk at X32_HOST instead (the hardware tests).
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { _electron as electron } from "@playwright/test";
 import type { ElectronApplication, Page } from "@playwright/test";
 import { FakeX32, type FakeX32Init } from "./fakeX32";
-import { TEST_PRESETS } from "./studio";
 
 const APP_DIR = fileURLToPath(new URL("..", import.meta.url));
 
@@ -30,8 +29,6 @@ export async function start(init: FakeX32Init | "real" = {}, options: StartOptio
   const host = fake ? fake.host : process.env.X32_HOST;
   if (!host && !options.noHost) throw new Error("Set X32_HOST to the desk's address to run the hardware tests");
   const profile = await mkdtemp(path.join(tmpdir(), "x32-e2e-profile-"));
-  const presets = path.join(profile, "fx-presets.json"); // the stand-in catalogue, never the local one
-  await writeFile(presets, JSON.stringify({ version: 1, presets: TEST_PRESETS }));
   const env = Object.fromEntries(
     Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && !DROPPED_ENV.has(e[0])),
   );
@@ -42,7 +39,6 @@ export async function start(init: FakeX32Init | "real" = {}, options: StartOptio
       ...(options.noHost ? (fake ? { X32_DISCOVER_TO: host! } : {}) : { X32_HOST: host! }),
       X32_NO_REAL_DESK: fake ? "1" : "0",
       X32_FAKE_CLAUDE: "1", // tests never call the real model (it costs money)
-      X32_FX_PRESETS: presets,
       E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1",
     },
   });

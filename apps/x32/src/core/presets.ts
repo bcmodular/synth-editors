@@ -1,6 +1,6 @@
-// FX presets: a catalogue describing the presets in the desk's FX library (what each sounds like and what it suits),
-// matched to the library by name, and searched by the chat. The catalogue file stays out of the repo (it's derived
-// from third-party preset files): the main process reads it from fixtures/local/ or the data folder.
+// FX presets: a catalogue describing the presets in the desk's factory FX library (what each sounds like and what it
+// suits, written by Claude from each preset's settings), in rig/fx-presets.json. Matched to the library by name, since
+// the desk keeps them in its own order, and searched by the chat.
 
 import { FX_SEND_SLOTS } from "./addresses";
 import { sameName } from "./names";
@@ -68,6 +68,10 @@ export function families({ code }: Coded): string[] {
 
 export const sameFamily = (a: Coded, b: Coded): boolean => families(a).some((f) => families(b).includes(f));
 
+// The kind a bus's name promises ("Reverb", "Delay"), or null for a name that promises none ("FX 3").
+const NAMED_KINDS: [RegExp, string][] = [[/reverb|verb|hall|plate|room/i, "reverb"], [/delay|echo/i, "delay"]];
+export const kindNamed = (bus: { name: string }): string | null => NAMED_KINDS.find(([r]) => r.test(bus.name))?.[1] ?? null;
+
 // Presets matching the words asked for, best first: name, tags and description, every word scored.
 export function searchPresets(presets: LibPreset[], query: string, limit = 8): LibPreset[] {
   const words = query.toLowerCase().split(/[^a-z0-9/#'-]+/).filter((w) => w.length > 1);
@@ -86,7 +90,7 @@ export function searchPresets(presets: LibPreset[], query: string, limit = 8): L
 
 // The search's answer for the model.
 export function presetsText(presets: LibPreset[], query: string): string {
-  if (!presets.length) return "There's no preset catalogue (fx-presets.json), so presets can't be searched.";
+  if (!presets.length) return "There's no preset catalogue (rig/fx-presets.json), so presets can't be searched.";
   const found = searchPresets(presets, query, query.trim() ? 8 : presets.length);
   return found.length ? found.map(presetLine).join("\n") : `No preset matches "${query}".`;
 }

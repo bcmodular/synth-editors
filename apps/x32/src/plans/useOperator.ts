@@ -9,7 +9,7 @@ import { describeOutcome } from "../core/outcome";
 import { Refused, type Plan, type PlanContext } from "../core/planner";
 import { libraryNames } from "../core/library";
 import { inLibrary, parsePresets, type Preset } from "../core/presets";
-import { presetCatalogue } from "../desk/relay";
+import fxPresets from "../../rig/fx-presets.json";
 import type { Desk } from "../desk/useDesk";
 import { studioFeeds, studioShared } from "./studioShared";
 
@@ -53,13 +53,8 @@ const contextOf = (cache: DeskCache, catalogue: Preset[]) => (): PlanContext => 
   return { get, shared: studioShared, feeds: studioFeeds, presets: inLibrary(catalogue, libraryNames(get)) };
 };
 
-function useCatalogue(): Preset[] {
-  const [catalogue, setCatalogue] = useState<Preset[]>([]);
-  useEffect(() => {
-    void presetCatalogue().then((json) => setCatalogue(parsePresets(json)));
-  }, []);
-  return catalogue;
-}
+// The catalogue of the desk's factory FX library (rig/fx-presets.json).
+const CATALOGUE: Preset[] = parsePresets(fxPresets);
 
 // Runs one operator call and turns its outcome, or the reason it was refused, into a message.
 async function settled(work: () => Promise<Outcome | null>): Promise<Message> {
@@ -87,8 +82,7 @@ function actionsFor(operator: Operator | null, context: () => PlanContext, repor
 
 export function useOperator(desk: Desk): Plans {
   const operator = useMemo(() => makeOperator(desk.client), [desk.client]);
-  const catalogue = useCatalogue();
-  const context = useMemo(() => contextOf(desk.cache, catalogue), [desk.cache, catalogue]);
+  const context = useMemo(() => contextOf(desk.cache, CATALOGUE), [desk.cache]);
   const [, setTick] = useState(0);
   const [message, setMessage] = useState<Message | null>(null);
   const [busy, setBusy] = useState(false);

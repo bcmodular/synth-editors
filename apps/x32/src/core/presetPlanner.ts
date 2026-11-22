@@ -7,7 +7,7 @@ import { typeCode, typeName } from "./effects";
 import { channelSource, findSlot, insertedSlot, insertOn, unfeed } from "./fxPlanner";
 import { sameName } from "./names";
 import { guarded, Refused, type Plan, type PlanChange, type PlanContext } from "./planner";
-import { canLoadInto, families, sameFamily, type LibPreset } from "./presets";
+import { canLoadInto, families, kindNamed, sameFamily, type LibPreset } from "./presets";
 import { deriveRig, type FxSlot, type Rig } from "./rig";
 
 export interface PresetRequest {
@@ -30,9 +30,19 @@ function findPreset(ctx: PlanContext, name: string): LibPreset & { index: number
 const slotRow = (rig: Rig, slot: number): FxSlot => rig.fx.find((f) => f.slot === slot)!;
 const currentCode = (row: FxSlot) => ({ code: typeCode({ slot: row.slot, value: row.type }) });
 
+// A slot fed by a bus named for a kind of effect ("Reverb", "Delay") keeps that kind, sent to or not.
+function checkNamed(rig: Rig, preset: LibPreset, row: FxSlot): void {
+  const bus = rig.destinations.find((d) => d.fxSlot === row.slot);
+  const kind = bus ? kindNamed(bus) : null;
+  if (kind && !families(preset).includes(kind)) {
+    throw new Refused(`FX ${row.slot} is fed by the ${bus!.name} bus, so it only takes a ${kind} preset; "${preset.name}" is a ${preset.type}`);
+  }
+}
+
 // A send effect stays the kind it is; a slot that can't hold the preset is refused.
-function checkSlot(preset: LibPreset, row: FxSlot): void {
+function checkSlot(rig: Rig, preset: LibPreset, row: FxSlot): void {
   if (!canLoadInto(preset, row.slot)) throw new Refused(`"${preset.name}" (${preset.type}) only loads into FX 1-${FX_SEND_SLOTS}`);
+  checkNamed(rig, preset, row);
   if (row.role === "send" && !sameFamily(preset, currentCode(row))) {
     throw new Refused(`FX ${row.slot} is a send effect (${typeName({ slot: row.slot, value: row.type })}), so it only takes another ${families(currentCode(row)).join(" or ")} preset; "${preset.name}" is a ${preset.type}`);
   }
@@ -79,7 +89,7 @@ function asInsert(ctx: PlanContext, rig: Rig, preset: LibPreset & { index: numbe
 
 function intoSlot(ctx: PlanContext, rig: Rig, preset: LibPreset & { index: number }, slot: number): Plan {
   const row = slotRow(rig, slot);
-  checkSlot(preset, row);
+  checkSlot(rig, preset, row);
   const what = row.role === "insert" ? ` (the insert on ${row.insertedOn.join(", ")})` : "";
   return guarded(ctx, {
     summary: `Load "${preset.name}" (${preset.type}) into FX ${slot}${what}, replacing ${typeName({ slot, value: row.type })}`,

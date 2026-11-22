@@ -5,7 +5,7 @@
 import { execFileSync } from "node:child_process";
 import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
-import { memoryDesk, studioShared, TEST_PRESETS } from "../../e2e/studio";
+import { memoryDesk, STUDIO_PRESETS, studioShared } from "../../e2e/studio";
 import { libraryNames } from "./library";
 import { inLibrary, presetsText } from "./presets";
 import { Conversation, type Create, type Turn } from "./agent";
@@ -30,7 +30,7 @@ function session(create: Create) {
   const operator = new Operator(desk, chatAllowed(studioShared));
   const ctx = (): PlanContext => {
     const get = (a: string) => values.get(a);
-    return { get, shared: studioShared, presets: inLibrary(TEST_PRESETS, libraryNames(get)) };
+    return { get, shared: studioShared, presets: inLibrary(STUDIO_PRESETS, libraryNames(get)) };
   };
   const settle = async (work: () => Promise<Outcome | null>): Promise<ToolOutcome> => {
     try {
@@ -110,8 +110,9 @@ const CASES: Case[] = [
     say: ["I want an 80s gated reverb on the TR-8S"],
     check: (t) => {
       const c = t.calls.find((x) => x.name === "load_preset");
-      if (c?.input.preset !== "Phil's Drums") return `expected Phil's Drums loaded, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input]))}`;
-      return c.kind === "waiting" ? null : `plan ${c.kind}: ${c.result}`;
+      const gated = STUDIO_PRESETS.find((p) => p.name === c?.input.preset)?.code === "GATE";
+      if (!gated) return `expected a gated reverb preset loaded, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input]))}`;
+      return c!.kind === "waiting" ? null : `plan ${c!.kind}: ${c!.result}`;
     },
   },
   {

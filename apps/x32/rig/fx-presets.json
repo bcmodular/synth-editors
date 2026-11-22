@@ -1,0 +1,1393 @@
+{
+  "version": 1,
+  "notes": "Descriptions derived from the .efx parameter values. 'slots' = which FX slots the effect can run in; time-based effects need slots 1-4. 'confidence' is 'low' where the parameter layout for that effect type is uncertain. 'source' is the input the preset was saved with (mix bus or insert); the slot rules still apply.",
+  "presets": [
+    {
+      "pos": 1,
+      "name": "Sound Stage",
+      "type": "Ambience",
+      "code": "AMBI",
+      "slots": "1-4",
+      "description": "Short, natural room ambience (about 1 s) with a large, diffuse space and a soft top end. Adds air and depth without an obvious reverb tail. A good general-purpose 'put it in a room' setting for a whole mix or a group.",
+      "tags": [
+        "reverb",
+        "ambience",
+        "short",
+        "natural",
+        "room",
+        "general",
+        "mix",
+        "subtle"
+      ],
+      "params": {
+        "preDelayMs": 14,
+        "decayS": 1.05,
+        "size": 76,
+        "lowCutHz": 65,
+        "highCutHz": 6600
+      },
+      "source": "Mix bus 1/2"
+    },
+    {
+      "pos": 2,
+      "name": "BBM #1 E7",
+      "type": "Stereo Enhancer",
+      "code": "ENH",
+      "slots": "1-8",
+      "confidence": "low",
+      "description": "Stereo enhancer with bass, mid and high enhancement all turned up and extra output gain. Makes a source brighter, fuller and more forward. The name doesn't make the intended source clear.",
+      "tags": [
+        "enhancer",
+        "insert",
+        "bright",
+        "presence",
+        "full"
+      ],
+      "params": {
+        "outGainDb": 10.0
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 3,
+      "name": "BBM 80s Nvr End",
+      "type": "Gated Reverb",
+      "code": "GATE",
+      "slots": "1-4",
+      "description": "Classic 1980s gated reverb: a big, dense burst cut off sharply after about 0.75 s, with the top end rolled off. Built for snare and toms; also works on electronic drums and percussive synth hits.",
+      "tags": [
+        "reverb",
+        "gated",
+        "80s",
+        "drums",
+        "snare",
+        "toms",
+        "big",
+        "punchy",
+        "drum-machine"
+      ],
+      "params": {
+        "preDelayMs": 10,
+        "decayMs": 759,
+        "highShelfDb": -9.0,
+        "highShelfHz": 7200
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 4,
+      "name": "BBM Ballad Snare",
+      "type": "Vintage Room",
+      "code": "VRM",
+      "slots": "1-4",
+      "description": "Medium room, about 2 s, with a brighter tail and reduced low end. Gives a snare a longer, smoother ring for slower songs. Also suits sparse percussion or plucked synth sounds that need space without mud.",
+      "tags": [
+        "reverb",
+        "room",
+        "medium",
+        "drums",
+        "snare",
+        "ballad",
+        "bright"
+      ],
+      "params": {
+        "reverbDelayMs": 20,
+        "decayS": 1.94,
+        "size": 34,
+        "lowMultiply": 0.69,
+        "highMultiply": 1.45,
+        "lowCutHz": 89,
+        "highCutHz": 7900
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 5,
+      "name": "BBM Cutting D6",
+      "type": "Dual Exciter",
+      "code": "EXC2",
+      "slots": "1-8",
+      "confidence": "low",
+      "description": "Dual exciter adding harmonics around 1.6 kHz and 2.75 kHz so a part cuts through the mix. The name points to the Hohner Clavinet D6, so it is meant for clav or other funky, percussive keys.",
+      "tags": [
+        "exciter",
+        "insert",
+        "keys",
+        "clavinet",
+        "funk",
+        "presence",
+        "cutting",
+        "bright"
+      ],
+      "params": {
+        "tuneAHz": 1580,
+        "tuneBHz": 2750,
+        "mix": 100
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 6,
+      "name": "BBM Dly Chr VOX",
+      "type": "Delay + Chorus",
+      "code": "D/CR",
+      "slots": "1-4",
+      "description": "Quarter-note delay (about 325 ms) with moderate repeats, plus a slow, fairly deep chorus. Widens and thickens a lead vocal with a clear echo. Works for lead synths too.",
+      "tags": [
+        "delay",
+        "chorus",
+        "vocal",
+        "lead",
+        "wide",
+        "echo",
+        "quarter-note"
+      ],
+      "params": {
+        "delayMs": 325,
+        "pattern": "1/4",
+        "feedback": 28,
+        "chorusSpeedHz": 0.47,
+        "chorusDepth": 60
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 7,
+      "name": "BBM Fat Snare",
+      "type": "Vintage Reverb",
+      "code": "VREV",
+      "slots": "1-4",
+      "description": "Short EMT-style plate (about 1.2 s) with a darker, shorter top end. Thickens a snare without washing it out. Also good on snappy drum-machine snares and claps.",
+      "tags": [
+        "reverb",
+        "plate",
+        "vintage",
+        "short",
+        "drums",
+        "snare",
+        "fat",
+        "clap"
+      ],
+      "params": {
+        "preDelayMs": 14,
+        "decayS": 1.2,
+        "lowCutHz": 60,
+        "highCutHz": 15300
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 8,
+      "name": "BBM Female Vox",
+      "type": "Vintage Reverb",
+      "code": "VREV",
+      "slots": "1-4",
+      "description": "Smooth EMT-style plate, about 2.2 s, with 30 ms pre-delay and the lows cut. Sits behind a lead vocal without clouding it. Also suits pads and melodic leads that need a long, clean tail.",
+      "tags": [
+        "reverb",
+        "plate",
+        "vintage",
+        "long",
+        "vocal",
+        "lead",
+        "pad",
+        "smooth"
+      ],
+      "params": {
+        "preDelayMs": 30,
+        "decayS": 2.2,
+        "lowCutHz": 132,
+        "highCutHz": 12800
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 9,
+      "name": "BBM FLANGY AMB",
+      "type": "Flanger + Chamber",
+      "code": "FL/R",
+      "slots": "1-4",
+      "description": "Slow, deep flanger feeding a very short, dark ambience. Gives a swirling, jet-like movement with a little space. Suits guitars, pads, drum loops and anything that wants a psychedelic sweep.",
+      "tags": [
+        "flanger",
+        "modulation",
+        "ambience",
+        "swirl",
+        "psychedelic",
+        "pad",
+        "guitar",
+        "movement"
+      ],
+      "params": {
+        "flangeSpeedHz": 0.26,
+        "flangeDepth": 75,
+        "reverbDecayS": 0.22
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 10,
+      "name": "BBM H949 Vox",
+      "type": "Dual Pitch Shifter",
+      "code": "PIT2",
+      "slots": "1-4",
+      "description": "The Eventide H949 doubling trick: one side detuned 12 cents down, the other 12 cents up, short delays, panned hard left and right. Makes a mono source sound wide and double-tracked. Excellent on mono synths, leads and vocals.",
+      "tags": [
+        "pitch",
+        "doubler",
+        "detune",
+        "wide",
+        "stereo",
+        "vocal",
+        "mono-synth",
+        "lead"
+      ],
+      "params": {
+        "centsA": -12,
+        "centsB": 12,
+        "delayAMs": 3.1,
+        "delayBMs": 5.0,
+        "panA": -100,
+        "panB": 100
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 11,
+      "name": "BBM Hwy Star B3",
+      "type": "Stereo Tube Stage",
+      "code": "DRV",
+      "slots": "1-8",
+      "description": "Tube drive at maximum with a strong upper-mid boost around 1.9 kHz and some low-mid weight. A gritty, overdriven organ sound in the style of Jon Lord on 'Highway Star'. Works on organs, electric pianos and synths that need bite.",
+      "tags": [
+        "drive",
+        "distortion",
+        "tube",
+        "insert",
+        "organ",
+        "hammond",
+        "keys",
+        "rock",
+        "gritty"
+      ],
+      "params": {
+        "drive": 100,
+        "outGainDb": -12.0,
+        "lowBoostDb": 4.0,
+        "lowBoostHz": 287,
+        "highBoostDb": 10.0,
+        "highBoostHz": 1900
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 12,
+      "name": "BBM JJ Bass",
+      "type": "Delay + Chorus",
+      "code": "D/CR",
+      "slots": "1-4",
+      "description": "Very short delay with a slow, deep chorus. Thickens and widens a bass guitar, rather than adding an audible echo. Good on synth bass when you want movement, though it can soften the low end.",
+      "tags": [
+        "chorus",
+        "bass",
+        "thick",
+        "wide",
+        "doubling",
+        "synth-bass"
+      ],
+      "params": {
+        "delayMs": 8,
+        "chorusSpeedHz": 0.33,
+        "chorusDepth": 65
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 13,
+      "name": "BBM Magnum Opus",
+      "type": "Stereo Chorus",
+      "code": "CRS",
+      "slots": "1-4",
+      "description": "Very slow, lush, wide chorus. Gives a broad, gently moving stereo image. Suits strings, pads, polysynths and electric pianos.",
+      "tags": [
+        "chorus",
+        "modulation",
+        "lush",
+        "slow",
+        "wide",
+        "pad",
+        "strings",
+        "keys",
+        "polysynth"
+      ],
+      "params": {
+        "speedHz": 0.17,
+        "depth": 55,
+        "delayMs": [
+          19.9,
+          18.2
+        ]
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 14,
+      "name": "BBM Miami Mod B3",
+      "type": "Rotary Speaker",
+      "code": "ROTA",
+      "slots": "1-4",
+      "description": "Leslie speaker simulation, set to the fast rotor. The classic Hammond organ swirl. Also works on electric pianos and string or pad sounds.",
+      "tags": [
+        "rotary",
+        "leslie",
+        "organ",
+        "hammond",
+        "keys",
+        "modulation",
+        "swirl"
+      ],
+      "params": {
+        "slowHz": 0.38,
+        "fastHz": 5.79,
+        "speed": "FAST"
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 15,
+      "name": "BBM Ska GTR Echo",
+      "type": "Delay + Chamber",
+      "code": "D/RV",
+      "slots": "1-4",
+      "description": "Short, rhythmic echo with a fair amount of repeats and the top rolled off, plus a medium chamber. Gives the bouncing echo used on ska and reggae offbeat guitar. Also good on stabs, skanks and dub-style synth chords.",
+      "tags": [
+        "delay",
+        "reverb",
+        "chamber",
+        "echo",
+        "ska",
+        "reggae",
+        "dub",
+        "guitar",
+        "stabs"
+      ],
+      "params": {
+        "delayMs": 240,
+        "pattern": "3/4",
+        "feedback": 40,
+        "reverbDecayS": 1.43
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 16,
+      "name": "BBM Solina Swirl",
+      "type": "Tremolo / Panner",
+      "code": "PAN",
+      "slots": "1-4",
+      "confidence": "low",
+      "description": "Full-depth auto-panner (left and right in opposite phase) at about 1.4 Hz. Makes a sound move across the stereo field. Named after the ARP Solina string machine, so meant for string ensembles and pads.",
+      "tags": [
+        "panner",
+        "tremolo",
+        "modulation",
+        "stereo",
+        "strings",
+        "pad",
+        "string-machine",
+        "movement"
+      ],
+      "params": {
+        "speedHz": 1.44,
+        "phaseDeg": 180,
+        "depth": 100
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 17,
+      "name": "BBM Thk Cln GTR",
+      "type": "Delay + Chorus",
+      "code": "D/CR",
+      "slots": "1-4",
+      "description": "Short delay with repeats plus a slow, light chorus. Thickens a clean guitar and gives it a little shimmer. Works on clean synth plucks and arpeggios too.",
+      "tags": [
+        "delay",
+        "chorus",
+        "guitar",
+        "clean",
+        "thick",
+        "shimmer",
+        "pluck",
+        "arpeggio"
+      ],
+      "params": {
+        "delayMs": 46,
+        "feedback": 42,
+        "chorusSpeedHz": 0.41,
+        "chorusDepth": 35
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 18,
+      "name": "BBM Tight Plate",
+      "type": "Plate Reverb",
+      "code": "PLAT",
+      "slots": "1-4",
+      "description": "Short plate (under 1 s) with a long 60 ms pre-delay, so the dry sound stays clear before the reverb arrives. Adds space and polish without length. Good on vocals, snare and fast-moving parts.",
+      "tags": [
+        "reverb",
+        "plate",
+        "short",
+        "tight",
+        "vocal",
+        "snare",
+        "clear",
+        "pre-delay"
+      ],
+      "params": {
+        "preDelayMs": 60,
+        "decayS": 0.76,
+        "size": 28,
+        "lowCutHz": 56,
+        "highCutHz": 10400
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 19,
+      "name": "BBM Tramp Whirly",
+      "type": "Stereo Chorus",
+      "code": "CRS",
+      "slots": "1-4",
+      "description": "Light, slightly faster chorus with a wide stereo spread. Named after Supertramp's Wurlitzer ('whirly'), so meant for electric pianos. Also suits clean keys and bell-like synth sounds.",
+      "tags": [
+        "chorus",
+        "modulation",
+        "keys",
+        "electric-piano",
+        "wurlitzer",
+        "light",
+        "wide"
+      ],
+      "params": {
+        "speedHz": 0.48,
+        "depth": 20,
+        "delayMs": [
+          15.1,
+          16.6
+        ]
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 20,
+      "name": "BBM VOX Hall",
+      "type": "Hall Reverb",
+      "code": "HALL",
+      "slots": "1-4",
+      "description": "Compact hall, about 1.7 s, with a darker top and the lows cut. A smooth, controlled vocal reverb. Also a sensible default for leads and keys.",
+      "tags": [
+        "reverb",
+        "hall",
+        "medium",
+        "vocal",
+        "lead",
+        "keys",
+        "smooth",
+        "dark"
+      ],
+      "params": {
+        "preDelayMs": 16,
+        "decayS": 1.67,
+        "size": 42,
+        "lowCutHz": 83,
+        "highCutHz": 7200
+      },
+      "source": "Mix bus 13"
+    },
+    {
+      "pos": 21,
+      "name": "BBM Wide VOX Tap",
+      "type": "3-Tap Delay",
+      "code": "3TAP",
+      "slots": "1-4",
+      "source": "Mix bus 13",
+      "description": "Three-tap delay: a main 500 ms repeat in the centre, a shorter tap (3/8) hard left and a longer one (3/2) hard right, with moderate feedback and a dark top. Spreads a vocal or lead across the stereo field with a bouncing echo. Tempo-dependent, so set the time to the song.",
+      "tags": [
+        "delay",
+        "multi-tap",
+        "wide",
+        "stereo",
+        "vocal",
+        "lead",
+        "rhythmic",
+        "ping-pong"
+      ],
+      "params": {
+        "timeMs": 500,
+        "feedback": 32,
+        "tapA": "3/8 left",
+        "tapB": "3/2 right",
+        "highCutHz": 5500
+      }
+    },
+    {
+      "pos": 22,
+      "name": "Dimension Z",
+      "type": "Chorus + Chamber",
+      "code": "CR/R",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Gentle chorus into a medium chamber (about 1.5 s). Adds width and a soft space in one slot. Good on pads, electric pianos and clean guitar; the name nods to the Roland Dimension chorus.",
+      "tags": [
+        "chorus",
+        "reverb",
+        "chamber",
+        "wide",
+        "pad",
+        "keys",
+        "guitar",
+        "subtle"
+      ],
+      "params": {
+        "chorusSpeedHz": 0.43,
+        "chorusDepth": 20,
+        "reverbDecayS": 1.55,
+        "size": 78
+      }
+    },
+    {
+      "pos": 23,
+      "name": "Danish Chor",
+      "type": "Stereo Chorus",
+      "code": "CRS",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Deep, fairly quick chorus with short delays and full stereo spread. A strong, obvious 1980s chorus, likely named after TC Electronic's Danish chorus pedals. Good on clean guitar, fretless or synth bass, and thin synth patches that need thickening.",
+      "tags": [
+        "chorus",
+        "modulation",
+        "deep",
+        "80s",
+        "guitar",
+        "bass",
+        "synth",
+        "thick",
+        "wide"
+      ],
+      "params": {
+        "speedHz": 0.69,
+        "depth": 80,
+        "delayMs": 7.2,
+        "highCutHz": 12600
+      }
+    },
+    {
+      "pos": 24,
+      "name": "Canyon",
+      "type": "Delay + Chamber",
+      "code": "D/RV",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Echo with 50% feedback feeding a very large chamber (about 2.5 s). Long, spacious, cinematic. Suits ambient leads, guitar swells and sparse synth lines.",
+      "tags": [
+        "delay",
+        "reverb",
+        "chamber",
+        "long",
+        "ambient",
+        "spacious",
+        "cinematic",
+        "lead",
+        "guitar"
+      ],
+      "params": {
+        "delayMs": 262,
+        "pattern": "2/3X",
+        "feedback": 50,
+        "reverbDecayS": 2.47,
+        "size": 100
+      }
+    },
+    {
+      "pos": 25,
+      "name": "Memory Man",
+      "type": "Stereo Delay",
+      "code": "DLY",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Short 180 ms echo with 50% feedback and darkened repeats, in the style of the Electro-Harmonix Memory Man analogue delay. Warm slapback with a tail of fading repeats. Good on guitar, vocals and mono synth leads.",
+      "tags": [
+        "delay",
+        "analog",
+        "slapback",
+        "warm",
+        "echo",
+        "guitar",
+        "vocal",
+        "lead",
+        "vintage"
+      ],
+      "params": {
+        "timeMs": 180,
+        "feedback": 50,
+        "feedbackHighCutHz": 5500
+      }
+    },
+    {
+      "pos": 26,
+      "name": "Third Groove",
+      "type": "3-Tap Delay",
+      "code": "3TAP",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Three-tap delay at 400 ms with taps at 1.5x and 3x, panned left, centre and right, quiet and with little feedback. Creates a rhythmic, syncopated pattern across the stereo field. Tempo-dependent; good on percussion, arpeggios and plucks.",
+      "tags": [
+        "delay",
+        "multi-tap",
+        "rhythmic",
+        "groove",
+        "stereo",
+        "arpeggio",
+        "pluck",
+        "percussion"
+      ],
+      "params": {
+        "timeMs": 400,
+        "feedback": 24,
+        "tapA": "3/2 centre",
+        "tapB": "3 right",
+        "highCutHz": 7900
+      }
+    },
+    {
+      "pos": 27,
+      "name": "Choriance",
+      "type": "Delay + Chorus",
+      "code": "D/CR",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Dark delay with 50% feedback plus a faster, noticeable chorus. A wobbly, lo-fi, tape-like texture. Good on keys, pads and guitar.",
+      "tags": [
+        "delay",
+        "chorus",
+        "dark",
+        "wobble",
+        "lo-fi",
+        "tape",
+        "keys",
+        "pad",
+        "guitar"
+      ],
+      "params": {
+        "delayMs": 195,
+        "pattern": "3/8X",
+        "feedback": 50,
+        "chorusSpeedHz": 1.53,
+        "chorusDepth": 60
+      }
+    },
+    {
+      "pos": 28,
+      "name": "Thing!",
+      "type": "Delay + Flanger",
+      "code": "D/FL",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Full-depth, high-feedback flanger plus a bright echo with 50% feedback. A dramatic jet-plane sweep with repeats. A special effect for builds, breakdowns and synth sweeps.",
+      "tags": [
+        "flanger",
+        "delay",
+        "jet",
+        "sweep",
+        "dramatic",
+        "special-effect",
+        "build",
+        "synth"
+      ],
+      "params": {
+        "delayMs": 265,
+        "feedback": 50,
+        "flangeSpeedHz": 0.31,
+        "flangeDepth": 100,
+        "flangeFeedback": 75
+      }
+    },
+    {
+      "pos": 29,
+      "name": "Chordia",
+      "type": "Dual Pitch Shifter",
+      "code": "PIT2",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Subtle detune: one side 5 cents down, the other 10 cents up, short delays, panned partly left and right. A gentler, narrower version of the H949 doubler. Thickens mono synths, leads and vocals without obvious width.",
+      "tags": [
+        "pitch",
+        "detune",
+        "doubler",
+        "subtle",
+        "thick",
+        "mono-synth",
+        "vocal",
+        "lead"
+      ],
+      "params": {
+        "centsA": -5,
+        "centsB": 10,
+        "panA": -40,
+        "panB": 40
+      }
+    },
+    {
+      "pos": 30,
+      "name": "Final Mix",
+      "type": "Dual Enhancer",
+      "code": "ENH2",
+      "slots": "1-8",
+      "source": "Insert",
+      "confidence": "low",
+      "description": "Light enhancement on both channels with a small output cut. Meant as a gentle polish on the main mix or a stereo bus.",
+      "tags": [
+        "enhancer",
+        "insert",
+        "mix",
+        "master",
+        "bus",
+        "subtle",
+        "polish"
+      ],
+      "params": {
+        "outGainDb": -2.0
+      }
+    },
+    {
+      "pos": 31,
+      "name": "Floom",
+      "type": "Flanger + Chamber",
+      "code": "FL/R",
+      "slots": "1-4",
+      "source": "Insert",
+      "description": "Deep, slow flanger with strong negative feedback, giving a hollow, metallic sweep, into a small chamber. Good on pads, drum loops and guitars.",
+      "tags": [
+        "flanger",
+        "reverb",
+        "hollow",
+        "metallic",
+        "sweep",
+        "pad",
+        "drums",
+        "guitar"
+      ],
+      "params": {
+        "flangeSpeedHz": 0.3,
+        "flangeDepth": 95,
+        "flangeFeedback": -85,
+        "reverbDecayS": 0.56
+      }
+    },
+    {
+      "pos": 32,
+      "name": "ADA-Flanger",
+      "type": "Stereo Flanger",
+      "code": "FLNG",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Deep, slow flanger with strong negative feedback and a dark top, after the classic ADA flanger. A rich, hollow 1970s/80s sweep. Good on guitar, electric piano and synth pads.",
+      "tags": [
+        "flanger",
+        "modulation",
+        "vintage",
+        "deep",
+        "hollow",
+        "dark",
+        "guitar",
+        "keys",
+        "pad"
+      ],
+      "params": {
+        "speedHz": 0.29,
+        "depth": 90,
+        "delayMs": 6.1,
+        "feedback": -75,
+        "highCutHz": 5000
+      }
+    },
+    {
+      "pos": 33,
+      "name": "Phil's Drums",
+      "type": "Gated Reverb",
+      "code": "GATE",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Tight gated reverb, cut off after about 0.5 s, with the highs rolled off. The 'In the Air Tonight' drum sound associated with Phil Collins. Shorter and punchier than '80s Nvr End'; great on drum-machine toms and snares.",
+      "tags": [
+        "reverb",
+        "gated",
+        "80s",
+        "drums",
+        "snare",
+        "toms",
+        "tight",
+        "punchy",
+        "drum-machine"
+      ],
+      "params": {
+        "preDelayMs": 14,
+        "decayMs": 484,
+        "highShelfDb": -9.0,
+        "highShelfHz": 6000
+      }
+    },
+    {
+      "pos": 34,
+      "name": "Big Concert",
+      "type": "Hall Reverb",
+      "code": "HALL",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Large, warm concert hall, about 2.2 s, with 30 ms pre-delay and a soft top. A natural big-room sound for strings, pads, piano and orchestral parts.",
+      "tags": [
+        "reverb",
+        "hall",
+        "large",
+        "long",
+        "warm",
+        "natural",
+        "strings",
+        "pad",
+        "piano",
+        "orchestral"
+      ],
+      "params": {
+        "preDelayMs": 30,
+        "decayS": 2.17,
+        "size": 60,
+        "lowCutHz": 76,
+        "highCutHz": 6600
+      }
+    },
+    {
+      "pos": 35,
+      "name": "Squeezer",
+      "type": "Precision Limiter",
+      "code": "LIM",
+      "slots": "1-8",
+      "source": "Insert",
+      "description": "Limiter with 6 dB of input gain, a fast attack, medium release and a -0.5 dB ceiling. Makes a bus or the main mix louder and denser. Use on the Main LR or a drum or synth bus.",
+      "tags": [
+        "limiter",
+        "dynamics",
+        "insert",
+        "loud",
+        "master",
+        "bus",
+        "dense",
+        "squash"
+      ],
+      "params": {
+        "inputGainDb": 6.0,
+        "outputDb": -0.5,
+        "attackMs": 0.07,
+        "releaseMs": 458
+      }
+    },
+    {
+      "pos": 36,
+      "name": "LFO Wah",
+      "type": "Mood Filter",
+      "code": "FILT",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "confidence": "low",
+      "description": "Resonant low-pass filter swept by a triangle LFO at about 1.6 Hz. An automatic, synth-style filter wobble. Good on clavinet, electric piano, guitar and static synth chords that need movement.",
+      "tags": [
+        "filter",
+        "wah",
+        "lfo",
+        "resonant",
+        "sweep",
+        "modulation",
+        "synth",
+        "keys",
+        "funk"
+      ],
+      "params": {
+        "speedHz": 1.61,
+        "depth": 40,
+        "resonance": 60,
+        "baseHz": 344.6,
+        "mode": "LP",
+        "wave": "TRI"
+      }
+    },
+    {
+      "pos": 37,
+      "name": "Green Phaser",
+      "type": "Stereo Phaser",
+      "code": "PHAS",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "confidence": "low",
+      "description": "Four-stage phaser at about 2.3 Hz with moderate depth and resonance, mixed in at about three-quarters. A classic pedal-style phaser swirl. Good on electric piano, string machines, pads and guitar.",
+      "tags": [
+        "phaser",
+        "modulation",
+        "vintage",
+        "pedal",
+        "keys",
+        "electric-piano",
+        "strings",
+        "pad",
+        "guitar"
+      ],
+      "params": {
+        "speedHz": 2.29,
+        "depth": 48,
+        "resonance": 48,
+        "stages": 4,
+        "mix": 74
+      }
+    },
+    {
+      "pos": 38,
+      "name": "Vocal Plate",
+      "type": "Plate Reverb",
+      "code": "PLAT",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Large plate, about 1.7 s, with 40 ms pre-delay and the lows cut. The standard bright, smooth vocal plate. Also good on snares, leads and keys.",
+      "tags": [
+        "reverb",
+        "plate",
+        "medium",
+        "vocal",
+        "lead",
+        "snare",
+        "keys",
+        "smooth",
+        "bright"
+      ],
+      "params": {
+        "preDelayMs": 40,
+        "decayS": 1.66,
+        "size": 100,
+        "lowCutHz": 71,
+        "highCutHz": 8700
+      }
+    },
+    {
+      "pos": 39,
+      "name": "B3 Leslie",
+      "type": "Rotary Speaker",
+      "code": "ROTA",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Leslie speaker simulation set to the slow (chorale) rotor, with a faster fast speed than 'Miami Mod B3'. A gentle organ swirl that can switch to fast. Good on organ, electric piano and pads.",
+      "tags": [
+        "rotary",
+        "leslie",
+        "organ",
+        "hammond",
+        "keys",
+        "modulation",
+        "slow",
+        "chorale"
+      ],
+      "params": {
+        "slowHz": 0.82,
+        "fastHz": 6.91,
+        "speed": "SLOW"
+      }
+    },
+    {
+      "pos": 40,
+      "name": "Backwards",
+      "type": "Reverse Reverb",
+      "code": "RVRS",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Reverse reverb lasting about 1 s, darkened at the top, that swells up into each note. An eerie, sucked-in effect for vocals, snare hits, pads and ambient transitions.",
+      "tags": [
+        "reverb",
+        "reverse",
+        "swell",
+        "special-effect",
+        "ambient",
+        "eerie",
+        "vocal",
+        "snare",
+        "pad"
+      ],
+      "params": {
+        "preDelayMs": 30,
+        "decayMs": 1000,
+        "highShelfDb": -16.0,
+        "highShelfHz": 8700
+      }
+    },
+    {
+      "pos": 41,
+      "name": "Punch",
+      "type": "Stereo Enhancer",
+      "code": "ENH",
+      "slots": "1-8",
+      "source": "Insert",
+      "confidence": "low",
+      "description": "Light enhancer with modest bass, mid and high lift and a small output cut. Adds a bit of weight and definition without obvious brightness. Good on drums, bass or a whole group.",
+      "tags": [
+        "enhancer",
+        "insert",
+        "punch",
+        "subtle",
+        "drums",
+        "bass",
+        "bus"
+      ],
+      "params": {
+        "outGainDb": -1.0
+      }
+    },
+    {
+      "pos": 42,
+      "name": "Crunch",
+      "type": "Guitar Amp",
+      "code": "AMP",
+      "slots": "1-8",
+      "source": "Insert",
+      "confidence": "low",
+      "description": "Guitar amp simulation with fairly high drive and the speaker cabinet on. A crunchy, mid-heavy overdrive. Meant for DI guitar, but also a quick way to give synths, organ or drum loops a gritty amp sound.",
+      "tags": [
+        "amp",
+        "distortion",
+        "drive",
+        "crunch",
+        "insert",
+        "guitar",
+        "gritty",
+        "lo-fi",
+        "synth"
+      ],
+      "params": {
+        "cabinet": "ON"
+      }
+    },
+    {
+      "pos": 43,
+      "name": "The Voice",
+      "type": "Exciter",
+      "code": "EXC",
+      "slots": "1-8",
+      "source": "Insert",
+      "description": "Exciter tuned around 4.2 kHz, mixed in at about 30%. Adds presence and air to a vocal so it sits forward. Also useful on dull synth leads or pads that need clarity.",
+      "tags": [
+        "exciter",
+        "insert",
+        "vocal",
+        "presence",
+        "air",
+        "clarity",
+        "bright",
+        "lead"
+      ],
+      "params": {
+        "tuneHz": 4160,
+        "mix": 28
+      }
+    },
+    {
+      "pos": 44,
+      "name": "A Step Back",
+      "type": "Stereo Imager",
+      "code": "IMG",
+      "slots": "1-8",
+      "source": "Insert",
+      "confidence": "low",
+      "description": "Stereo imager with a 4.5 dB low shelf around 300 Hz and a small output cut. Changes width and adds warmth, which tends to push a source back in the mix. Use on stereo keys, pads or a bus that sounds too forward.",
+      "tags": [
+        "imager",
+        "stereo",
+        "width",
+        "insert",
+        "warm",
+        "depth",
+        "pad",
+        "keys",
+        "bus"
+      ],
+      "params": {
+        "shelfGainDb": 4.5,
+        "shelfHz": 316,
+        "outGainDb": -2.0
+      }
+    },
+    {
+      "pos": 45,
+      "name": "Punchito",
+      "type": "Stereo Tube Stage",
+      "code": "DRV",
+      "slots": "1-8",
+      "source": "Mix bus 1/2",
+      "description": "Moderate tube saturation with a slight lift at the lows and highs. Warmth and density rather than obvious distortion. Good on drum buses, bass, synths or a whole mix.",
+      "tags": [
+        "drive",
+        "saturation",
+        "tube",
+        "warm",
+        "insert",
+        "drums",
+        "bass",
+        "synth",
+        "bus",
+        "subtle"
+      ],
+      "params": {
+        "drive": 45,
+        "outGainDb": -7.0,
+        "lowCutHz": 63,
+        "highCutHz": 17500
+      }
+    },
+    {
+      "pos": 46,
+      "name": "TJ Fat Horns",
+      "type": "Stereo Chorus",
+      "code": "CRS",
+      "slots": "1-4",
+      "source": "Mix bus 5",
+      "description": "Light, wide chorus (the same settings as 'Tramp Whirly'), used by Terry 'TJ' Jackson to thicken a horn section. Also good on brass synths, electric pianos and clean keys.",
+      "tags": [
+        "chorus",
+        "modulation",
+        "horns",
+        "brass",
+        "thick",
+        "wide",
+        "light",
+        "keys",
+        "brass-synth"
+      ],
+      "params": {
+        "speedHz": 0.48,
+        "depth": 20,
+        "delayMs": [
+          15.1,
+          16.6
+        ]
+      }
+    },
+    {
+      "pos": 47,
+      "name": "TJ Horn Verb&Dly",
+      "type": "Delay + Chamber",
+      "code": "D/RV",
+      "slots": "1-4",
+      "source": "Mix bus 4",
+      "description": "A single, bright echo (very little feedback) blended with a short, large, bright chamber. Gives horns a sense of space and a slap without washing them out. Good on brass synths, stabs and leads.",
+      "tags": [
+        "delay",
+        "reverb",
+        "chamber",
+        "horns",
+        "brass",
+        "bright",
+        "short",
+        "slap",
+        "stabs"
+      ],
+      "params": {
+        "delayMs": 533,
+        "pattern": "1/2X",
+        "feedback": 6,
+        "reverbDecayS": 0.76,
+        "size": 100
+      }
+    },
+    {
+      "pos": 48,
+      "name": "TJ Ping Pong",
+      "type": "3-Tap Delay",
+      "code": "3TAP",
+      "slots": "1-4",
+      "source": "Mix bus 3",
+      "description": "Ping-pong delay with the main tap muted: one echo hard left at half the time (250 ms), one hard right at the full time (500 ms), no feedback. A clean left-then-right bounce. Tempo-dependent; good on vocals, leads and arpeggios.",
+      "tags": [
+        "delay",
+        "ping-pong",
+        "stereo",
+        "bounce",
+        "clean",
+        "vocal",
+        "lead",
+        "arpeggio"
+      ],
+      "params": {
+        "timeMs": 500,
+        "feedback": 0,
+        "tapA": "1/2 left",
+        "tapB": "1 right",
+        "highCutHz": 7900
+      }
+    },
+    {
+      "pos": 49,
+      "name": "TJ Vox Plate",
+      "type": "Plate Reverb",
+      "code": "PLAT",
+      "slots": "1-4",
+      "source": "Mix bus 1",
+      "description": "Bright, short plate, about 1.4 s, with 56 ms pre-delay, the lows cut and 12 dB of extra output level. A sparkly, present vocal plate. Watch the level when you load it.",
+      "tags": [
+        "reverb",
+        "plate",
+        "bright",
+        "short",
+        "vocal",
+        "lead",
+        "sparkly",
+        "pre-delay"
+      ],
+      "params": {
+        "preDelayMs": 56,
+        "decayS": 1.38,
+        "size": 60,
+        "levelDb": 12.0,
+        "lowCutHz": 105,
+        "highCutHz": 13800
+      }
+    },
+    {
+      "pos": 50,
+      "name": "Dyno Trem",
+      "type": "Tremolo / Panner",
+      "code": "PAN",
+      "slots": "1-4",
+      "source": "Insert",
+      "confidence": "low",
+      "description": "Tremolo at about 2.6 Hz with both sides in phase, so the volume pulses rather than pans. Named after the Dyno-My-Piano modified Rhodes, so meant for electric piano. Also good on organ, guitar and synth chords.",
+      "tags": [
+        "tremolo",
+        "modulation",
+        "electric-piano",
+        "rhodes",
+        "keys",
+        "pulse",
+        "vintage",
+        "guitar"
+      ],
+      "params": {
+        "speedHz": 2.62,
+        "phaseDeg": 0,
+        "depth": 65
+      }
+    },
+    {
+      "pos": 51,
+      "name": "Cathedral",
+      "type": "Vintage Room",
+      "code": "VRM",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Very long reverb, about 4.5 s, with 40 ms pre-delay, extra low end and a darker top. A huge, slow cathedral tail. Good for ambient pads, choirs, drones and slow strings.",
+      "tags": [
+        "reverb",
+        "long",
+        "huge",
+        "cathedral",
+        "dark",
+        "ambient",
+        "pad",
+        "drone",
+        "choir",
+        "strings"
+      ],
+      "params": {
+        "reverbDelayMs": 40,
+        "decayS": 4.54,
+        "lowMultiply": 1.2,
+        "highMultiply": 0.83,
+        "highCutHz": 7900
+      }
+    },
+    {
+      "pos": 52,
+      "name": "Echo Hangar",
+      "type": "Vintage Room",
+      "code": "VRM",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "Very large, dark space, about 2.7 s, with the top end strongly damped. An industrial, warehouse-like reverb. Good on drums, percussion and dark synth textures.",
+      "tags": [
+        "reverb",
+        "large",
+        "dark",
+        "industrial",
+        "hangar",
+        "drums",
+        "percussion",
+        "ambient",
+        "synth"
+      ],
+      "params": {
+        "reverbDelayMs": 16,
+        "decayS": 2.67,
+        "size": 100,
+        "highMultiply": 0.58,
+        "highCutHz": 5500
+      }
+    },
+    {
+      "pos": 53,
+      "name": "Drum Treat",
+      "type": "Vintage Reverb",
+      "code": "VREV",
+      "slots": "1-4",
+      "source": "Mix bus 1/2",
+      "description": "EMT-style plate, about 2.2 s, with vintage mode on, the rear listening position and a darker top. A slightly distant, characterful plate for a drum group. Also good on drum-machine buses.",
+      "tags": [
+        "reverb",
+        "plate",
+        "vintage",
+        "drums",
+        "drum-machine",
+        "bus",
+        "distant",
+        "dark"
+      ],
+      "params": {
+        "preDelayMs": 20,
+        "decayS": 2.2,
+        "vintage": "ON",
+        "position": "REAR",
+        "highCutHz": 11500
+      }
+    },
+    {
+      "pos": 54,
+      "name": "Stereorizer",
+      "type": "Wave Designer",
+      "code": "WAVD",
+      "slots": "1-8",
+      "source": "Insert",
+      "description": "Transient shaper with opposite settings on each side: softer attack and longer sustain on the left, sharper attack and shorter sustain on the right. Makes a mono source sound subtly stereo through the difference in envelope. Good on mono drum machines, percussion and plucked synths.",
+      "tags": [
+        "transient",
+        "wave-designer",
+        "stereo",
+        "pseudo-stereo",
+        "insert",
+        "drums",
+        "drum-machine",
+        "percussion",
+        "pluck"
+      ],
+      "params": {
+        "attackA": -22,
+        "sustainA": 18,
+        "attackB": 16,
+        "sustainB": -14
+      }
+    }
+  ]
+}

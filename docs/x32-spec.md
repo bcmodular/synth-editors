@@ -499,6 +499,8 @@ From the addendum (set up from rig file and trace signal):
 - **FX returns** are `fxrtn/01`…`08`, linked in pairs from the factory: the routing plan's "FX returns 1-4".
 - **Routing (fw 4):** block routing at `/config/routing/{IN,CARD,OUT,…}/<range>` and user routing at
   `/config/userrout/in/01-32` and `/out/01-48` (all 0 from the factory). Value meanings: from Maillot's document.
+- **FX library loads:** `/load ,sii libfx <library number − 1> <slot − 1>`, answered `/load ,si libfx 1`; checked by
+  loading library 027 into FX 8, which read back as the preset's type straight away.
 - **`/node`** works; the reply comes back on the address `node`, as one string. Scene names are at
   `/-show/showfile/scene/NNN/name` (001 answers, 100 doesn't).
 - Still open: Stereo Delay's Factor values, scene save over OSC, card routing values, whether a linked pair mirrors a

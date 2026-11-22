@@ -73,4 +73,8 @@ X32 Rack at 192.168.0.138 on the home network, firmware 4.15, checked 22 Nov 202
 - Routing is at `/config/routing/…` (blocks) and `/config/userrout/in|out/NN` (user routing); `/node` reads work and
   answer on the address `node`.
 
+- FX library loads (checked 22 Nov): `/load ,sii libfx 26 7` loaded library 027 ("Squeezer") into FX 8, which read
+  back as type 11 (LIM in the FX 5-8 numbering), and answered `/load ,si libfx 1`. So the index is the library number
+  less one and the slot counts from 0. Other slots were untouched. FX 8 was put back to type 1 afterwards.
+
 More in the spec's "Day-one answers".

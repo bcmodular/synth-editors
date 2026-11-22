@@ -48,9 +48,24 @@ export interface ApplyResult {
 
 export const WRITE_BATCH = 16;
 
+// The real desk can answer a read with the old value for a moment after a write (seen on user routing, 22 Nov), so
+// read-back waits a little first, and asks again about anything that doesn't match before calling it a mismatch.
+export const SETTLE_MS = 100;
+export const READ_TRIES = 5;
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function readOnce(desk: DeskIO, changes: Change[]): Promise<Mismatch[]> {
+  const got = await Promise.all(changes.map((c) => desk.read(c.param).catch(() => undefined)));
+  return changes.flatMap((change, i) => (got[i] === change.value ? [] : [{ change, got: got[i] }]));
+}
+
 async function readBack(desk: DeskIO, batch: Change[]): Promise<Mismatch[]> {
-  const got = await Promise.all(batch.map((c) => desk.read(c.param).catch(() => undefined)));
-  return batch.flatMap((change, i) => (got[i] === change.value ? [] : [{ change, got: got[i] }]));
+  let mismatches = batch.map((change) => ({ change, got: undefined as DeskValue | undefined }));
+  for (let tries = 0; tries < READ_TRIES && mismatches.length; tries++) {
+    await pause(SETTLE_MS);
+    mismatches = await readOnce(desk, mismatches.map((m) => m.change));
+  }
+  return mismatches;
 }
 
 export async function applyChanges(

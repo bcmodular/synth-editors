@@ -24,6 +24,7 @@ export interface FakeX32Init {
   firmware?: string;
   values?: Map<string, OscArg>; // the desk's state; default: the studio rig
   switches?: Partial<FakeSwitches>;
+  writeDelayMs?: number; // apply writes this late, as the real desk sometimes does (user routing, 22 Nov)
 }
 
 export interface FakeReceived extends OscMessage {
@@ -48,6 +49,7 @@ export class FakeX32 {
   private readonly values: Map<string, OscArg>;
   private readonly model: string;
   private readonly firmware: string;
+  private readonly writeDelayMs: number;
   private readonly switches: FakeSwitches;
   private clients: Client[] = [];
 
@@ -56,6 +58,7 @@ export class FakeX32 {
     this.values = init.values ?? defaultDesk();
     this.model = init.model ?? "X32RACK";
     this.firmware = init.firmware ?? "4.06";
+    this.writeDelayMs = init.writeDelayMs ?? 0;
     this.socket.on("message", (bytes, rinfo) => this.receive(bytes, rinfo));
   }
 
@@ -140,7 +143,8 @@ export class FakeX32 {
   private write(m: OscMessage, from: dgram.RemoteInfo): void {
     const [arg] = m.args;
     if (!arg) return;
-    this.values.set(m.address, arg);
+    if (this.writeDelayMs) setTimeout(() => this.values.set(m.address, arg), this.writeDelayMs);
+    else this.values.set(m.address, arg);
     this.notify({ address: m.address, args: [arg] }, from.port);
   }
 

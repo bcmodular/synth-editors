@@ -98,3 +98,12 @@ test("stops and keeps Studio base unsaved when a value doesn't read back", async
   await expect(panel(r.page).getByRole("alert")).toContainText("FX 1 left fed by bus 3 reads back as (no answer)", { timeout: 15_000 });
   expect(r.fake!.received.filter((m) => m.address === "/save")).toHaveLength(1);
 });
+
+test("waits for a desk that is slow to apply writes", async () => {
+  test.setTimeout(90_000);
+  const r = (running = await start({ values: factoryDesk(), writeDelayMs: 150 }));
+  await checked(r);
+  await panel(r.page).getByRole("button", { name: /^Apply \d+ changes$/ }).click();
+  await expect(panel(r.page).locator(".result")).toContainText("all read back", { timeout: 60_000 });
+  expect(r.fake!.get("/config/userrout/in/02")).toBe(2);
+});

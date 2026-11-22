@@ -6,7 +6,7 @@ import type { DeskValue } from "./cache";
 import { desiredTargets } from "./desired";
 import { int, str, type OscArg } from "./osc";
 import { parseRigFile } from "./rigFile";
-import { backupName, pickSlots, sceneSlots } from "./scenes";
+import { backupName, pickSlots, SCENE_NAME_MAX, sceneSlots } from "./scenes";
 import { runSetup } from "./setup";
 import { planSetup, type Change } from "./setupPlan";
 
@@ -60,6 +60,15 @@ describe("applyChanges", () => {
     expect(result).toEqual({ written: 2, total: 2, mismatches: [] });
   });
 
+  it("waits for a desk that answers with the old value just after a write", async () => {
+    const desk = memoryDesk(new Map([["/config/userrout/in/02", 0]]));
+    let stale = 2; // the first two reads after the write still see the old value
+    const read = desk.read;
+    desk.read = async (p) => (stale-- > 0 ? 0 : read(p));
+    const result = await applyChanges(desk, [change("/config/userrout/in/02", 2, 1)], SETUP_ALLOWED);
+    expect(result.mismatches).toEqual([]);
+  });
+
   it("stops at the first batch that doesn't read back", async () => {
     const desk = memoryDesk(new Map(), new Set(["/ch/02/config/name"]));
     const changes = Array.from({ length: 40 }, (_, i) => change(`/ch/${String(i + 1).padStart(2, "0")}/config/name`, `C${i}`));
@@ -77,7 +86,8 @@ describe("scenes", () => {
     ]);
     expect(pickSlots(sceneSlots((a) => desk.get(a)))).toEqual({ backup: 2, base: 4 });
     expect(pickSlots(freeSlots())).toEqual({ backup: 1, base: 2 });
-    expect(backupName(new Date("2026-11-22T10:00:00Z"))).toBe("Backup 2026-11-22");
+    expect(backupName(new Date("2026-11-22T10:00:00Z"))).toBe("Backup 26-11-22");
+    expect(backupName(new Date()).length).toBeLessThanOrEqual(SCENE_NAME_MAX);
   });
 });
 
@@ -86,7 +96,7 @@ describe("runSetup", () => {
     const desk = memoryDesk(factory());
     const plan = planSetup(targets, (a) => desk.values.get(a));
     const result = await runSetup(desk, plan, { areas: ["routing", "channels", "buses", "outputs", "fx", "card"], slots: freeSlots(), now: new Date("2026-11-22") });
-    expect(desk.log[0]).toBe("/save scene 1 Backup 2026-11-22 Before setup from the rig file");
+    expect(desk.log[0]).toBe("/save scene 1 Backup 26-11-22 Before setup from the rig file");
     expect(desk.log.at(-1)).toBe("/save scene 2 Studio base Set up from the rig file");
     expect(result).toMatchObject({ backup: 1, base: 2, mismatches: [], written: plan.changes.length });
     expect(planSetup(targets, (a) => desk.values.get(a)).changes).toEqual([]);

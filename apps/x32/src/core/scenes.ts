@@ -22,7 +22,9 @@ export function sceneSlots(get: (address: string) => DeskValue | undefined): Sce
   });
 }
 
-export const backupName = (now: Date) => `Backup ${now.toISOString().slice(0, 10)}`;
+// Scene names hold 16 characters (the desk cut "Backup 2026-11-22" to "Backup 2026-11-2"), so the year is short.
+export const SCENE_NAME_MAX = 16;
+export const backupName = (now: Date) => `Backup ${now.toISOString().slice(2, 10)}`;
 
 // The backup goes in the first empty slot; "Studio base" overwrites its own slot, or takes the next empty one.
 export function pickSlots(slots: SceneSlot[]): { backup: number; base: number } {

@@ -1,24 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { studioDesk, studioShared } from "../../e2e/studio";
-import type { Param } from "./addresses";
+import { memoryDesk, studioShared } from "../../e2e/studio";
 import { NotAllowed } from "./applier";
-import type { DeskValue } from "./cache";
 import { chatAllowed, Operator } from "./operator";
 import { sendTo, type Plan, type PlanContext } from "./planner";
 
 function setup(connected = true) {
-  const values = new Map([...studioDesk()].map(([a, arg]) => [a, arg.value as DeskValue]));
-  const writes: string[] = [];
-  const desk = {
-    connected: () => connected,
-    write: (p: Param, v: DeskValue) => {
-      writes.push(p.address);
-      values.set(p.address, v);
-    },
-    read: async (p: Param) => values.get(p.address)!,
-  };
-  const ctx: PlanContext = { get: (a) => values.get(a), shared: studioShared };
-  return { values, writes, ctx, op: new Operator(desk, chatAllowed(studioShared)) };
+  const desk = memoryDesk(connected);
+  const ctx: PlanContext = { get: (a) => desk.values.get(a), shared: studioShared };
+  return { values: desk.values, writes: desk.writes, ctx, op: new Operator(desk, chatAllowed(studioShared)) };
 }
 
 describe("Operator", () => {

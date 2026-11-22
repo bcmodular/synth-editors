@@ -38,10 +38,10 @@ const POST = 1; // /insert/pos: 0 pre, 1 post
 const selOf = (slot: number) => 2 * slot - 1;
 
 const typeOf = (ctx: PlanContext, slot: number) => Number(ctx.get(fx(slot).type.address) ?? 0);
-const insertedSlot = (rig: Rig, s: Source) => rig.fx.find((f) => f.insertedOn.includes(s.name))?.slot ?? null;
+export const insertedSlot = (rig: Rig, s: Source) => rig.fx.find((f) => f.insertedOn.includes(s.name))?.slot ?? null;
 
 // The slot a request names, by number, destination or inserted source.
-function findSlot(rig: Rig, target: string): number {
+export function findSlot(rig: Rig, target: string): number {
   const n = /^(?:fx\s*)?([1-8])$/i.exec(target.trim());
   if (n) return Number(n[1]);
   const lower = target.trim().toLowerCase();
@@ -82,10 +82,10 @@ function paramChanges(ctx: PlanContext, slot: number, def: EffectDef, values: Re
   });
 }
 
-const unfeed = (ctx: PlanContext, slot: FxSlot): PlanChange[] =>
+export const unfeed = (ctx: PlanContext, slot: FxSlot): PlanChange[] =>
   (["l", "r"] as const).flatMap((side) => change(ctx.get, { param: fx(slot.slot).source(side), value: 0, what: `FX ${slot.slot} ${side.toUpperCase()} not fed from a bus`, step: FEED }));
 
-function insertOn(ctx: PlanContext, s: Source, slot: number): PlanChange[] {
+export function insertOn(ctx: PlanContext, s: Source, slot: number): PlanChange[] {
   return s.numbers.flatMap((n, i) => {
     const ins = insert(strip("ch", n));
     return [
@@ -96,7 +96,7 @@ function insertOn(ctx: PlanContext, s: Source, slot: number): PlanChange[] {
   });
 }
 
-function channelSource(rig: Rig, name: string): Source {
+export function channelSource(rig: Rig, name: string): Source {
   const s = findSource(rig, { source: name });
   if (s.kind !== "ch") throw new Refused(`${s.name} isn't on a channel, and only channels have an insert point`);
   return s;

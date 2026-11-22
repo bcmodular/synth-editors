@@ -25,6 +25,8 @@ export interface FakeX32Init {
   values?: Map<string, OscArg>; // the desk's state; default: the studio rig
   switches?: Partial<FakeSwitches>;
   writeDelayMs?: number; // apply writes this late, as the real desk sometimes does (user routing, 22 Nov)
+  // `/load ,sii libfx <index> <slot>`: what loading a library preset does to the values; true if it loaded.
+  loadFx?: (args: OscArg[], get: (a: string) => number | string | undefined, set: (p: Param, v: number | string) => void) => boolean;
 }
 
 export interface FakeReceived extends OscMessage {
@@ -50,6 +52,7 @@ export class FakeX32 {
   private readonly model: string;
   private readonly firmware: string;
   private readonly writeDelayMs: number;
+  private readonly loadFx: FakeX32Init["loadFx"] | null;
   private readonly switches: FakeSwitches;
   private clients: Client[] = [];
 
@@ -59,6 +62,7 @@ export class FakeX32 {
     this.model = init.model ?? "X32RACK";
     this.firmware = init.firmware ?? "4.06";
     this.writeDelayMs = init.writeDelayMs ?? 0;
+    this.loadFx = init.loadFx ?? null;
     this.socket.on("message", (bytes, rinfo) => this.receive(bytes, rinfo));
   }
 
@@ -117,12 +121,19 @@ export class FakeX32 {
     }
   }
 
+  // Messages that aren't values, by address.
+  private readonly commands: Record<string, (m: OscMessage, from: dgram.RemoteInfo) => void> = {
+    "/xremote": (_m, from) => this.subscribe(from),
+    "/info": (_m, from) => this.reply(from, "/info", [str("V2.07"), str("osc-server"), str(this.model), str(this.firmware)]),
+    "/xinfo": (_m, from) => this.reply(from, "/xinfo", [str("127.0.0.1"), str("FAKE-X32"), str(this.model), str(this.firmware)]),
+    "/status": (_m, from) => this.reply(from, "/status", [str("active"), str("127.0.0.1"), str(this.model)]),
+    "/save": (m, from) => this.save(m, from),
+    "/load": (m, from) => this.loadLibrary(m, from),
+  };
+
   private answer(m: OscMessage, from: dgram.RemoteInfo): void {
-    if (m.address === "/xremote") return this.subscribe(from);
-    if (m.address === "/info") return this.reply(from, "/info", [str("V2.07"), str("osc-server"), str(this.model), str(this.firmware)]);
-    if (m.address === "/xinfo") return this.reply(from, "/xinfo", [str("127.0.0.1"), str("FAKE-X32"), str(this.model), str(this.firmware)]);
-    if (m.address === "/status") return this.reply(from, "/status", [str("active"), str("127.0.0.1"), str(this.model)]);
-    if (m.address === "/save") return this.save(m, from);
+    const command = this.commands[m.address];
+    if (command) return command(m, from);
     const current = this.values.get(m.address);
     if (!current) return; // the desk ignores addresses it doesn't have
     if (m.args.length === 0) return this.reply(from, m.address, [current]);
@@ -138,6 +149,13 @@ export class FakeX32 {
     this.values.set(`/-show/showfile/scene/${slot}/hasdata`, int(1));
     this.scenes.set(n, new Map(this.values));
     this.reply(from, "/save", [str("scene"), int(1)]);
+  }
+
+  // A library load changes the slot as the desk would (through set, so other clients hear of it) and answers 1 or 0.
+  private loadLibrary(m: OscMessage, from: dgram.RemoteInfo): void {
+    const get = (a: string) => this.get(a) as number | string | undefined;
+    const ok = m.args[0]?.value === "libfx" && !!this.loadFx?.(m.args, get, (p, v) => this.set(p, v));
+    this.reply(from, "/load", [str(String(m.args[0]?.value ?? "")), int(ok ? 1 : 0)]);
   }
 
   private write(m: OscMessage, from: dgram.RemoteInfo): void {

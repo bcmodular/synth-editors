@@ -3,7 +3,7 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { studioDesk } from "./studio";
+import { loadInto, studioDesk } from "./studio";
 import { finish, start, status, type X32App } from "./x32";
 
 let running: X32App | undefined;
@@ -29,7 +29,7 @@ const requests = (r: X32App) =>
 const panel = (page: Page) => page.locator(".panel.chat");
 
 async function ready(): Promise<X32App> {
-  const r = (running = await start({ values: studioDesk() }));
+  const r = (running = await start({ values: studioDesk(), loadFx: loadInto }));
   await expect(status(r.page)).toHaveText("Connected");
   await expect(r.page.locator(".rig table.sources")).toContainText("S-1");
   await expect(panel(r.page).getByLabel("Message")).toBeVisible(); // the fake Claude is ready
@@ -151,4 +151,24 @@ test("changing a send effect's type is refused (acceptance 9)", async () => {
   await say(r.page, "make the reverb a plate");
   await expect(panel(r.page).locator(".transcript .tool.bad")).toContainText("FX 1 is a send effect (fed by Reverb)");
   expect(r.fake!.get("/fx/1/type")).toBe(0);
+});
+
+test("a vocal plate preset goes into the reverb's slot from the desk's library, after Apply", async () => {
+  const r = await ready();
+  await script(r, [
+    reply([tool("find_presets", { query: "vocal plate" })], "tool_use"),
+    reply([tool("load_preset", { preset: "Vocal Plate", target: "Reverb" })], "tool_use"),
+    reply([text("Vocal Plate suits a lead. Press Apply to load it.")], "end_turn"),
+  ]);
+  await say(r.page, "give the reverb a vocal plate");
+  const sent = await requests(r);
+  expect(JSON.stringify(sent[1]!.messages.at(-1))).toContain("Vocal Plate (Plate Reverb, PLAT");
+  const pending = panel(r.page).getByRole("alertdialog");
+  await expect(pending).toContainText('Load "Vocal Plate" (Plate Reverb) into FX 1, replacing Hall Reverb (HALL)');
+  await pending.getByRole("button", { name: "Apply" }).click();
+  await expect(panel(r.page).locator(".transcript")).toContainText('Done: Load "Vocal Plate"');
+  expect(r.fake!.sent("/load").map((m) => m.args.map((a) => a.value))).toEqual([["libfx", 1, 0]]);
+  expect(r.fake!.get("/fx/1/type")).toBe(5);
+  expect(r.fake!.get("/fx/1/source/l")).toBe(1); // still fed by the Reverb bus
+  await expect(r.page.locator(".rig table.fx-slots")).toContainText("Plate Reverb (PLAT)");
 });

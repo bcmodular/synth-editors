@@ -3,6 +3,7 @@
 
 import type Anthropic from "@anthropic-ai/sdk";
 import { insertFx, removeInsert, setFxParam, setFxType } from "./fxPlanner";
+import { loadPresetPlan } from "./presetPlanner";
 import { includeEffects, removeSend, sendTo, type Plan, type PlanContext, type SendMode } from "./planner";
 
 export interface ToolOutcome {
@@ -13,6 +14,7 @@ export interface ToolOutcome {
 // What the tools need from the app.
 export interface ToolHost {
   state(names: string[]): string;
+  presets(query: string): string;
   run(make: (ctx: PlanContext) => Plan): Promise<ToolOutcome>;
   undo(): Promise<ToolOutcome>;
 }
@@ -81,6 +83,19 @@ export const TOOLS: Anthropic.Tool[] = [
     input_schema: object({ target: name("FX slot (FX 1-8) or a bus that feeds one"), effect: name("Effect code or name: DLY, HALL, Stereo Chorus") }),
   },
   {
+    name: "find_presets",
+    description: "Search the desk's FX preset library by sound or use (\"gated snare\", \"warm vocal plate\", \"slapback\", \"organ\"). Returns each match's name, type, which slots it fits, what it was saved for, and what it sounds like. An empty query lists them all.",
+    input_schema: object({ query: name("Words describing the sound or what it's for") }),
+  },
+  {
+    name: "load_preset",
+    description: "Load a preset from the desk's FX library, by name. The target is an FX slot or a bus that feeds one (the preset replaces that effect; a send effect only takes a preset of the same kind, so the Reverb stays a reverb), or a channel source (the preset goes on it as an insert, in a free slot). Always waits for Apply; it can't be undone from here.",
+    input_schema: object({
+      preset: name("Preset name, as find_presets shows it"),
+      target: name("FX slot (FX 1-8), a bus that feeds one (Reverb, Delay), or a source name for an insert"),
+    }),
+  },
+  {
     name: "undo",
     description: "Undo the last plan that was applied.",
     input_schema: object({}),
@@ -107,6 +122,8 @@ const RUNNERS: Record<string, (host: ToolHost, input: Input) => Promise<ToolOutc
     })),
   remove_insert: (host, input) => host.run((ctx) => removeInsert(ctx, { source: str(input.source) })),
   set_fx_param: (host, input) => host.run((ctx) => setFxParam(ctx, { target: str(input.target), param: str(input.param), value: str(input.value) })),
+  find_presets: async (host, input) => ({ text: host.presets(str(input.query)), kind: "state" }),
+  load_preset: (host, input) => host.run((ctx) => loadPresetPlan(ctx, { preset: str(input.preset), target: str(input.target) })),
   set_fx_type: (host, input) => host.run((ctx) => setFxType(ctx, { target: str(input.target), effect: str(input.effect) })),
 };
 

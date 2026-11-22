@@ -12,6 +12,8 @@ import { deriveRig, type Lookup, type Rig, type Source } from "./rig";
 import { OUTPUT_SOURCE, output } from "./routing";
 import { sameValue } from "./setupPlan";
 import { outputLabel } from "./targets";
+import type { PresetLoad } from "./library";
+import type { LibPreset } from "./presets";
 import type { RigFx } from "./rigFile";
 import { busSource, liveTarget, type SharedBus } from "./shared";
 
@@ -23,6 +25,7 @@ export interface Plan {
   summary: string;
   changes: PlanChange[];
   confirm: string | null; // why a person must confirm it first; null: applied straight away
+  load?: PresetLoad; // a library preset loaded before the changes; such a plan can't be undone from here
 }
 
 export class Refused extends Error {
@@ -36,6 +39,7 @@ export interface PlanContext {
   get: Lookup;
   shared: SharedBus[];
   feeds?: RigFx[]; // the rig file's FX feeds, put back when an insert that took a fed slot is removed
+  presets?: LibPreset[]; // the preset catalogue, matched to the desk's FX library
 }
 
 export type SendMode = "add" | "replace";

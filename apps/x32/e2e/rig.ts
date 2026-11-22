@@ -5,7 +5,7 @@
 
 import { config, fader, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
 import {
-  IN_BLOCKS, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, userIn, userOut,
+  FX_LIBRARY_SIZE, IN_BLOCKS, libFx, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, userIn, userOut,
   USER_IN_SLOTS, USER_OUT_SLOTS,
 } from "../src/core/routing.ts";
 import type { OscArg } from "../src/core/osc.ts";
@@ -27,6 +27,7 @@ export function blankDesk(): Values {
   for (const slot of numbers(FX_SLOTS)) numbers(12).forEach((k) => put(values, fx(slot).par(k), 0.5));
   for (const slot of numbers(FX_SEND_SLOTS)) [fx(slot).source("l"), fx(slot).source("r")].forEach((p) => put(values, p, 0));
   blankRouting(values);
+  for (let n = 1; n <= FX_LIBRARY_SIZE; n++) put(values, libFx(n).name, ""); // an empty FX library
   return values;
 }
 

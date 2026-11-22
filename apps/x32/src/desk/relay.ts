@@ -7,6 +7,7 @@ interface X32Bridge {
   host(): Promise<string>;
   setHost(text: string): Promise<string | null>;
   discover(query: Uint8Array): Promise<DiscoveryReply[]>;
+  presets(): Promise<unknown>;
   send(bytes: Uint8Array): void;
   onMessage(listener: (bytes: Uint8Array) => void): () => void;
   onError(listener: (code: string) => void): () => void;
@@ -28,5 +29,7 @@ export const deskHost = (): Promise<string> => window.x32.host();
 export const setDeskHost = (text: string): Promise<string | null> => window.x32.setHost(text);
 // Every desk that answers a broadcast on the local network.
 export const findDesks = async (): Promise<FoundDesk[]> => foundDesks(await window.x32.discover(XINFO));
+// The FX preset catalogue's JSON, or null if there's none (main.cjs, readPresets).
+export const presetCatalogue = (): Promise<unknown> => window.x32.presets();
 // Errors from the UDP socket in the main process, as Node error codes ("EHOSTUNREACH").
 export const onSocketError = (listener: (code: string) => void): (() => void) => window.x32.onError(listener);

@@ -33,6 +33,14 @@ export const scene = (n: number) => {
   return { name: p(`${base}/name`, "s"), hasdata: p(`${base}/hasdata`, "i") };
 };
 export const SAVE = "/save";
+export const LOAD = "/load";
+
+// The desk's FX library: /-libs/fx/001-100. A preset's index in /load is its number less one.
+export const FX_LIBRARY_SIZE = 100;
+export const libFx = (n: number) => {
+  const base = `/-libs/fx/${String(n).padStart(3, "0")}`;
+  return { name: p(`${base}/name`, "s"), hasdata: p(`${base}/hasdata`, "i") };
+};
 
 // User routing sources (`/config/userrout/in|out/NN`): base + n. Outputs, P16 and aux outs are for out slots only.
 export const USER_SOURCE = { local: 0, card: 128, aux: 160, outputs: 168, p16: 184, auxOut: 200 } as const;

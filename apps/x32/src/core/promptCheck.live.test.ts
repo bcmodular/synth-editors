@@ -5,10 +5,10 @@
 import { execFileSync } from "node:child_process";
 import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
-import { studioDesk, studioShared } from "../../e2e/studio";
-import type { Param } from "./addresses";
+import { memoryDesk, studioShared, TEST_PRESETS } from "../../e2e/studio";
+import { libraryNames } from "./library";
+import { inLibrary, presetsText } from "./presets";
 import { Conversation, type Create, type Turn } from "./agent";
-import type { DeskValue } from "./cache";
 import { chatAllowed, Operator, type Outcome } from "./operator";
 import { describeOutcome } from "./outcome";
 import { Refused, type PlanContext } from "./planner";
@@ -25,18 +25,13 @@ function apiKey(): string {
 
 // An in-memory desk and the same operator the app uses.
 function session(create: Create) {
-  const values = new Map([...studioDesk()].map(([a, arg]) => [a, arg.value as DeskValue]));
-  const writes: string[] = [];
-  const desk = {
-    connected: () => true,
-    write: (p: Param, v: DeskValue) => {
-      writes.push(p.address);
-      values.set(p.address, v);
-    },
-    read: async (p: Param) => values.get(p.address)!,
-  };
+  const desk = memoryDesk();
+  const { values, writes } = desk;
   const operator = new Operator(desk, chatAllowed(studioShared));
-  const ctx = (): PlanContext => ({ get: (a) => values.get(a), shared: studioShared });
+  const ctx = (): PlanContext => {
+    const get = (a: string) => values.get(a);
+    return { get, shared: studioShared, presets: inLibrary(TEST_PRESETS, libraryNames(get)) };
+  };
   const settle = async (work: () => Promise<Outcome | null>): Promise<ToolOutcome> => {
     try {
       const o = await work();
@@ -47,6 +42,7 @@ function session(create: Create) {
   };
   const host: ToolHost = {
     state: (names) => rigSummary({ get: ctx().get, shared: studioShared, names }),
+    presets: (query) => presetsText(ctx().presets ?? [], query),
     run: (make) => settle(async () => operator.propose(make(ctx()))),
     undo: () => settle(() => operator.undo(ctx())),
   };
@@ -95,7 +91,11 @@ const CASES: Case[] = [
   },
   {
     say: ["make the reverb a plate"],
-    check: (t, s) => (s.writes.length ? `wrote ${s.writes.join(", ")}` : /send|protect|in use|X32-Edit/i.test(t.reply) ? null : "reply doesn't say why"),
+    check: (t, s) => {
+      const c = t.calls.find((x) => x.name === "load_preset");
+      if (s.writes.length) return `wrote ${s.writes.join(", ")}`;
+      return c?.input.preset === "Vocal Plate" && c.kind === "waiting" ? null : `expected Vocal Plate held for Apply, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input, x.kind]))}`;
+    },
   },
   {
     say: ["give the reverb a 3 second tail"],
@@ -104,6 +104,22 @@ const CASES: Case[] = [
       const decay3 = c && /decay/i.test(String(c.input.param)) && Number(c.input.value) === 3;
       if (!decay3) return `got ${JSON.stringify(c?.input ?? t.calls.map((x) => x.name))}`;
       return c.kind === "applied" ? null : `plan ${c.kind}`;
+    },
+  },
+  {
+    say: ["I want an 80s gated reverb on the TR-8S"],
+    check: (t) => {
+      const c = t.calls.find((x) => x.name === "load_preset");
+      if (c?.input.preset !== "Phil's Drums") return `expected Phil's Drums loaded, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input]))}`;
+      return c.kind === "waiting" ? null : `plan ${c.kind}: ${c.result}`;
+    },
+  },
+  {
+    say: ["a warm slapback on the TD-3, please"],
+    check: (t) => {
+      const c = t.calls.find((x) => x.name === "load_preset" || x.name === "insert_fx");
+      if (c?.input.preset !== "Memory Man" || c.input.target !== "TD-3-MO") return `expected Memory Man on TD-3-MO, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input]))}`;
+      return c.kind === "waiting" ? null : `plan ${c.kind}: ${c.result}`;
     },
   },
   {

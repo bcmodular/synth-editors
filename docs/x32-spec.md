@@ -397,6 +397,16 @@ that needs it waits.
      are the Ableton returns, so there are no spare channels.
    - Not yet: parameter tables for the other types (the desk's FX 1 is VRM and FX 2 4TAP, which the chat can't tune
      yet), and FX types in the rig file.
+   - **FX presets (22 Nov):** the desk's FX library holds 54 presets (`/-libs/fx/001-054/name`). A catalogue of them
+     (name, type code, slots, a description and tags, written by Claude from each preset's settings) is read by the main
+     process from `X32_FX_PRESETS`, the data folder's `fx-presets.json`, or `fixtures/local/x32-fx-presets.json`. It's
+     derived from third-party preset files, so it never goes in the repo; the tests use a stand-in (`e2e/studio.ts`).
+     The chat finds presets by sound (`find_presets`) and loads one (`load_preset`) with `/load ,sii libfx <index>
+     <slot 0-7>` (Maillot, printed p. 51), matched to the library by name (index = library number − 1), then reads the
+     slot's type back until it's the preset's. Into a slot, the slot's bus feed is written again afterwards; onto a
+     channel, the preset goes in as an insert in a free slot (FX 5-8 first for presets that fit there). Guard 3, in
+     spirit: a send effect only takes a preset of the same kind (the Reverb stays a reverb). A preset load always waits
+     for Apply and isn't on the undo stack (the app doesn't keep the slot's 64 parameters).
 6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.
 7. **Trace signal:** `checkPath` first (settings only), then meters and `traceSignal`. Addendum tests 6–9.
 8. **X-Touch (when it arrives):** its half of assumption 2, acceptance test 7 from a real fader, and its remote setting

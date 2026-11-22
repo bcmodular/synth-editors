@@ -3,6 +3,7 @@
 
 import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
 import { READ_PARAMS } from "./effects";
+import { libraryParams } from "./library";
 import { LOCAL_OUTPUTS } from "./enums";
 import { output } from "./routing";
 
@@ -46,6 +47,7 @@ const outputs = (): Param[] => [
 
 export function deskReadList(): Param[] {
   return [
+    ...libraryParams(),
     ...ALL.flatMap(stripConfig),
     ...fxSlots(),
     ...outputs(),

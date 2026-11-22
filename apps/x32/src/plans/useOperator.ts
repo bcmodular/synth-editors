@@ -7,6 +7,9 @@ import type { DeskClient } from "../core/client";
 import { chatAllowed, Operator, type Outcome } from "../core/operator";
 import { describeOutcome } from "../core/outcome";
 import { Refused, type Plan, type PlanContext } from "../core/planner";
+import { libraryNames } from "../core/library";
+import { inLibrary, parsePresets, type Preset } from "../core/presets";
+import { presetCatalogue } from "../desk/relay";
 import type { Desk } from "../desk/useDesk";
 import { studioFeeds, studioShared } from "./studioShared";
 
@@ -37,11 +40,26 @@ const OFFLINE: Message = { text: "The desk isn't connected, so nothing was sent.
 
 function makeOperator(client: DeskClient | null): Operator | null {
   if (!client) return null;
-  const io = { read: client.read.bind(client), write: client.write.bind(client), connected: () => client.link === "connected" };
+  const io = {
+    read: client.read.bind(client), write: client.write.bind(client), request: client.request.bind(client),
+    connected: () => client.link === "connected",
+  };
   return new Operator(io, chatAllowed(studioShared));
 }
 
-const contextOf = (cache: DeskCache) => (): PlanContext => ({ get: (a) => cache.get(a), shared: studioShared, feeds: studioFeeds });
+// The catalogue matched to the desk's library as it is now (it can change in X32-Edit).
+const contextOf = (cache: DeskCache, catalogue: Preset[]) => (): PlanContext => {
+  const get = (a: string) => cache.get(a);
+  return { get, shared: studioShared, feeds: studioFeeds, presets: inLibrary(catalogue, libraryNames(get)) };
+};
+
+function useCatalogue(): Preset[] {
+  const [catalogue, setCatalogue] = useState<Preset[]>([]);
+  useEffect(() => {
+    void presetCatalogue().then((json) => setCatalogue(parsePresets(json)));
+  }, []);
+  return catalogue;
+}
 
 // Runs one operator call and turns its outcome, or the reason it was refused, into a message.
 async function settled(work: () => Promise<Outcome | null>): Promise<Message> {
@@ -69,7 +87,8 @@ function actionsFor(operator: Operator | null, context: () => PlanContext, repor
 
 export function useOperator(desk: Desk): Plans {
   const operator = useMemo(() => makeOperator(desk.client), [desk.client]);
-  const context = useMemo(() => contextOf(desk.cache), [desk.cache]);
+  const catalogue = useCatalogue();
+  const context = useMemo(() => contextOf(desk.cache, catalogue), [desk.cache, catalogue]);
   const [, setTick] = useState(0);
   const [message, setMessage] = useState<Message | null>(null);
   const [busy, setBusy] = useState(false);

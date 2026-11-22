@@ -8,7 +8,9 @@ Plain-language routing and effect changes on the Behringer X32 Rack, over OSC. T
 - **Chat:** type a request ("route S-1 to the P-6", "also send the TB-3 to the reverb at -6"). The model plans it
   through the same tools as the Sends panel; plans that switch anything off, or switch the Sampler to another device,
   wait for Apply. It can also put a delay or chorus on a channel as an insert, take it off, change an effect's
-  parameters ("give the reverb a 3 second tail"), and retype a slot that isn't a send effect in use. The header shows the model and the session's tokens and cost. Every request is logged (below).
+  parameters ("give the reverb a 3 second tail"), and retype a slot that isn't a send effect in use. It knows the
+  desk's FX library by sound ("an 80s gated reverb on the TR-8S") when there's a preset catalogue: put it at
+  `fixtures/local/x32-fx-presets.json` or `fx-presets.json` in the data folder (it stays out of the repo). The header shows the model and the session's tokens and cost. Every request is logged (below).
 - **Sends:** pick a source and a destination by name and Send, Send only this (switches the others off) or Stop
   sending. Sending to SP-404 Mk2, Koala or P-6 switches the shared Sampler bus to that device. Undo reverses the last
   applied plan. Plans that would loop a device's return into its own feed are refused (`src/core/guards.ts`).

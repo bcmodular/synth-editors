@@ -159,6 +159,24 @@ async function claudeCreate(request) {
   }
 }
 
+// The FX preset catalogue (src/core/presets.ts): X32_FX_PRESETS, else fx-presets.json in the data folder, else the
+// repo's fixtures/local/x32-fx-presets.json. It's derived from third-party preset files, so it's never in the repo.
+function readPresets() {
+  const places = [
+    process.env.X32_FX_PRESETS,
+    path.join(app.getPath("userData"), "fx-presets.json"),
+    path.join(__dirname, "..", "..", "..", "fixtures", "local", "x32-fx-presets.json"),
+  ].filter(Boolean);
+  for (const file of places) {
+    try {
+      return JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch {
+      // not there, or not JSON: try the next place
+    }
+  }
+  return null;
+}
+
 // The chat log: one JSON Lines file per day in the data folder (never in the repo, which is public).
 function appendChatLog(entry) {
   const dir = path.join(app.getPath("userData"), "logs");
@@ -206,6 +224,7 @@ app.whenReady().then(() => {
   ipcMain.handle("claude:status", () => claudeStatus());
   ipcMain.handle("claude:create", (_e, request) => claudeCreate(request));
   ipcMain.handle("chat:log", (_e, entry) => appendChatLog(entry));
+  ipcMain.handle("x32:presets", () => readPresets());
   ipcMain.on("x32:send", (_e, bytes) => {
     if (!desk || !socket) return;
     record("out", bytes);

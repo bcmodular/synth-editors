@@ -28,6 +28,7 @@ const host = (): ToolHost & { ran: string[] } => {
   return {
     ran,
     state: (names) => `state of ${names.join(", ") || "everything"}`,
+    presets: (query) => `presets for ${query}`,
     run: async (make) => {
       ran.push("run");
       void make;

@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Conversation, type Turn, type Usage } from "../core/agent";
 import { deskKind, requestEntry, rigHash, type ChatEntry } from "../core/chatLog";
+import { presetsText } from "../core/presets";
 import { rigSummary } from "../core/rigSummary";
 import type { ToolHost } from "../core/tools";
 import { addUsage, ZERO_USAGE } from "../core/usage";
@@ -48,6 +49,7 @@ function useHost(desk: Desk, plans: Plans): ToolHost {
   latest.current = plans;
   return useMemo(() => ({
     state: (names: string[]) => rigSummary({ get: (a) => desk.cache.get(a), shared: studioShared, names }),
+    presets: (query: string) => presetsText(latest.current.context().presets ?? [], query),
     run: async (make) => latest.current.run(make),
     undo: async () => latest.current.undo(),
   }), [desk.cache]);

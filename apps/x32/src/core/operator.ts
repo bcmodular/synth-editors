@@ -2,8 +2,10 @@
 // that needs confirming is held until the user presses Apply; the rest are applied straight away. Applied plans go on
 // the undo stack. Writes go through the applier, under the chat's allowed list, and are read back.
 
-import { applyChanges, type ApplyResult, type DeskIO, type Mismatch } from "./applier";
+import { applyChanges, refuseOutside, type ApplyResult, type DeskIO, type Mismatch } from "./applier";
+import { loadPreset } from "./library";
 import { undoPlan, type Plan, type PlanContext } from "./planner";
+import type { Requester } from "./scenes";
 import { sharedOutputAddresses, type SharedBus } from "./shared";
 
 // The chat may write sends (on and level), channel inserts, effect types, parameters and bus feeds (guard 3 keeps send
@@ -27,7 +29,7 @@ export type Outcome =
   | { kind: "mismatch"; plan: Plan; mismatch: Mismatch }
   | { kind: "offline"; plan: Plan };
 
-export interface OperatorDesk extends DeskIO {
+export interface OperatorDesk extends DeskIO, Requester {
   connected(): boolean;
 }
 
@@ -56,7 +58,7 @@ export class Operator {
 
   // Apply a plan now, or hold it for confirmation. A new plan replaces one still waiting.
   async propose(plan: Plan): Promise<Outcome> {
-    if (!plan.changes.length) return this.settle({ kind: "nothing", plan });
+    if (!plan.changes.length && !plan.load) return this.settle({ kind: "nothing", plan });
     return this.holdOrApply(plan, true);
   }
 
@@ -89,10 +91,22 @@ export class Operator {
 
   private async apply(plan: Plan, undoable: boolean): Promise<Outcome> {
     if (!this.desk.connected()) return this.settle({ kind: "offline", plan });
+    const outcome = await this.write(plan);
+    // A preset load replaces every parameter of the slot, which the app doesn't keep, so it can't be undone here.
+    const keep = undoable && !plan.load && outcome.kind === "applied" && outcome.result.written > 0;
+    if (keep) this.undoStack.push(plan);
+    return this.settle(outcome);
+  }
+
+  // The preset load first, if any, then the changes; the first thing that doesn't read back stops it.
+  private async write(plan: Plan): Promise<Outcome> {
+    refuseOutside(plan.changes, this.allowed); // before a preset load: nothing happens if anything is refused
+    const loaded = plan.load ? await loadPreset(this.desk, plan.load) : null;
+    if (loaded) return { kind: "mismatch", plan, mismatch: loaded };
     const result = await applyChanges(this.desk, plan.changes, this.allowed);
     const mismatch = result.mismatches[0];
-    if (undoable && result.written) this.undoStack.push(plan);
-    return this.settle(mismatch ? { kind: "mismatch", plan, mismatch } : { kind: "applied", plan, result });
+    if (mismatch) return { kind: "mismatch", plan, mismatch };
+    return { kind: "applied", plan, result: { ...result, written: result.written + (plan.load ? 1 : 0) } };
   }
 
   private settle(outcome: Outcome): Outcome {

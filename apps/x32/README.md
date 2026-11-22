@@ -17,7 +17,7 @@ addresses and value tables are in [docs/x32-osc-reference.md](../../docs/x32-osc
 
 ## What it does
 
-The window has five panels:
+The window has six panels:
 
 - **Desk:** finds the X32 on the network by broadcast, connects, and shows the model, firmware and link state.
 - **Chat:** requests in plain language. The model plans each one with the same tools as the panels below:
@@ -27,6 +27,10 @@ The window has five panels:
 
   Plans that only add a send are applied at once. Anything that switches something off, changes an insert or an
   effect, or loads a preset waits for **Apply**. **Undo** reverses the last applied plan.
+- **Tempo:** the tempo of MIDI clock from a chosen input (a Nome II's "Nome II Clock" port by default), the delays it
+  syncs and their times now. **Set delays to … BPM** sets every Stereo, 3-Tap and Rhythm Delay's Time to the tempo:
+  an eighth for the Stereo Delay, a quarter for the multi-tap delays, with their Factors setting the note values. It
+  writes only when pressed, because changing a delay's time while it plays is audible.
 - **Sends:** the same send plans from drop-downs, without the model.
 - **Set up from rig file:** *Check against rig file* reads the desk and lists every setting that differs from the rig
   file, by area, plus the steps only a person can do (phantom power, gain). *Apply* saves a dated backup scene, writes

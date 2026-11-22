@@ -27,6 +27,7 @@
   "description": "Chat control for the Behringer X32 Rack: routing and effect changes in plain language, over OSC",
   "author": "BC Modular",
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.12.0"
+    "@anthropic-ai/sdk": "^1.12.0",
+    "@synth-editors/midi": "*"
   }
 }

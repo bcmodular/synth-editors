@@ -395,7 +395,18 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
      spirit: a send effect only takes a preset of the same kind (the Reverb stays a reverb), and a slot fed by a bus
      named for a kind ("Reverb", "Delay") keeps that kind even with nothing sent to it; FX 3 and FX 4 take anything. A preset load always waits
      for Apply and isn't on the undo stack (the app doesn't keep the slot's 64 parameters).
-6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.
+6. **Tempo bridge (built 22 Nov, against the fake with a test clock):** `tempo.ts` (tempo over two beats of MIDI clock,
+   settled once it held within 0.5 BPM for a beat, the last tempo kept after Stop; the plan that sets every synced
+   delay's Time), `useTempoBridge` (Web MIDI, "Nome II Clock" by default, the input remembered), and a **Tempo panel**
+   with the delays, their times now and after, and the one button. Acceptance test 5's tempo part (`e2e/tempo.e2e.ts`).
+   Choices made:
+   - Synced delays are Stereo Delay (DLY), 3-Tap (3TAP) and Rhythm Delay (4TAP), from Maillot's tables. DLY's Time is
+     an eighth note (Factor L/R set the note values, as above); 3TAP and 4TAP's Time is a quarter, because their base
+     tap plays at Time itself and Factors A-C set the other taps.
+   - The press writes at once (it is the confirmation) and isn't on the undo stack (the next press sets it again).
+   - The chat can't set a synced delay's Time; it points to the button.
+   - Not yet tried on the desk with the Nome II: the e2e tests feed a test clock (`window.x32TestClock`), and Web MIDI
+     is denied in the tests.
 7. **Trace signal:** `checkPath` first (settings only), then meters and `traceSignal`. Addendum tests 6–9.
 9. **Scenes and snippets:** recall by name. Creating them only if the open question below says so.
 10. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and

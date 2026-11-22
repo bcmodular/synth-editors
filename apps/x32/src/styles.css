@@ -311,3 +311,13 @@ select,
   border-radius: 4px;
   padding: 6px 10px;
 }
+
+.tempo .clock {
+  font-size: 18px;
+  margin: 12px 0 0;
+}
+
+.tempo .delays {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}

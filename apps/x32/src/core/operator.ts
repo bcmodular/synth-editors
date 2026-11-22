@@ -69,6 +69,13 @@ export class Operator {
     return this.apply(held.plan, held.undoable);
   }
 
+  // Apply at once, without asking and without going on the undo stack (the tempo button: the press is the
+  // confirmation, and the next press sets it again).
+  async applyNow(plan: Plan): Promise<Outcome> {
+    if (!plan.changes.length) return this.settle({ kind: "nothing", plan });
+    return this.apply(plan, false);
+  }
+
   cancel(): void {
     this.held = null;
     this.changed();

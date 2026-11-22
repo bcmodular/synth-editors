@@ -11,6 +11,8 @@ import { useRig } from "./rig/useRig";
 import { SetupPanel } from "./setup/SetupPanel";
 import { useSetup } from "./setup/useSetup";
 import { SendsPanel } from "./sends/SendsPanel";
+import { TempoPanel } from "./tempo/TempoPanel";
+import { useTempoBridge } from "./tempo/useTempoBridge";
 
 export function App() {
   const desk = useDesk();
@@ -18,11 +20,13 @@ export function App() {
   const setup = useSetup(desk);
   const plans = useOperator(desk);
   const chat = useChat(desk, plans);
+  const tempo = useTempoBridge(plans);
   const connected = desk.link === "connected";
   return (
     <main>
       <DeskPanel desk={desk} />
       <ChatPanel chat={chat} connected={connected} />
+      <TempoPanel tempo={tempo} plans={plans} connected={connected} />
       <SendsPanel rig={rig} plans={plans} connected={connected} />
       <SetupPanel desk={desk} setup={setup} />
       <RigPanel rig={rig} />

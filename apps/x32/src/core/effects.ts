@@ -100,6 +100,22 @@ export const EFFECTS: Record<string, EffectDef> = {
     // Mix low for an insert; a dotted eighth, with Time one eighth at 120 BPM until the tempo button sets it.
     insertDefaults: { Mix: 30, Mode: "ST", "Factor L": "3/2", "Factor R": "3/2", Time: 250 },
   },
+  "3TAP": {
+    params: table([
+      ["Time", "lin", 1, 3000, "ms"], ["Gain Base", "lin", 0, 100], ["Pan Base", "lin", -100, 100], ["Feedback", "lin", 0, 100],
+      ["Lo Cut", "log", 10, 500, "Hz"], ["Hi Cut", "log", 200, 20000, "Hz"], ["Factor A", FACTORS], ["Gain A", "lin", 0, 100],
+      ["Pan A", "lin", -100, 100], ["Factor B", FACTORS], ["Gain B", "lin", 0, 100], ["Pan B", "lin", -100, 100],
+      ["Cross Feed", ["OFF", "ON"]], ["Mono", ["OFF", "ON"]], ["Dry", ["OFF", "ON"]],
+    ]),
+  },
+  "4TAP": {
+    params: table([
+      ["Time", "lin", 1, 3000, "ms"], ["Gain Base", "lin", 0, 100], ["Feedback", "lin", 0, 100], ["Lo Cut", "log", 10, 500, "Hz"],
+      ["Hi Cut", "log", 200, 20000, "Hz"], ["Spread", "lin", 0, 6], ["Factor A", FACTORS], ["Gain A", "lin", 0, 100],
+      ["Factor B", FACTORS], ["Gain B", "lin", 0, 100], ["Factor C", FACTORS], ["Gain C", "lin", 0, 100],
+      ["Cross Feed", ["OFF", "ON"]], ["Mono", ["OFF", "ON"]], ["Dry", ["OFF", "ON"]],
+    ]),
+  },
   CRS: {
     params: table([
       ["Speed", "log", 0.05, 5, "Hz"], ["Depth L", "lin", 0, 100], ["Depth R", "lin", 0, 100], ["Delay L", "log", 0.5, 50, "ms"],
@@ -113,8 +129,11 @@ export const EFFECTS: Record<string, EffectDef> = {
 // The parameters the app reads: as many as the longest table.
 export const READ_PARAMS = Math.max(...Object.values(EFFECTS).map((e) => e.params.length));
 
-// Delays the tempo bridge owns the Time of (docs/x32-spec.md, "Tempo bridge").
-export const SYNCED = new Set(["DLY"]);
+// Delays the tempo bridge owns the Time of (docs/x32-spec.md, "Tempo bridge"), and the note their Time is set to, in
+// beats: an eighth for the Stereo Delay (its Factor L/R set the note values), a quarter for the multi-tap delays, whose
+// base tap plays at Time itself (Factors A-C set the others).
+export const SYNCED_BEATS: Record<string, number> = { DLY: 0.5, "3TAP": 1, "4TAP": 1 };
+export const SYNCED = new Set(Object.keys(SYNCED_BEATS));
 
 export const effectAt = (t: FxType): EffectDef | null => EFFECTS[typeCode(t)] ?? null;
 export const canInsert = (e: EffectDef | null): boolean => !!e?.insertDefaults;

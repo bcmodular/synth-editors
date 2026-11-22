@@ -1,7 +1,7 @@
 // Electron main process for X32 chat control: one window (its position remembered), the UDP relay to the desk, and
 // the Claude relay. The relays only move bytes and requests: OSC encoding, the cache, the agent loop and everything else
 // are in the renderer (src/core/), reached through preload.cjs as window.x32 and window.claude.
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, session } = require("electron");
 const { execFile } = require("node:child_process");
 const dgram = require("node:dgram");
 const fs = require("node:fs");
@@ -192,8 +192,14 @@ function createWindow() {
   else win.loadFile(path.join(__dirname, "..", "dist", "index.html"));
 }
 
+// Web MIDI, for the tempo bridge's clock input (reads only; no SysEx). The tests get none: they feed a test clock
+// instead (window.x32TestClock, src/tempo/useTempoBridge.ts).
+const allowedPermission = (permission) => !NO_REAL_DESK && permission === "midi";
+
 app.whenReady().then(() => {
   if (HIDDEN) app.dock?.hide();
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(allowedPermission(permission)));
+  session.defaultSession.setPermissionCheckHandler((_wc, permission) => allowedPermission(permission));
   openSocket();
   setDesk(currentHost());
   ipcMain.handle("x32:host", () => (desk ? `${desk.address}:${desk.port}` : currentHost()));
@@ -203,6 +209,7 @@ app.whenReady().then(() => {
     return set;
   });
   ipcMain.handle("x32:discover", (_e, query) => discover(query));
+  ipcMain.handle("x32:testMode", () => NO_REAL_DESK);
   ipcMain.handle("claude:status", () => claudeStatus());
   ipcMain.handle("claude:create", (_e, request) => claudeCreate(request));
   ipcMain.handle("chat:log", (_e, entry) => appendChatLog(entry));

@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("x32", {
   host: () => ipcRenderer.invoke("x32:host"),
   setHost: (text) => ipcRenderer.invoke("x32:setHost", text),
   discover: (query) => ipcRenderer.invoke("x32:discover", query),
+  testMode: () => ipcRenderer.invoke("x32:testMode"),
   send: (bytes) => ipcRenderer.send("x32:send", bytes),
   onError: (cb) => {
     const listener = (_e, code) => cb(code);

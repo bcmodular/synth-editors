@@ -24,7 +24,7 @@ export function blankDesk(): Values {
   const values: Values = new Map();
   for (const kind of ALL) numbers(STRIP_COUNT[kind]).forEach((n) => blankStrip(values, kind, n));
   for (const slot of numbers(FX_SLOTS)) put(values, fx(slot).type, 0);
-  for (const slot of numbers(FX_SLOTS)) numbers(12).forEach((k) => put(values, fx(slot).par(k), 0.5));
+  for (const slot of numbers(FX_SLOTS)) numbers(15).forEach((k) => put(values, fx(slot).par(k), 0.5)); // READ_PARAMS
   for (const slot of numbers(FX_SEND_SLOTS)) [fx(slot).source("l"), fx(slot).source("r")].forEach((p) => put(values, p, 0));
   blankRouting(values);
   for (let n = 1; n <= FX_LIBRARY_SIZE; n++) put(values, libFx(n).name, ""); // an empty FX library

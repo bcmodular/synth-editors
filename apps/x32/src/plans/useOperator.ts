@@ -22,6 +22,7 @@ export interface Message {
 interface Actions {
   // Plan and propose; returns what happened, in a sentence (also shown as the message).
   run: (make: (ctx: PlanContext) => Plan) => Promise<Message>;
+  applyNow: (make: (ctx: PlanContext) => Plan) => Promise<Message>; // no confirmation, no undo
   confirm: () => Promise<Message>;
   cancel: () => void;
   undo: () => Promise<Message>;
@@ -71,9 +72,11 @@ async function settled(work: () => Promise<Outcome | null>): Promise<Message> {
 type Report = (work: () => Promise<Outcome | null>) => Promise<Message>;
 
 function actionsFor(operator: Operator | null, context: () => PlanContext, report: Report): Actions {
-  if (!operator) return { run: async () => OFFLINE, confirm: async () => OFFLINE, undo: async () => OFFLINE, cancel: () => {} };
+  const offline = async () => OFFLINE;
+  if (!operator) return { run: offline, applyNow: offline, confirm: offline, undo: offline, cancel: () => {} };
   return {
     run: (make) => report(async () => operator.propose(make(context()))),
+    applyNow: (make) => report(async () => operator.applyNow(make(context()))),
     confirm: () => report(() => operator.confirm()),
     undo: () => report(() => operator.undo(context())),
     cancel: () => operator.cancel(),

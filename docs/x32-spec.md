@@ -382,8 +382,21 @@ that needs it waits.
    prompt check (`npm run prompt-check:x32`, 7 phrases, about $0.004 a run) passes on Haiku 5.5 after one prompt fix
    (22 Nov: a plain "send" means add, and a possible loop goes to the tool, so the guard explains it). Still to do:
    planFromRig / applyPlan / checkDrift as tools.
-5. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and
-   spare-channel user routing (aux inputs have no insert point). Acceptance test 9, and test 5 without the tempo.
+5. **Inserts and effects (built 22 Nov, against the fake and a scripted model):** `effects.ts` (type names for FX 1-4
+   and 5-8; parameter tables for HALL, PLAT, DLY and CRS from docs/x32-osc-reference.md §6), `fxPlanner.ts` (insertFx,
+   removeInsert, setFxParam, setFxType), guard 3 in `guards.ts`, the chat tools, and type names and parameters in the
+   Rig panel and the model's view of the desk. Acceptance test 9, and test 5 without the tempo. Choices made:
+   - Only effects with a dry/wet mix go in as inserts (DLY, CRS); a reverb is used by sending to its bus.
+   - An insert takes a free FX 1-4 slot: one not fed from a bus first, then one fed by a bus nothing is sent to, highest
+     first (so FX 4 before the Delay). Its feed is switched off, and put back from the rig file when the insert comes off.
+   - A delay goes in at 30% mix, stereo, both factors 3/2 (dotted eighth), Time 250 ms (an eighth at 120 BPM) until
+     the tempo button sets it. Its Time can't be set by chat (the bridge owns it).
+   - The applier never puts two steps in one batch, so a type change is read back before its parameters are written
+     (the desk resets them), and effect parameters read back within 0.02 (the desk rounds them).
+   - Spare-channel user routing isn't needed: every source is on a channel since the 22 Nov layout, and ch 21-32
+     are the Ableton returns, so there are no spare channels.
+   - Not yet: parameter tables for the other types (the desk's FX 1 is VRM and FX 2 4TAP, which the chat can't tune
+     yet), and FX types in the rig file.
 6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.
 7. **Trace signal:** `checkPath` first (settings only), then meters and `traceSignal`. Addendum tests 6–9.
 8. **X-Touch (when it arrives):** its half of assumption 2, acceptance test 7 from a real fader, and its remote setting

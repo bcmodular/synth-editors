@@ -2,6 +2,7 @@
 // go, the shared bus and its targets, and the FX slots. It goes in the first message of a conversation, and get_state
 // refreshes it, so the cached system prompt never changes when the desk does.
 
+import { effectAt, fromDesk, fxParam, typeName } from "./effects";
 import { iconName } from "./enums";
 import { formatDb } from "./faderLaw";
 import { sameName } from "./names";
@@ -34,10 +35,22 @@ function destinationLine(d: Destination, req: SummaryRequest): string {
   return `- ${d.name}: ${stripLabel(d)} → ${goesTo(d)}${back}${shared}`;
 }
 
-const fxLine = (rig: Rig, f: FxSlot) => {
-  const role = f.role === "send" ? `send effect fed by ${[...new Set(f.sourceBuses.map((b) => busName(rig, b)))].join("/")}` : f.role;
-  return `- FX ${f.slot}: type ${f.type}, ${f.role === "insert" ? `insert on ${f.insertedOn.join(", ")}` : role}`;
+const fedBy = (rig: Rig, f: FxSlot) => [...new Set(f.sourceBuses.map((b) => busName(rig, b)))].join("/");
+const ROLE: Record<FxSlot["role"], (rig: Rig, f: FxSlot) => string> = {
+  send: (rig, f) => `send effect fed by ${fedBy(rig, f)} (protected: its type stays)`,
+  insert: (_rig, f) => `insert on ${f.insertedOn.join(", ")}`,
+  free: (rig, f) => (f.sourceBuses.length ? `free (fed by ${fedBy(rig, f)}, but nothing is sent there)` : "free"),
 };
+
+// The parameters of a type the app knows, in people's units.
+function paramText(get: Lookup, f: FxSlot): string {
+  const def = effectAt({ slot: f.slot, value: f.type });
+  if (!def) return "";
+  const values = def.params.map((d) => `${d.name} ${fromDesk(d, Number(get(fxParam(f, d).address) ?? 0))}`);
+  return `; ${values.join(", ")}`;
+}
+
+const fxLine = (rig: Rig, f: FxSlot, get: Lookup) => `- FX ${f.slot}: ${typeName({ slot: f.slot, value: f.type })}, ${ROLE[f.role](rig, f)}${paramText(get, f)}`;
 
 const wanted = (req: SummaryRequest, d: { name: string }, extra: string[] = []) =>
   !req.names?.length || req.names.some((n) => [d.name, ...extra].some((x) => sameName(x, n)));
@@ -48,7 +61,7 @@ export function rigSummary(req: SummaryRequest): string {
   const sources = rig.sources.filter((s) => wanted(req, s)).map((s) => sourceLine(rig, s));
   const destinations = rig.destinations.filter((d) => wanted(req, d, targetsOf(d))).map((d) => destinationLine(d, req));
   const parts = [`Sources:\n${sources.join("\n") || "- (none matched)"}`, `Destinations:\n${destinations.join("\n") || "- (none matched)"}`];
-  if (!req.names?.length) parts.push(`FX slots:\n${rig.fx.map((f) => fxLine(rig, f)).join("\n")}`);
+  if (!req.names?.length) parts.push(`FX slots:\n${rig.fx.map((f) => fxLine(rig, f, req.get)).join("\n")}`);
   if (rig.oddities.length) parts.push(`Oddities:\n${rig.oddities.map((o) => `- ${o}`).join("\n")}`);
   return parts.join("\n\n");
 }

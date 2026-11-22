@@ -6,12 +6,13 @@ import { strip, send, type Param } from "./addresses";
 import type { Write } from "./applier";
 import type { DeskValue } from "./cache";
 import { formatDb, levelFromDb, quantizeLevel } from "./faderLaw";
-import { newLoops } from "./guards";
+import { newLoops, sendEffectsTouched } from "./guards";
 import { sameName } from "./names";
 import { deriveRig, type Lookup, type Rig, type Source } from "./rig";
 import { OUTPUT_SOURCE, output } from "./routing";
 import { sameValue } from "./setupPlan";
 import { outputLabel } from "./targets";
+import type { RigFx } from "./rigFile";
 import { busSource, liveTarget, type SharedBus } from "./shared";
 
 export interface PlanChange extends Write {
@@ -34,6 +35,7 @@ export class Refused extends Error {
 export interface PlanContext {
   get: Lookup;
   shared: SharedBus[];
+  feeds?: RigFx[]; // the rig file's FX feeds, put back when an insert that took a fed slot is removed
 }
 
 export type SendMode = "add" | "replace";
@@ -65,7 +67,7 @@ const ON = 3;
 
 const names = (items: { name: string }[]) => items.map((i) => i.name).join(", ");
 
-function findSource(rig: Rig, req: Pick<SendRequest, "source">): Source {
+export function findSource(rig: Rig, req: Pick<SendRequest, "source">): Source {
   const found = rig.sources.find((s) => sameName(s.name, req.source));
   if (!found) throw new Refused(`No source named "${req.source}". Sources: ${names(rig.sources)}`);
   return found;
@@ -91,7 +93,7 @@ export function findDestination(ctx: PlanContext, rig: Rig, req: Pick<SendReques
 }
 
 // A change if the desk doesn't already have the value.
-function change(get: Lookup, w: Write): PlanChange[] {
+export function change(get: Lookup, w: Write): PlanChange[] {
   const from = get(w.param.address);
   return sameValue(from, w.value) ? [] : [{ ...w, from }];
 }
@@ -124,9 +126,11 @@ function switchTarget(get: Lookup, d: Destination): PlanChange[] {
 const sendsTo = (s: Source, d: Destination) => s.sends.some((x) => d.buses.includes(x.bus));
 const needsSwitch = (ctx: PlanContext, d: Destination) => !!d.shared && !!d.target && liveTarget(ctx.get, d.shared) !== d.target;
 
-function guarded(ctx: PlanContext, plan: Plan): Plan {
+export function guarded(ctx: PlanContext, plan: Plan): Plan {
   const loops = newLoops(ctx.get, plan.changes, ctx.shared);
   if (loops.length) throw new Refused(`Refused: ${loops[0]}, a feedback loop`);
+  const sendFx = sendEffectsTouched(ctx.get, plan.changes);
+  if (sendFx.length) throw new Refused(`Refused: ${sendFx[0]}`);
   return plan;
 }
 

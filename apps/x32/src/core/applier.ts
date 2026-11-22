@@ -10,8 +10,14 @@ export interface Write {
   param: Param;
   value: DeskValue;
   what: string; // for people: "ch 3 input ← aux in 5"
-  step?: number; // written in step order (setup: routing first, names last)
+  step?: number; // written in step order (setup: routing first, names last); a batch never spans two steps
+  tolerance?: number; // reads back within this of the value (effect parameters, which the desk rounds to its own steps)
 }
+
+const matches = (got: DeskValue | undefined, w: Write): boolean =>
+  w.tolerance !== undefined && typeof got === "number" && typeof w.value === "number"
+    ? Math.abs(got - w.value) <= w.tolerance
+    : sameValue(got, w.value);
 
 // Setup from the rig file may write these, and nothing else: never phantom power, preamp gain, sends, channel or main
 // faders, the main and monitor sections, network or MIDI settings, scene safes or FX types (docs/x32-spec.md, loop
@@ -66,7 +72,7 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function readOnce(desk: DeskIO, changes: Write[]): Promise<Mismatch[]> {
   const got = await Promise.all(changes.map((c) => desk.read(c.param).catch(() => undefined)));
-  return changes.flatMap((change, i) => (sameValue(got[i], change.value) ? [] : [{ change, got: got[i] }]));
+  return changes.flatMap((change, i) => (matches(got[i], change) ? [] : [{ change, got: got[i] }]));
 }
 
 async function readBack(desk: DeskIO, batch: Write[]): Promise<Mismatch[]> {
@@ -80,6 +86,20 @@ async function readBack(desk: DeskIO, batch: Write[]): Promise<Mismatch[]> {
 
 const inStepOrder = (changes: Write[]): Write[] => [...changes].sort((a, b) => (a.step ?? 0) - (b.step ?? 0));
 
+// Up to WRITE_BATCH writes of one step: a step is read back before the next starts (an effect's type before its
+// parameters, which the desk resets when the type changes).
+const fits = (batch: Write[], w: Write) => batch.length < WRITE_BATCH && batch[0]!.step === w.step;
+
+function batches(ordered: Write[]): Write[][] {
+  const out: Write[][] = [];
+  for (const w of ordered) {
+    const last = out.at(-1);
+    if (last && fits(last, w)) last.push(w);
+    else out.push([w]);
+  }
+  return out;
+}
+
 export async function applyChanges(
   desk: DeskIO,
   changes: Write[],
@@ -89,8 +109,7 @@ export async function applyChanges(
   refuseOutside(changes, allowed);
   const ordered = inStepOrder(changes);
   let written = 0;
-  for (let at = 0; at < ordered.length; at += WRITE_BATCH) {
-    const batch = ordered.slice(at, at + WRITE_BATCH);
+  for (const batch of batches(ordered)) {
     for (const c of batch) desk.write(c.param, c.value);
     written += batch.length;
     onProgress(written, ordered.length);

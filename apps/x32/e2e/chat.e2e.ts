@@ -114,3 +114,41 @@ test("a model error leaves the conversation usable", async () => {
   await say(r.page, "hello?");
   await expect(panel(r.page).locator(".transcript")).toContainText("Hello again.");
 });
+
+test("a delay goes on the TD-3 as an insert after Apply, and comes off again (acceptance 5 without the tempo)", async () => {
+  const r = await ready();
+  await script(r, [
+    reply([tool("insert_fx", { source: "TD-3-MO", effect: "DLY", mix_percent: null })], "tool_use"),
+    reply([text("Press Apply to put the delay on.")], "end_turn"),
+    reply([tool("remove_insert", { source: "TD-3-MO" })], "tool_use"),
+    reply([text("Press Apply to take it off.")], "end_turn"),
+  ]);
+  await say(r.page, "put a delay on the TD-3");
+  const pending = panel(r.page).getByRole("alertdialog");
+  await expect(pending).toContainText("Put Stereo Delay (DLY) on TD-3-MO as an insert, in FX 4");
+  await pending.getByRole("button", { name: "Apply" }).click();
+  await expect(panel(r.page).locator(".transcript")).toContainText("Done: Put Stereo Delay");
+  expect(r.fake!.get("/fx/4/type")).toBe(10);
+  expect(r.fake!.get("/fx/4/source/l")).toBe(0);
+  expect(r.fake!.get("/ch/03/insert/sel")).toBe(7);
+  expect(r.fake!.get("/ch/03/insert/on")).toBe(1);
+  expect(r.fake!.get("/fx/4/par/01")).toBeCloseTo(0.3, 3);
+  await expect(r.page.locator(".rig table.fx-slots")).toContainText("insert on TD-3-MO");
+
+  await say(r.page, "take it off");
+  await panel(r.page).getByRole("alertdialog").getByRole("button", { name: "Apply" }).click();
+  await expect(panel(r.page).locator(".transcript")).toContainText("Done: Take FX 4 off TD-3-MO");
+  expect(r.fake!.get("/ch/03/insert/on")).toBe(0);
+  expect(r.fake!.get("/fx/4/source/l")).toBe(7);
+});
+
+test("changing a send effect's type is refused (acceptance 9)", async () => {
+  const r = await ready();
+  await script(r, [
+    reply([tool("set_fx_type", { target: "Reverb", effect: "PLAT" })], "tool_use"),
+    reply([text("FX 1 is in use as the reverb send, so I can't change it.")], "end_turn"),
+  ]);
+  await say(r.page, "make the reverb a plate");
+  await expect(panel(r.page).locator(".transcript .tool.bad")).toContainText("FX 1 is a send effect (fed by Reverb)");
+  expect(r.fake!.get("/fx/1/type")).toBe(0);
+});

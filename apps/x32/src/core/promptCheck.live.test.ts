@@ -87,7 +87,24 @@ const CASES: Case[] = [
   },
   {
     say: ["put a delay on the TD-3"],
-    check: (t, s) => (s.writes.length ? `wrote ${s.writes.join(", ")}` : t.reply ? null : "no reply"),
+    check: (t) => {
+      const c = t.calls.find((x) => x.name === "insert_fx");
+      if (c?.input.source !== "TD-3-MO") return `expected insert_fx on TD-3-MO, got ${JSON.stringify(t.calls.map((x) => x.name))}`;
+      return c.kind === "waiting" ? null : `plan ${c.kind}`;
+    },
+  },
+  {
+    say: ["make the reverb a plate"],
+    check: (t, s) => (s.writes.length ? `wrote ${s.writes.join(", ")}` : /send|protect|in use|X32-Edit/i.test(t.reply) ? null : "reply doesn't say why"),
+  },
+  {
+    say: ["give the reverb a 3 second tail"],
+    check: (t) => {
+      const c = t.calls.find((x) => x.name === "set_fx_param");
+      const decay3 = c && /decay/i.test(String(c.input.param)) && Number(c.input.value) === 3;
+      if (!decay3) return `got ${JSON.stringify(c?.input ?? t.calls.map((x) => x.name))}`;
+      return c.kind === "applied" ? null : `plan ${c.kind}`;
+    },
   },
   {
     say: ["what's going to the reverb?"],

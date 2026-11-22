@@ -2,6 +2,7 @@
 // takes names as the desk shows them and goes through the same planner, guards and operator as the Sends panel.
 
 import type Anthropic from "@anthropic-ai/sdk";
+import { insertFx, removeInsert, setFxParam, setFxType } from "./fxPlanner";
 import { includeEffects, removeSend, sendTo, type Plan, type PlanContext, type SendMode } from "./planner";
 
 export interface ToolOutcome {
@@ -52,6 +53,34 @@ export const TOOLS: Anthropic.Tool[] = [
     input_schema: object({ destination: name("Destination name"), on: { type: "boolean" } }),
   },
   {
+    name: "insert_fx",
+    description: "Put an effect on a source as an insert, in a free FX slot (send effects are never taken). Only effects with a dry/wet mix can be inserts: Stereo Delay (DLY) and Stereo Chorus (CRS). A delay goes in at 30% mix, a dotted eighth.",
+    input_schema: object({
+      source: name("Source name; it must be on a channel"),
+      effect: name("Effect code or name: DLY, Stereo Delay, CRS, Stereo Chorus"),
+      mix_percent: { type: ["number", "null"], description: "Dry/wet mix in percent; null for the default (30)" },
+    }),
+  },
+  {
+    name: "remove_insert",
+    description: "Take the insert off a source. If the slot was fed from a bus before, it's fed from it again.",
+    input_schema: object({ source: name("Source name") }),
+  },
+  {
+    name: "set_fx_param",
+    description: "Change one parameter of an effect, in its own units (seconds, ms, Hz, %, or a choice like 3/2 or ST). get_state lists each slot's parameters. A delay's Time follows the tempo, so change its Factor for the note value.",
+    input_schema: object({
+      target: name("FX slot (FX 1-8), a bus that feeds one (Reverb, Delay), or a source with an insert"),
+      param: name("Parameter name as get_state shows it: Decay, Mix, Factor L"),
+      value: { type: "string", description: "The new value: a number in the parameter's units, or a choice" },
+    }),
+  },
+  {
+    name: "set_fx_type",
+    description: "Change the effect type of a slot that isn't a send effect in use. Send effects (a slot fed by a bus something is sent to) are protected and refused.",
+    input_schema: object({ target: name("FX slot (FX 1-8) or a bus that feeds one"), effect: name("Effect code or name: DLY, HALL, Stereo Chorus") }),
+  },
+  {
     name: "undo",
     description: "Undo the last plan that was applied.",
     input_schema: object({}),
@@ -71,6 +100,14 @@ const RUNNERS: Record<string, (host: ToolHost, input: Input) => Promise<ToolOutc
   remove_send: (host, input) => host.run((ctx) => removeSend(ctx, { source: str(input.source), destination: str(input.destination) })),
   include_effects: (host, input) => host.run((ctx) => includeEffects(ctx, { destination: str(input.destination), on: input.on === true })),
   undo: (host) => host.undo(),
+  insert_fx: (host, input) =>
+    host.run((ctx) => insertFx(ctx, {
+      source: str(input.source), effect: str(input.effect),
+      ...(typeof input.mix_percent === "number" ? { params: { Mix: input.mix_percent } } : {}),
+    })),
+  remove_insert: (host, input) => host.run((ctx) => removeInsert(ctx, { source: str(input.source) })),
+  set_fx_param: (host, input) => host.run((ctx) => setFxParam(ctx, { target: str(input.target), param: str(input.param), value: str(input.value) })),
+  set_fx_type: (host, input) => host.run((ctx) => setFxType(ctx, { target: str(input.target), effect: str(input.effect) })),
 };
 
 // What the model is told, beyond the outcome itself.

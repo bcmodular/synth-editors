@@ -1,16 +1,18 @@
-// The shared buses (the Sampler and its targets) from the rig file. A rig file that doesn't parse leaves none; the
-// Setup panel shows why.
+// What the plans need from the rig file: the shared buses (the Sampler and its targets), and which bus feeds each FX
+// slot (put back when an insert is taken off). A rig file that doesn't parse leaves none; the Setup panel shows why.
 
 import studio from "../../rig/studio.json";
-import { parseRigFile } from "../core/rigFile";
+import { parseRigFile, type RigFile } from "../core/rigFile";
 import { sharedBuses, type SharedBus } from "../core/shared";
 
-function load(): SharedBus[] {
+function load(): RigFile | null {
   try {
-    return sharedBuses(parseRigFile(studio));
+    return parseRigFile(studio);
   } catch {
-    return [];
+    return null;
   }
 }
 
-export const studioShared: SharedBus[] = load();
+const rig = load();
+export const studioShared: SharedBus[] = rig ? sharedBuses(rig) : [];
+export const studioFeeds = rig?.fx ?? [];

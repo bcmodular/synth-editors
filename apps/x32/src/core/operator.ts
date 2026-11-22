@@ -6,13 +6,18 @@ import { applyChanges, type ApplyResult, type DeskIO, type Mismatch } from "./ap
 import { undoPlan, type Plan, type PlanContext } from "./planner";
 import { sharedOutputAddresses, type SharedBus } from "./shared";
 
-// The chat may write sends (on and level) and the output patches of a shared bus's targets, and nothing else. Inserts,
-// FX and spare-channel routing join this list in phase 5.
+// The chat may write sends (on and level), channel inserts, effect types, parameters and bus feeds (guard 3 keeps send
+// effects as they are), and the output patches of a shared bus's targets, and nothing else.
 export const CHAT_SENDS: RegExp = /^\/(ch|auxin|fxrtn)\/\d\d\/mix\/(0[1-9]|1[0-6])\/(on|level)$/;
+export const CHAT_EFFECTS: RegExp[] = [
+  /^\/ch\/\d\d\/insert\/(on|pos|sel)$/,
+  /^\/fx\/[1-8]\/(type|par\/\d\d)$/,
+  /^\/fx\/[1-4]\/source\/[lr]$/,
+];
 
 export function chatAllowed(shared: SharedBus[]): RegExp[] {
   const outputs = sharedOutputAddresses(shared).map((a) => new RegExp(`^${a.replace(/\//g, "\\/")}$`));
-  return [CHAT_SENDS, ...outputs];
+  return [CHAT_SENDS, ...CHAT_EFFECTS, ...outputs];
 }
 
 export type Outcome =

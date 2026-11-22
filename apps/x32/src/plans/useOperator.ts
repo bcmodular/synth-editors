@@ -8,7 +8,7 @@ import { chatAllowed, Operator, type Outcome } from "../core/operator";
 import { describeOutcome } from "../core/outcome";
 import { Refused, type Plan, type PlanContext } from "../core/planner";
 import type { Desk } from "../desk/useDesk";
-import { studioShared } from "./studioShared";
+import { studioFeeds, studioShared } from "./studioShared";
 
 export interface Message {
   text: string;
@@ -41,7 +41,7 @@ function makeOperator(client: DeskClient | null): Operator | null {
   return new Operator(io, chatAllowed(studioShared));
 }
 
-const contextOf = (cache: DeskCache) => (): PlanContext => ({ get: (a) => cache.get(a), shared: studioShared });
+const contextOf = (cache: DeskCache) => (): PlanContext => ({ get: (a) => cache.get(a), shared: studioShared, feeds: studioFeeds });
 
 // Runs one operator call and turns its outcome, or the reason it was refused, into a message.
 async function settled(work: () => Promise<Outcome | null>): Promise<Message> {

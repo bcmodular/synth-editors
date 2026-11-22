@@ -1,6 +1,7 @@
 // What the app has worked out from the desk's names (docs/x32-spec.md, phase 1): sources and their sends,
 // destinations and where they go, FX slots and their roles, spare channels, and anything that looks wrong.
 
+import { typeName } from "../core/effects";
 import { formatDb } from "../core/faderLaw";
 import { busName, stripLabel, type Destination, type FxSlot, type Rig, type Source } from "../core/rig";
 
@@ -52,7 +53,7 @@ function FxRow({ rig, f }: { rig: Rig; f: FxSlot }) {
   return (
     <tr className={f.role}>
       <td>FX {f.slot}</td>
-      <td className="dim">type {f.type}</td>
+      <td className="dim">{typeName({ slot: f.slot, value: f.type })}</td>
       <td>{role(rig, f)}</td>
     </tr>
   );

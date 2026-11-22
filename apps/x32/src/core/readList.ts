@@ -2,6 +2,7 @@
 // /xremote notifications keep the cache current. Pans aren't read yet: nothing uses them.
 
 import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
+import { READ_PARAMS } from "./effects";
 import { LOCAL_OUTPUTS } from "./enums";
 import { output } from "./routing";
 
@@ -31,8 +32,10 @@ function sends(kind: StripKind): Param[] {
 
 const inserts = (kind: StripKind): Param[] => strips(kind).flatMap((s) => Object.values(insert(s)));
 
+// Effect parameters: as many as the longest table in effects.ts (past a type's last one, the desk answers NaN).
 const fxSlots = (): Param[] => [
   ...numbers(FX_SLOTS).map((n) => fx(n).type),
+  ...numbers(FX_SLOTS).flatMap((n) => numbers(READ_PARAMS).map((k) => fx(n).par(k))),
   ...numbers(FX_SEND_SLOTS).flatMap((n) => [fx(n).source("l"), fx(n).source("r")]),
 ];
 

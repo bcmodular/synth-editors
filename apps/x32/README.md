@@ -20,7 +20,7 @@ gain, sends, faders, the main and monitor sections, network or MIDI settings, sc
 ## Running it
 
 ```bash
-npm run dev:x32                                  # the app; type the desk's address into the X32 Rack panel
+npm run dev:x32                                  # the app; it finds the desk on first run (or: Find desk)
 npm run fake:x32                                 # a fake desk on 127.0.0.1:10023, seeded with the studio rig
 X32_HOST=127.0.0.1:10023 npm run dev:x32         # the app pointed at the fake
 npm run test:e2e:x32                             # Playwright against the fake (never reaches the real desk)
@@ -29,6 +29,11 @@ X32_HOST=192.168.0.138 X32_CAPTURE=1 npm run test:x32  # read-only checks on the
 
 `X32_CAPTURE=1` writes every OSC packet in and out to `captures/` in the app's data folder
 (`~/Library/Application Support/X32 Chat Control/`), to compare the fake with the real desk on day one.
+
+If the desk is found but "Desk not reachable" says macOS refused the connection, Local Network access is off for
+the terminal the app was started from. With iTerm2 it can stay refused even when iTerm is ticked in System Settings →
+Privacy & Security → Local Network: turn it off and on, quit iTerm, run `pkill -f iTermServer` (its helper outlives
+it; this closes every iTerm session), and start again.
 
 ## Findings on the real desk
 

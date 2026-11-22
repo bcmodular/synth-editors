@@ -14,6 +14,14 @@ test("the desk answers and is an X32 Rack on firmware 4.x", async () => {
   await expect(r.page.locator(".problems")).toHaveCount(0);
 });
 
+test("finds the desk on the network with no address set", async () => {
+  const r = (running = await start("real", { noHost: true }));
+  await expect(status(r.page)).toHaveText("Connected", { timeout: 15_000 });
+  const f = await facts(r.page);
+  console.log(`Found: ${f.Address}, ${await r.page.locator(".found").textContent()}`);
+  expect(f.Address).toBe(`${process.env.X32_HOST}:10023`);
+});
+
 test("reads every address the app uses", async () => {
   test.setTimeout(120_000);
   const r = (running = await start("real"));

@@ -117,6 +117,7 @@ export class FakeX32 {
   private answer(m: OscMessage, from: dgram.RemoteInfo): void {
     if (m.address === "/xremote") return this.subscribe(from);
     if (m.address === "/info") return this.reply(from, "/info", [str("V2.07"), str("osc-server"), str(this.model), str(this.firmware)]);
+    if (m.address === "/xinfo") return this.reply(from, "/xinfo", [str("127.0.0.1"), str("FAKE-X32"), str(this.model), str(this.firmware)]);
     if (m.address === "/status") return this.reply(from, "/status", [str("active"), str("127.0.0.1"), str(this.model)]);
     if (m.address === "/save") return this.save(m, from);
     const current = this.values.get(m.address);

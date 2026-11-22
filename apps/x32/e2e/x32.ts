@@ -17,19 +17,26 @@ export interface X32App {
   fake: FakeX32 | null;
 }
 
-export async function start(init: FakeX32Init | "real" = {}): Promise<X32App> {
+// Not passed on from the shell: the dev server URL, and an address (each test sets its own, or none).
+const DROPPED_ENV = new Set(["VITE_DEV_SERVER_URL", "X32_HOST"]);
+
+export interface StartOptions {
+  noHost?: boolean; // start with no address set, as on first run (the app finds the fake by discovery)
+}
+
+export async function start(init: FakeX32Init | "real" = {}, options: StartOptions = {}): Promise<X32App> {
   const fake = init === "real" ? null : await FakeX32.start(init);
   const host = fake ? fake.host : process.env.X32_HOST;
-  if (!host) throw new Error("Set X32_HOST to the desk's address to run the hardware tests");
+  if (!host && !options.noHost) throw new Error("Set X32_HOST to the desk's address to run the hardware tests");
   const profile = await mkdtemp(path.join(tmpdir(), "x32-e2e-profile-"));
   const env = Object.fromEntries(
-    Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && e[0] !== "VITE_DEV_SERVER_URL"),
+    Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && !DROPPED_ENV.has(e[0])),
   );
   const app = await electron.launch({
     args: [APP_DIR, `--user-data-dir=${profile}`],
     env: {
       ...env,
-      X32_HOST: host,
+      ...(options.noHost ? (fake ? { X32_DISCOVER_TO: host! } : {}) : { X32_HOST: host! }),
       X32_NO_REAL_DESK: fake ? "1" : "0",
       E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1",
     },

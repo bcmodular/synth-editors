@@ -8,6 +8,7 @@ import { DeskClient, type DeskInfo, type LinkState } from "../core/client";
 import { deskReadList } from "../core/readList";
 import { readAll, type ReadProgress } from "../core/reader";
 import { deskHost, relay, setDeskHost } from "./relay";
+import { useFinder, type Finder } from "./useFinder";
 
 export interface Desk {
   host: string;
@@ -18,6 +19,7 @@ export interface Desk {
   cache: DeskCache;
   client: DeskClient | null;
   changeHost: (text: string) => Promise<boolean>;
+  finder: Finder;
 }
 
 const PROGRESS_EVERY = 100; // reads between progress updates
@@ -74,5 +76,6 @@ export function useDesk(): Desk {
     return accepted !== null;
   }, []);
 
-  return { host, link, info, read, cached, cache, client, changeHost };
+  const finder = useFinder(changeHost);
+  return { host, link, info, read, cached, cache, client, changeHost, finder };
 }

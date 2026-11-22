@@ -38,8 +38,29 @@ function HostForm({ desk }: { desk: Desk }) {
       <input aria-label="Desk address" placeholder={desk.host || "192.168.1.50"} value={text}
         onChange={(e) => setText(e.target.value)} />
       <button type="submit" disabled={!text.trim()}>Connect</button>
+      <button type="button" onClick={() => void desk.finder.find()} disabled={desk.finder.finding}>
+        {desk.finder.finding ? "Looking…" : "Find desk"}
+      </button>
       {refused && <span className="bad">That isn't an address the app can use</span>}
     </form>
+  );
+}
+
+// What the last search found: each desk is a button that connects to it.
+function Found({ desk }: { desk: Desk }) {
+  const found = desk.finder.found;
+  if (!found || desk.finder.finding) return null;
+  if (found.length === 0) return <p className="note found">No desk answered on this network.</p>;
+  return (
+    <ul className="found">
+      {found.map((d) => (
+        <li key={d.host}>
+          <button type="button" onClick={() => void desk.changeHost(d.host)} disabled={d.host === desk.host}>
+            {d.name || d.model} <span className="mono">{d.host}</span> {d.model} {d.firmware}
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -79,6 +100,7 @@ export function DeskPanel({ desk }: { desk: Desk }) {
         <h1>X32 Rack</h1>
       </header>
       <HostForm desk={desk} />
+      <Found desk={desk} />
       <Facts desk={desk} />
     </section>
   );

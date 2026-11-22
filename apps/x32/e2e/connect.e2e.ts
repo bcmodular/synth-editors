@@ -37,3 +37,19 @@ test("won't talk to a desk on the network during tests", async () => {
   await expect(r.page.getByText("isn't an address the app can use")).toBeVisible();
   expect((await facts(r.page)).Address).toBe(r.fake!.host);
 });
+
+test("finds the desk by itself on first run", async () => {
+  const r = (running = await start({}, { noHost: true }));
+  await expect(status(r.page)).toHaveText("Connected", { timeout: 15_000 });
+  expect((await facts(r.page)).Address).toBe(r.fake!.host);
+  await expect(r.page.locator(".found")).toContainText("FAKE-X32");
+  expect(r.fake!.sent("/xinfo").length).toBe(1);
+});
+
+test("Find desk lists what answered", async () => {
+  const r = (running = await start({}, { noHost: true }));
+  await expect(status(r.page)).toHaveText("Connected", { timeout: 15_000 });
+  await r.page.getByRole("button", { name: "Find desk" }).click();
+  await expect(r.page.getByRole("button", { name: /FAKE-X32/ })).toBeDisabled({ timeout: 5_000 });
+  expect(r.fake!.sent("/xinfo").length).toBe(2);
+});

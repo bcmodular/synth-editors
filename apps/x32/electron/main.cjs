@@ -4,6 +4,7 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const dgram = require("node:dgram");
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 const { keepWindowState, loadWindowState } = require("./windowState.cjs");
 
@@ -71,6 +72,38 @@ function openSocket() {
   socket.bind(0);
 }
 
+// Finding desks: send the renderer's query (/xinfo) to every broadcast address and hand back whatever answers in time.
+// In tests only X32_DISCOVER_TO (the fake desk, on this machine) is asked, so nothing goes onto the network.
+const DISCOVER_MS = 1200;
+
+function broadcastTargets() {
+  if (NO_REAL_DESK) return process.env.X32_DISCOVER_TO ? [parseHost(process.env.X32_DISCOVER_TO)].filter(Boolean) : [];
+  const subnets = Object.values(os.networkInterfaces()).flat()
+    .filter((l) => l && l.family === "IPv4" && !l.internal)
+    .map((l) => {
+      const mask = l.netmask.split(".").map(Number);
+      return l.address.split(".").map((o, i) => o | (~mask[i] & 255)).join(".");
+    });
+  return [...new Set(["255.255.255.255", ...subnets])].map((address) => ({ address, port: X32_PORT }));
+}
+
+function discover(query) {
+  return new Promise((resolve) => {
+    const replies = [];
+    const s = dgram.createSocket("udp4");
+    s.on("message", (msg, rinfo) => replies.push({ from: `${rinfo.address}:${rinfo.port}`, bytes: new Uint8Array(msg) }));
+    s.on("error", () => resolve(replies));
+    s.bind(0, () => {
+      s.setBroadcast(true);
+      for (const t of broadcastTargets()) s.send(Buffer.from(query), t.port, t.address);
+      setTimeout(() => {
+        s.close();
+        resolve(replies);
+      }, DISCOVER_MS);
+    });
+  });
+}
+
 function setDesk(text) {
   desk = parseHost(text);
   return desk ? `${desk.address}:${desk.port}` : null;
@@ -107,6 +140,7 @@ app.whenReady().then(() => {
     if (set && !process.env.X32_HOST) writeConfig({ ...readConfig(), host: text.trim() });
     return set;
   });
+  ipcMain.handle("x32:discover", (_e, query) => discover(query));
   ipcMain.on("x32:send", (_e, bytes) => {
     if (!desk || !socket) return;
     record("out", bytes);

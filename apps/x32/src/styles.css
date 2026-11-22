@@ -197,3 +197,17 @@ h2 {
 .good {
   color: var(--good);
 }
+
+.found {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.found li + li {
+  margin-top: 6px;
+}
+
+.found .mono {
+  margin: 0 6px;
+}

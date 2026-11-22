@@ -9,6 +9,7 @@ interface X32Bridge {
   discover(query: Uint8Array): Promise<DiscoveryReply[]>;
   send(bytes: Uint8Array): void;
   onMessage(listener: (bytes: Uint8Array) => void): () => void;
+  onError(listener: (code: string) => void): () => void;
 }
 
 declare global {
@@ -27,3 +28,5 @@ export const deskHost = (): Promise<string> => window.x32.host();
 export const setDeskHost = (text: string): Promise<string | null> => window.x32.setHost(text);
 // Every desk that answers a broadcast on the local network.
 export const findDesks = async (): Promise<FoundDesk[]> => foundDesks(await window.x32.discover(XINFO));
+// Errors from the UDP socket in the main process, as Node error codes ("EHOSTUNREACH").
+export const onSocketError = (listener: (code: string) => void): (() => void) => window.x32.onError(listener);

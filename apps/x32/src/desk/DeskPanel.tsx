@@ -1,10 +1,11 @@
 // The desk's address, whether it answers, and what it says it is.
 
 import { useState, type FormEvent } from "react";
-import { deskProblems } from "../core/status";
+import { deskProblems, socketProblem } from "../core/status";
 import type { Desk } from "./useDesk";
 
 const LINK_TEXT = { connecting: "Connecting…", connected: "Connected", unreachable: "Desk not reachable" } as const;
+const LINK_CLASS = { connecting: "", connected: "good", unreachable: "bad" } as const;
 
 const inProgress = (r: Desk["read"]): r is NonNullable<Desk["read"]> => r !== null && r.done < r.total;
 
@@ -48,8 +49,8 @@ function HostForm({ desk }: { desk: Desk }) {
 
 // What the last search found: each desk is a button that connects to it.
 function Found({ desk }: { desk: Desk }) {
-  const found = desk.finder.found;
-  if (!found || desk.finder.finding) return null;
+  const found = desk.finder.finding ? null : desk.finder.found;
+  if (!found) return null;
   if (found.length === 0) return <p className="note found">No desk answered on this network.</p>;
   return (
     <ul className="found">
@@ -64,15 +65,20 @@ function Found({ desk }: { desk: Desk }) {
   );
 }
 
+function problemsOf(desk: Desk): string[] {
+  if (desk.link === "unreachable" && desk.socketError) return [socketProblem(desk.socketError)];
+  return desk.info ? deskProblems(desk.info) : [];
+}
+
 function Facts({ desk }: { desk: Desk }) {
-  const problems = desk.info ? deskProblems(desk.info) : [];
+  const problems = problemsOf(desk);
   return (
     <>
       <dl className="facts">
         <dt>Address</dt>
         <dd className="mono">{desk.host || "not set"}</dd>
         <dt>Status</dt>
-        <dd className={desk.link === "connected" ? "good" : desk.link === "unreachable" ? "bad" : ""}
+        <dd className={LINK_CLASS[desk.link]}
           role={desk.link === "unreachable" ? "alert" : undefined}>{statusText(desk)}</dd>
         {desk.info && (
           <>

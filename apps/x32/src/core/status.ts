@@ -14,3 +14,17 @@ export function deskProblems(info: DeskInfo): string[] {
   }
   return problems;
 }
+
+// Why the app can't reach the desk, from the socket's error code. On macOS, a send refused with EHOSTUNREACH or EPERM
+// while the desk answers a broadcast usually means Local Network access is off for the app that started this one.
+const SOCKET_HINTS: Record<string, string> = {
+  EHOSTUNREACH: "macOS refused the connection. Turn on Local Network access (System Settings → Privacy & Security → "
+    + "Local Network) for the app this was started from, such as your terminal, then restart it.",
+  ENETUNREACH: "This computer isn't on a network that reaches the desk.",
+  EADDRNOTAVAIL: "This computer has no network address that reaches the desk.",
+};
+SOCKET_HINTS.EPERM = SOCKET_HINTS.EHOSTUNREACH!;
+
+export function socketProblem(code: string): string {
+  return SOCKET_HINTS[code] ?? `The network refused the connection (${code}).`;
+}

@@ -6,6 +6,11 @@ contextBridge.exposeInMainWorld("x32", {
   setHost: (text) => ipcRenderer.invoke("x32:setHost", text),
   discover: (query) => ipcRenderer.invoke("x32:discover", query),
   send: (bytes) => ipcRenderer.send("x32:send", bytes),
+  onError: (cb) => {
+    const listener = (_e, code) => cb(code);
+    ipcRenderer.on("x32:error", listener);
+    return () => ipcRenderer.removeListener("x32:error", listener);
+  },
   onMessage: (cb) => {
     const listener = (_e, bytes) => cb(bytes);
     ipcRenderer.on("x32:message", listener);

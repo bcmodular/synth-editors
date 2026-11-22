@@ -7,7 +7,7 @@ import { DeskCache } from "../core/cache";
 import { DeskClient, type DeskInfo, type LinkState } from "../core/client";
 import { deskReadList } from "../core/readList";
 import { readAll, type ReadProgress } from "../core/reader";
-import { deskHost, relay, setDeskHost } from "./relay";
+import { deskHost, onSocketError, relay, setDeskHost } from "./relay";
 import { useFinder, type Finder } from "./useFinder";
 
 export interface Desk {
@@ -20,6 +20,7 @@ export interface Desk {
   client: DeskClient | null;
   changeHost: (text: string) => Promise<boolean>;
   finder: Finder;
+  socketError: string | null; // the latest send error since the desk last answered
 }
 
 const PROGRESS_EVERY = 100; // reads between progress updates
@@ -44,9 +45,14 @@ export function useDesk(): Desk {
   const [info, setInfo] = useState<DeskInfo | null>(null);
   const [read, setRead] = useState<ReadProgress | null>(null);
   const [cached, setCached] = useState(0);
+  const [socketError, setSocketError] = useState<string | null>(null);
 
   useEffect(() => void deskHost().then(setHost), []);
   useEffect(() => cache.onChange(() => setCached(cache.size)), [cache]);
+  useEffect(() => onSocketError(setSocketError), []);
+  useEffect(() => {
+    if (link === "connected") setSocketError(null);
+  }, [link]);
 
   useEffect(() => {
     if (!host) return;
@@ -77,5 +83,5 @@ export function useDesk(): Desk {
   }, []);
 
   const finder = useFinder(changeHost);
-  return { host, link, info, read, cached, cache, client, changeHost, finder };
+  return { host, link, info, read, cached, cache, client, changeHost, finder, socketError };
 }

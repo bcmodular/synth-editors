@@ -60,6 +60,13 @@ function record(dir, bytes) {
   capture.write(JSON.stringify({ t: Date.now(), dir, b64: Buffer.from(bytes).toString("base64") }) + "\n");
 }
 
+// Send failures (macOS refusing local network access, no route to the desk) go to the page as well as the console, so
+// "Desk not reachable" can say why.
+function reportSocketError(e) {
+  console.warn("X32 socket:", e);
+  if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send("x32:error", e.code ?? e.message);
+}
+
 function openSocket() {
   socket = dgram.createSocket("udp4");
   socket.on("message", (msg, rinfo) => {
@@ -68,7 +75,7 @@ function openSocket() {
     // Packets can still arrive while the window closes; there's nowhere to deliver them then.
     if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send("x32:message", new Uint8Array(msg));
   });
-  socket.on("error", (e) => console.warn("X32 socket:", e));
+  socket.on("error", reportSocketError);
   socket.bind(0);
 }
 
@@ -144,7 +151,7 @@ app.whenReady().then(() => {
   ipcMain.on("x32:send", (_e, bytes) => {
     if (!desk || !socket) return;
     record("out", bytes);
-    socket.send(Buffer.from(bytes), desk.port, desk.address);
+    socket.send(Buffer.from(bytes), desk.port, desk.address, (e) => e && reportSocketError(e));
   });
   createWindow();
 });

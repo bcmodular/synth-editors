@@ -1,5 +1,5 @@
-// The fake desk's state: every address the app uses, with the studio rig from the routing plan (the Claude Doc "Studio
-// routing plan: X32 Rack and X-Touch") set up on top: names, stereo links, FX feeds and a few sends. Defaults follow
+// The fake desk's state: every address the app uses, with an early version of the example studio rig set up on top:
+// names, stereo links, FX feeds and a few sends (the current rig is studio.ts, set up from rig/studio.json). Defaults follow
 // the real X32 Rack (fw 4.15, read 22 Nov 2026): sends on at −∞, tap points on odd buses only, no source for FX 5-8,
 // no insert point on aux inputs.
 
@@ -113,7 +113,7 @@ const SENDS: [StripKind, number, number, number][] = [
   ["ch", 11, 1, 0.6], // TB-3 to the King Rat
 ];
 
-// [kind, output, bus]: the routing plan's output patches.
+// [kind, output, bus]: the early rig's output patches.
 const OUTPUTS: ["main" | "aux", number, number][] = [
   ["main", 1, 7], ["main", 2, 8], // SP-404 line in
   ["main", 3, 9], ["main", 4, 10], // Scarlett, for Koala
@@ -121,7 +121,7 @@ const OUTPUTS: ["main" | "aux", number, number][] = [
   ["aux", 6, 1], // King Rat
 ];
 
-// Tap points from the routing plan: the sampler feeds (buses 7-12) pre-fader, everything else post. Enum: 3 = pre,
+// Tap points from the early rig: the sampler feeds (buses 7-12) pre-fader, everything else post. Enum: 3 = pre,
 // 4 = post (a guess until day one).
 const PRE_BUSES = [7, 8, 9, 10, 11, 12];
 

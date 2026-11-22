@@ -1,80 +1,188 @@
 # X32 chat control
 
-Plain-language routing and effect changes on the Behringer X32 Rack, over OSC. The plan and build order are in
-[docs/x32-spec.md](../../docs/x32-spec.md).
+A desktop app for setting up and re-routing a Behringer X32 Rack in plain language, over OSC on the local network.
+Type "route the S-1 to the sampler" or "an 80s gated reverb on the drum machine" and it works out the sends, inserts
+and effects, checks them for feedback loops, asks before anything risky, writes them, and reads every value back.
+Faders, mutes and live moves stay in X32-Edit on a laptop or iPad; this app is for the routing in between.
 
-**Status:** phase 5, effects and inserts by chat. The app connects to the desk, reads it, and shows four panels:
+It also keeps the desk matching a **rig file**: a JSON description of how the desk should be set up (names, colours,
+input routing, buses, outputs, FX feeds, the USB card). It lists what differs, and applies the difference after saving
+a backup scene.
 
-- **Chat:** type a request ("route S-1 to the P-6", "also send the TB-3 to the reverb at -6"). The model plans it
-  through the same tools as the Sends panel; plans that switch anything off, or switch the Sampler to another device,
-  wait for Apply. It can also put a delay or chorus on a channel as an insert, take it off, change an effect's
-  parameters ("give the reverb a 3 second tail"), and retype a slot that isn't a send effect in use. It knows the
-  desk's factory FX library by sound ("an 80s gated reverb on the TR-8S"), from the catalogue in
-  [rig/fx-presets.json](rig/fx-presets.json). The header shows the model and the session's tokens and cost. Every request is logged (below).
-- **Sends:** pick a source and a destination by name and Send, Send only this (switches the others off) or Stop
-  sending. Sending to SP-404 Mk2, Koala or P-6 switches the shared Sampler bus to that device. Undo reverses the last
-  applied plan. Plans that would loop a device's return into its own feed are refused (`src/core/guards.ts`).
+The rig file here, [rig/studio.json](rig/studio.json), is one studio's setup, left in as a worked example. To use the
+app with your own desk, start with [Make it yours](#make-it-yours).
 
-- **Set up from rig file:** *Check against rig file* reads the desk and lists every setting that differs from
-  [rig/studio.json](rig/studio.json), grouped by area, with the steps only you can do (phantom power, gains). It writes
-  nothing. *Apply* writes the ticked areas: it saves the desk to a dated backup scene first, writes routing first and
-  names last, reads every value back, stops at the first mismatch, and saves "Studio base" when everything read back.
-  Running *Check* again afterwards should say the desk matches. Run it any time to see drift.
-- **Rig:** what the app works out from the desk's names: sources and sends, destinations and outputs, device returns,
-  FX slots, spare channels, and anything odd.
+The design, the decisions behind it and the build order are in [docs/x32-spec.md](../../docs/x32-spec.md); OSC
+addresses and value tables are in [docs/x32-osc-reference.md](../../docs/x32-osc-reference.md).
 
-The chat and the Sends panel write only sends, channel inserts, effect types, parameters and FX feeds (never a send
-effect's type), and the Sampler's output patches (`src/core/operator.ts`,
-`chatAllowed`).
+## What it does
 
-To undo a setup, load the backup scene on the desk (X32-Edit, Scenes). The app never touches phantom power, preamp
-gain, sends, faders, the main and monitor sections, network or MIDI settings, scene safes or effect types
-(`src/core/applier.ts`, `SETUP_ALLOWED`).
+The window has five panels:
 
-## Running it
+- **Desk:** finds the X32 on the network by broadcast, connects, and shows the model, firmware and link state.
+- **Chat:** requests in plain language. The model plans each one with the same tools as the panels below:
+  - sends ("route S-1 to the P-6", "also send the TB-3 to the reverb at -6");
+  - a channel insert ("put a delay on the TD-3") and effect settings ("give the reverb a 3 second tail");
+  - presets from the desk's factory FX library, chosen by sound ("a warm slapback on the TD-3").
+
+  Plans that only add a send are applied at once. Anything that switches something off, changes an insert or an
+  effect, or loads a preset waits for **Apply**. **Undo** reverses the last applied plan.
+- **Sends:** the same send plans from drop-downs, without the model.
+- **Set up from rig file:** *Check against rig file* reads the desk and lists every setting that differs from the rig
+  file, by area, plus the steps only a person can do (phantom power, gain). *Apply* saves a dated backup scene, writes
+  the ticked areas (routing first, names last), reads everything back, and saves a "Studio base" scene.
+- **Rig:** what the app has worked out from the desk's names: sources and their sends, destinations and where they go,
+  FX slots and their roles, spare channels, and anything that looks wrong.
+
+### What it will and won't touch
+
+- **Never:** phantom power, preamp gain, channel or main faders, the main and monitor sections, network or MIDI
+  settings, scene safes. Every write is checked against an allowed list before anything is sent:
+  - setup: `SETUP_ALLOWED` in [src/core/applier.ts](src/core/applier.ts);
+  - chat and Sends: `chatAllowed` in [src/core/operator.ts](src/core/operator.ts).
+- **Loop guards** ([src/core/guards.ts](src/core/guards.ts)), checked on the desk as the plan would leave it:
+  - a device's return is never sent to its own feed;
+  - an FX return is never sent back into its own effect;
+  - a send effect in use keeps its type. A preset can only replace it with one of the same kind, so the Reverb stays
+    a reverb.
+- Setup always saves a backup scene first. To undo a setup, load that scene in X32-Edit.
+
+## Requirements
+
+- macOS. The API key is kept in the Keychain; the rest is Electron and would port.
+- Node.js 22 or later, and `npm install` at the repo root.
+- A Behringer X32 Rack on firmware 4.x (user routing), on the same network. It was built and checked on an X32 Rack
+  with firmware 4.15. Other X32 and M32 models speak the same OSC, but the output counts in the code are the Rack's
+  (see [Make it yours](#make-it-yours)).
+- For the chat, an Anthropic API key. Usage is billed per token through the Claude Console; a Claude Pro or Max
+  subscription doesn't cover it. Everything except the chat works without one.
+
+## Getting started
 
 ```bash
-npm run dev:x32                                  # the app; it finds the desk on first run (or: Find desk)
-npm run fake:x32                                 # a fake desk on 127.0.0.1:10023, seeded with the studio rig
-X32_HOST=127.0.0.1:10023 npm run dev:x32         # the app pointed at the fake
-npm run test:e2e:x32                             # Playwright against the fake (never reaches the real desk)
-X32_HOST=192.168.0.138 X32_CAPTURE=1 npm run test:x32  # read-only checks on the real desk, keeping the traffic
+npm install                 # at the repo root
+npm run dev:x32             # the app; on first run it finds the desk by broadcast (or press Find desk)
 ```
 
-The chat needs an Anthropic API key in the macOS Keychain (the main process reads it; it never reaches the page, the
-config or the log). Add it once, then press New chat:
+If several desks answer, pick one from the list. You can also type an address (`192.168.1.50`, or `host:port`).
+
+To use the chat, put an API key in the Keychain once, then press **New chat** in the app:
 
 ```bash
 security add-generic-password -s "X32 Chat Control" -a anthropic-api-key -w
 ```
 
-The model is `claude-haiku-5-5` unless `model` is set in `config.json` in the data folder. The chat log is one JSON
-Lines file per day in `~/Library/Application Support/X32 Chat Control/logs/`: what was typed, the tool calls, what
-happened to each plan, tokens and latency. Tests never call the model: they script it (`X32_FAKE_CLAUDE=1`). `npm run prompt-check:x32` runs a few phrases against the
-real model and an in-memory desk (about $0.004; nothing reaches the X32).
+The key stays in the Electron main process: it never reaches the page, the config file or the chat log. The model is
+`claude-haiku-5-5` unless `model` is set in `config.json` in the data folder
+(`~/Library/Application Support/X32 Chat Control/`). The chat panel shows the session's tokens and cost.
 
-`X32_CAPTURE=1` writes every OSC packet in and out to `captures/` in the app's data folder
-(`~/Library/Application Support/X32 Chat Control/`), to compare the fake with the real desk on day one.
+Then, in order:
 
-If the desk is found but "Desk not reachable" says macOS refused the connection, Local Network access is off for
-the terminal the app was started from. With iTerm2 it can stay refused even when iTerm is ticked in System Settings →
-Privacy & Security → Local Network: turn it off and on, quit iTerm, run `pkill -f iTermServer` (its helper outlives
-it; this closes every iTerm session), and start again.
+1. Edit the rig file for your desk.
+2. Press *Check against rig file* and read the list.
+3. Apply the areas you're happy with.
 
-## Findings on the real desk
+### No desk yet?
 
-X32 Rack at 192.168.0.138 on the home network, firmware 4.15, checked 22 Nov 2026 (`npm run test:x32`, read-only):
+A fake desk stands in for the real one:
 
-- Every address the app reads answers; a full read takes under a second.
+```bash
+npm run fake:x32                            # a fake X32 on 127.0.0.1:10023
+X32_HOST=127.0.0.1:10023 npm run dev:x32    # the app, pointed at it
+```
+
+## Make it yours
+
+### 1. The rig file
+
+[rig/studio.json](rig/studio.json) is the only file you need to change for the setup panel. It is written for people
+("ch 5-6", "XLR 9-10", "aux out 1-2"); [src/core/rigFile.ts](src/core/rigFile.ts) parses it and reports any mistake
+with where it is.
+
+| Section | Each entry |
+|---|---|
+| `sources` | `strip` ("ch 7-8", "aux 3", "fxrtn 1-2"), `name` (12 characters at most), `colour` (OFF, RD, GN, YE, BL, MG, CY, WH), `icon` (a name from `ICONS` in [src/core/enums.ts](src/core/enums.ts)), `socket` ("XLR 11-12", "aux in 5", "card 1"), and optional `phantom` and `notes` |
+| `unused` | `strips` to leave unnamed (aux strips are also muted), and a `colour` for them |
+| `spare` | channels that keep a socket but no name |
+| `buses` | `bus` ("1-2"), `name`, `colour`, `tap` ("pre" or "post"), `level` ("0 dB"), and either `output` ("aux out 6") or `targets` for a shared bus |
+| `fx` | `slot` (1-4) and `source` ("bus 1-2"): which bus feeds each send effect |
+| `card` | `outputs`: what each USB card output carries ("ch 1-20", "fxrtn 1-8", "main") |
+| `manual` | steps only a person can do, shown with every check |
+
+Two conventions the app relies on, because it works everything else out from the desk's names:
+
+- **A bus that feeds one device has that device's name**, the same as the channel the device comes back on. The
+  example's bus 9 "King Rat" feeds a pedal that returns on ch 4 "King Rat". That is how the loop guard knows not to
+  send ch 4 to bus 9.
+- **A shared bus** feeds one of several devices at a time. The example's "Sampler" bus goes to an SP-404, Koala or
+  P-6. Its `targets` list each device and its output; the first is the default. In the chat or the Sends panel,
+  sending to a target's name switches the bus to it.
+
+Name the effect buses after their effect ("Reverb", "Delay"). A slot fed by a bus with one of those names only takes
+presets of that kind.
+
+### 2. Files that mention the example studio
+
+The planner, guards and tools read names from the desk, so they work with any rig. The files below mention the
+example's gear or are tuned to it. A Claude Code session (or you) can work through them after the rig file changes.
+
+| File | What to change |
+|---|---|
+| [src/core/systemPrompt.ts](src/core/systemPrompt.ts) | The model's instructions. They name the example's instruments (TB-3, S-1, P-6, TR-8S), the Sampler and its targets (SP-404 Mk2, Koala, P-6), and the effect buses (Reverb, Delay, FX 3, FX 4). Replace them with yours, or make them general. |
+| [src/core/tools.ts](src/core/tools.ts) | Tool descriptions use the same names as examples (P-6, Koala, SP-404 Mk2, Reverb, Delay, the King Rat). |
+| [src/chat/ChatPanel.tsx](src/chat/ChatPanel.tsx) | The example requests shown in an empty chat. |
+| [src/core/promptCheck.live.test.ts](src/core/promptCheck.live.test.ts) | The prompt check: phrases and the plans they should produce, against the example rig. Rewrite them for yours before running it. |
+| [src/core/presets.ts](src/core/presets.ts) | `NAMED_KINDS`: which bus names promise a kind of effect (reverb, delay). Add yours if your buses are named differently. |
+| [rig/fx-presets.json](rig/fx-presets.json) | The catalogue of the desk's factory FX library: one description and tag list per preset, written by Claude from each preset's settings. Presets are matched to your desk's library by name, so the order doesn't matter. Add entries for presets you save yourself. |
+| [src/core/enums.ts](src/core/enums.ts), [src/core/addresses.ts](src/core/addresses.ts) | The X32 Rack's counts: 8 XLR outs and 6 aux outs (`LOCAL_OUTPUTS`), and 32 channels, 8 aux ins, 8 FX returns and 16 buses (`STRIP_COUNT`). A full-size X32 or an M32 has more local outputs. |
+| [src/core/cardRouting.ts](src/core/cardRouting.ts) | How card outputs 17-32 are routed through free outputs. It assumes the Rack's outputs and a 32-channel USB card. |
+| [e2e/studio.ts](e2e/studio.ts) | The fake desk for the tests: set up from the rig file, plus one example send and the real desk's library order (`DESK_LIBRARY`). |
+| [e2e/*.e2e.ts](e2e), `src/core/*.test.ts` | Tests that expect the example's names, channels and buses. Most read the rig file, so they follow it; the rest need their expectations updated. |
+| [electron/main.cjs](electron/main.cjs) | The Keychain service and account names (`KEYCHAIN`), if you'd rather use your own. |
+
+After changing these, run `npm test`, `npm run typecheck` and `npm run test:e2e:x32`. Then run
+`npm run prompt-check:x32` if you changed the system prompt or tools.
+
+## Running and testing
+
+```bash
+npm run dev:x32                                    # the app
+npm run fake:x32                                   # a fake desk on 127.0.0.1:10023
+npm test                                           # unit tests (Vitest), repo-wide
+npm run typecheck
+npm run test:e2e:x32                               # Playwright against the fake desk; never reaches a real one
+X32_HOST=<desk address> npm run test:x32           # read-only checks on your real desk
+npm run prompt-check:x32                           # a few phrases against the real model (about $0.01)
+```
+
+- **Tests never call the model.** They script its replies (`X32_FAKE_CLAUDE=1`). The prompt check is the only thing
+  that costs money. It uses an in-memory desk, so nothing reaches the X32.
+- **Packet capture:** `X32_CAPTURE=1` writes every OSC packet in and out to `captures/` in the data folder, for
+  comparing the fake with a real desk.
+- **Chat log:** every request is logged to one JSON Lines file per day in `logs/` in the data folder: what was typed,
+  the tool calls, what happened to each plan, tokens and latency. The system prompt and key are never logged.
+
+### Troubleshooting
+
+**"Desk not reachable" though the desk was found.** If it says macOS refused the connection, Local Network access is
+off for the terminal the app was started from (System Settings → Privacy & Security → Local Network). With iTerm2 it
+can stay refused even when iTerm is ticked. Turn it off and on, quit iTerm, run `pkill -f iTermServer` (its helper
+outlives it, and this closes every iTerm session), and start again.
+
+## Findings on a real desk
+
+Checked on an X32 Rack, firmware 4.15, in November 2026:
+
+- Every address the app reads answers, and a full read takes under a second.
 - Aux inputs have no insert point. FX 1-4 can be fed from buses (`/fx/N/source`); FX 5-8 are insert-only.
 - The send tap point is per bus pair, at the odd bus (`/…/mix/01/type`, not `/mix/02/type`).
 - From the factory every send is on at −∞, so a send only counts as active when it's on and raised.
 - Output patch values: 4-19 = mix bus 1-16, 1-2 = main L/R. FX source n = mix bus n.
-- Routing is at `/config/routing/…` (blocks) and `/config/userrout/in|out/NN` (user routing); `/node` reads work and
+- Routing is at `/config/routing/…` (blocks) and `/config/userrout/in|out/NN` (user routing). `/node` reads work and
   answer on the address `node`.
-
-- FX library loads (checked 22 Nov): `/load ,sii libfx 26 7` loaded library 027 ("Squeezer") into FX 8, which read
-  back as type 11 (LIM in the FX 5-8 numbering), and answered `/load ,si libfx 1`. So the index is the library number
-  less one and the slot counts from 0. Other slots were untouched. FX 8 was put back to type 1 afterwards.
+- The desk can answer a read with the old value for a moment after a write, so read-back waits and asks again.
+- **FX library loads:** `/load ,sii libfx <library number − 1> <slot − 1>`, answered `/load ,si libfx 1`.
+  - Checked by loading library 027 into FX 8, which read back as the preset's type straight away.
+  - The desk's library order isn't the catalogue's, so presets are matched by name.
 
 More in the spec's "Day-one answers".

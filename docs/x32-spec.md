@@ -5,7 +5,7 @@ take precedence over anything here.
 
 Type plain-language requests such as "route S-1 to the P-6 input" or "add a synced delay as an insert on the TD-3", and
 the app makes the routing and effect changes on the Behringer X32 Rack over OSC. It is for setup and routing changes, so
-there's no clicking through X32-Edit. Faders, mutes and live send moves stay on the X-Touch.
+there's no clicking through X32-Edit. Faders, mutes and live send moves stay in X32-Edit (on a laptop or iPad).
 
 This plan replaces `x32-chat-control-spec.md` (the first draft). The main change: **the X32 is the source of truth for
 what is there now.** Names, stereo links, sends, inserts, FX slots and output patches are all read from the desk, so a
@@ -19,14 +19,10 @@ works at once and shows up as drift until it's applied or written back into the 
 
 ## Context
 
-- **Mixer:** Behringer X32 Rack, firmware 4.x (user routing), on the home network. Expected Monday 23 November 2026;
-  30-day return window from Thomann, so the two assumptions below must be proven in the first week.
-- **Other clients:** X32-Edit on the Mac and the X-Touch (XCTL over Ethernet) run at the same time. This app must work
-  alongside both.
-- **Rig and routing:** the Claude Doc "Studio routing plan: X32 Rack and X-Touch"
-  (https://claude.ai/artifact/9EFM4yoc6BZSYW3f4NXwNq). It describes how the desk *should* be set up. The app reads how
-  it *is* set up.
-- **Tempo bridge:** not built yet (open item in the routing plan). It's built in this app (phase 5), reading
+- **Mixer:** Behringer X32 Rack, firmware 4.x (user routing), on the local network.
+- **Other clients:** X32-Edit on a laptop or iPad runs at the same time. This app must work alongside it.
+- **Rig:** `apps/x32/rig/studio.json` describes how the desk *should* be set up. The app reads how it *is* set up.
+- **Tempo bridge:** not built yet. It's built in this app (phase 5), reading
   "Nome II Clock" itself. CoreMIDI lets the H12 app's Launchkey forwarder read the same port at the same time.
 - **Reference:** Patrick-Gilles Maillot, "Unofficial X32/M32 OSC Remote Protocol", and his X32 emulator for testing
   without the desk. Every OSC address in this plan is a starting point, to check against that document and the real
@@ -35,18 +31,15 @@ works at once and shows up as drift until it's applied or written back into the 
 ## Assumptions to prove first
 
 Assumption 1's reads were proven on 22 Nov (`npm run test:x32`: X32RACK, firmware 4.15, every address answered in
-under a second). Its write half and assumption 2 are proven by the first setup apply (phase 2), with X32-Edit open. The
-X-Touch isn't here yet, so its half of assumption 2 waits for it.
+under a second). Its write half and assumption 2 were proven by the first setup apply (phase 2), with X32-Edit open.
 
-The whole idea rests on these. Prove them before building anything more. If either fails, stop
-and report: the work done against the fake is then thrown away, which is the accepted cost of starting before the desk
-arrives (and the desk goes back within the return window).
+The whole idea rests on these. If either had failed, the work done against the fake would have been thrown away, which
+was the accepted cost of starting before the desk arrived.
 
 1. **Same calls as X32-Edit.** OSC over UDP port 10023: `/info` answers, `/ch/01/config/name` reads back, and a send
    level written from the app changes on the desk.
-2. **Runs alongside X32-Edit and the X-Touch.** With both connected, a send changed from the app shows up in both, and
-   a fader moved on the X-Touch reaches the app through `/xremote` notifications (renewed every 8 s; the desk drops a
-   client after 10 s).
+2. **Runs alongside X32-Edit.** With it connected, a send changed from the app shows up in X32-Edit, and a fader moved
+   in X32-Edit reaches the app through `/xremote` notifications (renewed every 8 s; the desk drops a client after 10 s).
 
 ## One-off setup on the desk (manual, in X32-Edit)
 
@@ -100,7 +93,7 @@ Aliases aren't stored anywhere. The model gets the names and icons in its tool r
 
 ## Loop guards (enforced in code)
 
-From the routing plan's "One-time settings and loop guards". A plan that breaks one is rejected with a reason, not
+A plan that breaks one is rejected with a reason, not
 just warned about. All are derived from the desk.
 
 1. **A channel is never sent to a bus with the same name** (a device's own return to its own feed). This covers ch 4
@@ -132,7 +125,7 @@ it refuses any address outside an allowed list, the way `switcher.ts` does on th
 - **Read-back:** after applying, read every written address back and compare. Report the first mismatch. Skip writes
   that already match.
 - **Undo:** each applied plan goes on an undo stack with its `from` values. "Undo that" (or the Undo button) applies the
-  reverse plan, also read back. If a value has changed since (someone moved it on the X-Touch), say so and ask before
+  reverse plan, also read back. If a value has changed since (someone moved it in X32-Edit), say so and ask before
   overwriting.
 - **No writes while disconnected.** Queue nothing; say the desk isn't reachable.
 
@@ -207,8 +200,7 @@ file is the desired state, the desk is the actual state, and the app applies the
 ### The rig file
 
 - `apps/x32/rig/studio.json`, in the repo (the device list isn't private), checked by a schema in `core/rigFile.ts`.
-  Converted **once** from the routing plan (the Claude Doc) by the model and reviewed by hand; after that it is the only
-  description of the desired setup, and changes are reviewed as diffs. The app never reads the routing doc.
+  It is the only description of the desired setup, and changes are reviewed as diffs.
 - Per source (channel, aux in, FX return): name, colour, icon, stereo link, the socket that feeds it (input routing),
   and optional `phantom` and `gain` notes (shown as manual steps, never written).
 - Per bus: name, colour, link, tap point (pre for the sampler feeds 7-12, post otherwise), and `notes` for the device
@@ -216,8 +208,6 @@ file is the desired state, the desk is the actual state, and the app applies the
 - `outputs`: the source of each XLR out and aux out. `fx`: type and starting parameters for slots the file defines, and
   the source bus of send effects. `inserts`. `card`: what each USB card output carries and where card inputs come in.
 - Anything the file doesn't mention is left alone.
-- **Not yet in it:** MIDI remote settings for the X-Touch (no X-Touch yet; and the addendum says "X-Touch Compact over
-  DIN MIDI" where the routing plan has a full X-Touch over Ethernet, to be settled when it arrives).
 
 ### Flow
 
@@ -319,12 +309,11 @@ process only does what a renderer can't:
   `claude-opus-5-5`. On Opus, set `output_config.effort: "low"` so replies come back in a second or two, and turn on
   server-side `fallbacks: "default"` (it needs a beta flag). `tool_choice: auto` on all of them.
 - **Billing and key:** API usage is billed per token through the Claude Console; a Claude Pro or Max subscription
-  doesn't cover it. **Key (decided 22 Nov):** a key from a personal Console account, with $5 of credit, kept in the
-  macOS Keychain as a generic password, service "X32 Chat Control", account "anthropic-api-key". The main process
+  doesn't cover it. The key is kept in the macOS Keychain as a generic password, service "X32 Chat Control", account "anthropic-api-key". The main process
   reads it at start with `security find-generic-password -s "X32 Chat Control" -a anthropic-api-key -w` and passes it
   to `new Anthropic({ apiKey })`; it never reaches the renderer, the config file, the chat log or the repo. No key in
   the Keychain → the chat panel says how to add one and the rest of the app works without it.
-- **Cost with $5:** Haiku, the cached system prompt and tools, and `max_tokens` kept small. The chat log records tokens
+- **Cost:** Haiku, the cached system prompt and tools, and `max_tokens` kept small. The chat log records tokens
   per request, and the chat panel shows the running total for the session.
 - **Other providers:** not planned. `agent.ts` calls an injected `create()`, so another provider could be added behind
   it later without touching the tools, guards or applier.
@@ -357,17 +346,15 @@ the prompt check has real phrases to test.
 
 ## Build order
 
-Each phase leaves the app runnable and ends with its tests passing, like the H12 build order. The desk arrived on
-22 Nov; the priority now is getting it set up to the routing plan (phase 2). The X-Touch isn't here yet, so anything
-that needs it waits.
+Each phase leaves the app runnable and ends with its tests passing, like the H12 build order.
 
 0. **Scaffold and OSC core (done):** the `apps/x32` scaffold (copy of the H12 shell), the UDP relay, `core/osc.ts`,
-   `client.ts`, `cache.ts`, `addresses.ts`, `faderLaw.ts`, and `e2e/fakeX32.ts` seeded with the routing plan's rig.
+   `client.ts`, `cache.ts`, `addresses.ts`, `faderLaw.ts`, and `e2e/fakeX32.ts` seeded with an early version of the studio rig.
    A capture switch in the relay (`X32_CAPTURE=1`, or a folder) that writes every OSC message in and out.
 1. **Read path and Rig panel (done, checked on the desk 22 Nov):** connect, `/info`, `/xremote` renewal, read
    everything in the table above (about 2,270 addresses, under a second), `rig.ts`, and the **Rig panel**. Acceptance
    tests 7, 8 and 10 against the fake. Addresses the desk doesn't answer are listed, not treated as errors.
-2. **Set up from the rig file (done 22 Nov: applied to the desk, which matches the rig file; backup in scene 1, Studio base in scene 3):** the rig file converted from the routing plan and reviewed; `rigFile.ts`, the
+2. **Set up from the rig file (done 22 Nov: applied to the desk, which matches the rig file; backup in scene 1, Studio base in scene 3):** the rig file written and reviewed; `rigFile.ts`, the
    setup read list, `setupPlan.ts` (diff by area, manual steps), `applier.ts` (setup list, skip-if-equal, read-back),
    backup and "Studio base" scenes, and a **Setup panel** with the plan, area checkboxes and Apply; then the drift
    check. The first apply, with X32-Edit open, is also the coexistence test. Addendum tests 1–5.
@@ -410,8 +397,6 @@ that needs it waits.
      for Apply and isn't on the undo stack (the app doesn't keep the slot's 64 parameters).
 6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.
 7. **Trace signal:** `checkPath` first (settings only), then meters and `traceSignal`. Addendum tests 6–9.
-8. **X-Touch (when it arrives):** its half of assumption 2, acceptance test 7 from a real fader, and its remote setting
-   in the rig file.
 9. **Scenes and snippets:** recall by name. Creating them only if the open question below says so.
 10. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
    build controls for the common ones, such as a sampler matrix (sources × SP-404 / Koala / P-6, one click per send)
@@ -427,7 +412,7 @@ that needs it waits.
   state (seeded from this rig), answering reads, applying writes and sending `/xremote` notifications. The app is
   pointed at it with `X32_HOST=127.0.0.1:<port>`, and `X32_FAKE_CLAUDE=1` swaps the Claude relay for scripted replies.
   As in the H12 app, tests run hidden and can never reach the real desk.
-- **The fake desk:** built from Maillot's document, seeded with the routing plan's rig (names, links, sends, FX 1 and
+- **The fake desk:** built from Maillot's document, seeded with an early version of the studio rig (names, links, sends, FX 1 and
   2 fed by buses 3-4 and 5-6, ch 15–16 unnamed). Every day-one unknown is a switch on it: aux channels with or without
   inserts, whether a send written to one side of a linked pair mirrors to the other, tap point per send or per bus
   pair, FX return numbering, which slots take delays, and how many `/xremote` clients it takes. Tests that depend on
@@ -449,14 +434,14 @@ that needs it waits.
 
 - **Only the allowed addresses** (applier list). No main mix, monitor, preamps, scene safes, network or MIDI settings.
 - **No loops:** guards on every plan, including undo and the tempo bridge.
-- **Coexistence:** no exclusive lock; X32-Edit and the X-Touch keep working.
+- **Coexistence:** no exclusive lock; X32-Edit keeps working.
 - **Secrets:** the API key comes from `ant auth login` or the Keychain, never from code, config files in the repo or
   the chat log (this repo is public). The model name is in the app's settings.
 - **Latency:** a model round trip takes a second or two. Fine for setup, not for performance moves.
 
 ## Acceptance tests
 
-1. With X32-Edit and the X-Touch connected, "route S-1 to the P-6 input" changes the sends, and X32-Edit shows the
+1. With X32-Edit connected, "route S-1 to the P-6 input" changes the sends, and X32-Edit shows the
    change within a second.
 2. "Route S-1 to the P-6" after "route TR-8S to the P-6" asks before switching off the TR-8S send, and afterwards only
    S-1 reaches the P-6.
@@ -466,7 +451,7 @@ that needs it waits.
    after a tempo change on the Nome II, pressing the tempo button sets the delay time to match (nothing changes before
    the press).
 6. "Undo that" restores every value the last plan changed, confirmed by read-back.
-7. A fader moved on the X-Touch shows up in `getState` without a re-read.
+7. A fader moved in X32-Edit shows up in `getState` without a re-read.
 8. Losing the network shows "desk not reachable" and sends nothing; reconnecting re-reads the state.
 9. Asking to change the type of FX 1 or FX 2 is refused while buses 1-2 and 3-4 feed them (guard 3).
 10. Renaming bus 11 in X32-Edit changes what the chat can resolve without restarting the app.
@@ -496,7 +481,7 @@ From the addendum (set up from rig file and trace signal):
 - **Output patches:** `/outputs/{main,aux}/NN/src`, value 4-19 = mix bus 1-16, 1-2 = main L/R (factory: XLR outs 1-6
   carry buses 1-6, 7-8 the main mix; aux outs 0 = off).
 - **Sends:** every send is on at −∞ from the factory, so the rig counts a send only when it's on *and* raised.
-- **FX returns** are `fxrtn/01`…`08`, linked in pairs from the factory: the routing plan's "FX returns 1-4".
+- **FX returns** are `fxrtn/01`…`08`, linked in pairs from the factory (FX returns 1-4 in stereo pairs).
 - **Routing (fw 4):** block routing at `/config/routing/{IN,CARD,OUT,…}/<range>` and user routing at
   `/config/userrout/in/01-32` and `/out/01-48` (all 0 from the factory). Value meanings: from Maillot's document.
 - **FX library loads:** `/load ,sii libfx <library number − 1> <slot − 1>`, answered `/load ,si libfx 1`; checked by
@@ -510,14 +495,13 @@ From the addendum (set up from rig file and trace signal):
 
 - **Channel layout (decided 22 Nov, in the rig file):** the most played sources, the P-6, S-1, TD-3 and King Rat
   return included, are on ch 1-16 through user routing; Koala, Mic and Guitar on ch 17-20; Ableton 1-12 on ch 21-32
-  (12 returns, not the routing plan's 16; XLR 15-16 have no channel). The aux strips are muted and unnamed, so
+  (12 returns; XLR 15-16 have no channel). The aux strips are muted and unnamed, so
   nothing is heard twice. On channels, these sources get inserts and post-fader direct outs, which settles the TD-3
   insert and the card outputs (ch 1-20, FX returns 1-8 and the main mix: 30 of the 31 free internal outputs).
 - **Buses (changed 22 Nov):** buses 1-8 feed FX 1-4 (Reverb, Delay, FX 3, FX 4), bus 9 the King Rat, bus 11-12 the
   Sampler; bus 10 and 13-16 are spare, unnamed and white like the aux strips. Synths are green, Ableton yellow.
-- The routing plan doc still describes the old layout; the rig file is now the source of truth.
 - The insert example (ch 15 "TD-3-MO") is out of date: the TD-3 is on ch 3 now and has its own insert point.
 - Should the app create snippets ("save this as TR-8S into SP-404"), or only recall them?
 - Should a delay be able to opt out of the tempo bridge (e.g. a free-running delay on FX 3)? Today every delay in the
   table follows the tempo.
-- Launchpad Pro pads for scene recall (routing plan) — in this app, or left to a later controller app?
+- Launchpad Pro pads for scene recall — in this app, or left to a later controller app?

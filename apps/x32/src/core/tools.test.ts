@@ -54,7 +54,7 @@ describe("chat log", () => {
   it("hashes the rig, tells the fake from the real desk, and keeps tokens and calls", () => {
     expect(rigHash("a")).toMatch(/^[0-9a-f]{8}$/);
     expect(rigHash("a")).not.toBe(rigHash("b"));
-    expect([deskKind("127.0.0.1:50123"), deskKind("192.168.0.138:10023")]).toEqual(["fake", "real"]);
+    expect([deskKind("127.0.0.1:50123"), deskKind("192.168.1.50:10023")]).toEqual(["fake", "real"]);
     const turn = { reply: "Done.", calls: [{ name: "send_to", input: { source: "S-1" }, result: "ok", kind: "applied" }], usage: { input: 1, output: 2, cacheRead: 3, cacheWrite: 4 }, rounds: 2, error: null };
     const entry = requestEntry({ time: "t", desk: "fake", rig: "abc" }, { typed: "route S-1", model: "m", turn, latencyMs: 900 });
     expect(entry).toMatchObject({ kind: "request", typed: "route S-1", tokens: { cacheRead: 3 }, calls: [{ name: "send_to" }] });

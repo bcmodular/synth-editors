@@ -195,7 +195,7 @@ export function includeEffects(ctx: PlanContext, req: EffectsRequest): Plan {
   return guarded(ctx, { summary, changes, confirm: req.on ? null : "It switches sends off" });
 }
 
-// The reverse of an applied plan, last change first. If anything it wrote has changed since (moved on the X-Touch),
+// The reverse of an applied plan, last change first. If anything it wrote has changed since (moved in X32-Edit),
 // confirm first.
 export function undoPlan(ctx: PlanContext, applied: Plan): Plan {
   const changes = [...applied.changes]

@@ -10,15 +10,15 @@ describe("discovery", () => {
   });
 
   it("lists each desk once, by where its answer came from", () => {
-    const answer = { from: "192.168.0.138:10023", bytes: xinfo("192.168.0.138", "X32RACK-0E-1C-B1") };
+    const answer = { from: "192.168.1.50:10023", bytes: xinfo("192.168.1.50", "X32RACK-12-34-56") };
     expect(foundDesks([answer, answer])).toEqual([
-      { host: "192.168.0.138:10023", name: "X32RACK-0E-1C-B1", model: "X32RACK", firmware: "4.15" },
+      { host: "192.168.1.50:10023", name: "X32RACK-12-34-56", model: "X32RACK", firmware: "4.15" },
     ]);
   });
 
   it("ignores anything that isn't an /xinfo answer", () => {
     const fake = { from: "127.0.0.1:50123", bytes: xinfo("127.0.0.1", "Fake") };
-    const other = { from: "192.168.0.9:10023", bytes: encodeMessage("/info", [str("V2.07")]) };
+    const other = { from: "192.168.1.9:10023", bytes: encodeMessage("/info", [str("V2.07")]) };
     expect(foundDesks([fake, other]).map((d) => d.host)).toEqual(["127.0.0.1:50123"]);
   });
 });

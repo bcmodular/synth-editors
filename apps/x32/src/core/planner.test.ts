@@ -126,7 +126,7 @@ describe("undoPlan", () => {
     const ctx = desk();
     const plan = sendTo(ctx, { source: "S-1", destination: "Delay", mode: "add" });
     ctx.apply(plan);
-    ctx.values.set("/ch/09/mix/03/level", 0.5); // moved on the X-Touch
+    ctx.values.set("/ch/09/mix/03/level", 0.5); // moved in X32-Edit
     expect(undoPlan(ctx, plan).confirm).toMatch(/^1 of its values changed since/);
   });
 });

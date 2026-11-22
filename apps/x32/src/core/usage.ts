@@ -1,5 +1,5 @@
-// What the chat has cost, from the token counts. Prices per million tokens; only for models listed, since the key has
-// $5 of credit and the panel shows the running total (docs/x32-spec.md, "Cost with $5").
+// What the chat has cost, from the token counts, shown as a running total in the chat panel (docs/x32-spec.md, "Cost").
+// Prices per million tokens; only for models listed.
 
 import type { Usage } from "./agent";
 

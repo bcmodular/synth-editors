@@ -91,7 +91,7 @@ export class FakeX32 {
     return this.values.get(address)?.value;
   }
 
-  // A change made on the desk itself (the X-Touch, X32-Edit): stored and sent to every subscribed client (unless the
+  // A change made on the desk itself (X32-Edit, the desk's own screen): stored and sent to every subscribed client (unless the
   // network is down, when the app misses it).
   set(param: Param, value: number | string): void {
     const arg = argFor(param, value);

@@ -1,5 +1,5 @@
 {
-  "about": "Desired setup of the studio X32 Rack, converted once from the Claude Doc 'Studio routing plan: X32 Rack and X-Touch' (rev 41, 22 Nov 2026), with the channel layout changed on 22 Nov: the most played sources, aux inputs included, on ch 1-16 through user routing. Changed again on 22 Nov: FX buses first (1-8 feed FX 1-4), one Sampler bus switched between the SP-404, Koala and P-6, King Rat on bus 9, 12 Ableton returns from ch 21, all synths green. This file, not the doc, is now the source of truth for setup and drift checks (docs/x32-spec.md, 'Set up from the rig file'). Anything not listed here is left alone.",
+  "about": "An example rig: the desired setup of one studio's X32 Rack. FX buses first (1-8 feed FX 1-4), one Sampler bus switched between three samplers, the most played sources on ch 1-16 through user routing, and 12 Ableton returns from ch 21. The app's Setup panel checks the desk against this file and applies the difference (docs/x32-spec.md, 'Set up from the rig file'). Anything not listed here is left alone.",
   "sources": [
     {
       "strip": "ch 1",

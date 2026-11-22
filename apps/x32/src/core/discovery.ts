@@ -5,7 +5,7 @@ import { decodePacket, encodeMessage } from "./osc";
 
 export interface FoundDesk {
   host: string; // where the answer came from, as "address:port" (the form the app shows and connects to)
-  name: string; // the desk's network name, e.g. "X32RACK-0E-1C-B1"
+  name: string; // the desk's network name, e.g. "X32RACK-12-34-56"
   model: string;
   firmware: string;
 }

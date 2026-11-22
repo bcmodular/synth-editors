@@ -63,6 +63,14 @@ describe("deriveRig changes and oddities", () => {
     expect(rig.oddities).toEqual([]); // still goes to aux out 1-2: a shared bus, like the Sampler
   });
 
+  it("takes a linked pair named L and R as one", () => {
+    const rig = rigWith([[link(strip("auxin", 7)), 1], [config(strip("auxin", 7)).name, "USB L"], [config(strip("auxin", 8)).name, "USB R"]]);
+    expect(rig.oddities).toEqual([]);
+    expect(rig.sources.find((s) => s.kind === "auxin" && s.numbers[0] === 7)?.name).toBe("USB");
+    const odd = rigWith([[link(strip("auxin", 7)), 1], [config(strip("auxin", 7)).name, "USB L"], [config(strip("auxin", 8)).name, "Mic R"]]);
+    expect(odd.oddities).toEqual(['aux 7-8 are linked but named "USB L" and "Mic R"']);
+  });
+
   it("flags a named bus that goes nowhere", () => {
     const unpatched: [Param, DeskValue][] = [1, 2].map((n) => [output({ kind: "aux", n }), 0]);
     const rig = rigWith([[config(strip("bus", 11)).name, "P-6 Mix"], [config(strip("bus", 12)).name, "P-6 Mix"], ...unpatched]);

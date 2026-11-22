@@ -4,6 +4,7 @@
 
 import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, tapOf, type Param, type StripKind } from "./addresses";
 import type { DeskValue } from "./cache";
+import { pairName, sameName } from "./names";
 import { output } from "./routing";
 import { colourName, fxSourceBus, insertSlot, LOCAL_OUTPUTS, outputBus, tapName, type Tap } from "./enums";
 
@@ -56,7 +57,6 @@ const KIND_LABEL: Record<StripKind, string> = { ch: "ch", auxin: "aux", fxrtn: "
 const INPUTS: StripKind[] = ["ch", "auxin", "fxrtn"];
 const WITH_INSERTS: StripKind[] = ["ch"]; // aux inputs have no insert point
 
-const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 const range = (numbers: number[]) => numbers.join("-");
 export const stripLabel = (s: Pick<RigStrip, "kind" | "numbers">) => `${KIND_LABEL[s.kind]} ${range(s.numbers)}`;
 const quoted = (s: RigStrip) => `${stripLabel(s)} "${s.name}"`;
@@ -92,8 +92,9 @@ function stripsOf(r: Reader, kind: StripKind, oddities: string[]): RigStrip[] {
     }
     const pair = oneStrip(r, kind, [n, n + 1]);
     const other = r.text(config(strip(kind, n + 1)).name);
-    if (!sameName(pair.name, other)) oddities.push(`${stripLabel(pair)} are linked but named "${pair.name}" and "${other}"`);
-    out.push(pair);
+    const name = pairName(pair.name, other);
+    if (name === null) oddities.push(`${stripLabel(pair)} are linked but named "${pair.name}" and "${other}"`);
+    out.push({ ...pair, name: name ?? pair.name });
     n++;
   }
   return out;

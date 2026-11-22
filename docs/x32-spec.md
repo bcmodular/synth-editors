@@ -378,8 +378,10 @@ that needs it waits.
 4. **Chat (built 22 Nov, against the fake and a scripted model):** the Claude relay (Keychain key, Haiku 5.5, effort
    low, automatic prompt caching), `agent.ts`, `tools.ts` (get_state, send_to, remove_send, include_effects, undo),
    `rigSummary.ts`, the chat panel with plan summaries, Apply / Cancel and Undo (told to the model with the next
-   message), the running cost, and the chat log. Acceptance tests 1, 3, 4 and 6 by chat (`e2e/chat.e2e.ts`). Still
-   to do: planFromRig / applyPlan / checkDrift as tools, and the prompt check against the real model.
+   message), the running cost, and the chat log. Acceptance tests 1, 3, 4 and 6 by chat (`e2e/chat.e2e.ts`). The
+   prompt check (`npm run prompt-check:x32`, 7 phrases, about $0.004 a run) passes on Haiku 5.5 after one prompt fix
+   (22 Nov: a plain "send" means add, and a possible loop goes to the tool, so the guard explains it). Still to do:
+   planFromRig / applyPlan / checkDrift as tools.
 5. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and
    spare-channel user routing (aux inputs have no insert point). Acceptance test 9, and test 5 without the tempo.
 6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.

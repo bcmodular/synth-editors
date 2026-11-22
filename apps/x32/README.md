@@ -46,7 +46,8 @@ security add-generic-password -s "X32 Chat Control" -a anthropic-api-key -w
 
 The model is `claude-haiku-5-5` unless `model` is set in `config.json` in the data folder. The chat log is one JSON
 Lines file per day in `~/Library/Application Support/X32 Chat Control/logs/`: what was typed, the tool calls, what
-happened to each plan, tokens and latency. Tests never call the model: they script it (`X32_FAKE_CLAUDE=1`).
+happened to each plan, tokens and latency. Tests never call the model: they script it (`X32_FAKE_CLAUDE=1`). `npm run prompt-check:x32` runs a few phrases against the
+real model and an in-memory desk (about $0.004; nothing reaches the X32).
 
 `X32_CAPTURE=1` writes every OSC packet in and out to `captures/` in the app's data folder
 (`~/Library/Application Support/X32 Chat Control/`), to compare the fake with the real desk on day one.

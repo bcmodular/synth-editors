@@ -21,6 +21,7 @@
     "test:tb3": "npm run e2e:hw -w @synth-editors/tb3",
     "test:h12": "npm run e2e:hw -w @synth-editors/h12",
     "test:x32": "npm run e2e:hw -w @synth-editors/x32",
+    "prompt-check:x32": "X32_PROMPT_CHECK=1 vitest run apps/x32/src/core/promptCheck.live.test.ts --silent=false",
     "fake:x32": "npm run fake -w @synth-editors/x32",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "package:tb3": "npm run package -w @synth-editors/tb3",

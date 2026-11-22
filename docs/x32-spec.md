@@ -467,16 +467,13 @@ From the addendum (set up from rig file and trace signal):
 
 ## Open questions for later
 
-- The routing plan now has 16 Ableton returns on ch 17-32, so ch 15-16 are the only spare channels, and every channel
-  from 17 up must be named (an unnamed channel counts as spare); the rig file names them "Ableton 1"-"Ableton 16".
-- **Card outputs (rig file draft, to confirm):** aux and FX returns do have post-fader direct outs (output sources
-  58-73), so nothing has to move onto spare channels. But a card output can only take a logical output (Outputs 1-16,
-  P16 1-16, Aux 1-6), and Outputs 1-4 and Aux 1, 2 and 6 already feed the samplers and the King Rat: 31 free for 32
-  card outputs. The draft leaves card 29-30 (FX 4, spare) empty. Planned allocation: card 1-16 ← P16 1-16 (ch 1-16);
-  card 17-24 ← Outputs 9-16 (aux 1-6, FX rtn 1-2); card 25-32 ← user-out slots (Outputs 5-8 for FX rtn 3-6, Aux 3-4 for
-  the main mix). Spare XLR outs 5-8 and aux outs 3-4 then also carry those signals.
-- The insert example names ch 15 "TD-3-MO" while aux 5 keeps the same name, which the Rig panel reports as a name used
-  twice. Phase 5 should rename aux 5 (or the rig should treat an aux in routed onto a channel as one source).
+- **Channel layout (decided 22 Nov, in the rig file):** the most played sources, the P-6, S-1, TD-3 and King Rat
+  return included, are on ch 1-16 through user routing; Koala, Mic and Guitar on ch 17-20; the spare XLR 15-16 on
+  ch 21-22; Ableton 1-8 on ch 25-32 (8 returns, not the routing plan's 16). The aux strips are muted and unnamed, so
+  nothing is heard twice. On channels, these sources get inserts and post-fader direct outs, which settles the TD-3
+  insert and the card outputs (ch 1-20, FX returns 1-8 and the main mix: 30 of the 31 free internal outputs).
+- The routing plan doc still describes the old layout; the rig file is now the source of truth.
+- The insert example (ch 15 "TD-3-MO") is out of date: the TD-3 is on ch 3 now and has its own insert point.
 - Should the app create snippets ("save this as TR-8S into SP-404"), or only recall them?
 - Should a delay be able to opt out of the tempo bridge (e.g. a free-running delay on FX 3)? Today every delay in the
   table follows the tempo.

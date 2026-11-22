@@ -360,7 +360,7 @@ that needs it waits.
 1. **Read path and Rig panel (done, checked on the desk 22 Nov):** connect, `/info`, `/xremote` renewal, read
    everything in the table above (about 2,270 addresses, under a second), `rig.ts`, and the **Rig panel**. Acceptance
    tests 7, 8 and 10 against the fake. Addresses the desk doesn't answer are listed, not treated as errors.
-2. **Set up from the rig file (built 22 Nov; Check run on the desk, Apply not yet):** the rig file converted from the routing plan and reviewed; `rigFile.ts`, the
+2. **Set up from the rig file (done 22 Nov: applied to the desk, which matches the rig file; backup in scene 1, Studio base in scene 3):** the rig file converted from the routing plan and reviewed; `rigFile.ts`, the
    setup read list, `setupPlan.ts` (diff by area, manual steps), `applier.ts` (setup list, skip-if-equal, read-back),
    backup and "Studio base" scenes, and a **Setup panel** with the plan, area checkboxes and Apply; then the drift
    check. The first apply, with X32-Edit open, is also the coexistence test. Addendum tests 1–5.

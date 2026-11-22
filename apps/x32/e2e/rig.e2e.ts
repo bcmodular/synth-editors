@@ -50,6 +50,12 @@ test("a send changed on the desk shows up without a re-read (acceptance 7)", asy
   const r = (running = await start());
   await ready(r);
   const sendReads = () => r.fake!.received.filter((x) => x.args.length === 0 && x.address.includes("/mix/")).length;
+  // "Connected" can show before the full read has started: wait until reads stop.
+  await expect.poll(async () => {
+    const was = sendReads();
+    await r.page.waitForTimeout(300);
+    return was > 0 && sendReads() === was;
+  }).toBe(true);
   const before = sendReads();
   const m = send(strip("auxin", 3), 11);
   r.fake!.setAll([[m.on, 1], [m.level, 0.5]]);

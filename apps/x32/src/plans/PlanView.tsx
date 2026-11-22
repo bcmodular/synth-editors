@@ -9,7 +9,7 @@ function Pending({ plans }: { plans: Plans }) {
   return (
     <div className="pending" role="alertdialog" aria-label="Confirm plan">
       <p>
-        <strong>{plan.summary}</strong> <span className="dim">{plan.confirm}.</span>
+        <strong>{plan.summary}.</strong> <span className="dim">{plan.confirm}.</span>
       </p>
       <ul className="changes">
         {plan.changes.map((c) => (
@@ -31,7 +31,9 @@ export function PlanView({ plans }: { plans: Plans }) {
   return (
     <div className="plan-view">
       <Pending plans={plans} />
-      {plans.message && <p className={`note outcome ${plans.message.bad ? "bad" : ""}`}>{plans.message.text}</p>}
+      {plans.message && !(plans.pending && plans.message.kind === "waiting") && (
+        <p className={`note outcome ${plans.message.bad ? "bad" : ""}`}>{plans.message.text}</p>
+      )}
       {last && (
         <div className="undo">
           <button type="button" disabled={plans.busy} onClick={() => void plans.undo()}>Undo</button>

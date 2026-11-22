@@ -43,7 +43,10 @@ describe("sendTo", () => {
     const ctx = desk();
     const plan = sendTo(ctx, { source: "S-1", destination: "P-6", mode: "add" });
     expect(plan.summary).toBe("Send S-1 to the Sampler (→ P-6) at 0 dB; switch the Sampler to the P-6");
-    expect(plan.confirm).not.toBeNull();
+    expect(plan.confirm).toBe("Asks first because it moves the Sampler from the SP-404 Mk2 to the P-6");
+    expect(plan.changes.filter((c) => c.what.includes("at 0 dB")).map((c) => c.what)).toEqual([
+      "S-1 (ch 9) → bus 11 at 0 dB", "S-1 (ch 9) → bus 12 at 0 dB", "S-1 (ch 10) → bus 11 at 0 dB", "S-1 (ch 10) → bus 12 at 0 dB",
+    ]);
     expect(plan.changes.filter((c) => c.param.address.startsWith("/outputs/")).map((c) => [c.param.address, c.value])).toEqual([
       ["/outputs/main/01/src", 0], ["/outputs/main/02/src", 0], ["/outputs/aux/01/src", 14], ["/outputs/aux/02/src", 15],
     ]);
@@ -62,7 +65,7 @@ describe("sendTo", () => {
     ctx.apply(sendTo(ctx, { source: "TR-8S", destination: "Sampler", mode: "add" }));
     const plan = sendTo(ctx, { source: "S-1", destination: "Sampler", mode: "replace" });
     expect(plan.summary).toBe("Send S-1 to the Sampler at 0 dB; stop sending TR-8S to it");
-    expect(plan.confirm).not.toBeNull();
+    expect(plan.confirm).toBe("Asks first because it switches off TR-8S's send to it");
     ctx.apply(plan);
     expect([on(ctx, 5, 11), on(ctx, 9, 11)]).toEqual([false, true]);
   });

@@ -11,7 +11,7 @@ import { sameName } from "./names";
 import { deriveRig, type Lookup, type Rig, type Source } from "./rig";
 import { OUTPUT_SOURCE, output } from "./routing";
 import { sameValue } from "./setupPlan";
-import { outputLabel } from "./targets";
+import { label, outputLabel } from "./targets";
 import type { PresetLoad } from "./library";
 import type { LibPreset } from "./presets";
 import type { RigFx } from "./rigFile";
@@ -106,17 +106,22 @@ export function change(get: Lookup, w: Write): PlanChange[] {
 }
 
 const strips = (s: Source) => s.numbers.map((n) => strip(s.kind, n));
-const each = (s: Source, d: Destination) => strips(s).flatMap((from) => d.buses.map((bus) => ({ m: send(from, bus), bus })));
+// Every send from each of a source's strips to each of the destination's buses, labelled with the strip when the
+// source is a stereo pair ("JV-2080 (ch 13) → bus 11"), so the rows don't look doubled.
+const each = (s: Source, d: Destination) => strips(s).flatMap((from) => d.buses.map((bus) => {
+  const who = s.numbers.length > 1 ? `${s.name} (${label(from)})` : s.name;
+  return { m: send(from, bus), path: `${who} → bus ${bus}` };
+}));
 
 function sendOn(get: Lookup, s: Source, d: Destination, level: number): PlanChange[] {
-  return each(s, d).flatMap(({ m, bus }) => [
-    ...change(get, { param: m.on, value: 1, what: `${s.name} → bus ${bus} on`, step: ON }),
-    ...change(get, { param: m.level, value: level, what: `${s.name} → bus ${bus} at ${formatDb(level)}`, step: ON }),
+  return each(s, d).flatMap(({ m, path }) => [
+    ...change(get, { param: m.on, value: 1, what: `${path} on`, step: ON }),
+    ...change(get, { param: m.level, value: level, what: `${path} at ${formatDb(level)}`, step: ON }),
   ]);
 }
 
 function sendOff(get: Lookup, s: Source, d: Destination): PlanChange[] {
-  return each(s, d).flatMap(({ m, bus }) => change(get, { param: m.on, value: 0, what: `${s.name} → bus ${bus} off`, step: OFF }));
+  return each(s, d).flatMap(({ m, path }) => change(get, { param: m.on, value: 0, what: `${path} off`, step: OFF }));
 }
 
 // A shared bus to its named target: that target's outputs carry the bus, the others' are off.
@@ -156,6 +161,16 @@ interface SendParts {
   level: number;
   others: Source[]; // switched off
   switching: boolean; // the shared bus switches to dest.target
+  live: string | null; // the shared bus's target now
+}
+
+// Why it needs Apply, saying exactly what goes off, so nobody (the model included) guesses at more.
+function sendConfirm(p: SendParts): string | null {
+  const why = [
+    p.switching ? `it moves the ${p.dest.shared!.name} from ${p.live ? `the ${p.live}` : "where it goes now"} to the ${p.dest.target}` : "",
+    p.others.length ? `it switches off ${names(p.others)}'s send to it` : "",
+  ].filter(Boolean);
+  return why.length ? `Asks first because ${why.join(", and ")}` : null;
 }
 
 function sendSummary(p: SendParts): string {
@@ -175,8 +190,9 @@ export function sendTo(ctx: PlanContext, req: SendRequest): Plan {
     ...(switching ? switchTarget(ctx.get, dest) : []),
     ...sendOn(ctx.get, source, dest, level),
   ];
-  const summary = sendSummary({ source, dest, level, others, switching });
-  const confirm = others.length || switching ? "It switches sends or outputs off" : null;
+  const parts = { source, dest, level, others, switching, live: dest.shared ? liveTarget(ctx.get, dest.shared) : null };
+  const summary = sendSummary(parts);
+  const confirm = sendConfirm(parts);
   return guarded(ctx, { summary, changes, confirm });
 }
 

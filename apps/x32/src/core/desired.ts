@@ -42,19 +42,25 @@ function linkTargets(groups: { strips: Strip[] }[], area: Area): Target[] {
 
 function looks(area: Area, s: Strip, item: { name: string; colour: number | null; icon?: number | null }): Target[] {
   const c = config(s);
-  const out = [at(area, 6)(c.name, item.name, `${label(s)} named "${item.name}"`)];
+  const out = [at(area, 6)(c.name, item.name, item.name ? `${label(s)} named "${item.name}"` : `${label(s)} unnamed`)];
   if (item.colour !== null) out.push(at(area, 6)(c.color, item.colour, `${label(s)} colour`));
   if (item.icon !== undefined && item.icon !== null) out.push(at(area, 6)(c.icon, item.icon, `${label(s)} icon`));
   return out;
 }
 
+// Unused strips are unnamed (and coloured, if the file gives one). Aux strips are also muted: their sockets feed channels.
+function unusedTargets(rig: RigFile, kind: "inputs" | "buses"): Target[] {
+  const area: Area = kind === "buses" ? "buses" : "channels";
+  const strips = rig.unused.filter((s) => (s.kind === "bus") === (kind === "buses"));
+  return strips.flatMap((s) => [
+    ...(s.kind === "auxin" ? [at(area, 6)(stripOn(s), 0, `${label(s)} muted (its socket feeds a channel)`)] : []),
+    ...looks(area, s, { name: "", colour: rig.unusedColour }),
+  ]);
+}
+
 function channelTargets(rig: RigFile): Target[] {
   const sourceLooks = rig.sources.flatMap((src: RigSource) => src.strips.flatMap((s) => looks("channels", s, src)));
-  const unused = rig.unused.flatMap((s) => [
-    at("channels", 6)(stripOn(s), 0, `${label(s)} muted (its socket feeds a channel)`),
-    at("channels", 6)(config(s).name, "", `${label(s)} unnamed`),
-  ]);
-  return [...linkTargets(rig.sources, "channels"), ...sourceLooks, ...unused];
+  return [...linkTargets(rig.sources, "channels"), ...sourceLooks, ...unusedTargets(rig, "inputs")];
 }
 
 const INPUTS: StripKind[] = ["ch", "auxin", "fxrtn"];
@@ -79,14 +85,22 @@ function levelTargets(b: RigBus): Target[] {
 function busTargets(rig: RigFile): Target[] {
   const strips = rig.buses.map((b) => ({ strips: b.buses.map((n) => strip("bus", n)) }));
   const named = rig.buses.flatMap((b) => b.buses.flatMap((n) => looks("buses", strip("bus", n), b)));
-  return [...linkTargets(strips, "buses"), ...rig.buses.flatMap(tapTargets), ...named, ...rig.buses.flatMap(levelTargets)];
+  const unnamed = unusedTargets(rig, "buses");
+  return [...linkTargets(strips, "buses"), ...rig.buses.flatMap(tapTargets), ...named, ...unnamed, ...rig.buses.flatMap(levelTargets)];
+}
+
+// A shared bus goes to its first target; the other targets' outputs are off until the chat switches the bus.
+function idleTargets(b: RigBus): Target[] {
+  return b.targets.slice(1).flatMap((t) => t.outputs.map((o) =>
+    at("outputs", 3)(output(o), OUTPUT_SOURCE.off, `${outputLabel(o.kind, o.n)} off (${b.name} → ${t.name} when switched)`)));
 }
 
 function outputTargets(rig: RigFile): Target[] {
-  return rig.buses.flatMap((b) => b.outputs.map((o, i) => {
+  const live = rig.buses.flatMap((b) => b.outputs.map((o, i) => {
     const bus = b.buses[i]!;
     return at("outputs", 3)(output(o), OUTPUT_SOURCE.bus + bus, `${outputLabel(o.kind, o.n)} ← bus ${bus}`);
   }));
+  return [...live, ...rig.buses.flatMap(idleTargets)];
 }
 
 function fxTargets(rig: RigFile): Target[] {

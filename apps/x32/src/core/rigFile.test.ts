@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import studio from "../../rig/studio.json";
-import { parseRange, parseRigFile, parseSockets, parseStrips, RigFileError } from "./rigFile";
+import type { Strip } from "./addresses";
+import { busOutputs, parseRange, parseRigFile, parseSockets, parseStrips, RigFileError } from "./rigFile";
+
+const stripName = (s: Strip) => `${s.kind} ${s.n}`;
 
 describe("rig file parts", () => {
   it("parses ranges, strips and sockets", () => {
@@ -27,6 +30,11 @@ describe("rig file parts", () => {
     expect(one({ strip: "ch 1-2", name: "Kick", socket: "XLR 1" })).toThrow("doesn't match the number");
     expect(one({ strip: "aux 1", name: "Kick", socket: "XLR 1" })).toThrow("only channels take a socket");
     expect(() => parseRigFile({ buses: [{ bus: "3-4", name: "Reverb", level: "loud" }] })).toThrow('level "loud"');
+    const shared = (targets: unknown, extra = {}) => () => parseRigFile({ buses: [{ bus: "11-12", name: "Sampler", targets, ...extra }] });
+    expect(shared([])).toThrow("targets must be a list");
+    expect(shared([{ name: "P-6" }])).toThrow('target "P-6": every target needs an output');
+    expect(shared([{ name: "P-6", output: "aux out 1" }])).toThrow("doesn't match the number");
+    expect(shared([{ name: "P-6", output: "aux out 1-2" }], { output: "XLR out 1-2" })).toThrow("takes its output from the first");
   });
 });
 
@@ -37,14 +45,14 @@ describe("the studio rig file", () => {
     expect(rig.sources.find((s) => s.name === "P-6")).toMatchObject({
       strips: [{ kind: "ch", n: 11 }, { kind: "ch", n: 12 }], sockets: [161, 162], colour: 6, icon: 32,
     });
-    expect(rig.unused.map((s) => s.n)).toEqual([1, 2, 3, 4, 5, 6]);
-    expect(rig.spare).toEqual([{ strips: [{ kind: "ch", n: 21 }, { kind: "ch", n: 22 }], sockets: [15, 16] }]);
-    expect(rig.buses.find((b) => b.name === "P-6")).toMatchObject({
-      buses: [11, 12], tap: "pre", level: 767 / 1023, outputs: [{ kind: "aux", n: 1 }, { kind: "aux", n: 2 }],
-    });
-    expect(rig.fx).toEqual([
-      { slot: 1, sourceBuses: [3, 4] }, { slot: 2, sourceBuses: [5, 6] }, { slot: 3, sourceBuses: [13, 14] },
-    ]);
+    expect(rig.unused.map(stripName)).toEqual(["auxin 1", "auxin 2", "auxin 3", "auxin 4", "auxin 5", "auxin 6", "bus 10", "bus 13", "bus 14", "bus 15", "bus 16"]);
+    expect(rig.unusedColour).toBe(7);
+    expect(rig.spare).toEqual([]);
+    const sampler = rig.buses.find((b) => b.name === "Sampler")!;
+    expect(sampler).toMatchObject({ buses: [11, 12], tap: "pre", level: 767 / 1023, outputs: [{ kind: "main", n: 1 }, { kind: "main", n: 2 }] });
+    expect(sampler.targets.map((t) => t.name)).toEqual(["SP-404 Mk2", "Koala", "P-6"]);
+    expect(busOutputs(sampler)).toHaveLength(6);
+    expect(rig.fx.map((f) => f.sourceBuses)).toEqual([[1, 2], [3, 4], [5, 6], [7, 8]]);
     expect(rig.cardOut).toHaveLength(30);
     expect(rig.cardOut.at(-1)).toEqual({ card: 32, source: { kind: "main", side: "R" }, tap: "post" });
   });

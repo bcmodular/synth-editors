@@ -7,7 +7,7 @@ import {
   CARD_FROM_P16, CARD_FROM_USER_OUT, output, OUTPUT_POS, OUTPUT_SOURCE, outputPos, routingCard, userOut, USER_SOURCE,
   type Logical,
 } from "./routing";
-import type { CardSource, RigCardOut, RigFile } from "./rigFile";
+import { busOutputs, type CardSource, type RigCardOut, type RigFile } from "./rigFile";
 import { at, outputLabel, type Target } from "./targets";
 
 const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
@@ -66,7 +66,7 @@ function userOutBlock(first: 17 | 25, byCard: Map<number, RigCardOut>, pool: Log
 
 export function cardTargets(rig: RigFile): Target[] {
   const byCard = new Map(rig.cardOut.map((c) => [c.card, c]));
-  const used = new Set(rig.buses.flatMap((b) => b.outputs.map(key)));
+  const used = new Set(rig.buses.flatMap((b) => busOutputs(b).map(key)));
   const pool = POOL.filter((o) => !used.has(key(o)));
   return [
     ...p16Block("1-8", byCard), ...p16Block("9-16", byCard),

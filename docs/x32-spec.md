@@ -54,11 +54,12 @@ The app finds the rig from names, so the desk needs names that follow one rule.
 
 1. **Name every source channel after its device:** ch 1 "Volca Kick", ch 9 "TR-8S", aux 1 "P-6", aux 3 "S-1",
    aux 5 "TD-3-MO", aux 6 "King Rat", and so on (12 characters at most). Name both sides of a stereo pair the same.
-2. **Name every bus that feeds a device after that device, exactly as its return channel is named:** bus 7 "SP-404 Mk2"
-   to match ch 7, bus 9 "Koala" to match ch 5, bus 11 "P-6" to match aux 1, bus 1 "King Rat" to match aux 6. This is
-   what lets the loop guard work without a list (below).
-3. **Name the effect buses after their effect** (bus 3 "Reverb", bus 5 "Delay", bus 13 "FX 3"). They have no same-named
-   channel, so they're never mistaken for a device.
+2. **Name every bus that feeds one device after that device, exactly as its return channel is named:** bus 9
+   "King Rat" to match ch 4. This is what lets the loop guard work without a list (below). A **shared bus** feeds one of
+   several devices at a time and is named for its job: bus 11-12 "Sampler" goes to the SP-404, Koala or P-6, whichever
+   output it's patched to (the rig file's `targets`, the first being the default; the others' outputs are off).
+3. **Name the effect buses after their effect** (bus 1 "Reverb", bus 3 "Delay", bus 5 "FX 3", bus 7 "FX 4": buses 1-8
+   feed FX 1-4). They have no same-named channel, so they're never mistaken for a device.
 4. **Pick sensible icons:** the model reads them as hints ("drums" → the channel with the drum icon).
 5. Leave spare channels (ch 15–16) **unnamed**: an unnamed channel is what the app treats as spare.
 
@@ -102,11 +103,13 @@ Aliases aren't stored anywhere. The model gets the names and icons in its tool r
 From the routing plan's "One-time settings and loop guards". A plan that breaks one is rejected with a reason, not
 just warned about. All are derived from the desk.
 
-1. **A channel is never sent to a bus with the same name** (a device's own return to its own feed). This covers ch 7-8
-   → bus 7-8, ch 5-6 → bus 9-10, aux 1-2 → bus 11-12 and aux 6 → bus 1 with one rule.
+1. **A channel is never sent to a bus with the same name** (a device's own return to its own feed). This covers ch 4
+   → bus 9 (King Rat) with one rule. For the shared Sampler bus, the device is the target its output is patched to
+   (from the rig file), so while it goes to the SP-404, ch 15-16 are never sent to it; switching the target to a device
+   whose return is already sent to the bus is refused too.
 2. **An FX return is never sent to the bus that feeds its own FX slot.**
 3. **A send effect slot is never retyped or used as an insert.** That keeps FX 1 (reverb) and FX 2 (delay) safe while
-   they're fed by buses 3-4 and 5-6. To free one, stop its bus feed in X32-Edit.
+   they're fed by buses 1-2 and 3-4. To free one, stop its bus feed in X32-Edit.
 4. **Never touched by the chat:** main bus, monitor section, preamp gains, phantom power, scene safes, network and
    MIDI settings, and user routing for anything but a spare channel.
 
@@ -153,8 +156,9 @@ All take names as the desk shows them, never channel numbers. All return a plan 
 
 ### Worked example: "route S-1 to the P-6 input"
 
-1. Resolve "S-1" → aux 3 (aux 3-4 linked); "P-6 input" → bus 11 (11-12 linked, pre-fader, Aux out 1-2).
-2. Guard 1: aux 3 isn't named "P-6". OK.
+1. Resolve "S-1" → ch 9 (9-10 linked); "P-6 input" → the Sampler, bus 11 (11-12 linked, pre-fader). It goes to the
+   SP-404 (XLR out 1-2), so the plan also switches it to the P-6: XLR out 1-2 off, Aux out 1-2 ← bus 11-12.
+2. Guard 1: ch 9 isn't the P-6's return, and the P-6's return (ch 11-12) isn't sent to the Sampler. OK.
 3. "Route" means `replace`; "also send" means `add`. If it's unclear, ask.
 4. Plan: `/auxin/03/mix/11/on` → 1, `/auxin/03/mix/11/level` → 0.75 (0 dB), the same for aux 4 unless the link mirrors
    it; then `/…/mix/11/on` → 0 for every other source with a send on bus 11.
@@ -433,7 +437,7 @@ that needs it waits.
 6. "Undo that" restores every value the last plan changed, confirmed by read-back.
 7. A fader moved on the X-Touch shows up in `getState` without a re-read.
 8. Losing the network shows "desk not reachable" and sends nothing; reconnecting re-reads the state.
-9. Asking to change the type of FX 1 or FX 2 is refused while buses 3-4 and 5-6 feed them (guard 3).
+9. Asking to change the type of FX 1 or FX 2 is refused while buses 1-2 and 3-4 feed them (guard 3).
 10. Renaming bus 11 in X32-Edit changes what the chat can resolve without restarting the app.
 
 From the addendum (set up from rig file and trace signal):
@@ -472,10 +476,12 @@ From the addendum (set up from rig file and trace signal):
 ## Open questions for later
 
 - **Channel layout (decided 22 Nov, in the rig file):** the most played sources, the P-6, S-1, TD-3 and King Rat
-  return included, are on ch 1-16 through user routing; Koala, Mic and Guitar on ch 17-20; the spare XLR 15-16 on
-  ch 21-22; Ableton 1-8 on ch 25-32 (8 returns, not the routing plan's 16). The aux strips are muted and unnamed, so
+  return included, are on ch 1-16 through user routing; Koala, Mic and Guitar on ch 17-20; Ableton 1-12 on ch 21-32
+  (12 returns, not the routing plan's 16; XLR 15-16 have no channel). The aux strips are muted and unnamed, so
   nothing is heard twice. On channels, these sources get inserts and post-fader direct outs, which settles the TD-3
   insert and the card outputs (ch 1-20, FX returns 1-8 and the main mix: 30 of the 31 free internal outputs).
+- **Buses (changed 22 Nov):** buses 1-8 feed FX 1-4 (Reverb, Delay, FX 3, FX 4), bus 9 the King Rat, bus 11-12 the
+  Sampler; bus 10 and 13-16 are spare, unnamed and white like the aux strips. Synths are green, Ableton yellow.
 - The routing plan doc still describes the old layout; the rig file is now the source of truth.
 - The insert example (ch 15 "TD-3-MO") is out of date: the TD-3 is on ch 3 now and has its own insert point.
 - Should the app create snippets ("save this as TR-8S into SP-404"), or only recall them?

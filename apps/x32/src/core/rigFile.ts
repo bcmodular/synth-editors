@@ -30,15 +30,26 @@ export interface RigSource {
   notes: string | null;
 }
 
+// A device a shared bus can be switched to (the Sampler bus: SP-404, Koala or P-6).
+export interface RigTarget {
+  name: string; // the device's return channel, as named on the desk
+  outputs: Logical[]; // one per bus, in order
+  notes: string | null;
+}
+
 export interface RigBus {
   buses: number[];
   name: string;
   colour: number | null;
   tap: "pre" | "post" | null;
   level: number | null; // the bus master, as a fader level (0.75 is 0 dB)
-  outputs: Logical[]; // one per bus, in order
+  outputs: Logical[]; // one per bus, in order: where the bus goes now (a shared bus: its first target)
+  targets: RigTarget[]; // a shared bus's devices, the default first; empty for a fixed bus
   notes: string | null;
 }
+
+// Every output a bus may use: its own, and those of the targets it can be switched to.
+export const busOutputs = (b: RigBus): Logical[] => [...b.outputs, ...b.targets.slice(1).flatMap((t) => t.outputs)];
 
 export interface RigFx {
   slot: number;
@@ -56,7 +67,8 @@ export interface RigCardOut {
 export interface RigFile {
   sources: RigSource[];
   spare: { strips: Strip[]; sockets: number[] }[]; // spare channels that still get a socket
-  unused: Strip[]; // strips to mute and leave unnamed
+  unused: Strip[]; // strips to leave unnamed (aux inputs also muted)
+  unusedColour: number | null;
   buses: RigBus[];
   fx: RigFx[];
   cardOut: RigCardOut[];
@@ -177,13 +189,30 @@ function parseSource(j: Json, i: number): RigSource {
   };
 }
 
+function outputsOf(f: Field, count: number): Logical[] {
+  return f.value === undefined ? [] : onePer(f, parseOutputs(f), count);
+}
+
+function parseTarget(f: Field, t: Json, count: number): RigTarget {
+  const at = (value: unknown): Field => ({ value, where: `${f.where}, target "${String(t.name)}"` });
+  if (t.output === undefined) fail(at(t.output), "every target needs an output");
+  return { name: nameOf(at(t.name)), outputs: outputsOf(at(t.output), count), notes: noteOf(t.notes) };
+}
+
+function parseTargets(f: Field, count: number): RigTarget[] {
+  if (f.value === undefined) return [];
+  if (!Array.isArray(f.value) || !f.value.length) return fail(f, "targets must be a list of devices");
+  return (f.value as Json[]).map((t) => parseTarget(f, t, count));
+}
+
 function parseBus(j: Json, i: number): RigBus {
   const at = (value: unknown): Field => ({ value, where: `buses[${i}] (${String(j.name ?? j.bus)})` });
   const buses = parseRange(at(j.bus));
-  const outputs = onePer(at(j.output), j.output === undefined ? [] : parseOutputs(at(j.output)), buses.length);
+  const targets = parseTargets(at(j.targets), buses.length);
+  if (targets.length && j.output !== undefined) fail(at(j.output), "a bus with targets takes its output from the first one");
   return {
-    buses, name: nameOf(at(j.name)), colour: colourOf(at(j.colour)), tap: tapOf(at(j.tap)),
-    level: levelOf(at(j.level)), outputs, notes: noteOf(j.notes),
+    buses, name: nameOf(at(j.name)), colour: colourOf(at(j.colour)), tap: tapOf(at(j.tap)), level: levelOf(at(j.level)),
+    outputs: targets[0]?.outputs ?? outputsOf(at(j.output), buses.length), targets, notes: noteOf(j.notes),
   };
 }
 
@@ -223,12 +252,13 @@ const list = (v: unknown): Json[] => (Array.isArray(v) ? (v as Json[]) : []);
 
 export function parseRigFile(json: unknown): RigFile {
   const j = (json ?? {}) as Json;
-  const unused = (j.unused as Json | undefined)?.strips;
+  const unused = (j.unused ?? {}) as Json;
   const card = (j.card ?? {}) as Json;
   return {
     sources: list(j.sources).map(parseSource),
     spare: parseSpare(j.spare),
-    unused: list(unused).flatMap((s, i) => parseStrips({ value: s, where: `unused.strips[${i}]` })),
+    unused: list(unused.strips).flatMap((s, i) => parseStrips({ value: s, where: `unused.strips[${i}]` })),
+    unusedColour: colourOf({ value: unused.colour, where: "unused.colour" }),
     buses: list(j.buses).map(parseBus),
     fx: list(j.fx).map(parseFx),
     cardOut: list(card.outputs).flatMap(parseCardOut),

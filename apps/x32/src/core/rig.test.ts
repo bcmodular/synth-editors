@@ -3,6 +3,7 @@ import { defaultDesk } from "../../e2e/rig";
 import { config, insert, link, send, strip, type Param } from "./addresses";
 import type { DeskValue } from "./cache";
 import { deriveRig, stripLabel, busName, type Rig } from "./rig";
+import { output } from "./routing";
 
 // The fake desk's studio rig, with changes on top.
 function rigWith(changes: [Param, DeskValue][] = []): Rig {
@@ -59,7 +60,13 @@ describe("deriveRig changes and oddities", () => {
   it("follows a rename", () => {
     const rig = rigWith([[config(strip("bus", 11)).name, "P-6 Mix"], [config(strip("bus", 12)).name, "P-6 Mix"]]);
     expect(rig.destinations.map((d) => d.name)).toContain("P-6 Mix");
-    expect(rig.oddities).toEqual(['bus 11-12 "P-6 Mix" has no channel with the same name and feeds no effect']);
+    expect(rig.oddities).toEqual([]); // still goes to aux out 1-2: a shared bus, like the Sampler
+  });
+
+  it("flags a named bus that goes nowhere", () => {
+    const unpatched: [Param, DeskValue][] = [1, 2].map((n) => [output({ kind: "aux", n }), 0]);
+    const rig = rigWith([[config(strip("bus", 11)).name, "P-6 Mix"], [config(strip("bus", 12)).name, "P-6 Mix"], ...unpatched]);
+    expect(rig.oddities).toEqual(['bus 11-12 "P-6 Mix" has no channel with the same name, feeds no effect and goes to no output']);
   });
 
   it("marks an FX slot as an insert when a channel inserts it", () => {

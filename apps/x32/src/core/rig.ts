@@ -175,10 +175,12 @@ function duplicateNames(strips: RigStrip[], what: string): string[] {
   return out;
 }
 
+// A bus that feeds an output but has no same-named channel is shared (the Sampler bus), so only a bus that goes
+// nowhere is odd.
 function busesWithoutRole(destinations: Destination[]): string[] {
   return destinations
-    .filter((d) => !d.deviceReturn && d.fxSlot === null)
-    .map((d) => `${quoted(d)} has no channel with the same name and feeds no effect`);
+    .filter((d) => !d.deviceReturn && d.fxSlot === null && !d.outputs.length)
+    .map((d) => `${quoted(d)} has no channel with the same name, feeds no effect and goes to no output`);
 }
 
 // A device's return already sent to its own feed: guard 1 broken on the desk.

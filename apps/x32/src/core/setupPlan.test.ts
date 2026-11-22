@@ -12,7 +12,7 @@ describe("planSetup", () => {
     const plan = planSetup(targets, () => undefined);
     expect(plan.changes).toHaveLength(targets.length);
     expect(plan.byArea.routing.length).toBe(36);
-    expect(plan.byArea.fx.length).toBe(6);
+    expect(plan.byArea.fx.length).toBe(8);
     expect(plan.unchanged).toBe(0);
   });
 

@@ -124,7 +124,7 @@ describe("runSetup", () => {
     const desk = memoryDesk(factory());
     const plan = planSetup(targets, (a) => desk.values.get(a));
     await runSetup(desk, plan, { areas: ["fx"], slots: freeSlots(), now: new Date() });
-    expect(desk.log.filter((l) => l.startsWith("write"))).toHaveLength(6);
+    expect(desk.log.filter((l) => l.startsWith("write"))).toHaveLength(8);
   });
 
   it("doesn't save Studio base when something doesn't read back", async () => {

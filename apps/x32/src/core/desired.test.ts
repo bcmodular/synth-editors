@@ -14,37 +14,48 @@ describe("desiredTargets for the studio rig", () => {
     expect(value("/config/routing/IN/25-32")).toBe(23);
     expect(value("/config/userrout/in/03")).toBe(165); // TD-3-MO on aux in 5
     expect(value("/config/userrout/in/11")).toBe(161); // P-6 on aux in 1
-    expect(value("/config/userrout/in/21")).toBe(15); // spare XLR 15
-    expect(value("/config/userrout/in/23")).toBe(0); // no socket
-    expect(value("/config/userrout/in/25")).toBe(129); // Ableton 1 on card in 1
+    expect(value("/config/userrout/in/21")).toBe(129); // Ableton 1 on card in 1
+    expect(value("/config/userrout/in/32")).toBe(140); // Ableton 12 on card in 12
+    expect(value("/config/userrout/in/04")).toBe(166); // King Rat on aux in 6
   });
 
-  it("names, links and colours channels, and mutes the aux strips", () => {
+  it("names, links and colours channels, and mutes and whitens the aux strips", () => {
     expect(value("/ch/11/config/name")).toBe("P-6");
     expect(value("/ch/12/config/name")).toBe("P-6");
     expect(value("/config/chlink/11-12")).toBe(1);
     expect(value("/config/chlink/3-4")).toBe(0); // TD-3 and King Rat are both mono
     expect(value("/ch/04/config/color")).toBe(4); // BL
+    expect(value("/ch/01/config/color")).toBe(2); // GN, a synth
     expect(value("/auxin/05/mix/on")).toBe(0);
     expect(value("/auxin/05/config/name")).toBe("");
+    expect(value("/auxin/05/config/color")).toBe(7); // WH
     expect(value("/auxin/07/mix/on")).toBeUndefined(); // USB L/R left alone
   });
 
   it("sets bus names, links, taps and outputs", () => {
-    expect(value("/bus/11/config/name")).toBe("P-6");
-    expect(value("/config/buslink/1-2")).toBe(0);
-    expect(value("/config/buslink/7-8")).toBe(1);
+    expect(value("/bus/11/config/name")).toBe("Sampler");
+    expect(value("/config/buslink/1-2")).toBe(1);
+    expect(value("/config/buslink/9-10")).toBe(0); // King Rat is mono
     expect(value("/ch/01/mix/11/type")).toBe(3); // pre
     expect(value("/fxrtn/08/mix/03/type")).toBe(4); // post
     expect(value("/ch/01/mix/12/type")).toBeUndefined();
-    expect(value("/outputs/aux/01/src")).toBe(14); // bus 11
-    expect(value("/outputs/aux/06/src")).toBe(4); // bus 1
-    expect(value("/outputs/main/03/src")).toBe(12); // bus 9
+    expect(value("/outputs/aux/06/src")).toBe(12); // bus 9, King Rat
+    expect(value("/outputs/main/01/src")).toBe(14); // bus 11, Sampler → SP-404
   });
 
-  it("feeds FX 1-3 from their buses and leaves the effect types alone", () => {
-    expect(value("/fx/2/source/l")).toBe(5);
-    expect(value("/fx/2/source/r")).toBe(6);
+  it("switches the Sampler's other targets off and unnames the spare buses", () => {
+    expect(value("/outputs/main/03/src")).toBe(0); // Koala
+    expect(value("/outputs/aux/01/src")).toBe(0); // P-6
+    expect(targets.find((t) => t.param.address === "/outputs/aux/02/src")?.what).toBe("aux out 2 off (Sampler → P-6 when switched)");
+    expect(value("/bus/10/config/name")).toBe("");
+    expect(value("/bus/13/config/color")).toBe(7);
+    expect(value("/bus/13/mix/on")).toBeUndefined(); // only aux strips are muted
+  });
+
+  it("feeds FX 1-4 from buses 1-8 and leaves the effect types alone", () => {
+    expect(value("/fx/1/source/l")).toBe(1);
+    expect(value("/fx/2/source/l")).toBe(3);
+    expect(value("/fx/4/source/r")).toBe(8);
     expect(targets.some((t) => t.param.address.endsWith("/type") && t.param.address.startsWith("/fx/"))).toBe(false);
   });
 
@@ -56,8 +67,8 @@ describe("desiredTargets for the studio rig", () => {
 
   it("sets the bus masters to 0 dB, after everything else", () => {
     const masters = targets.filter((t) => t.param.address.startsWith("/bus/") && t.param.address.endsWith("/mix/fader"));
-    expect(masters.map((t) => t.param.address.slice(5, 7))).toEqual(["01", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14"]);
-    expect(masters[1]).toMatchObject({ step: 6, what: "bus 3 master at 0 dB" });
+    expect(masters.map((t) => t.param.address.slice(5, 7))).toEqual(["01", "02", "03", "04", "05", "06", "07", "08", "09", "11", "12"]);
+    expect(masters[2]).toMatchObject({ step: 6, what: "bus 3 master at 0 dB" });
   });
 
   it("sets each address once", () => {

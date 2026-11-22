@@ -23,10 +23,10 @@ const area = (page: Page, name: string) => panel(page).locator(`details[data-are
 test("checking lists the differences by area and writes nothing", async () => {
   const r = (running = await start({ values: factoryDesk() }));
   await checked(r);
-  await expect(area(r.page, "routing").locator("summary")).toContainText("Input routing 34 changes");
+  await expect(area(r.page, "routing").locator("summary")).toContainText("Input routing 36 changes");
   await area(r.page, "routing").locator("summary").click();
   await expect(area(r.page, "routing")).toContainText("ch 3 input ← aux in 5 (0 → 165)");
-  await expect(area(r.page, "fx").locator("summary")).toContainText("FX feeds 6 changes");
+  await expect(area(r.page, "fx").locator("summary")).toContainText("FX feeds 8 changes");
   await expect(panel(r.page).locator(".manual")).toContainText("Mic: phantom power");
   expect(r.fake!.received.filter(isWrite)).toEqual([]);
 });
@@ -57,8 +57,8 @@ test("applies only the areas left ticked", async () => {
   const r = (running = await start({ values: factoryDesk() }));
   await checked(r);
   for (const a of ["routing", "channels", "buses", "outputs", "card"]) await area(r.page, a).locator("input[type=checkbox]").uncheck();
-  await panel(r.page).getByRole("button", { name: "Apply 6 changes" }).click();
-  await expect(panel(r.page).locator(".result")).toContainText("Applied 6 changes", { timeout: 15_000 });
+  await panel(r.page).getByRole("button", { name: "Apply 8 changes" }).click();
+  await expect(panel(r.page).locator(".result")).toContainText("Applied 8 changes", { timeout: 15_000 });
   const values = r.fake!.received.filter(isWrite).filter((m) => m.address !== "/save");
   expect(values.map((m) => m.address).every((a) => a.startsWith("/fx/"))).toBe(true);
 });
@@ -96,7 +96,7 @@ test("stops and keeps Studio base unsaved when a value doesn't read back", async
   await checked(r);
   for (const a of ["routing", "channels", "buses", "outputs", "card"]) await area(r.page, a).locator("input[type=checkbox]").uncheck();
   await panel(r.page).getByRole("button", { name: /^Apply/ }).click();
-  await expect(panel(r.page).getByRole("alert")).toContainText("FX 1 left fed by bus 3 reads back as (no answer)", { timeout: 15_000 });
+  await expect(panel(r.page).getByRole("alert")).toContainText("FX 1 left fed by bus 1 reads back as (no answer)", { timeout: 15_000 });
   expect(r.fake!.received.filter((m) => m.address === "/save")).toHaveLength(1);
 });
 

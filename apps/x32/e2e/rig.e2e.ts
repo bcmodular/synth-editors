@@ -2,6 +2,7 @@
 // notifications (acceptance tests 7 and 10) and re-read after the desk comes back (test 8).
 import { expect, test, type Page } from "@playwright/test";
 import { config, send, strip } from "../src/core/addresses";
+import { output } from "../src/core/routing";
 import { defaultDesk } from "./rig";
 import { finish, start, status, type X32App } from "./x32";
 
@@ -62,7 +63,8 @@ test("a rename on the desk changes the rig without a restart (acceptance 10)", a
   r.fake!.setAll([[config(strip("bus", 11)).name, "P-6 Mix"], [config(strip("bus", 12)).name, "P-6 Mix"]]);
   await expect(row(r.page, "destinations", "P-6 Mix")).toBeVisible();
   await expect(row(r.page, "sources", "TR-8S")).toContainText("P-6 Mix 0 dB");
-  await expect(r.page.locator(".oddities")).toContainText('bus 11-12 "P-6 Mix" has no channel with the same name');
+  r.fake!.setAll([1, 2].map((n) => [output({ kind: "aux", n }), 0]));
+  await expect(r.page.locator(".oddities")).toContainText('bus 11-12 "P-6 Mix" has no channel with the same name, feeds no effect and goes to no output');
 });
 
 test("re-reads the desk when it comes back, catching changes made meanwhile (acceptance 8)", async () => {

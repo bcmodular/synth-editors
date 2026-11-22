@@ -3,11 +3,19 @@
 Plain-language routing and effect changes on the Behringer X32 Rack, over OSC. The plan and build order are in
 [docs/x32-spec.md](../../docs/x32-spec.md).
 
-**Status:** phase 1. The app connects to the desk, subscribes to its notifications (`/xremote`, renewed every 8 s),
-reads `/info` and says when the desk isn't reachable. Each time the desk becomes reachable it reads every address the
-app uses (names, links, sends, inserts, FX feeds and output patches) and shows the **Rig panel**: sources and their
-sends, destinations and where they go, device returns (a bus and a channel with the same name), FX slots and their
-roles, spare (unnamed) channels, and anything odd. Nothing is written to the desk yet.
+**Status:** phase 2, set up from the rig file. The app connects to the desk, reads it, and shows two panels:
+
+- **Set up from rig file:** *Check against rig file* reads the desk and lists every setting that differs from
+  [rig/studio.json](rig/studio.json), grouped by area, with the steps only you can do (phantom power, gains). It writes
+  nothing. *Apply* writes the ticked areas: it saves the desk to a dated backup scene first, writes routing first and
+  names last, reads every value back, stops at the first mismatch, and saves "Studio base" when everything read back.
+  Running *Check* again afterwards should say the desk matches. Run it any time to see drift.
+- **Rig:** what the app works out from the desk's names: sources and sends, destinations and outputs, device returns,
+  FX slots, spare channels, and anything odd.
+
+To undo a setup, load the backup scene on the desk (X32-Edit, Scenes). The app never touches phantom power, preamp
+gain, sends, faders, the main and monitor sections, network or MIDI settings, scene safes or effect types
+(`src/core/applier.ts`, `SETUP_ALLOWED`).
 
 ## Running it
 
@@ -16,7 +24,7 @@ npm run dev:x32                                  # the app; type the desk's addr
 npm run fake:x32                                 # a fake desk on 127.0.0.1:10023, seeded with the studio rig
 X32_HOST=127.0.0.1:10023 npm run dev:x32         # the app pointed at the fake
 npm run test:e2e:x32                             # Playwright against the fake (never reaches the real desk)
-X32_HOST=<desk IP> X32_CAPTURE=1 npm run test:x32  # read-only check on the real desk, keeping the traffic
+X32_HOST=192.168.0.138 X32_CAPTURE=1 npm run test:x32  # read-only checks on the real desk, keeping the traffic
 ```
 
 `X32_CAPTURE=1` writes every OSC packet in and out to `captures/` in the app's data folder

@@ -12,7 +12,7 @@ import dgram from "node:dgram";
 import type { AddressInfo } from "node:net";
 import { argFor } from "../src/core/argFor.ts";
 import type { Param } from "../src/core/addresses.ts";
-import { decodePacket, encodeMessage, str, type OscArg, type OscMessage } from "../src/core/osc.ts";
+import { decodePacket, encodeMessage, int, str, type OscArg, type OscMessage } from "../src/core/osc.ts";
 import { defaultDesk } from "./rig.ts";
 
 export interface FakeSwitches {
@@ -41,6 +41,7 @@ interface Client {
 
 export class FakeX32 {
   readonly received: FakeReceived[] = [];
+  readonly scenes = new Map<number, Map<string, OscArg>>(); // saved scenes: a copy of the desk
   offline = false; // drop everything, as if the network were down
 
   private readonly socket = dgram.createSocket("udp4");
@@ -70,6 +71,13 @@ export class FakeX32 {
 
   get host(): string {
     return `127.0.0.1:${this.port}`;
+  }
+
+  // Load a saved scene back (as the desk's Scenes page would).
+  load(n: number): void {
+    const saved = this.scenes.get(n);
+    if (!saved) throw new Error(`No scene ${n}`);
+    for (const [address, arg] of saved) if (!address.startsWith("/-show/")) this.values.set(address, arg);
   }
 
   get(address: string): OscArg["value"] | undefined {
@@ -110,10 +118,22 @@ export class FakeX32 {
     if (m.address === "/xremote") return this.subscribe(from);
     if (m.address === "/info") return this.reply(from, "/info", [str("V2.07"), str("osc-server"), str(this.model), str(this.firmware)]);
     if (m.address === "/status") return this.reply(from, "/status", [str("active"), str("127.0.0.1"), str(this.model)]);
+    if (m.address === "/save") return this.save(m, from);
     const current = this.values.get(m.address);
     if (!current) return; // the desk ignores addresses it doesn't have
     if (m.args.length === 0) return this.reply(from, m.address, [current]);
     this.write(m, from);
+  }
+
+  // `/save ,siss scene <n> <name> <note>`: keeps a copy of the desk as it is, and answers `/save ,si scene 1`.
+  private save(m: OscMessage, from: dgram.RemoteInfo): void {
+    const [kind, n, name] = m.args.map((a) => a.value);
+    if (kind !== "scene" || typeof n !== "number") return this.reply(from, "/save", [str(String(kind)), int(0)]);
+    const slot = String(n).padStart(3, "0");
+    this.values.set(`/-show/showfile/scene/${slot}/name`, str(String(name ?? "")));
+    this.values.set(`/-show/showfile/scene/${slot}/hasdata`, int(1));
+    this.scenes.set(n, new Map(this.values));
+    this.reply(from, "/save", [str("scene"), int(1)]);
   }
 
   private write(m: OscMessage, from: dgram.RemoteInfo): void {

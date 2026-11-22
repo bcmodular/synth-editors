@@ -166,3 +166,34 @@ h2 {
 .missing p {
   word-break: break-all;
 }
+
+.setup .area {
+  margin: 8px 0;
+}
+
+.setup .area summary {
+  cursor: pointer;
+}
+
+.setup .changes {
+  margin: 6px 0 0;
+  padding-left: 24px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.setup .apply {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.setup .manual {
+  padding-left: 18px;
+  color: var(--dim);
+}
+
+.good {
+  color: var(--good);
+}

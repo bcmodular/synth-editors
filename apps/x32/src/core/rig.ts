@@ -2,8 +2,9 @@
 // returns, FX slots and their roles, spare channels, and anything odd. No file: rename something in X32-Edit and the
 // next derive picks it up.
 
-import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, tapOf, type Param, type StripKind } from "./addresses";
+import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, tapOf, type Param, type StripKind } from "./addresses";
 import type { DeskValue } from "./cache";
+import { output } from "./routing";
 import { colourName, fxSourceBus, insertSlot, LOCAL_OUTPUTS, outputBus, tapName, type Tap } from "./enums";
 
 export type Lookup = (address: string) => DeskValue | undefined;
@@ -115,7 +116,7 @@ function outputsTo(r: Reader, buses: number[]): string[] {
   return kinds.flatMap(([kind, label]) => {
     const found: number[] = [];
     for (let n = 1; n <= LOCAL_OUTPUTS[kind]; n++) {
-      if (buses.includes(outputBus(r.num(output(kind, n))) ?? 0)) found.push(n);
+      if (buses.includes(outputBus(r.num(output({ kind, n }))) ?? 0)) found.push(n);
     }
     return found.length ? [`${label} ${range(found)}`] : [];
   });

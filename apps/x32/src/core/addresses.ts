@@ -21,8 +21,8 @@ export interface Param {
   type: "i" | "f" | "s";
 }
 
-const p = (address: string, type: Param["type"]): Param => ({ address, type });
-const pad2 = (n: number) => String(n).padStart(2, "0");
+export const p = (address: string, type: Param["type"]): Param => ({ address, type });
+export const pad2 = (n: number) => String(n).padStart(2, "0");
 // 1 to max, whole numbers only.
 const inRange = (n: number, max: number) => Number.isInteger(n) && Math.min(Math.max(n, 1), max) === n;
 
@@ -83,7 +83,8 @@ export function link(s: Strip): Param {
   return p(`/config/${LINK_GROUP[s.kind]}/${odd}-${odd + 1}`, "i");
 }
 
-export const output = (kind: "main" | "aux", n: number): Param => p(`/outputs/${kind}/${pad2(n)}/src`, "i");
+// A strip's own mute: 1 = on (playing), 0 = muted. Not the main bus.
+export const stripOn = (s: Strip): Param => p(`${stripPath(s)}/mix/on`, "i");
 
 // Messages that aren't values: the desk's identity, renewing notifications, and batch reads.
 export const INFO = "/info";

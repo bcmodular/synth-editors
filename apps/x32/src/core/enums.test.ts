@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { colourName, fxSourceBus, insertSlot, outputBus, outputSource, tapName } from "./enums";
+import { colourName, fxSourceBus, insertSlot, outputBus, tapName } from "./enums";
 
 describe("desk enums", () => {
   it("names colours, inverted ones too", () => {
@@ -21,7 +21,7 @@ describe("desk enums", () => {
     expect(insertSlot(1)).toBe(1);
     expect(insertSlot(8)).toBe(4); // FX4R
     expect(insertSlot(17)).toBeNull();
-    expect(outputBus(outputSource(7))).toBe(7);
+    expect(outputBus(10)).toBe(7);
     expect(outputBus(1)).toBeNull();
     expect(outputBus(20)).toBeNull();
   });

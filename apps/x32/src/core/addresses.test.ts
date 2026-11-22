@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { config, fx, insert, link, output, send, strip, stripPath } from "./addresses";
+import { config, fx, insert, link, send, strip, stripPath } from "./addresses";
+import { output } from "./routing";
 
 describe("addresses", () => {
   it("pads strip numbers to two digits", () => {
@@ -28,7 +29,7 @@ describe("addresses", () => {
     expect(fx(2).source("r").address).toBe("/fx/2/source/r");
     expect(fx(2).par(3)).toEqual({ address: "/fx/2/par/03", type: "f" });
     expect(() => fx(9)).toThrow();
-    expect(output("main", 1).address).toBe("/outputs/main/01/src");
+    expect(output({ kind: "main", n: 1 }).address).toBe("/outputs/main/01/src");
   });
 
   it("finds the link for either side of a pair", () => {

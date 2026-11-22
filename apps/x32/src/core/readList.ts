@@ -1,8 +1,9 @@
 // Everything the app reads from the desk on connect (docs/x32-spec.md, "What the app reads from the desk"). After this,
 // /xremote notifications keep the cache current. Pans aren't read yet: nothing uses them.
 
-import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
+import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
 import { LOCAL_OUTPUTS } from "./enums";
+import { output } from "./routing";
 
 const INPUTS: StripKind[] = ["ch", "auxin", "fxrtn"];
 // Only channels have an insert point (aux inputs don't, on the real desk).
@@ -36,8 +37,8 @@ const fxSlots = (): Param[] => [
 ];
 
 const outputs = (): Param[] => [
-  ...numbers(LOCAL_OUTPUTS.main).map((n) => output("main", n)),
-  ...numbers(LOCAL_OUTPUTS.aux).map((n) => output("aux", n)),
+  ...numbers(LOCAL_OUTPUTS.main).map((n) => output({ kind: "main", n })),
+  ...numbers(LOCAL_OUTPUTS.aux).map((n) => output({ kind: "aux", n })),
 ];
 
 export function deskReadList(): Param[] {

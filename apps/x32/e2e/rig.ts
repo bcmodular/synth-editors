@@ -3,27 +3,48 @@
 // the real X32 Rack (fw 4.15, read 22 Nov 2026): sends on at −∞, tap points on odd buses only, no source for FX 5-8,
 // no insert point on aux inputs.
 
-import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
-import { LOCAL_OUTPUTS, outputSource } from "../src/core/enums.ts";
+import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
+import {
+  IN_BLOCKS, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, userIn, userOut,
+  USER_IN_SLOTS, USER_OUT_SLOTS,
+} from "../src/core/routing.ts";
 import type { OscArg } from "../src/core/osc.ts";
 
-type Values = Map<string, OscArg>;
+export type Values = Map<string, OscArg>;
 
-const put = (values: Values, param: Param, value: number | string) =>
+export const put = (values: Values, param: Param, value: number | string) =>
   values.set(param.address, param.type === "s" ? { type: "s", value: String(value) } : { type: param.type, value: Number(value) });
 
 const INPUTS: StripKind[] = ["ch", "auxin", "fxrtn"];
 const ALL: StripKind[] = [...INPUTS, "bus"];
 
-const numbers = (count: number) => Array.from({ length: count }, (_, i) => i + 1);
+export const numbers = (count: number) => Array.from({ length: count }, (_, i) => i + 1);
 
-function blankDesk(): Values {
+export function blankDesk(): Values {
   const values: Values = new Map();
   for (const kind of ALL) numbers(STRIP_COUNT[kind]).forEach((n) => blankStrip(values, kind, n));
-  for (const kind of ["main", "aux"] as const) numbers(LOCAL_OUTPUTS[kind]).forEach((n) => put(values, output(kind, n), 0));
   for (const slot of numbers(FX_SLOTS)) put(values, fx(slot).type, 0);
   for (const slot of numbers(FX_SEND_SLOTS)) [fx(slot).source("l"), fx(slot).source("r")].forEach((p) => put(values, p, 0));
+  blankRouting(values);
   return values;
+}
+
+// Routing, outputs and scenes, as the factory leaves them where it matters (fw 4.15).
+function blankRouting(values: Values): void {
+  IN_BLOCKS.forEach((b, i) => put(values, routingIn(b), [0, 1, 4, 5][i]!));
+  IN_BLOCKS.forEach((b, i) => put(values, routingCard(b), [0, 1, 4, 5][i]!));
+  numbers(USER_IN_SLOTS).forEach((n) => put(values, userIn(n), 0));
+  numbers(USER_OUT_SLOTS).forEach((n) => put(values, userOut(n), 0));
+  for (const kind of ["main", "aux", "p16"] as const) {
+    numbers(OUTPUT_COUNT[kind]).forEach((n) => {
+      put(values, output({ kind, n }), 0);
+      put(values, outputPos({ kind, n }), kind === "p16" ? 2 : 8);
+    });
+  }
+  for (let n = 0; n < SCENE_SLOTS; n++) {
+    put(values, scene(n).name, "");
+    put(values, scene(n).hasdata, 0);
+  }
 }
 
 function blankStrip(values: Values, kind: StripKind, n: number): void {
@@ -34,6 +55,7 @@ function blankStrip(values: Values, kind: StripKind, n: number): void {
   put(values, c.color, 0);
   put(values, link(s), 0);
   if (kind === "bus") return;
+  put(values, stripOn(s), 1);
   if (kind === "ch") {
     put(values, c.source, n);
     for (const p of Object.values(insert(s))) put(values, p, 0);
@@ -109,7 +131,7 @@ function setTaps(values: Values): void {
 export function defaultDesk(): Values {
   const values = blankDesk();
   setTaps(values);
-  for (const [kind, n, bus] of OUTPUTS) put(values, output(kind, n), outputSource(bus));
+  for (const [kind, n, bus] of OUTPUTS) put(values, output({ kind, n }), OUTPUT_SOURCE.bus + bus);
   for (const [kind, n, name, stereo] of NAMES) {
     const sides = stereo ? [n, n + 1] : [n];
     for (const side of sides) put(values, config(strip(kind, side)).name, name);

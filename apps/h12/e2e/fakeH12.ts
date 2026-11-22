@@ -6,6 +6,7 @@
 
 export interface FakeH12Init {
   answersOn?: number; // the virtual cable that answers SysEx; 0 = none
+  silentMs?: number; // answers nothing for this long after start-up, as the H12 after power-up
   firmware?: number; // major.minor in nibbles: 0x47 = 4.7
   preset?: number; // 0-based
   corruptPreset?: boolean; // the preset answer has a wrong checksum
@@ -96,7 +97,8 @@ export function fakeH12Midi(init: FakeH12Init) {
   const answersOn = init.answersOn ?? 1;
   const h12Out = Array.from({ length: 8 }, (_, i) => outputPort(cable("out", i),
     (d) => {
-      const a = i + 1 === answersOn ? answer(d) : undefined;
+      const awake = performance.now() >= (init.silentMs ?? 0);
+      const a = i + 1 === answersOn && awake ? answer(d) : undefined;
       if (a) setTimeout(() => h12In[i]!.play(a), 5);
     }));
   // The Launchkey's own ports and the Nome II's clock, for the clock test.

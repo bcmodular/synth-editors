@@ -16,7 +16,8 @@ On start-up, and whenever the H12's ports come or go, the app:
 3. reads the current preset (setting 4) and warns unless it is preset 1;
 4. lists every problem: no answer, an error answer from the H12, or an answer with a wrong checksum.
 
-It never writes a setting or sends an action.
+It never writes a setting or sends an action. After power-up the H12's ports appear a few seconds before it answers
+SysEx, so when no port answers the app asks again every 2 seconds, up to 5 times in all, before saying so.
 
 ## Target switching
 
@@ -47,7 +48,8 @@ after the mappers. Switching target keeps it on or off. The **MIDI monitor** pan
 
 - **H12 → Mac**: that copy (with no pedal CC set, the pedal's own CC 11 on channel 1);
 - **Launchkey**: what the keys play, from the Launchkey's own USB port;
-- **Pedal**: what the pedal converter sends, from its own USB port.
+- **Pedal**: what the pedal converter sends, from its own USB port;
+- **App**: each target switch and its result, so a switch can be read against the channels before and after it.
 
 ![The MIDI monitor: the keys on channel 1, and the H12's copy on the JV-2080's channel 8](docs/images/monitor.png)
 

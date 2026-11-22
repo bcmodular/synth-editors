@@ -14,8 +14,8 @@ import { useTargets } from "./targets/useTargets";
 export function App() {
   const midi = useMidi();
   const { state, recheck } = useHub(midi);
-  const targets = useTargets(state);
   const monitor = useMonitor(midi);
+  const targets = useTargets(state, monitor.note);
   const clock = useClockTest(midi);
   return (
     <main>

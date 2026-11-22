@@ -1,10 +1,11 @@
 // The H12 over Web MIDI: finds its ports by name, finds which output answers SysEx and reads the hub (core/hub.ts).
-// Runs again when ports come or go, and on demand. Read-only; once ready it hands on the link (io) that target
+// Runs again when ports come or go (asking again for a while if the H12 is silent), and on demand. Read-only; once ready it hands on the link (io) that target
 // switching writes through.
 
 import { useCallback, useEffect, useState } from "react";
 import { readHub, type HubReport } from "../core/hub";
 import { findSysexPort, type Lane, type Listen } from "../core/link";
+import { retrying } from "../core/retry";
 import type { Io } from "../core/switcher";
 import { portsNamed, type Midi } from "../midi/useMidi";
 
@@ -41,6 +42,9 @@ async function check(access: MIDIAccess, isCancelled: () => boolean): Promise<Hu
   return { kind: "ready", report: await readHub(probe.lane, probe.reply, listen), io: { lane: probe.lane, listen } };
 }
 
+// After power-up the H12's ports appear a few seconds before it answers SysEx, so a silent H12 is asked again.
+const RETRIES = { tries: 5, waitMs: 2000 };
+
 // Re-checks only when the H12's own ports change, not when another device comes or goes.
 const h12Ports = (ports: string) => ports.split("|").filter((p) => H12.test(p)).join("|");
 
@@ -57,7 +61,9 @@ export function useHub({ access, error, ports }: Midi) {
     if (!access) return;
     let cancelled = false;
     setState({ kind: "probing" });
-    check(access, () => cancelled).then((s) => cancelled || setState(s));
+    const isCancelled = () => cancelled;
+    retrying(() => check(access, isCancelled), (s) => s.kind === "silent", { ...RETRIES, isCancelled })
+      .then((s) => cancelled || setState(s));
     return () => {
       cancelled = true;
     };

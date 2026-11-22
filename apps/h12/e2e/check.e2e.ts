@@ -28,9 +28,15 @@ test("tries each port in turn until one answers", async () => {
   expect(firstTried).toEqual(["H12MIDI-Pro Port 1", "H12MIDI-Pro Port 2", "H12MIDI-Pro Port 3"]);
 });
 
-test("says when no port answers", async () => {
+test("says when no port answers, after asking again for a while", async () => {
+  test.setTimeout(60_000);
   const r = (running = await start({ answersOn: 0 }));
-  await expect(r.page.getByRole("alert")).toContainText("didn't answer on any port");
+  await expect(r.page.getByRole("alert")).toContainText("didn't answer on any port", { timeout: 45_000 });
+});
+
+test("asks again while the H12 is starting up", async () => {
+  const r = (running = await start({ silentMs: 4000 }));
+  expect((await facts(r.page))["SysEx port"]).toBe("H12MIDI-Pro Port 1");
 });
 
 test("warns about old firmware and another preset", async () => {

@@ -27,6 +27,20 @@ export interface Outcome {
   report: ApplyReport;
 }
 
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+
+// "Switched to TB-3: wrote 7 settings, 1 already matched."
+export function summary({ wording, report: r }: Outcome): string {
+  if (r.written.length === 0 && !r.problem) return `${wording.unchanged}: nothing written.`;
+  const done = `wrote ${plural(r.written.length, "setting")}`;
+  const same = r.skipped.length ? `, ${r.skipped.length} already matched` : "";
+  return r.problem ? `${wording.stopped} (${done}${same}).` : `${wording.done}: ${done}${same}.`;
+}
+
+// Something that went wrong in the app itself, reported like a problem from the H12 so the buttons come back.
+const failed = (e: unknown): { report: ApplyReport } =>
+  ({ report: { written: [], skipped: [], problem: `The app failed: ${e instanceof Error ? e.message : String(e)}` } });
+
 const switchWording = (name: string): Wording => ({ doing: `Switching to ${name}`, done: `Switched to ${name}`,
   stopped: `Stopped switching to ${name}`, unchanged: `Already on ${name}` });
 
@@ -113,7 +127,8 @@ function useActions(apply: Apply, active: Choice | undefined, backup: Backup | u
   return { switchTo, setMonitor, restore };
 }
 
-export function useTargets(hub: HubState) {
+// `note` puts each outcome in the MIDI monitor's log, so it can be read against what the H12 sends.
+export function useTargets(hub: HubState, note: (text: string) => void = () => undefined) {
   const link = hub.kind === "ready" ? hub : undefined;
   const io = link?.io;
   const { current, setCurrent, readProblem } = useCurrent(io);
@@ -124,12 +139,14 @@ export function useTargets(hub: HubState) {
   const apply = useCallback(async (wording: Wording, wanted: (current: Current) => SettingValue[]) => {
     if (!link) return;
     setBusy(wording.doing);
-    const done = await run(link.io, link.report, wanted);
-    if (done.after) setCurrent(done.after);
+    const done = await run(link.io, link.report, wanted).catch(failed);
+    if ("after" in done && done.after) setCurrent(done.after);
     setBackup(loadBackup());
-    setOutcome({ wording, report: done.report });
+    const outcome = { wording, report: done.report };
+    setOutcome(outcome);
+    note([summary(outcome), done.report.problem].filter(Boolean).join(" "));
     setBusy(undefined);
-  }, [link, setCurrent]);
+  }, [link, setCurrent, note]);
 
   const read = current ? { active: currentTarget(TARGETS, current), withoutInit: mappersWithoutInit(current) }
     : { active: undefined, withoutInit: [] };

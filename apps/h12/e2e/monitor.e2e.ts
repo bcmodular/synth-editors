@@ -63,3 +63,11 @@ test("the copy to the Mac adds cable 8 to the routing, and switching keeps it", 
   expect(await fakeSetting(r.page, "0:26")).toEqual([1 << 26]);
   expect((await settingWrites(r.page)).every((k) => ["0:25", "0:26"].includes(k) || k.startsWith("3:"))).toBe(true);
 });
+
+test("logs each target switch in the same timeline", async () => {
+  const r = (running = await start());
+  await listening(r);
+  await r.page.getByRole("button", { name: /^TD-3-MO / }).click();
+  await expect(rows(r).first()).toContainText("App");
+  await expect(rows(r).first()).toContainText("Switched to TD-3-MO: wrote");
+});

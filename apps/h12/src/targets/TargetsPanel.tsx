@@ -2,22 +2,13 @@
 // Under them, what the last switch wrote, and the way back to the H12's previous settings.
 
 import { MONITOR_PORT, type Target } from "../core/targets";
-import type { Outcome, Targets } from "./useTargets";
+import { summary, type Outcome, type Targets } from "./useTargets";
 
 // The H12's port index as the H12 labels it (docs/h12-spec.md › Port index).
 export function portName(index: number): string {
   if (index < 16) return `USB host ${index + 1}`;
   if (index < 24) return `USB-C cable ${index - 15}`;
   return `MIDI Out ${index - 23}`;
-}
-
-const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
-
-function summary({ wording, report: r }: Outcome): string {
-  if (r.written.length === 0 && !r.problem) return `${wording.unchanged}: nothing written.`;
-  const done = `wrote ${plural(r.written.length, "setting")}`;
-  const same = r.skipped.length ? `, ${r.skipped.length} already matched` : "";
-  return r.problem ? `${wording.stopped} (${done}${same}).` : `${wording.done}: ${done}${same}.`;
 }
 
 function Result({ outcome }: { outcome: Outcome }) {

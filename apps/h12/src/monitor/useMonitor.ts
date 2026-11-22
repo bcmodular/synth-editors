@@ -89,8 +89,13 @@ export function useMonitor(midi: Midi) {
     setTicksState(on);
   }, []);
   const clear = useCallback(() => setEntries([]), []);
+  // A line from the app itself (a target switch), in the same timeline as the MIDI.
+  const note = useCallback((text: string) => {
+    const c = capture.current;
+    c.pending.push({ id: c.next++, at: (performance.now() - c.start) / 1000, source: "App", text });
+  }, []);
   const connected = inputs.map(({ source, input }) => ({ label: source.label, port: input?.name }));
-  return { entries, connected, paused, setPaused, ticks, setTicks, clear };
+  return { entries, connected, paused, setPaused, ticks, setTicks, clear, note };
 }
 
 export type Monitor = ReturnType<typeof useMonitor>;

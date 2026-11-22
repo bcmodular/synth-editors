@@ -14,7 +14,9 @@ Also here:
   to the sampler", "an 80s gated reverb on the drum machine"), and keeping the desk matched to a rig file. See
   [apps/x32/README.md](apps/x32/README.md), including how to set it up for your own desk.
 
-Status: **TB-3 Phase 0 spike**. See [PLAN.md](PLAN.md).
+Status: the **TB-3 Editor** is released (v0.1.1, on the
+[releases page](https://github.com/bcmodular/synth-editors/releases)). The SP-404 MK2, JV-2080, H12 and X32 apps are
+in development and run from source. The roadmap is in [PLAN.md](PLAN.md).
 
 ## Requirements
 

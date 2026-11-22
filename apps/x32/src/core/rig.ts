@@ -2,7 +2,7 @@
 // returns, FX slots and their roles, spare channels, and anything odd. No file: rename something in X32-Edit and the
 // next derive picks it up.
 
-import { config, fx, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
+import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, tapOf, type Param, type StripKind } from "./addresses";
 import type { DeskValue } from "./cache";
 import { colourName, fxSourceBus, insertSlot, LOCAL_OUTPUTS, outputBus, tapName, type Tap } from "./enums";
 
@@ -24,7 +24,7 @@ export interface RigSend {
 }
 
 export interface Source extends RigStrip {
-  sends: RigSend[]; // switched on, from the pair's first side
+  sends: RigSend[]; // switched on and above −∞, from the pair's first side
 }
 
 export interface Destination extends RigStrip {
@@ -53,7 +53,7 @@ export interface Rig {
 
 const KIND_LABEL: Record<StripKind, string> = { ch: "ch", auxin: "aux", fxrtn: "FX rtn", bus: "bus" };
 const INPUTS: StripKind[] = ["ch", "auxin", "fxrtn"];
-const WITH_INSERTS: StripKind[] = ["ch", "auxin"];
+const WITH_INSERTS: StripKind[] = ["ch"]; // aux inputs have no insert point
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 const range = (numbers: number[]) => numbers.join("-");
@@ -102,8 +102,10 @@ function sendsFrom(r: Reader, s: RigStrip): RigSend[] {
   const from = strip(s.kind, s.numbers[0]!);
   const out: RigSend[] = [];
   for (let bus = 1; bus <= STRIP_COUNT.bus; bus++) {
+    // Every send is switched on at −∞ from the factory, so a send counts only when it's on and raised.
     const m = send(from, bus);
-    if (r.num(m.on) === 1) out.push({ bus, level: r.num(m.level), tap: tapName(r.num(m.type)) });
+    const level = r.num(m.level);
+    if (r.num(m.on) === 1 && level > 0) out.push({ bus, level, tap: tapName(r.num(tapOf(from, bus))) });
   }
   return out;
 }
@@ -120,7 +122,7 @@ function outputsTo(r: Reader, buses: number[]): string[] {
 }
 
 function fxFedBy(r: Reader, bus: number): number | null {
-  for (let slot = 1; slot <= FX_SLOTS; slot++) {
+  for (let slot = 1; slot <= FX_SEND_SLOTS; slot++) {
     if (fxSourceBus(r.num(fx(slot).source("l"))) === bus) return slot;
   }
   return null;

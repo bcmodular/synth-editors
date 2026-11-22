@@ -22,6 +22,16 @@ X32_HOST=<desk IP> X32_CAPTURE=1 npm run test:x32  # read-only check on the real
 `X32_CAPTURE=1` writes every OSC packet in and out to `captures/` in the app's data folder
 (`~/Library/Application Support/X32 Chat Control/`), to compare the fake with the real desk on day one.
 
-## Day-one answers
+## Findings on the real desk
 
-Not answered yet: see "Day-one questions" in the spec.
+X32 Rack at 192.168.0.138 on the home network, firmware 4.15, checked 22 Nov 2026 (`npm run test:x32`, read-only):
+
+- Every address the app reads answers; a full read takes under a second.
+- Aux inputs have no insert point. FX 1-4 can be fed from buses (`/fx/N/source`); FX 5-8 are insert-only.
+- The send tap point is per bus pair, at the odd bus (`/…/mix/01/type`, not `/mix/02/type`).
+- From the factory every send is on at −∞, so a send only counts as active when it's on and raised.
+- Output patch values: 4-19 = mix bus 1-16, 1-2 = main L/R. FX source n = mix bus n.
+- Routing is at `/config/routing/…` (blocks) and `/config/userrout/in|out/NN` (user routing); `/node` reads work and
+  answer on the address `node`.
+
+More in the spec's "Day-one answers".

@@ -7,8 +7,8 @@ describe("deskReadList", () => {
 
   it("covers names, links, sends, inserts, FX and outputs", () => {
     for (const a of ["/ch/01/config/name", "/bus/16/config/color", "/config/chlink/1-2", "/config/buslink/15-16",
-      "/auxin/08/mix/16/on", "/fxrtn/01/mix/01/level", "/ch/32/mix/16/type", "/ch/15/insert/sel",
-      "/auxin/05/insert/on", "/fx/8/source/r", "/outputs/main/08/src", "/outputs/aux/06/src"]) {
+      "/auxin/08/mix/16/on", "/fxrtn/01/mix/01/level", "/ch/32/mix/15/type", "/ch/15/insert/sel",
+      "/fx/8/type", "/fx/4/source/r", "/outputs/main/08/src", "/outputs/aux/06/src"]) {
       expect(list).toContain(a);
     }
   });
@@ -17,6 +17,12 @@ describe("deskReadList", () => {
     expect(new Set(list).size).toBe(list.length);
     expect(list.some((a) => a.startsWith("/bus/") && a.includes("/mix/"))).toBe(false);
     expect(list.some((a) => a.startsWith("/fxrtn/") && a.includes("/insert/"))).toBe(false);
+  });
+
+  it("skips what the X32 Rack doesn't have: aux inserts, even-bus tap points, FX 5-8 feeds", () => {
+    expect(list.some((a) => a.startsWith("/auxin/") && a.includes("/insert/"))).toBe(false);
+    expect(list).not.toContain("/ch/01/mix/02/type");
+    expect(list).not.toContain("/fx/5/source/l");
   });
 
   it("reads names before sends, so the panel fills in a useful order", () => {

@@ -2,6 +2,7 @@
 // notifications (acceptance tests 7 and 10) and re-read after the desk comes back (test 8).
 import { expect, test, type Page } from "@playwright/test";
 import { config, send, strip } from "../src/core/addresses";
+import { defaultDesk } from "./rig";
 import { finish, start, status, type X32App } from "./x32";
 
 let running: X32App | undefined;
@@ -28,16 +29,18 @@ test("reads the desk and shows the rig", async () => {
   await expect(r.page.locator(".oddities")).toHaveCount(0);
 });
 
-test("reports addresses the desk doesn't answer (aux inserts on this fake)", async () => {
-  const r = (running = await start());
+test("lists addresses the desk doesn't answer", async () => {
+  const values = defaultDesk();
+  values.delete("/fx/3/type");
+  const r = (running = await start({ values }));
   await ready(r);
-  await expect(r.page.locator(".missing summary")).toHaveText("24 addresses didn't answer");
+  await expect(r.page.locator(".missing summary")).toHaveText("1 addresses didn't answer");
   await r.page.locator(".missing summary").click();
-  await expect(r.page.locator(".missing p")).toContainText("/auxin/05/insert/sel");
+  await expect(r.page.locator(".missing p")).toHaveText("/fx/3/type");
 });
 
-test("reads aux inserts when the desk has them", async () => {
-  const r = (running = await start({ switches: { auxInserts: true } }));
+test("reads the whole desk with nothing missing", async () => {
+  const r = (running = await start());
   await ready(r);
   await expect(r.page.locator(".missing")).toHaveCount(0);
 });

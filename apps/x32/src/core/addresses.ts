@@ -12,6 +12,8 @@ export interface Strip {
 // How many of each the X32 Rack has.
 export const STRIP_COUNT: Record<StripKind, number> = { ch: 32, auxin: 8, fxrtn: 8, bus: 16 };
 export const FX_SLOTS = 8;
+// Only FX 1-4 can be fed from a bus; FX 5-8 work as inserts only (no /fx/N/source on the desk).
+export const FX_SEND_SLOTS = 4;
 
 // A value on the desk: its address and the OSC type it's written with.
 export interface Param {
@@ -48,9 +50,15 @@ export function send(from: Strip, bus: number) {
     on: p(`${base}/on`, "i"),
     level: p(`${base}/level`, "f"),
     pan: p(`${base}/pan`, "f"),
-    type: p(`${base}/type`, "i"), // tap point (pre/post); per send or per pair is a day-one question
+    type: p(`${base}/type`, "i"), // tap point; the desk has it on odd buses only (one per bus pair). See tapOf.
   };
 }
+
+// The odd bus of a pair, where the pair's tap point lives.
+export const pairStart = (bus: number): number => (bus % 2 === 1 ? bus : bus - 1);
+
+// The tap point for a send: on the desk it belongs to the bus pair, at the odd bus.
+export const tapOf = (from: Strip, bus: number): Param => send(from, pairStart(bus)).type;
 
 export const insert = (s: Strip) => ({
   on: p(`${stripPath(s)}/insert/on`, "i"),

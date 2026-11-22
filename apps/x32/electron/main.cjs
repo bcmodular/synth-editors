@@ -14,7 +14,8 @@ const NO_REAL_DESK = process.env.X32_NO_REAL_DESK === "1";
 // They also set this to keep the window off screen and out of the Dock, painting as if it were shown.
 const HIDDEN = process.env.E2E_HIDDEN === "1";
 // X32_CAPTURE=1 writes every OSC packet in and out to captures/ in the data folder, to check the fake against the desk.
-const CAPTURE = process.env.X32_CAPTURE === "1";
+// A path instead of 1 writes them there (the hardware tests use a throwaway profile).
+const CAPTURE = process.env.X32_CAPTURE && process.env.X32_CAPTURE !== "0" ? process.env.X32_CAPTURE : null;
 
 let win = null;
 let socket = null;
@@ -51,7 +52,7 @@ const currentHost = () => process.env.X32_HOST ?? readConfig().host ?? "";
 function record(dir, bytes) {
   if (!CAPTURE) return;
   if (!capture) {
-    const dir_ = path.join(app.getPath("userData"), "captures");
+    const dir_ = CAPTURE === "1" ? path.join(app.getPath("userData"), "captures") : CAPTURE;
     fs.mkdirSync(dir_, { recursive: true });
     capture = fs.createWriteStream(path.join(dir_, `${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`));
   }
@@ -63,7 +64,8 @@ function openSocket() {
   socket.on("message", (msg, rinfo) => {
     if (!desk || rinfo.port !== desk.port) return; // only the desk's packets
     record("in", msg);
-    win?.webContents.send("x32:message", new Uint8Array(msg));
+    // Packets can still arrive while the window closes; there's nowhere to deliver them then.
+    if (win && !win.isDestroyed() && !win.webContents.isDestroyed()) win.webContents.send("x32:message", new Uint8Array(msg));
   });
   socket.on("error", (e) => console.warn("X32 socket:", e));
   socket.bind(0);
@@ -86,6 +88,9 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, "preload.cjs"), backgroundThrottling: !HIDDEN },
   });
   if (maximized) win.maximize();
+  win.on("closed", () => {
+    win = null;
+  });
   keepWindowState(win, remember);
   const devUrl = process.env.VITE_DEV_SERVER_URL;
   if (devUrl) win.loadURL(devUrl);
@@ -103,7 +108,7 @@ app.whenReady().then(() => {
     return set;
   });
   ipcMain.on("x32:send", (_e, bytes) => {
-    if (!desk) return;
+    if (!desk || !socket) return;
     record("out", bytes);
     socket.send(Buffer.from(bytes), desk.port, desk.address);
   });
@@ -112,6 +117,7 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   socket?.close();
+  socket = null;
   capture?.end();
   app.quit();
 });

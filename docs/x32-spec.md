@@ -1,15 +1,21 @@
 # X32 chat control — implementation plan
 
-App: `apps/x32` in this repo (not started). Its own Electron app, shaped like `apps/h12`. Repo conventions in CLAUDE.md
+App: `apps/x32` in this repo. Its own Electron app, shaped like `apps/h12`. Repo conventions in CLAUDE.md
 take precedence over anything here.
 
 Type plain-language requests such as "route S-1 to the P-6 input" or "add a synced delay as an insert on the TD-3", and
 the app makes the routing and effect changes on the Behringer X32 Rack over OSC. It is for setup and routing changes, so
 there's no clicking through X32-Edit. Faders, mutes and live send moves stay on the X-Touch.
 
-This plan replaces `x32-chat-control-spec.md` (the first draft). The main change: **the X32 is the source of truth.**
-There is no rig file. Names, stereo links, sends, inserts, FX slots and output patches are all read from the desk, so a
+This plan replaces `x32-chat-control-spec.md` (the first draft). The main change: **the X32 is the source of truth for
+what is there now.** Names, stereo links, sends, inserts, FX slots and output patches are all read from the desk, so a
 rename in X32-Edit is picked up straight away.
+
+The addendum `x32-chat-control-addendum.md` (22 Nov) adds two features, merged in below: **setting the desk up from a
+rig file** (the desired state, diffed against the desk and applied like `terraform plan` / `apply`) and **tracing a
+signal** through the desk. The two don't conflict: the rig file says how the desk *should* be set up and is only read
+by the setup and drift features. Everything else, the chat included, still reads the desk, so a change made by hand
+works at once and shows up as drift until it's applied or written back into the rig file.
 
 ## Context
 
@@ -28,7 +34,11 @@ rename in X32-Edit is picked up straight away.
 
 ## Assumptions to prove first
 
-The whole idea rests on these. Prove them on day one (phase 6) before building anything more. If either fails, stop
+Assumption 1's reads were proven on 22 Nov (`npm run test:x32`: X32RACK, firmware 4.15, every address answered in
+under a second). Its write half and assumption 2 are proven by the first setup apply (phase 2), with X32-Edit open. The
+X-Touch isn't here yet, so its half of assumption 2 waits for it.
+
+The whole idea rests on these. Prove them before building anything more. If either fails, stop
 and report: the work done against the fake is then thrown away, which is the accepted cost of starting before the desk
 arrives (and the desk goes back within the return window).
 
@@ -97,12 +107,16 @@ just warned about. All are derived from the desk.
 2. **An FX return is never sent to the bus that feeds its own FX slot.**
 3. **A send effect slot is never retyped or used as an insert.** That keeps FX 1 (reverb) and FX 2 (delay) safe while
    they're fed by buses 3-4 and 5-6. To free one, stop its bus feed in X32-Edit.
-4. **Never touched:** main bus, monitor section, preamp gains, scene safes, network and MIDI settings, and user routing
-   for anything but a spare channel.
+4. **Never touched by the chat:** main bus, monitor section, preamp gains, phantom power, scene safes, network and
+   MIDI settings, and user routing for anything but a spare channel.
 
 Guards live in `core/guards.ts`, one pure function per rule, with tests. Only `core/applier.ts` writes to the desk, and
-it refuses any address outside an allowed list (sends, inserts, FX type/source/parameters, spare-channel routing), the
-way `switcher.ts` does on the H12.
+it refuses any address outside an allowed list, the way `switcher.ts` does on the H12. There are two lists:
+
+- **Chat list:** sends, inserts, FX type/source/parameters, spare-channel routing.
+- **Setup list** (set up from rig file only): also names, colours, icons, links, tap points, output patches, input
+  and card routing, and scene save. Never phantom power, preamp gain, network, the main and monitor sections, or scene
+  safes. Guards 1–3 apply to setup plans too.
 
 ## Plans, apply, read-back, undo
 
@@ -178,6 +192,79 @@ All take names as the desk shows them, never channel numbers. All return a plan 
   follows.
 - Writes go through the applier, under the same allowed list, and are not put on the undo stack.
 
+## Set up from the rig file
+
+From the addendum. Configure the desk from the rig file in one go: names, routing, buses, outputs and effects. The rig
+file is the desired state, the desk is the actual state, and the app applies the difference.
+
+### The rig file
+
+- `apps/x32/rig/studio.json`, in the repo (the device list isn't private), checked by a schema in `core/rigFile.ts`.
+  Converted **once** from the routing plan (the Claude Doc) by the model and reviewed by hand; after that it is the only
+  description of the desired setup, and changes are reviewed as diffs. The app never reads the routing doc.
+- Per source (channel, aux in, FX return): name, colour, icon, stereo link, the socket that feeds it (input routing),
+  and optional `phantom` and `gain` notes (shown as manual steps, never written).
+- Per bus: name, colour, link, tap point (pre for the sampler feeds 7-12, post otherwise), and `notes` for the device
+  it feeds (e.g. "P-6: input monitoring must be on to hear the input"), used by the signal trace.
+- `outputs`: the source of each XLR out and aux out. `fx`: type and starting parameters for slots the file defines, and
+  the source bus of send effects. `inserts`. `card`: what each USB card output carries and where card inputs come in.
+- Anything the file doesn't mention is left alone.
+- **Not yet in it:** MIDI remote settings for the X-Touch (no X-Touch yet; and the addendum says "X-Touch Compact over
+  DIN MIDI" where the routing plan has a full X-Touch over Ethernet, to be settled when it arrives).
+
+### Flow
+
+1. **Read** every setting in scope (the setup read list: the phase 1 list plus routing, card, colours, icons, FX
+   parameters and scene names).
+2. **Diff** against the rig file (`core/setupPlan.ts`, pure).
+3. **Plan:** changes grouped by area (routing, names, buses, outputs, FX, card), each as current → new, plus manual
+   steps (phantom power, gain). Nothing to do → say so and stop.
+4. **Confirm:** apply everything, or only some areas (checkboxes in the Setup panel).
+5. **Back up:** save the current desk to a scene slot named with the date, before the first write.
+6. **Apply** in a safe order: input routing, links, buses and outputs, FX and inserts, card routing, then names,
+   colours and icons. Writes go through the applier (setup list, skip-if-equal, guards).
+7. **Read back** every written value and report the first mismatch.
+8. **Save** the result as the "Studio base" scene, so it can be restored without the app.
+
+The addendum asks to mute the main mix during routing changes. That conflicts with "never touch the main bus", so the
+plan shows **"turn the monitor level down"** as a manual step instead when it changes the routing of anything feeding
+the main mix. (Flagged; change it if muting by the app is wanted after all.)
+
+**Drift check:** the same diff without applying: what on the desk differs from the rig file. It can be applied,
+ignored, or written back into the rig file (a diff to review).
+
+### Tools
+
+| Tool | Does |
+|---|---|
+| `planFromRig(areas?)` | Read, diff and return the plan, with manual steps. Writes nothing |
+| `applyPlan(planId, areas?)` | Back up, apply, read back and save "Studio base" |
+| `checkDrift()` | List differences between desk and rig file in plain terms |
+
+They're the Setup panel's buttons first; the chat gets them in the chat phase.
+
+## Trace signal
+
+From the addendum. Find why audio isn't getting from a source to a destination by following it through the desk.
+
+- **Path** (from the desk's current state, with device notes from the rig file): socket → input routing → channel
+  input (meter) → gate / dynamics → insert → mute, mute groups, DCA, fader (meter) → send on/level → bus mute and fader
+  (meter) → output patch → output (meter). For the main mix it ends at the main LR assignment and main fader.
+- **Static check (`checkPath`):** read every setting on the path and list anything that blocks the signal by itself:
+  channel or bus muted, fader or send at −∞, send off, mute group or DCA muted, output patched elsewhere, insert on an
+  empty or bypassed slot, not assigned to main LR, gate threshold above any likely level, input routing pointing at the
+  wrong socket. Offer the fix as a plan (normal confirm, undo and guards).
+- **Live check (`traceSignal`):** ask the user to play the source, subscribe to `/meters` for the stages on the path,
+  sample for a few seconds, and report the first stage below about −60 dBFS with the settings there and just before.
+- **Outside the desk:** no level at the channel input → the cable, the socket in the rig file, the source's volume (and
+  any phantom or gain note). Level at the output but nothing heard → the destination's `notes` from the rig file.
+- **Safety:** never raise gain, switch on phantom power or unmute the main mix as part of a fix without asking.
+
+| Tool | Does |
+|---|---|
+| `checkPath(source, destination)` | Static check of the settings along the path. Writes nothing |
+| `traceSignal(source, destination, seconds?)` | Live meter trace; the first silent stage and the likely cause |
+
 ## Architecture
 
 ```
@@ -225,9 +312,13 @@ process only does what a renderer can't:
   `claude-opus-5-5`. On Opus, set `output_config.effort: "low"` so replies come back in a second or two, and turn on
   server-side `fallbacks: "default"` (it needs a beta flag). `tool_choice: auto` on all of them.
 - **Billing and key:** API usage is billed per token through the Claude Console; a Claude Pro or Max subscription
-  doesn't cover it. The main process creates the client with no arguments, so it finds the login from `ant auth login`
-  (in `~/.config/anthropic/`). The alternative is a key typed into the app's settings and kept in the macOS Keychain
-  with Electron's `safeStorage`. Either way, nothing is in the repo.
+  doesn't cover it. **Key (decided 22 Nov):** a key from a personal Console account, with $5 of credit, kept in the
+  macOS Keychain as a generic password, service "X32 Chat Control", account "anthropic-api-key". The main process
+  reads it at start with `security find-generic-password -s "X32 Chat Control" -a anthropic-api-key -w` and passes it
+  to `new Anthropic({ apiKey })`; it never reaches the renderer, the config file, the chat log or the repo. No key in
+  the Keychain → the chat panel says how to add one and the rest of the app works without it.
+- **Cost with $5:** Haiku, the cached system prompt and tools, and `max_tokens` kept small. The chat log records tokens
+  per request, and the chat panel shows the running total for the session.
 - **Other providers:** not planned. `agent.ts` calls an injected `create()`, so another provider could be added behind
   it later without touching the tools, guards or applier.
 - **System prompt:** fixed and cached. It covers what the app is for, "ask, don't guess", that names come from the desk,
@@ -259,52 +350,32 @@ the prompt check has real phrases to test.
 
 ## Build order
 
-Each phase leaves the app runnable and ends with its tests passing, like the H12 build order.
-
-Everything that doesn't depend on a hardware fact is built before the desk arrives, against `e2e/fakeX32.ts`. The
-facts that are still unknown (the day-one questions below) are kept in two places only, so day one changes little:
-OSC addresses in `core/addresses.ts`, and desk behaviour as switches on the fake (see "The fake desk" under Testing).
-Code that depends on an unknown handles both answers, and the e2e tests run it under both.
-
-**Before the desk (19–22 Nov, against the fake):**
+Each phase leaves the app runnable and ends with its tests passing, like the H12 build order. The desk arrived on
+22 Nov; the priority now is getting it set up to the routing plan (phase 2). The X-Touch isn't here yet, so anything
+that needs it waits.
 
 0. **Scaffold and OSC core (done):** the `apps/x32` scaffold (copy of the H12 shell), the UDP relay, `core/osc.ts`,
    `client.ts`, `cache.ts`, `addresses.ts`, `faderLaw.ts`, and `e2e/fakeX32.ts` seeded with the routing plan's rig.
-   A capture switch in the relay (`X32_CAPTURE=1`) that writes every OSC message in and out to the data folder. Check
-   the codec against Maillot's emulator as a second fake.
-1. **Read path and Rig panel (done):** connect, `/info` (show model and firmware, warn if not 4.x), `/xremote` renewal, read
-   everything in the table above, `rig.ts`, and the **Rig panel**: sources, destinations, device pairs, FX slots and
-   their roles, spare channels, and anything odd (a bus with no matching channel, a name used twice). Acceptance tests
-   7, 8 and 10 against the fake. Built with single reads, 16 in flight (about 2,700 addresses); `/node` batch reads
-   only if the real desk turns out slow, once a capture shows its reply format. Addresses the desk doesn't answer are
-   listed, not treated as errors, so a missing aux insert point shows up there.
-2. **Sends without chat:** `guards.ts`, `planner.ts` (sendTo, removeSend, includeEffects), `applier.ts` with
-   read-back and undo, driven from a small form in the Rig panel. Acceptance tests 2–4 and 6 without the model.
-3. **Chat:** the Claude relay, `agent.ts`, `tools.ts`, the chat panel with plan summaries, Apply / Cancel and Undo, and
-   the chat log. Uses the real model against the fake, so the system prompt and tools can be tuned, and the prompt
-   check run, before day one. Acceptance tests 1–4 and 6 by chat (1 without X32-Edit).
-4. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and
-   spare-channel user routing. Built for both answers to "do aux channels have inserts?". Acceptance test 9, and test 5
-   without the tempo.
-5. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling. The Nome II is here already, so this runs with the
-   real clock writing to the fake. Acceptance test 5 on the fake.
-
-**Day one (from 23 Nov, on the desk):**
-
-6. **Proof:** `npm run test:x32` (read-only check) with capture on. Answer the day-one questions from the capture and
-   the Rig panel, write them into `apps/x32/README.md`, then fix `addresses.ts`, set the fake's switches to match, and
-   run `npm run check:x32-fake` (the fake's replies compared with the capture) and the e2e tests again. Then the
-   coexistence test: one hand-picked send write with read-back, from a debug control (not chat), watching X32-Edit and
-   the X-Touch follow, and an X-Touch fader move reaching the cache. **Stop here and report if either assumption
-   fails.**
-7. **Acceptance on the desk:** tests 1–10 by chat with X32-Edit and the X-Touch connected, and the prompt check
-   against the real rig names.
-
-**Later:**
-
-8. **Scenes and snippets:** recall by name. Creating them only if the open question below says so. (Can also be built
-   against the fake, once scene names are in it.)
-9. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
+   A capture switch in the relay (`X32_CAPTURE=1`, or a folder) that writes every OSC message in and out.
+1. **Read path and Rig panel (done, checked on the desk 22 Nov):** connect, `/info`, `/xremote` renewal, read
+   everything in the table above (about 2,270 addresses, under a second), `rig.ts`, and the **Rig panel**. Acceptance
+   tests 7, 8 and 10 against the fake. Addresses the desk doesn't answer are listed, not treated as errors.
+2. **Set up from the rig file (next):** the rig file converted from the routing plan and reviewed; `rigFile.ts`, the
+   setup read list, `setupPlan.ts` (diff by area, manual steps), `applier.ts` (setup list, skip-if-equal, read-back),
+   backup and "Studio base" scenes, and a **Setup panel** with the plan, area checkboxes and Apply; then the drift
+   check. The first apply, with X32-Edit open, is also the coexistence test. Addendum tests 1–5.
+3. **Sends without chat:** `guards.ts`, `planner.ts` (sendTo, removeSend, includeEffects), undo, driven from a small
+   form in the Rig panel. Acceptance tests 2–4 and 6 without the model.
+4. **Chat:** the Claude relay, `agent.ts`, `tools.ts` (including planFromRig, applyPlan, checkDrift), the chat panel
+   with plan summaries, Apply / Cancel and Undo, and the chat log. Acceptance tests 1–4 and 6 by chat.
+5. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and
+   spare-channel user routing (aux inputs have no insert point). Acceptance test 9, and test 5 without the tempo.
+6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.
+7. **Trace signal:** `checkPath` first (settings only), then meters and `traceSignal`. Addendum tests 6–9.
+8. **X-Touch (when it arrives):** its half of assumption 2, acceptance test 7 from a real fader, and its remote setting
+   in the rig file.
+9. **Scenes and snippets:** recall by name. Creating them only if the open question below says so.
+10. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
    build controls for the common ones, such as a sampler matrix (sources × SP-404 / Koala / P-6, one click per send)
    or one-click inserts. They call the same planner and applier as the chat, so the guards, confirmation and undo
    come for free. Frequent phrases that still go to chat can get a parser that runs before the model (free and
@@ -361,25 +432,47 @@ Code that depends on an unknown handles both answers, and the e2e tests run it u
 9. Asking to change the type of FX 1 or FX 2 is refused while buses 3-4 and 5-6 feed them (guard 3).
 10. Renaming bus 11 in X32-Edit changes what the chat can resolve without restarting the app.
 
-## Day-one questions (answer in phase 6, record in apps/x32/README.md)
+From the addendum (set up from rig file and trace signal):
 
-Each one is a switch on the fake (or an address in `addresses.ts`) until it's answered.
+11. `planFromRig()` on a desk reset to defaults lists every name, route, bus, output, FX and card setting in the rig
+    file, plus manual steps for phantom power and gain.
+12. Applying the plan, then running `planFromRig()` again, shows no changes and performs no writes.
+13. A backup scene is saved before the first write, and "Studio base" after the last. Loading the backup scene restores
+    the previous state.
+14. Phantom power and preamp gain are never written, even if the rig file asks for them.
+15. Renaming a channel in X32-Edit makes `checkDrift()` report it.
+16. With the S-1's send to the P-6 bus muted, `checkPath("S-1", "P-6")` reports the muted send without needing audio.
+17. With the S-1's channel unplugged, `traceSignal` reports no level at the channel input and points to the cable or
+    source, not the desk.
+18. With a DCA muted, `traceSignal` stops at the fader stage and names the DCA.
+19. With the P-6's bus output patched to the wrong aux out, `traceSignal` stops at the output stage and names the
+    patch.
 
-- Do aux input channels have an insert point? If not, the user-routing address for moving aux in 5 onto ch 15.
-- Exact addresses on firmware 4.x for user routing, FX source selection, insert selection and output patching.
-- Does writing a send on one side of a linked pair update both sides? Is the pan of a linked bus pair at
-  `/mix/11/pan`?
-- FX return numbering (`fxrtn/01`…`08` as stereo pairs; the routing plan says "FX return channels 1-4") and which slots
-  can hold delays (expected 1–4).
-- Stereo Delay's Factor values and parameter index; whether Factor 3/2 with Time = eighth gives a dotted eighth.
-- Where the send tap point lives (per send or per bus pair).
-- How many `/xremote` clients the desk takes, and whether the X-Touch counts as one.
+## Day-one answers (22 Nov, X32 Rack firmware 4.15; also in apps/x32/README.md)
+
+- **Aux inputs have no insert point.** So the TD-3 insert needs aux in 5 moved onto a spare channel with user routing.
+- **Tap point:** one per bus pair, at `/…/mix/<odd bus>/type` (no `type` on even buses). Factory values seen: 2 and 4.
+- **FX feeds:** only FX 1-4 have `/fx/N/source/{l,r}`; FX 5-8 are insert-only. Source value n = mix bus n (factory:
+  FX 1-4 fed by buses 13-16).
+- **Output patches:** `/outputs/{main,aux}/NN/src`, value 4-19 = mix bus 1-16, 1-2 = main L/R (factory: XLR outs 1-6
+  carry buses 1-6, 7-8 the main mix; aux outs 0 = off).
+- **Sends:** every send is on at −∞ from the factory, so the rig counts a send only when it's on *and* raised.
+- **FX returns** are `fxrtn/01`…`08`, linked in pairs from the factory: the routing plan's "FX returns 1-4".
+- **Routing (fw 4):** block routing at `/config/routing/{IN,CARD,OUT,…}/<range>` and user routing at
+  `/config/userrout/in/01-32` and `/out/01-48` (all 0 from the factory). Value meanings: from Maillot's document.
+- **`/node`** works; the reply comes back on the address `node`, as one string. Scene names are at
+  `/-show/showfile/scene/NNN/name` (001 answers, 100 doesn't).
+- Still open: Stereo Delay's Factor values, scene save over OSC, card routing values, whether a linked pair mirrors a
+  send written to one side, and how many `/xremote` clients the desk takes.
 
 ## Open questions for later
 
+- The routing plan now has 16 Ableton returns on ch 17-32, so ch 15-16 are the only spare channels, and every channel
+  from 17 up must be named (an unnamed channel counts as spare). The plan's card outputs 17-22 carry aux 1-6
+  post-fader, but aux channels may have no post-fader direct out, and there aren't spare channels for all six to move
+  onto. Settle in phase 2 from the routing values.
 - The insert example names ch 15 "TD-3-MO" while aux 5 keeps the same name, which the Rig panel reports as a name used
-  twice. Phase 4 should rename aux 5 (or the rig should treat an aux in routed onto a channel as one source).
-
+  twice. Phase 5 should rename aux 5 (or the rig should treat an aux in routed onto a channel as one source).
 - Should the app create snippets ("save this as TR-8S into SP-404"), or only recall them?
 - Should a delay be able to opt out of the tempo bridge (e.g. a free-running delay on FX 3)? Today every delay in the
   table follows the tempo.

@@ -1,12 +1,12 @@
 // Everything the app reads from the desk on connect (docs/x32-spec.md, "What the app reads from the desk"). After this,
 // /xremote notifications keep the cache current. Pans aren't read yet: nothing uses them.
 
-import { config, fx, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
+import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, output, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
 import { LOCAL_OUTPUTS } from "./enums";
 
 const INPUTS: StripKind[] = ["ch", "auxin", "fxrtn"];
-// Aux inputs may have no insert point (a day-one question); if so their reads go unanswered and count as missing.
-const WITH_INSERTS: StripKind[] = ["ch", "auxin"];
+// Only channels have an insert point (aux inputs don't, on the real desk).
+const WITH_INSERTS: StripKind[] = ["ch"];
 const ALL: StripKind[] = [...INPUTS, "bus"];
 
 const numbers = (count: number) => Array.from({ length: count }, (_, i) => i + 1);
@@ -24,13 +24,16 @@ function sends(kind: StripKind): Param[] {
   return strips(kind).flatMap((s) =>
     numbers(STRIP_COUNT.bus).flatMap((bus) => {
       const m = send(s, bus);
-      return [m.on, m.level, m.type];
+      return bus % 2 === 1 ? [m.on, m.level, m.type] : [m.on, m.level]; // tap points only on odd buses
     }));
 }
 
 const inserts = (kind: StripKind): Param[] => strips(kind).flatMap((s) => Object.values(insert(s)));
 
-const fxSlots = (): Param[] => numbers(FX_SLOTS).flatMap((n) => [fx(n).type, fx(n).source("l"), fx(n).source("r")]);
+const fxSlots = (): Param[] => [
+  ...numbers(FX_SLOTS).map((n) => fx(n).type),
+  ...numbers(FX_SEND_SLOTS).flatMap((n) => [fx(n).source("l"), fx(n).source("r")]),
+];
 
 const outputs = (): Param[] => [
   ...numbers(LOCAL_OUTPUTS.main).map((n) => output("main", n)),

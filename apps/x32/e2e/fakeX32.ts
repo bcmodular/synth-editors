@@ -13,9 +13,9 @@ import type { AddressInfo } from "node:net";
 import { argFor } from "../src/core/argFor.ts";
 import type { Param } from "../src/core/addresses.ts";
 import { decodePacket, encodeMessage, str, type OscArg, type OscMessage } from "../src/core/osc.ts";
-import { defaultDesk, type DeskOptions } from "./rig.ts";
+import { defaultDesk } from "./rig.ts";
 
-export interface FakeSwitches extends DeskOptions {
+export interface FakeSwitches {
   maxXremoteClients: number; // how many clients get notifications at once (day-one question)
 }
 
@@ -52,7 +52,7 @@ export class FakeX32 {
 
   private constructor(init: FakeX32Init) {
     this.switches = { ...DEFAULT_SWITCHES, ...init.switches };
-    this.values = init.values ?? defaultDesk(this.switches);
+    this.values = init.values ?? defaultDesk();
     this.model = init.model ?? "X32RACK";
     this.firmware = init.firmware ?? "4.06";
     this.socket.on("message", (bytes, rinfo) => this.receive(bytes, rinfo));

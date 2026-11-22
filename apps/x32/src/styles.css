@@ -256,3 +256,58 @@ select,
 .undo {
   margin-top: 12px;
 }
+
+.chat header {
+  gap: 12px;
+}
+
+.chat .usage {
+  margin-left: auto;
+}
+
+.transcript {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.transcript li + li {
+  margin-top: 6px;
+}
+
+.transcript .who {
+  color: var(--dim);
+  display: inline-block;
+  min-width: 38px;
+}
+
+.transcript .you {
+  color: var(--cap);
+}
+
+.transcript .tool,
+.transcript .note {
+  color: var(--dim);
+}
+
+.transcript .bad {
+  color: var(--error);
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.composer input {
+  flex: 1;
+  font: inherit;
+  color: var(--txt);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 6px 10px;
+}

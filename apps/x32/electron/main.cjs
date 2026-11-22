@@ -1,7 +1,8 @@
-// Electron main process for X32 chat control: one window (its position remembered), and the UDP relay to the desk.
-// The relay only moves bytes: OSC encoding, the cache and everything else are in the renderer (src/core/), reached
-// through preload.cjs as window.x32.
+// Electron main process for X32 chat control: one window (its position remembered), the UDP relay to the desk, and
+// the Claude relay. The relays only move bytes and requests: OSC encoding, the cache, the agent loop and everything else
+// are in the renderer (src/core/), reached through preload.cjs as window.x32 and window.claude.
 const { app, BrowserWindow, ipcMain } = require("electron");
+const { execFile } = require("node:child_process");
 const dgram = require("node:dgram");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -111,6 +112,60 @@ function discover(query) {
   });
 }
 
+// The Claude relay (docs/x32-spec.md, "Agent loop"). The API key comes from the macOS Keychain and stays in this
+// process: never in the renderer, the config file, the chat log or the repo. X32_FAKE_CLAUDE=1 (the end-to-end tests)
+// answers from global.fakeClaude.replies instead, and keeps every request in global.fakeClaude.requests.
+const KEYCHAIN = { service: "X32 Chat Control", account: "anthropic-api-key" };
+const DEFAULT_MODEL = "claude-haiku-5-5";
+const FAKE_CLAUDE = process.env.X32_FAKE_CLAUDE === "1";
+let claude = null; // { client } or { problem }
+
+function readKey() {
+  return new Promise((resolve) => {
+    execFile("security", ["find-generic-password", "-s", KEYCHAIN.service, "-a", KEYCHAIN.account, "-w"], (e, out) =>
+      resolve(e ? null : out.trim() || null));
+  });
+}
+
+async function claudeClient() {
+  if (claude) return claude;
+  if (FAKE_CLAUDE) {
+    global.fakeClaude = { replies: [], requests: [] };
+    return (claude = { fake: true });
+  }
+  const apiKey = await readKey();
+  if (!apiKey) return { problem: "no-key" }; // not kept, so adding a key works without a restart
+  const Anthropic = require("@anthropic-ai/sdk").default;
+  return (claude = { client: new Anthropic({ apiKey }) });
+}
+
+async function claudeStatus() {
+  const c = await claudeClient();
+  return { ready: !c.problem, problem: c.problem ?? null, model: readConfig().model ?? DEFAULT_MODEL, keychain: KEYCHAIN };
+}
+
+async function claudeCreate(request) {
+  const c = await claudeClient();
+  if (c.problem) return { error: "There's no API key in the Keychain." };
+  if (c.fake) {
+    global.fakeClaude.requests.push(request);
+    const reply = global.fakeClaude.replies.shift();
+    return reply ?? { error: "The fake Claude has no reply left." };
+  }
+  try {
+    return { message: await c.client.messages.create(request) };
+  } catch (e) {
+    return { error: e.message ?? String(e) };
+  }
+}
+
+// The chat log: one JSON Lines file per day in the data folder (never in the repo, which is public).
+function appendChatLog(entry) {
+  const dir = path.join(app.getPath("userData"), "logs");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.appendFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}.jsonl`), JSON.stringify(entry) + "\n");
+}
+
 function setDesk(text) {
   desk = parseHost(text);
   return desk ? `${desk.address}:${desk.port}` : null;
@@ -148,6 +203,9 @@ app.whenReady().then(() => {
     return set;
   });
   ipcMain.handle("x32:discover", (_e, query) => discover(query));
+  ipcMain.handle("claude:status", () => claudeStatus());
+  ipcMain.handle("claude:create", (_e, request) => claudeCreate(request));
+  ipcMain.handle("chat:log", (_e, entry) => appendChatLog(entry));
   ipcMain.on("x32:send", (_e, bytes) => {
     if (!desk || !socket) return;
     record("out", bytes);

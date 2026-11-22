@@ -25,5 +25,8 @@
     "vite": "^8.3.5"
   },
   "description": "Chat control for the Behringer X32 Rack: routing and effect changes in plain language, over OSC",
-  "author": "BC Modular"
+  "author": "BC Modular",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.12.0"
+  }
 }

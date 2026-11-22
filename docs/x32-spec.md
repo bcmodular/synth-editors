@@ -375,8 +375,11 @@ that needs it waits.
    only new loops are refused), `planner.ts` (sendTo, removeSend, includeEffects, undoPlan; a shared bus's target
    name switches its outputs), `operator.ts` (apply or hold for Apply, chat allowed list, undo stack), and a **Sends
    panel**. Acceptance tests 2–4 and 6 without the model (`e2e/sends.e2e.ts`).
-4. **Chat:** the Claude relay, `agent.ts`, `tools.ts` (including planFromRig, applyPlan, checkDrift), the chat panel
-   with plan summaries, Apply / Cancel and Undo, and the chat log. Acceptance tests 1–4 and 6 by chat.
+4. **Chat (built 22 Nov, against the fake and a scripted model):** the Claude relay (Keychain key, Haiku 5.5, effort
+   low, automatic prompt caching), `agent.ts`, `tools.ts` (get_state, send_to, remove_send, include_effects, undo),
+   `rigSummary.ts`, the chat panel with plan summaries, Apply / Cancel and Undo (told to the model with the next
+   message), the running cost, and the chat log. Acceptance tests 1, 3, 4 and 6 by chat (`e2e/chat.e2e.ts`). Still
+   to do: planFromRig / applyPlan / checkDrift as tools, and the prompt check against the real model.
 5. **Inserts and effects:** `effects.ts` tables from Maillot's document, insertFx, removeInsert, setFxParam, and
    spare-channel user routing (aux inputs have no insert point). Acceptance test 9, and test 5 without the tempo.
 6. **Tempo bridge:** `tempo.ts`, `useTempoBridge`, Factor handling, with the Nome II's clock. Acceptance test 5.

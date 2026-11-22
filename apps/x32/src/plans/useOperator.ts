@@ -13,14 +13,15 @@ import { studioShared } from "./studioShared";
 export interface Message {
   text: string;
   bad: boolean;
+  kind: Outcome["kind"] | "refused" | "error" | "none";
 }
 
 interface Actions {
   // Plan and propose; returns what happened, in a sentence (also shown as the message).
-  run: (make: (ctx: PlanContext) => Plan) => Promise<string>;
-  confirm: () => Promise<string>;
+  run: (make: (ctx: PlanContext) => Plan) => Promise<Message>;
+  confirm: () => Promise<Message>;
   cancel: () => void;
-  undo: () => Promise<string>;
+  undo: () => Promise<Message>;
 }
 
 export interface Plans extends Actions {
@@ -32,7 +33,7 @@ export interface Plans extends Actions {
 }
 
 const BAD: Outcome["kind"][] = ["mismatch", "offline"];
-const OFFLINE = "The desk isn't connected, so nothing was sent.";
+const OFFLINE: Message = { text: "The desk isn't connected, so nothing was sent.", bad: true, kind: "offline" };
 
 function makeOperator(client: DeskClient | null): Operator | null {
   if (!client) return null;
@@ -46,14 +47,17 @@ const contextOf = (cache: DeskCache) => (): PlanContext => ({ get: (a) => cache.
 async function settled(work: () => Promise<Outcome | null>): Promise<Message> {
   try {
     const outcome = await work();
-    if (!outcome) return { text: "Nothing to do.", bad: false };
-    return { text: describeOutcome(outcome), bad: BAD.includes(outcome.kind) };
+    if (!outcome) return { text: "Nothing to do.", bad: false, kind: "none" };
+    return { text: describeOutcome(outcome), bad: BAD.includes(outcome.kind), kind: outcome.kind };
   } catch (e) {
-    return { text: e instanceof Refused ? e.message : `Error: ${(e as Error).message}`, bad: true };
+    const refused = e instanceof Refused;
+    return { text: refused ? e.message : `Error: ${(e as Error).message}`, bad: true, kind: refused ? "refused" : "error" };
   }
 }
 
-function actionsFor(operator: Operator | null, context: () => PlanContext, report: (work: () => Promise<Outcome | null>) => Promise<string>): Actions {
+type Report = (work: () => Promise<Outcome | null>) => Promise<Message>;
+
+function actionsFor(operator: Operator | null, context: () => PlanContext, report: Report): Actions {
   if (!operator) return { run: async () => OFFLINE, confirm: async () => OFFLINE, undo: async () => OFFLINE, cancel: () => {} };
   return {
     run: (make) => report(async () => operator.propose(make(context()))),
@@ -77,12 +81,12 @@ export function useOperator(desk: Desk): Plans {
     const m = await settled(work);
     setMessage(m);
     setBusy(false);
-    return m.text;
+    return m;
   }, []);
   const actions = useMemo(() => actionsFor(operator, context, report), [operator, context, report]);
   const cancel = useCallback(() => {
     actions.cancel();
-    setMessage({ text: "Cancelled.", bad: false });
+    setMessage({ text: "Cancelled.", bad: false, kind: "none" });
   }, [actions]);
 
   const pending = operator ? operator.pending : null;

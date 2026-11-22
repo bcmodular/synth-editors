@@ -45,3 +45,5 @@ export const iconNumber = (name: string): number | null => {
   const i = ICONS.findIndex((x) => x.toLowerCase() === name.trim().toLowerCase());
   return i < 0 ? null : i + 1;
 };
+
+export const iconName = (n: number): string => ICONS[n - 1] ?? `icon ${n}`;

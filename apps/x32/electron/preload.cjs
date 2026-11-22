@@ -1,4 +1,5 @@
-// Preload: exposes the UDP relay (main.cjs) to the page as window.x32. Typed in src/desk/relay.ts.
+// Preload: exposes the UDP relay (main.cjs) to the page as window.x32, and the Claude relay and chat log as
+// window.claude. Typed in src/desk/relay.ts and src/chat/relay.ts.
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("x32", {
@@ -16,4 +17,10 @@ contextBridge.exposeInMainWorld("x32", {
     ipcRenderer.on("x32:message", listener);
     return () => ipcRenderer.removeListener("x32:message", listener);
   },
+});
+
+contextBridge.exposeInMainWorld("claude", {
+  status: () => ipcRenderer.invoke("claude:status"),
+  create: (request) => ipcRenderer.invoke("claude:create", request),
+  log: (entry) => ipcRenderer.invoke("chat:log", entry),
 });

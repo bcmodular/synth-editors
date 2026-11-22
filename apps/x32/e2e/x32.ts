@@ -38,6 +38,7 @@ export async function start(init: FakeX32Init | "real" = {}, options: StartOptio
       ...env,
       ...(options.noHost ? (fake ? { X32_DISCOVER_TO: host! } : {}) : { X32_HOST: host! }),
       X32_NO_REAL_DESK: fake ? "1" : "0",
+      X32_FAKE_CLAUDE: "1", // tests never call the real model (it costs money)
       E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1",
     },
   });

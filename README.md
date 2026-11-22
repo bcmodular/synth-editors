@@ -4,9 +4,15 @@ Desktop editors for the Roland TB-3 and SP-404 MK2, with Launchpad Pro Mk1 prese
 and CC learn. Successor to the TouchOSC layouts in
 [bcmodular/touchosc-controllers](https://github.com/bcmodular/touchosc-controllers).
 
-Also here: **X32 chat control**, for setting up and re-routing a Behringer X32 Rack in plain language over OSC
-("route the S-1 to the sampler", "an 80s gated reverb on the drum machine"), and keeping the desk matched to a rig
-file. See [apps/x32/README.md](apps/x32/README.md), including how to set it up for your own desk.
+Also here:
+
+- **JV-2080 editor and librarian**, with CC learn, for the Roland JV-2080 over SysEx. Design notes in
+  [docs/jv2080-design.md](docs/jv2080-design.md).
+- **H12 target switcher**: picks one target synth for a Launchkey 49 Mk4 and a DOREMIDI pedal by writing routing and
+  mapper settings to a CME H12MIDI Pro. See [apps/h12/README.md](apps/h12/README.md).
+- **X32 chat control**, for setting up and re-routing a Behringer X32 Rack in plain language over OSC ("route the S-1
+  to the sampler", "an 80s gated reverb on the drum machine"), and keeping the desk matched to a rig file. See
+  [apps/x32/README.md](apps/x32/README.md), including how to set it up for your own desk.
 
 Status: **TB-3 Phase 0 spike**. See [PLAN.md](PLAN.md).
 
@@ -21,6 +27,8 @@ Status: **TB-3 Phase 0 spike**. See [PLAN.md](PLAN.md).
 npm install
 npm run dev:tb3      # Vite dev server + Electron window
 npm run dev:sp404    # SP-404 MK2 editor (the Phase 0 spike is at #spike)
+npm run dev:jv2080   # JV-2080 editor and librarian
+npm run dev:h12      # H12 target switcher
 npm run dev:x32      # X32 chat control (finds the desk on the network)
 npm test             # Vitest
 npm run typecheck
@@ -39,6 +47,8 @@ which asks for MIDI + SysEx permission on first load.
 ```
 apps/tb3/            TB-3 editor (Electron main in electron/, React renderer in src/)
 apps/sp404/          SP-404 MK2 editor (FX, pad mixer, scopes, controllers)
+apps/jv2080/         JV-2080 editor and librarian
+apps/h12/            H12 target switcher (CME H12MIDI Pro routing over SysEx)
 apps/x32/            X32 chat control (Electron; plain-language routing over OSC, rig file setup)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing

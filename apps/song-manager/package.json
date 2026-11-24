@@ -1,0 +1,11 @@
+{
+  "name": "@synth-editors/song-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Song Manager: tracks songs from jam to mix across the H12, X32 and Reaper (prototype: the Reaper bridge)",
+  "scripts": {
+    "bridge": "node scripts/try-bridge.ts"
+  },
+  "author": "BC Modular"
+}

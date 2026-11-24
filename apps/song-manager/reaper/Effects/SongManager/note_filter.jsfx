@@ -1,0 +1,37 @@
+desc:Song Manager note filter
+//tags: MIDI filter
+//author: Song Manager
+// Passes only the listed notes (note on, note off and poly aftertouch). Used as record-input FX, so a split device
+// (one TR-8S instrument) records only its own notes. Song Manager sets the sliders; -1 = unused slot.
+
+slider1:-1<-1,127,1>Note 1
+slider2:-1<-1,127,1>Note 2
+slider3:-1<-1,127,1>Note 3
+slider4:-1<-1,127,1>Note 4
+slider5:-1<-1,127,1>Note 5
+slider6:-1<-1,127,1>Note 6
+slider7:-1<-1,127,1>Note 7
+slider8:-1<-1,127,1>Note 8
+slider9:1<0,1,1{No,Yes}>Other events pass
+
+in_pin:none
+out_pin:none
+
+@init
+allowed = 0; // 128 flags
+
+@slider
+memset(allowed, 0, 128);
+i = 0;
+loop(8,
+  note = slider(i + 1);
+  note >= 0 ? allowed[note] = 1;
+  i += 1;
+);
+
+@block
+while (midirecv(offset, msg1, msg2, msg3)) (
+  status = msg1 & 0xF0;
+  isNote = status == 0x80 || status == 0x90 || status == 0xA0;
+  (isNote ? allowed[msg2] : slider9) ? midisend(offset, msg1, msg2, msg3);
+);

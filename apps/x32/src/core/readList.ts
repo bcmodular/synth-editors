@@ -1,7 +1,10 @@
 // Everything the app reads from the desk on connect (docs/x32-spec.md, "What the app reads from the desk"). After this,
 // /xremote notifications keep the cache current. Pans aren't read yet: nothing uses them.
 
-import { config, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, type Param, type StripKind } from "./addresses";
+import {
+  config, dca, DCA_COUNT, fader, fx, FX_SEND_SLOTS, FX_SLOTS, groups, insert, link, MAIN, mainAssign, MUTE_GROUPS, muteGroup, send, strip,
+  STRIP_COUNT, stripOn, type Param, type StripKind,
+} from "./addresses";
 import { READ_PARAMS } from "./effects";
 import { libraryParams } from "./library";
 import { showParams } from "./show";
@@ -46,8 +49,22 @@ const outputs = (): Param[] => [
   ...numbers(LOCAL_OUTPUTS.aux).map((n) => output({ kind: "aux", n })),
 ];
 
+// What the signal check follows: mutes, faders, main assign, DCA and mute groups, and the main bus.
+const levels = (kind: StripKind): Param[] => strips(kind).flatMap((s) => {
+  const own = [stripOn(s), fader(s)];
+  return kind === "bus" ? own : [...own, mainAssign(s), ...Object.values(groups(s))];
+});
+
+const groupParams = (): Param[] => [
+  ...numbers(DCA_COUNT).flatMap((n) => [dca(n).on, dca(n).fader]),
+  ...numbers(MUTE_GROUPS).map(muteGroup),
+  MAIN.on, MAIN.fader,
+];
+
 export function deskReadList(): Param[] {
   return [
+    ...ALL.flatMap(levels),
+    ...groupParams(),
     ...libraryParams(),
     ...showParams(),
     ...ALL.flatMap(stripConfig),

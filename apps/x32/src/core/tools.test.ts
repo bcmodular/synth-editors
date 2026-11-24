@@ -9,6 +9,7 @@ function host(): ToolHost & { asked: string[] } {
     asked,
     state: (names) => `state:${names.join(",")}`,
     presets: (query) => `presets:${query}`,
+    check: (req) => ({ text: `checked ${req.source}`, kind: "state" }),
     run: async (make) => {
       try {
         const plan = make({ get: () => undefined, shared: [] } as PlanContext);

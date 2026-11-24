@@ -7,6 +7,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
 import { memoryDesk, STUDIO_PRESETS, studioShared } from "../../e2e/studio";
 import { libraryNames } from "./library";
+import { checkOutcome } from "./pathCheck";
 import { inLibrary, presetsText } from "./presets";
 import { Conversation, type Create, type Turn } from "./agent";
 import { chatAllowed, Operator, type Outcome } from "./operator";
@@ -43,6 +44,7 @@ function session(create: Create) {
   const host: ToolHost = {
     state: (names) => rigSummary({ get: ctx().get, shared: studioShared, names }),
     presets: (query) => presetsText(ctx().presets ?? [], query),
+    check: (req) => checkOutcome(ctx(), req),
     run: (make) => settle(async () => operator.propose(make(ctx()))),
     undo: () => settle(() => operator.undo(ctx())),
   };
@@ -121,6 +123,22 @@ const CASES: Case[] = [
       const c = t.calls.find((x) => x.name === "load_preset" || x.name === "insert_fx");
       if (c?.input.preset !== "Memory Man" || c.input.target !== "TD-3-MO") return `expected Memory Man on TD-3-MO, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input]))}`;
       return c.kind === "waiting" ? null : `plan ${c.kind}: ${c.result}`;
+    },
+  },
+  {
+    say: ["I can't hear the S-1 on the sampler"],
+    check: (t, s) => {
+      const c = t.calls.find((x) => x.name === "check_path");
+      if (c?.input.source !== "S-1") return `expected check_path for S-1, got ${JSON.stringify(t.calls.map((x) => [x.name, x.input]))}`;
+      if (s.writes.length) return `wrote ${s.writes.join(", ")} without asking`;
+      return /send|-∞|off/i.test(t.reply) ? null : "reply doesn't name the send";
+    },
+  },
+  {
+    say: ["save this setup as Jam night"],
+    check: (t) => {
+      const c = t.calls.find((x) => x.name === "save_snippet");
+      return c?.input.name === "Jam night" && c.kind === "applied" ? null : `expected save_snippet "Jam night", got ${JSON.stringify(t.calls.map((x) => [x.name, x.input, x.kind]))}`;
     },
   },
   {

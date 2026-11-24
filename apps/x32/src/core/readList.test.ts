@@ -15,7 +15,7 @@ describe("deskReadList", () => {
 
   it("reads each address once, and no bus sends or bus inserts", () => {
     expect(new Set(list).size).toBe(list.length);
-    expect(list.some((a) => a.startsWith("/bus/") && a.includes("/mix/"))).toBe(false);
+    expect(list.some((a) => /^\/bus\/\d\d\/mix\/\d\d\//.test(a))).toBe(false); // buses send to matrices, not read
     expect(list.some((a) => a.startsWith("/fxrtn/") && a.includes("/insert/"))).toBe(false);
   });
 

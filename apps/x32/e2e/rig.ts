@@ -3,7 +3,7 @@
 // the real X32 Rack (fw 4.15, read 22 Nov 2026): sends on at −∞, tap points on odd buses only, no source for FX 5-8,
 // no insert point on aux inputs.
 
-import { config, fader, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
+import { config, dca, DCA_COUNT, fader, fx, groups, MAIN, mainAssign, MUTE_GROUPS, muteGroup, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
 import {
   FX_LIBRARY_SIZE, IN_BLOCKS, libFx, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, snippet, userIn, userOut,
   USER_IN_SLOTS, USER_OUT_SLOTS,
@@ -27,6 +27,7 @@ export function blankDesk(): Values {
   for (const slot of numbers(FX_SLOTS)) numbers(15).forEach((k) => put(values, fx(slot).par(k), 0.5)); // READ_PARAMS
   for (const slot of numbers(FX_SEND_SLOTS)) [fx(slot).source("l"), fx(slot).source("r")].forEach((p) => put(values, p, 0));
   blankRouting(values);
+  blankGroups(values);
   for (let n = 1; n <= FX_LIBRARY_SIZE; n++) put(values, libFx(n).name, ""); // an empty FX library
   return values;
 }
@@ -50,6 +51,17 @@ function blankRouting(values: Values): void {
   }
 }
 
+// DCAs up and on, no mute group engaged, the main bus on at 0 dB.
+function blankGroups(values: Values): void {
+  numbers(DCA_COUNT).forEach((n) => {
+    put(values, dca(n).on, 1);
+    put(values, dca(n).fader, 0.75);
+  });
+  numbers(MUTE_GROUPS).forEach((n) => put(values, muteGroup(n), 0));
+  put(values, MAIN.on, 1);
+  put(values, MAIN.fader, 0.75);
+}
+
 function blankSnippet(values: Values, n: number): void {
   const s = snippet(n);
   put(values, s.name, "");
@@ -63,11 +75,14 @@ function blankStrip(values: Values, kind: StripKind, n: number): void {
   put(values, c.icon, 1);
   put(values, c.color, 0);
   put(values, link(s), 0);
+  put(values, stripOn(s), 1);
   if (kind === "bus") {
     put(values, fader(s), 0); // bus masters at −∞, as found on the real desk
     return;
   }
-  put(values, stripOn(s), 1);
+  put(values, fader(s), 0); // faders down from the factory
+  put(values, mainAssign(s), 1);
+  for (const g of Object.values(groups(s))) put(values, g, 0);
   if (kind === "ch") {
     put(values, c.source, n);
     for (const p of Object.values(insert(s))) put(values, p, 0);

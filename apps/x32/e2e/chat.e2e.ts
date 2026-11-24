@@ -200,3 +200,16 @@ test("saves the routing as a snippet, then recalls it after a change (phase 9)",
   expect(r.fake!.get("/ch/07/mix/01/level")).toBeCloseTo(0.7, 2);
   await expect(r.page.locator(".rig table.sources")).toContainText("Reverb -2 dB"); // re-read after the load
 });
+
+test("finds why a source can't be heard, from the desk's settings (acceptance 16)", async () => {
+  const r = await ready();
+  await script(r, [
+    reply([tool("check_path", { source: "TB-3", destination: "Reverb" })], "tool_use"),
+    reply([text("The TB-3's left channel is muted.")], "end_turn"),
+  ]);
+  r.fake!.set({ address: "/ch/07/mix/on", type: "i" }, 0);
+  await say(r.page, "why can't I hear reverb on the TB-3?");
+  await expect(panel(r.page).locator(".transcript")).toContainText("The TB-3's left channel is muted.");
+  expect(JSON.stringify((await requests(r))[1]!.messages.at(-1))).toContain("ch 7 is muted");
+  expect(r.fake!.received.filter((m) => m.args.length && m.address.startsWith("/ch/"))).toEqual([]); // wrote nothing
+});

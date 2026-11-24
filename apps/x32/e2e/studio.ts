@@ -4,7 +4,7 @@
 
 import fxPresets from "../rig/fx-presets.json" with { type: "json" };
 import studio from "../rig/studio.json" with { type: "json" };
-import { fx, send, strip, type Param } from "../src/core/addresses";
+import { fader, fx, send, strip, STRIP_COUNT, type Param } from "../src/core/addresses";
 import type { DeskValue } from "../src/core/cache";
 import { desiredTargets } from "../src/core/desired";
 import { typeValue } from "../src/core/effects";
@@ -49,6 +49,7 @@ export function studioDesk(): Values {
   const values = factoryDesk();
   for (const t of desiredTargets(studioRig)) put(values, t.param, t.value);
   for (const n of [7, 8]) for (const bus of [1, 2]) put(values, send(strip("ch", n), bus).level, 0.7); // TB-3 → Reverb
+  for (const kind of ["ch", "fxrtn"] as const) for (let n = 1; n <= STRIP_COUNT[kind]; n++) put(values, fader(strip(kind, n)), 0.75); // faders at 0 dB
   for (let n = 1; n <= 100; n++) put(values, libFx(n).name, LIBRARY[n - 1]?.name ?? "");
   return values;
 }

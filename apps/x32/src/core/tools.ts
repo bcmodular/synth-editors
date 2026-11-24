@@ -4,6 +4,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { insertFx, removeInsert, setFxParam, setFxType } from "./fxPlanner";
 import { loadPresetPlan } from "./presetPlanner";
+import type { PathRequest } from "./pathCheck";
 import { recallPlan, saveSnippetPlan } from "./show";
 import { includeEffects, removeSend, sendTo, type Plan, type PlanContext, type SendMode } from "./planner";
 
@@ -15,6 +16,7 @@ export interface ToolOutcome {
 // What the tools need from the app.
 export interface ToolHost {
   state(names: string[]): string;
+  check(req: PathRequest): ToolOutcome;
   presets(query: string): string;
   run(make: (ctx: PlanContext) => Plan): Promise<ToolOutcome>;
   undo(): Promise<ToolOutcome>;
@@ -97,6 +99,14 @@ export const TOOLS: Anthropic.Tool[] = [
     }),
   },
   {
+    name: "check_path",
+    description: "Find why a source isn't reaching a destination, from the desk's settings: no input, mutes and mute groups, the fader and DCAs (for post-fader sends), the send, the bus, and where the bus goes (or, for \"main\", the main assign and main fader). Writes nothing.",
+    input_schema: object({
+      source: name("Source name"),
+      destination: name("A destination (bus, or a shared bus's target such as P-6), or \"main\" for the main mix"),
+    }),
+  },
+  {
     name: "recall",
     description: "Load a scene or a snippet by name (the desk's names are in get_state). A scene changes the whole desk except its safes; a snippet changes what it holds. Always waits for Apply, and can't be undone from here.",
     input_schema: object({ kind: { type: "string", enum: ["scene", "snippet"] }, name: name("Its name, or a distinctive part of it") }),
@@ -126,6 +136,7 @@ const RUNNERS: Record<string, (host: ToolHost, input: Input) => Promise<ToolOutc
   remove_send: (host, input) => host.run((ctx) => removeSend(ctx, { source: str(input.source), destination: str(input.destination) })),
   include_effects: (host, input) => host.run((ctx) => includeEffects(ctx, { destination: str(input.destination), on: input.on === true })),
   undo: (host) => host.undo(),
+  check_path: async (host, input) => host.check({ source: str(input.source), destination: str(input.destination) }),
   recall: (host, input) => host.run((ctx) => recallPlan(ctx, { kind: input.kind === "snippet" ? "snippet" : "scene", name: str(input.name) })),
   save_snippet: (host, input) => host.run((ctx) => saveSnippetPlan(ctx, { name: str(input.name), effects: input.effects === true })),
   insert_fx: (host, input) =>

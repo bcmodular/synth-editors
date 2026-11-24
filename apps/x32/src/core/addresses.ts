@@ -86,6 +86,15 @@ export function link(s: Strip): Param {
 // A strip's own mute: 1 = on (playing), 0 = muted. Not the main bus.
 export const stripOn = (s: Strip): Param => p(`${stripPath(s)}/mix/on`, "i");
 export const fader = (s: Strip): Param => p(`${stripPath(s)}/mix/fader`, "f");
+// An input strip's assignment to the main LR bus (1 = assigned), and its DCA and mute group memberships (bitmaps:
+// bit 0 = DCA 1 / mute group 1; docs/x32-osc-reference.md §10).
+export const mainAssign = (s: Strip): Param => p(`${stripPath(s)}/mix/st`, "i");
+export const groups = (s: Strip) => ({ dca: p(`${stripPath(s)}/grp/dca`, "i"), mute: p(`${stripPath(s)}/grp/mute`, "i") });
+export const DCA_COUNT = 8;
+export const MUTE_GROUPS = 6;
+export const dca = (n: number) => ({ on: p(`/dca/${n}/on`, "i"), fader: p(`/dca/${n}/fader`, "f") });
+export const muteGroup = (n: number): Param => p(`/config/mute/${n}`, "i"); // 1 = the group's mute is on
+export const MAIN = { on: p("/main/st/mix/on", "i"), fader: p("/main/st/mix/fader", "f") };
 
 // Messages that aren't values: the desk's identity, renewing notifications, and batch reads.
 export const INFO = "/info";

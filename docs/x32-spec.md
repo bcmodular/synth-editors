@@ -161,15 +161,13 @@ All take names as the desk shows them, never channel numbers. All return a plan 
 
 ### Worked example: "add a synced delay as an insert on the TD-3"
 
-1. Resolve "TD-3" → aux 5 (mono).
-2. If aux channels have no insert point (day-one check): plan to route aux in 5 onto the first spare channel (ch 15)
-   with user routing, switch aux 5's main and bus sends off so it isn't heard twice, and name ch 15 "TD-3-MO". Naming it
-   is the rig change, so nothing else needs updating. It also gives the TD-3 a direct out for Ableton.
-3. Pick a free slot that can hold a delay (expected: FX 1–4 only; FX 4 is free when nothing sends to bus 15-16).
-4. `/fx/4/type` → Stereo Delay, `/fx/4/source/{l,r}` → off, Factor → dotted eighth, mix about 25–30% (the whole signal
-   passes through an insert).
-5. `/ch/15/insert/{sel,pos,on}` → FX 4L, post, on.
-6. If it's unclear, ask first: "Insert (delay only on the TD-3, recorded on its own track) or send to the shared delay
+1. Resolve "TD-3" → ch 3 "TD-3-MO" (mono). Since the 22 Nov layout it's on a channel, so it has an insert point.
+2. Pick a free slot that can hold a delay: FX 1-4 only, never a send effect. FX 4 is fed by its bus but nothing is sent
+   there, so it's taken (highest first) and its feed switched off; it's fed again when the insert comes off.
+3. `/fx/4/type` → Stereo Delay, `/fx/4/source/{l,r}` → off, both Factors 3/2 (dotted eighth), mix 30% (the whole signal
+   passes through an insert), Time an eighth at 120 BPM until the tempo button sets it.
+4. `/ch/03/insert/{sel,pos,on}` → FX 4L, post, on.
+5. If it's unclear, ask first: "Insert (delay only on the TD-3, recorded on its own track) or send to the shared delay
    on FX 2 (recorded on the FX return track)?"
 
 ## Value scaling
@@ -369,8 +367,9 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
    `rigSummary.ts`, the chat panel with plan summaries, Apply / Cancel and Undo (told to the model with the next
    message), the running cost, and the chat log. Acceptance tests 1, 3, 4 and 6 by chat (`e2e/chat.e2e.ts`). The
    prompt check (`npm run prompt-check:x32`, 7 phrases, about $0.004 a run) passes on Haiku 5.5 after one prompt fix
-   (22 Nov: a plain "send" means add, and a possible loop goes to the tool, so the guard explains it). Still to do:
-   planFromRig / applyPlan / checkDrift as tools.
+   (22 Nov: a plain "send" means add, and a possible loop goes to the tool, so the guard explains it). The rig file
+   check is a tool too since 24 Nov (`check_rig`: what differs, by area); applying stays in the Setup panel. The prompt
+   check has 14 phrases now (about $0.016 a run), all passing on 24 Nov.
 5. **Inserts and effects (built 22 Nov, against the fake and a scripted model):** `effects.ts` (type names for FX 1-4
    and 5-8; parameter tables for HALL, PLAT, DLY and CRS from docs/x32-osc-reference.md §6), `fxPlanner.ts` (insertFx,
    removeInsert, setFxParam, setFxType), guard 3 in `guards.ts`, the chat tools, and type names and parameters in the
@@ -384,8 +383,9 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
      (the desk resets them), and effect parameters read back within 0.02 (the desk rounds them).
    - Spare-channel user routing isn't needed: every source is on a channel since the 22 Nov layout, and ch 21-32
      are the Ableton returns, so there are no spare channels.
-   - Not yet: parameter tables for the other types (the desk's FX 1 is VRM and FX 2 4TAP, which the chat can't tune
-     yet), and FX types in the rig file.
+   - Parameter tables since added: 3TAP and 4TAP (22 Nov), and the reverbs AMBI, RPLT, ROOM, CHAM, VREV, VRM, GATE and
+     RVRS (24 Nov), so the studio's Vintage Room can be tuned. Not yet: the modulation and dynamics types, and FX types
+     in the rig file.
    - **FX presets (22 Nov):** the desk's FX library holds 54 presets (`/-libs/fx/001-054/name`). A catalogue of them
      (name, type code, slots, a description and tags, written by Claude from each preset's settings) is in
      `apps/x32/rig/fx-presets.json`: they're Behringer's standard presets. The fake desk's library holds them in the
@@ -407,11 +407,21 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
      tap plays at Time itself and Factors A-C set the other taps.
    - The press writes at once (it is the confirmation) and isn't on the undo stack (the next press sets it again).
    - The chat can't set a synced delay's Time; it points to the button.
-   - Not yet tried on the desk with the Nome II: the e2e tests feed a test clock (`window.x32TestClock`), and Web MIDI
-     is denied in the tests.
-7. **Trace signal:** `checkPath` first (settings only), then meters and `traceSignal`. Addendum tests 6–9.
-9. **Scenes and snippets:** recall by name. Creating them only if the open question below says so.
-10. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
+   - **A delay can run free (24 Nov):** each delay in the Tempo panel has a "follows the tempo" box, kept in the app's
+     storage. The button leaves an unticked one alone, and the chat may set its Time.
+   - Checked 22 Nov on this Mac: the panel finds "Nome II Clock" and reads 120.0 BPM. The writes haven't been tried on
+     the desk yet. The e2e tests feed a test clock (`window.x32TestClock`), and Web MIDI is denied in the tests.
+7. **Trace signal:** `checkPath` **built 24 Nov** (`pathCheck.ts`, the chat's `check_path`; against the fake): from the
+   desk's settings, it follows a source to a bus, a shared bus's target or the main mix and lists what stops it: no
+   socket routed to a channel, mutes and engaged mute groups, the fader and DCAs when the send is post-fader, the send,
+   the bus's mute and master, and where the bus goes; with the target's notes from the rig file. It writes nothing; the
+   model offers the fixes its tools can make. Addendum test 6. Still to do: `traceSignal` with `/meters` (tests 7-9).
+8. **Scenes and snippets (built 24 Nov, against the fake):** `show.ts` and the chat's `recall` and `save_snippet`.
+   Recall a scene or snippet by name; save the routing (sends, output patches, names; optionally inserts and FX) as a
+   snippet, by setting its filters (`/-show/showfile/snippet/NNN/eventtyp` and the strip bitmaps) and then
+   `/save ,sis snippet <n> <name>`. Loads wait for Apply; none of these are undoable; the desk is re-read after a
+   load. Not yet checked on the desk: whether the filters are writable over OSC (the desk was off on 24 Nov).
+9. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
    build controls for the common ones, such as a sampler matrix (sources × SP-404 / Koala / P-6, one click per send)
    or one-click inserts. They call the same planner and applier as the chat, so the guards, confirmation and undo
    come for free. Frequent phrases that still go to chat can get a parser that runs before the model (free and
@@ -513,8 +523,5 @@ From the addendum (set up from rig file and trace signal):
   insert and the card outputs (ch 1-20, FX returns 1-8 and the main mix: 30 of the 31 free internal outputs).
 - **Buses (changed 22 Nov):** buses 1-8 feed FX 1-4 (Reverb, Delay, FX 3, FX 4), bus 9 the King Rat, bus 11-12 the
   Sampler; bus 10 and 13-16 are spare, unnamed and white like the aux strips. Synths are green, Ableton yellow.
-- The insert example (ch 15 "TD-3-MO") is out of date: the TD-3 is on ch 3 now and has its own insert point.
-- Should the app create snippets ("save this as TR-8S into SP-404"), or only recall them?
-- Should a delay be able to opt out of the tempo bridge (e.g. a free-running delay on FX 3)? Today every delay in the
-  table follows the tempo.
-- Launchpad Pro pads for scene recall — in this app, or left to a later controller app?
+- **Decided 24 Nov:** the chat creates snippets as well as recalling them (phase 8); a delay can opt out of the tempo
+  bridge (phase 6); no Launchpad Pro pads for scene recall.

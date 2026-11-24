@@ -86,7 +86,59 @@ export interface EffectDef {
   insertDefaults?: Record<string, number | string>; // set when it goes in as an insert (the whole signal passes through)
 }
 
+// The rich plate, room and chamber share their first twelve parameters but for Size's range and the eleventh.
+const ROOMY = (size: number, eleventh: Row): Row[] => [
+  ["Pre Delay", "lin", 0, 200, "ms"], ["Decay", "log", 0.3, 29, "s"], ["Size", "lin", 4, size], ["Damping", "log", 1000, 20000, "Hz"],
+  ["Diffuse", "lin", 0, 100], ["Level", "lin", -12, 12, "dB"], ["Lo Cut", "log", 10, 500, "Hz"], ["Hi Cut", "log", 200, 20000, "Hz"],
+  ["Bass Multi", "log", 0.25, 4], ["Spread", "lin", 0, 50], eleventh, ["Spin", "lin", 0, 100],
+];
+const ECHOES: Row[] = [["Echo L", "lin", 0, 1200, "ms"], ["Echo R", "lin", 0, 1200, "ms"], ["Echo Feed L", "lin", -100, 100], ["Echo Feed R", "lin", -100, 100]];
+// Gated and reverse reverbs: Decay in ms, a high shelf instead of a high cut.
+const SHELVED = (decay: Row, third: Row, fourth: Row, fifth: Row): Row[] => [
+  ["Pre Delay", "lin", 0, 200, "ms"], decay, third, fourth, fifth, ["Level", "lin", -12, 12, "dB"], ["Lo Cut", "log", 10, 500, "Hz"],
+  ["Hi Shv Freq", "log", 200, 20000, "Hz"], ["Hi Shv Gain", "lin", -30, 0, "dB"],
+];
+
+// From Maillot's tables (docs/x32-osc-reference.md §6; the rest of his document for the reverbs). His RPLT/ROOM
+// "Echo Feed L" and CHAM "Reflection Gain L" at parameter 16 are the right side.
 export const EFFECTS: Record<string, EffectDef> = {
+  AMBI: {
+    params: table([
+      ["Pre Delay", "lin", 0, 200, "ms"], ["Decay", "log", 0.2, 7.3, "s"], ["Size", "lin", 2, 100], ["Damping", "log", 1000, 20000, "Hz"],
+      ["Diffuse", "lin", 1, 30], ["Level", "lin", -12, 12, "dB"], ["Lo Cut", "log", 10, 500, "Hz"], ["Hi Cut", "log", 200, 20000, "Hz"],
+      ["Modulate", "lin", 0, 100], ["Tail Gain", "lin", 0, 100],
+    ]),
+  },
+  RPLT: { params: table([...ROOMY(39, ["Attack", "lin", 0, 100]), ...ECHOES]) },
+  ROOM: { params: table([...ROOMY(76, ["Shape", "lin", 0, 250]), ...ECHOES]) },
+  CHAM: {
+    params: table([
+      ...ROOMY(72, ["Shape", "lin", 0, 250]), ["Reflection L", "lin", 0, 500, "ms"], ["Reflection R", "lin", 0, 500, "ms"],
+      ["Reflection Gain L", "lin", 0, 100], ["Reflection Gain R", "lin", 0, 100],
+    ]),
+  },
+  VREV: {
+    params: table([
+      ["Pre Delay", "lin", 0, 120, "ms"], ["Decay", "lin", 0.4, 4.5, "s"], ["Modulate", "lin", 0, 100], ["Vintage", ["OFF", "ON"]],
+      ["Position", ["FRONT", "REAR"]], ["Level", "lin", -12, 12, "dB"], ["Lo Cut", "log", 10, 500, "Hz"], ["Hi Cut", "log", 10000, 20000, "Hz"],
+      ["Lo Multiply", "log", 0.5, 2], ["Hi Multiply", "log", 0.25, 1],
+    ]),
+  },
+  VRM: {
+    params: table([
+      ["Reverb Delay", "lin", 0, 200, "ms"], ["Decay", "log", 0.1, 20, "s"], ["Size", "lin", 2, 100], ["Density", "lin", 1, 30],
+      ["ER Level", "lin", 0, 100], ["Level", "lin", -12, 12, "dB"], ["Lo Multiply", "log", 0.1, 10], ["Hi Multiply", "log", 0.1, 10],
+      ["Lo Cut", "log", 10, 500, "Hz"], ["Hi Cut", "log", 200, 20000, "Hz"], ["ER Left", "lin", 0, 200, "ms"], ["ER Right", "lin", 0, 200, "ms"],
+      ["Freeze", ["OFF", "ON"]],
+    ]),
+  },
+  GATE: {
+    params: table([
+      ...SHELVED(["Decay", "lin", 140, 1000, "ms"], ["Attack", "lin", 0, 30], ["Density", "lin", 1, 50], ["Spread", "lin", 0, 100]),
+      ["Diffuse", "lin", 1, 30],
+    ]),
+  },
+  RVRS: { params: table(SHELVED(["Decay", "log", 140, 1000, "ms"], ["Rise", "lin", 0, 50], ["Diffuse", "lin", 1, 30], ["Spread", "lin", 0, 100])) },
   HALL: { params: table([...REVERB, ["Spread", "lin", 0, 50], ["Shape", "lin", 0, 250], ["Mod Speed", "lin", 0, 100]]) },
   PLAT: {
     params: table([REVERB[0]!, PLATE_DECAY, ...REVERB.slice(2), ["Xover", "log", 10, 500, "Hz"], ["Mod Depth", "lin", 1, 50], ["Mod Speed", "lin", 0, 100]]),

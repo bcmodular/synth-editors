@@ -83,6 +83,17 @@ describe("setFxParam and setFxType", () => {
     expect(plan.changes[0]!.tolerance).toBeGreaterThan(0);
   });
 
+  it("tunes the reverbs from Maillot's tables, the Vintage Room on the studio's reverb included", () => {
+    const ctx = desk();
+    ctx.values.set("/fx/1/type", 7); // VRM
+    const plan = setFxParam(ctx, { target: "Reverb", param: "decay", value: 3 });
+    expect(plan.summary).toBe("Set FX 1 (Vintage Room (VRM)) Decay to 3 s");
+    expect(plan.changes[0]!.param.address).toBe("/fx/1/par/02");
+    expect(writes(setFxParam(ctx, { target: "FX 1", param: "Freeze", value: "ON" }))).toEqual({ "/fx/1/par/13": 1 });
+    ctx.values.set("/fx/1/type", 2); // RPLT: the right echo feedback is par 16
+    expect(setFxParam(ctx, { target: "FX 1", param: "Echo Feed R", value: 50 }).changes[0]!.param.address).toBe("/fx/1/par/16");
+  });
+
   it("leaves a synced delay's time to the tempo", () => {
     const ctx = desk();
     ctx.apply(insertFx(ctx, { source: "TD-3-MO", effect: "DLY" }));

@@ -1,54 +1,29 @@
-// Target switching over the H12 link (core/switcher.ts): reads which target the H12 is set to, switches to another,
-// turns the copy to the Mac (for the monitor) on and off, and puts back the H12's previous settings. Before the first
-// write, the previous values of every setting a switch may change are kept (core/backup.ts), once.
+// Target switching over the H12 link (core/switcher.ts, through settings/useWriter.ts): reads which target the H12
+// is set to, switches to another, changes the pedal CC, turns the copy to the Mac (for the monitor) on and off, and
+// puts back the H12's previous settings. Before the first write, the previous values of every setting a switch may
+// change are kept (core/backup.ts), once.
 
-import { useCallback, useEffect, useState } from "react";
-import { backupOf, parseBackup, type Backup } from "../core/backup";
+import { useCallback, useState } from "react";
 import { mapperFormatProblem } from "../core/status";
-import { applySettings, readSwitchSettings, type ApplyReport, type Current, type Io } from "../core/switcher";
 import {
-  currentTarget, DEFAULT_PEDAL_CC, mappersWithoutInit, parseTargets, targetSettings, type Choice, type SettingValue,
+  currentTarget, DEFAULT_PEDAL_CC, mappersWithoutInit, parseTargets, SWITCH_SETTINGS, targetSettings, type Choice,
   type Target,
 } from "../core/targets";
 import list from "../targets.json";
-import type { HubReport } from "../core/hub";
 import type { HubState } from "../hub/useHub";
+import { useWriter, type Wording, type WriterSpec } from "../settings/useWriter";
 
-const BACKUP_KEY = "h12.backup";
+export { summary, type Outcome } from "../settings/useWriter";
+
 const PARSED = parseTargets(list);
+const TARGETS = "targets" in PARSED ? PARSED.targets : [];
+const LIST_PROBLEMS = "problems" in PARSED ? PARSED.problems : [];
 
-// How a change is reported: when it's done, when it stopped part way, and when there was nothing to write.
-export interface Wording {
-  doing: string; // "Switching to TB-3"
-  done: string; // "Switched to TB-3"
-  stopped: string; // "Stopped switching to TB-3"
-  unchanged: string; // "Already on TB-3"
-}
-
-export interface Outcome {
-  wording: Wording;
-  report: ApplyReport;
-}
-
-const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
-
-// "Switched to TB-3: wrote 7 settings, 1 already matched."
-export function summary({ wording, report: r }: Outcome): string {
-  if (r.written.length === 0 && !r.problem) return `${wording.unchanged}: nothing written.`;
-  const done = `wrote ${plural(r.written.length, "setting")}`;
-  const same = r.skipped.length ? `, ${r.skipped.length} already matched` : "";
-  return r.problem ? `${wording.stopped} (${done}${same}).` : `${wording.done}: ${done}${same}.`;
-}
-
-// Something that went wrong in the app itself, reported like a problem from the H12 so the buttons come back.
-const failed = (e: unknown): { report: ApplyReport } =>
-  ({ report: { written: [], skipped: [], problem: `The app failed: ${e instanceof Error ? e.message : String(e)}` } });
+// Nothing is written unless the firmware stores mappers the way the app writes them.
+const SPEC: WriterSpec = { list: SWITCH_SETTINGS, backupKey: "h12.backup", guard: (hub) => mapperFormatProblem(hub.firmware) };
 
 const switchWording = (name: string): Wording => ({ doing: `Switching to ${name}`, done: `Switched to ${name}`,
   stopped: `Stopped switching to ${name}`, unchanged: `Already on ${name}` });
-
-const RESTORE: Wording = { doing: "Putting back the previous settings", done: "Put back the previous settings",
-  stopped: "Stopped putting back the previous settings", unchanged: "The previous settings are already there" };
 
 const monitorWording = (on: boolean): Wording => {
   const what = `the copy to the Mac ${on ? "on" : "off"}`;
@@ -63,64 +38,11 @@ const pedalWording = (cc: number): Wording => ({ doing: `Setting the pedal to CC
 const nameOf = (c: Pick<Choice, "target" | "channel">) =>
   (c.target.channels ? `${c.target.name} ch ${c.channel}` : c.target.name);
 
-function loadBackup(): Backup | undefined {
-  try {
-    return parseBackup(JSON.parse(localStorage.getItem(BACKUP_KEY) ?? "null"));
-  } catch {
-    return undefined;
-  }
-}
-
-function keepBackup(current: Current): Backup {
-  const kept = loadBackup();
-  if (kept) return kept;
-  const backup = backupOf(current, new Date());
-  localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
-  return backup;
-}
-
-// Reads, keeps the backup if there's none yet, writes what differs, and reads again to show the result. Writes
-// nothing unless the firmware stores mappers the way the app writes them.
-async function run(io: Io, hub: HubReport, wanted: (current: Current) => SettingValue[]):
-Promise<{ report: ApplyReport; after?: Current }> {
-  const format = mapperFormatProblem(hub.firmware);
-  if (format) return { report: { written: [], skipped: [], problem: format } };
-  const before = await readSwitchSettings(io);
-  if ("problem" in before) return { report: { written: [], skipped: [], problem: before.problem } };
-  keepBackup(before.ok);
-  const report = await applySettings(io, wanted(before.ok), before.ok);
-  const after = await readSwitchSettings(io);
-  return { report, after: "ok" in after ? after.ok : undefined };
-}
-
-const TARGETS = "targets" in PARSED ? PARSED.targets : [];
-const LIST_PROBLEMS = "problems" in PARSED ? PARSED.problems : [];
-
-// The switch settings as the H12 has them, read whenever the link (re)appears.
-function useCurrent(io: Io | undefined) {
-  const [current, setCurrent] = useState<Current>();
-  const [readProblem, setReadProblem] = useState<string>();
-  useEffect(() => {
-    setCurrent(undefined);
-    if (!io) return;
-    let cancelled = false;
-    readSwitchSettings(io).then((got) => {
-      if (cancelled) return;
-      setCurrent("ok" in got ? got.ok : undefined);
-      setReadProblem("problem" in got ? got.problem : undefined);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [io]);
-  return { current, setCurrent, readProblem };
-}
-
-type Apply = (wording: Wording, wanted: (current: Current) => SettingValue[]) => Promise<void>;
+type Apply = ReturnType<typeof useWriter>["apply"];
 
 // What the panel can do: switch target (keeping the pedal CC and the copy to the Mac as they are), change the pedal
-// CC, turn the copy on or off, restore. With no target set, a new pedal CC waits for the next switch.
-function useActions(apply: Apply, active: Choice | undefined, backup: Backup | undefined) {
+// CC, turn the copy on or off. With no target set, a new pedal CC waits for the next switch.
+function useActions(apply: Apply, active: Choice | undefined) {
   const [chosenCc, setChosenCc] = useState(DEFAULT_PEDAL_CC);
   const monitor = active?.monitor ?? false;
   const pedalCc = active?.pedalCc ?? chosenCc;
@@ -134,40 +56,15 @@ function useActions(apply: Apply, active: Choice | undefined, backup: Backup | u
     setChosenCc(cc);
     if (active) void apply(pedalWording(cc), () => targetSettings(active.target, { ...active, pedalCc: cc }));
   }, [apply, active]);
-  const restore = useCallback(() => {
-    if (backup) void apply(RESTORE, () => backup.settings);
-  }, [apply, backup]);
-  return { pedalCc, switchTo, setMonitor, setPedalCc, restore };
+  return { pedalCc, switchTo, setMonitor, setPedalCc };
 }
 
-// `note` puts each outcome in the MIDI monitor's log, so it can be read against what the H12 sends.
 export function useTargets(hub: HubState, note: (text: string) => void = () => undefined) {
-  const link = hub.kind === "ready" ? hub : undefined;
-  const io = link?.io;
-  const { current, setCurrent, readProblem } = useCurrent(io);
-  const [busy, setBusy] = useState<string>();
-  const [outcome, setOutcome] = useState<Outcome>();
-  const [backup, setBackup] = useState(loadBackup);
-
-  const apply = useCallback(async (wording: Wording, wanted: (current: Current) => SettingValue[]) => {
-    if (!link) return;
-    setBusy(wording.doing);
-    const done = await run(link.io, link.report, wanted).catch(failed);
-    if ("after" in done && done.after) setCurrent(done.after);
-    setBackup(loadBackup());
-    const outcome = { wording, report: done.report };
-    setOutcome(outcome);
-    note([summary(outcome), done.report.problem].filter(Boolean).join(" "));
-    setBusy(undefined);
-  }, [link, setCurrent, note]);
-
+  const { current, apply, ...writer } = useWriter(hub, SPEC, note);
   const read = current ? { active: currentTarget(TARGETS, current), withoutInit: mappersWithoutInit(current) }
     : { active: undefined, withoutInit: [] };
-  const actions = useActions(apply, read.active, backup);
-  return {
-    targets: TARGETS, listProblems: LIST_PROBLEMS, ...read, ready: !!current && !!io, readProblem, busy, outcome,
-    backup, ...actions,
-  };
+  const actions = useActions(apply, read.active);
+  return { targets: TARGETS, listProblems: LIST_PROBLEMS, ...read, ...writer, ...actions };
 }
 
 export type Targets = ReturnType<typeof useTargets>;

@@ -33,7 +33,10 @@ async function play(page: Page) {
 }
 
 test("README screenshots", async () => {
-  const r = (running = await start({ settings: { "0:26": [1 << 1], "0:25": [1 << 1] } }));
+  // Sync: the Nome II's input lets Start/Stop through, the TR-8S and TB-3 on their own sequencers, the rest External.
+  const external = Object.fromEntries([31, 54, 56, 58, 59].map((i) => [`2:${i}`, [0xe200]]));
+  const settings = { "0:26": [1 << 1], "0:25": [1 << 1], "2:24": [0], "2:30": [0], "2:32": [0], ...external };
+  const r = (running = await start({ settings }));
   await r.page.setViewportSize(WINDOW);
   await r.page.getByRole("button", { name: "Channel 8 for JV-2080" }).click();
   await expect(r.page.getByRole("button", { name: "Channel 8 for JV-2080" })).toHaveAttribute("aria-pressed", "true");
@@ -44,4 +47,5 @@ test("README screenshots", async () => {
   await expect(r.page.locator(".monitor tbody tr")).toHaveCount(22); // 20 MIDI rows, and App rows for the switch and the copy
   await shot(r.page, "targets", r.page.locator(".panel.targets"));
   await shot(r.page, "monitor", r.page.locator(".panel.monitor"));
+  await shot(r.page, "sync", r.page.locator(".panel.sync"));
 });

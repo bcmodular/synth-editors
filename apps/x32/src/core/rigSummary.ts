@@ -8,6 +8,7 @@ import { formatDb } from "./faderLaw";
 import { sameName } from "./names";
 import { busName, deriveRig, stripLabel, type Destination, type FxSlot, type Lookup, type Rig, type Source } from "./rig";
 import { liveTarget, type SharedBus } from "./shared";
+import { showSlots } from "./show";
 
 export interface SummaryRequest {
   get: Lookup;
@@ -52,6 +53,13 @@ function paramText(get: Lookup, f: FxSlot): string {
 
 const fxLine = (rig: Rig, f: FxSlot, get: Lookup) => `- FX ${f.slot}: ${typeName({ slot: f.slot, value: f.type })}, ${ROLE[f.role](rig, f)}${paramText(get, f)}`;
 
+// The scenes and snippets on the desk, by number and name.
+function showText(req: SummaryRequest): string {
+  const list = (kind: "scene" | "snippet") =>
+    showSlots(req.get, kind).filter((s) => s.used && s.name).map((s) => `${s.index} "${s.name}"`).join(", ") || "none";
+  return `Scenes: ${list("scene")}\nSnippets: ${list("snippet")}`;
+}
+
 const wanted = (req: SummaryRequest, d: { name: string }, extra: string[] = []): boolean =>
   !req.names?.length || req.names.some((n) => [d.name, ...extra].some((x) => sameName(x, n)));
 
@@ -63,6 +71,7 @@ export function rigSummary(req: SummaryRequest): string {
   const destinations = rig.destinations.filter((d) => wanted(req, d, targetsOf(d))).map((d) => destinationLine(d, req));
   const parts = [`Sources:\n${sources.join("\n") || "- (none matched)"}`, `Destinations:\n${destinations.join("\n") || "- (none matched)"}`];
   if (!req.names?.length) parts.push(`FX slots:\n${rig.fx.map((f) => fxLine(rig, f, req.get)).join("\n")}`);
+  if (!req.names?.length) parts.push(showText(req));
   if (rig.oddities.length) parts.push(`Oddities:\n${rig.oddities.map((o) => `- ${o}`).join("\n")}`);
   return parts.join("\n\n");
 }

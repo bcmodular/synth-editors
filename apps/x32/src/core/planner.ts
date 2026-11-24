@@ -13,6 +13,7 @@ import { OUTPUT_SOURCE, output } from "./routing";
 import { sameValue } from "./setupPlan";
 import { label, outputLabel } from "./targets";
 import type { PresetLoad } from "./library";
+import type { ShowCommand } from "./show";
 import type { LibPreset } from "./presets";
 import type { RigFx } from "./rigFile";
 import { busSource, liveTarget, type SharedBus } from "./shared";
@@ -26,6 +27,7 @@ export interface Plan {
   changes: PlanChange[];
   confirm: string | null; // why a person must confirm it first; null: applied straight away
   load?: PresetLoad; // a library preset loaded before the changes; such a plan can't be undone from here
+  show?: ShowCommand; // a scene or snippet saved or loaded after the changes; nor can this
 }
 
 export class Refused extends Error {

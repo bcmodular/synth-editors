@@ -3,8 +3,9 @@
 Picks one target synth for the Launchkey 49 Mk4 and the DOREMIDI pedal by writing routing and mapper settings to the
 CME H12MIDI Pro over SysEx. Requirements: [docs/h12-spec.md](../../docs/h12-spec.md).
 
-So far the app has a **read-only check** of the H12, **target switching** (the only part that writes to the H12), a
-**MIDI monitor** and a **clock forwarder** for the Launchkey's arpeggiator.
+So far the app has a **read-only check** of the H12, **target switching** and **sync modes** (the only parts that
+write to the H12), a **MIDI monitor**, a **clock forwarder** for the Launchkey's arpeggiator, and a read-only **dump
+and rule check**.
 
 ## Read-only check
 
@@ -42,11 +43,32 @@ reads it back from mapper 23, so it survives a restart. Nothing else on the
 H12 is ever written: `core/switcher.ts` refuses any other setting. The backup is kept in the app's local storage
 (separately for `npm run dev:h12` and a packaged build).
 
+## Sync modes
+
+![The Sync panel: TB-3 and TR-8S on their own sequencers, the rest External](docs/images/sync.png)
+
+One row per synth output (TB-3, JV-2080, TR-8S, the Thru5 group, S-1, SP-404, P-6), lit with the mode read back
+from the H12:
+
+- **Own sequencer**: clock and Start/Stop, so its sequencer runs with the Nome II;
+- **External**: clock only, for when the OXI, Ableton or the keys play it;
+- **Free**: nothing from the Nome II.
+
+Each mode is a set of bits in the output's message filter (setting 2, index 30 + output): Song Position (9), Clock
+(12), Start (13), Continue (14) and Stop (15). The app changes only those bits and keeps every other bit as the H12
+has it; `core/switcher.ts` refuses a write that would change any other bit, or a filter not in `SYNC_SETTINGS`. A mix
+of bits the app doesn't write shows as **custom**. The JV-2080 has no sequencer, so it offers External and Free only.
+
+Until the Nome II's input (MIDI In 1, index 24) lets Start/Stop through, no device starts whatever its mode. **Let
+Start/Stop through** clears bits 9 and 13–15 of that input's filter (never the clock bit), and only when every device
+is External or Free, so nothing starts unexpectedly: **All External** first. **Block Start/Stop again** puts them
+back. Like targets, the filters' previous values are kept before the first write, with **Put them back**.
+
 ## MIDI monitor
 
 **Copy to the Mac** (Target panel) also routes the Launchkey's and the pedal's inputs to USB-C virtual cable 8
 (`H12MIDI-Pro Port 8`, which nothing else uses and which has no filters), so the Mac gets what the target gets,
-after the mappers. Switching target keeps it on or off. The **MIDI monitor** panel logs, newest first:
+after the mappers. Switching target keeps it on or off. The **MIDI monitor** panel logs, newest first by arrival time:
 
 - **H12 → Mac**: that copy;
 - **Launchkey**: what the keys play, from the Launchkey's own USB port;
@@ -57,6 +79,13 @@ after the mappers. Switching target keeps it on or off. The **MIDI monitor** pan
 
 Clock and active sensing are left out. Turn the copy off when you're done: Ableton or another app
 listening on Port 8 would get the notes too.
+
+## Dump and rule check
+
+**Read all** reads every routing (inputs 0–29), channel filter and message filter (0–59) and mapper (0–23) of the
+current preset, read-only, and checks the rig's rules: clock only from MIDI In 1, channels 13–14 blocked on every
+synth output, only channel 14 reaching the OXI. **Save JSON** saves the dump, in hex, for version control. There's no
+restore from a dump yet.
 
 ## Launchkey clock
 

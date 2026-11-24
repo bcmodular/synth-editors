@@ -2,7 +2,7 @@
 // reachable it is read in full (a change made while it was out of reach is picked up); notifications keep it current
 // after that. Changing the address restarts everything.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DeskCache } from "../core/cache";
 import { DeskClient, type DeskInfo, type LinkState } from "../core/client";
 import { deskReadList } from "../core/readList";
@@ -21,6 +21,7 @@ export interface Desk {
   changeHost: (text: string) => Promise<boolean>;
   finder: Finder;
   socketError: string | null; // the latest send error since the desk last answered
+  reread: () => void; // read the whole desk again (after a scene or snippet load changed it under the cache)
 }
 
 const PROGRESS_EVERY = 100; // reads between progress updates
@@ -37,6 +38,22 @@ function readDesk(client: DeskClient, report: (p: ReadProgress) => void): AbortC
   return abort;
 }
 
+// The full read in progress, if any: started again each time the desk becomes reachable, or when asked.
+class DeskReads {
+  private reading: AbortController | null = null;
+
+  constructor(private readonly client: DeskClient, private readonly report: (p: ReadProgress) => void) {}
+
+  restart(): void {
+    this.reading?.abort();
+    this.reading = this.client.link === "connected" ? readDesk(this.client, this.report) : null;
+  }
+
+  stop(): void {
+    this.reading?.abort();
+  }
+}
+
 export function useDesk(): Desk {
   const cache = useMemo(() => new DeskCache(), []);
   const [host, setHost] = useState("");
@@ -46,6 +63,7 @@ export function useDesk(): Desk {
   const [read, setRead] = useState<ReadProgress | null>(null);
   const [cached, setCached] = useState(0);
   const [socketError, setSocketError] = useState<string | null>(null);
+  const rereadRef = useRef<() => void>(() => {});
 
   useEffect(() => void deskHost().then(setHost), []);
   useEffect(() => cache.onChange(() => setCached(cache.size)), [cache]);
@@ -57,19 +75,19 @@ export function useDesk(): Desk {
   useEffect(() => {
     if (!host) return;
     const c = new DeskClient(relay);
-    let reading: AbortController | null = null;
+    const reads = new DeskReads(c, setRead);
     const offMessages = c.onMessage((m) => cache.take(m));
     const offLink = c.onLink((state, i) => {
       setLink(state);
       setInfo(i);
-      reading?.abort();
-      reading = state === "connected" ? readDesk(c, setRead) : null;
+      reads.restart();
     });
+    rereadRef.current = () => reads.restart();
     setLink("connecting");
     c.start();
     setClient(c);
     return () => {
-      reading?.abort();
+      reads.stop();
       offMessages();
       offLink();
       c.stop();
@@ -83,5 +101,6 @@ export function useDesk(): Desk {
   }, []);
 
   const finder = useFinder(changeHost);
-  return { host, link, info, read, cached, cache, client, changeHost, finder, socketError };
+  const reread = useCallback(() => rereadRef.current(), []);
+  return { host, link, info, read, cached, cache, client, changeHost, finder, socketError, reread };
 }

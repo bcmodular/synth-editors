@@ -4,6 +4,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { insertFx, removeInsert, setFxParam, setFxType } from "./fxPlanner";
 import { loadPresetPlan } from "./presetPlanner";
+import { recallPlan, saveSnippetPlan } from "./show";
 import { includeEffects, removeSend, sendTo, type Plan, type PlanContext, type SendMode } from "./planner";
 
 export interface ToolOutcome {
@@ -96,6 +97,16 @@ export const TOOLS: Anthropic.Tool[] = [
     }),
   },
   {
+    name: "recall",
+    description: "Load a scene or a snippet by name (the desk's names are in get_state). A scene changes the whole desk except its safes; a snippet changes what it holds. Always waits for Apply, and can't be undone from here.",
+    input_schema: object({ kind: { type: "string", enum: ["scene", "snippet"] }, name: name("Its name, or a distinctive part of it") }),
+  },
+  {
+    name: "save_snippet",
+    description: "Save the desk's routing as a snippet, so it can be recalled later: every send, the output patches and the names (which bus the Sampler feeds). With effects, it also holds the inserts and FX settings. A snippet of the same name is replaced, after asking.",
+    input_schema: object({ name: name("Snippet name, 16 characters at most: \"TR-8S to SP-404\""), effects: { type: "boolean" } }),
+  },
+  {
     name: "undo",
     description: "Undo the last plan that was applied.",
     input_schema: object({}),
@@ -115,6 +126,8 @@ const RUNNERS: Record<string, (host: ToolHost, input: Input) => Promise<ToolOutc
   remove_send: (host, input) => host.run((ctx) => removeSend(ctx, { source: str(input.source), destination: str(input.destination) })),
   include_effects: (host, input) => host.run((ctx) => includeEffects(ctx, { destination: str(input.destination), on: input.on === true })),
   undo: (host) => host.undo(),
+  recall: (host, input) => host.run((ctx) => recallPlan(ctx, { kind: input.kind === "snippet" ? "snippet" : "scene", name: str(input.name) })),
+  save_snippet: (host, input) => host.run((ctx) => saveSnippetPlan(ctx, { name: str(input.name), effects: input.effects === true })),
   insert_fx: (host, input) =>
     host.run((ctx) => insertFx(ctx, {
       source: str(input.source), effect: str(input.effect),

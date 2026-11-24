@@ -14,7 +14,8 @@ export interface TestHubInit {
 const frame = (body: number[]) => [...HEADER, HUB, ...body, checksum(body), 0xf7];
 // A mapper never written reads as the factory one, with firmware 4.x's init byte 5A.
 export const FACTORY_MAPPER = [0x7f007f00, 0x7f007f00, 0x00f00f0f, 0x5a000187, 0, 0];
-const SIZES: Record<number, number> = { [Setting.routing]: 1, [Setting.mapper]: 6, [Setting.currentPreset]: 1 };
+const SIZES: Record<number, number> = { [Setting.routing]: 1, [Setting.messageFilter]: 1, [Setting.mapper]: 6,
+  [Setting.currentPreset]: 1 };
 
 export function testHub(init: TestHubInit = {}) {
   const settings = new Map(Object.entries(init.settings ?? {}));

@@ -4,6 +4,7 @@
 
 import { applyChanges, refuseOutside, type ApplyResult, type DeskIO, type Mismatch } from "./applier";
 import { loadPreset } from "./library";
+import { runShowCommand } from "./show";
 import { undoPlan, type Plan, type PlanContext } from "./planner";
 import type { Requester } from "./scenes";
 import { sharedOutputAddresses, type SharedBus } from "./shared";
@@ -11,6 +12,8 @@ import { sharedOutputAddresses, type SharedBus } from "./shared";
 // The chat may write sends (on and level), channel inserts, effect types, parameters and bus feeds (guard 3 keeps send
 // effects as they are), and the output patches of a shared bus's targets, and nothing else.
 export const CHAT_SENDS: RegExp = /^\/(ch|auxin|fxrtn)\/\d\d\/mix\/(0[1-9]|1[0-6])\/(on|level)$/;
+// A snippet's filters, set before the chat saves one (src/core/show.ts).
+export const CHAT_SNIPPETS: RegExp = /^\/-show\/showfile\/snippet\/\d{3}\/(eventtyp|channels|auxbuses|maingrps)$/;
 export const CHAT_EFFECTS: RegExp[] = [
   /^\/ch\/\d\d\/insert\/(on|pos|sel)$/,
   /^\/fx\/[1-8]\/(type|par\/\d\d)$/,
@@ -19,7 +22,7 @@ export const CHAT_EFFECTS: RegExp[] = [
 
 export function chatAllowed(shared: SharedBus[]): RegExp[] {
   const outputs = sharedOutputAddresses(shared).map((a) => new RegExp(`^${a.replace(/\//g, "\\/")}$`));
-  return [CHAT_SENDS, ...CHAT_EFFECTS, ...outputs];
+  return [CHAT_SENDS, ...CHAT_EFFECTS, CHAT_SNIPPETS, ...outputs];
 }
 
 export type Outcome =
@@ -28,6 +31,10 @@ export type Outcome =
   | { kind: "waiting"; plan: Plan } // held for the user to confirm
   | { kind: "mismatch"; plan: Plan; mismatch: Mismatch }
   | { kind: "offline"; plan: Plan };
+
+// A plan with nothing to write and no command does nothing; one with a command can't go on the undo stack.
+const hasCommand = (plan: Plan) => !!plan.load || !!plan.show;
+const hasWork = (plan: Plan) => plan.changes.length > 0 || hasCommand(plan);
 
 export interface OperatorDesk extends DeskIO, Requester {
   connected(): boolean;
@@ -41,6 +48,7 @@ export class Operator {
   constructor(
     private readonly desk: OperatorDesk,
     private readonly allowed: RegExp[],
+    private readonly afterLoad: () => void = () => {}, // after a scene or snippet load
   ) {}
 
   get pending(): Plan | null {
@@ -58,7 +66,7 @@ export class Operator {
 
   // Apply a plan now, or hold it for confirmation. A new plan replaces one still waiting.
   async propose(plan: Plan): Promise<Outcome> {
-    if (!plan.changes.length && !plan.load) return this.settle({ kind: "nothing", plan });
+    if (!hasWork(plan)) return this.settle({ kind: "nothing", plan });
     return this.holdOrApply(plan, true);
   }
 
@@ -99,8 +107,9 @@ export class Operator {
   private async apply(plan: Plan, undoable: boolean): Promise<Outcome> {
     if (!this.desk.connected()) return this.settle({ kind: "offline", plan });
     const outcome = await this.write(plan);
-    // A preset load replaces every parameter of the slot, which the app doesn't keep, so it can't be undone here.
-    const keep = undoable && !plan.load && outcome.kind === "applied" && outcome.result.written > 0;
+    // A preset load replaces every parameter of the slot, and a scene or snippet load the desk, which the app doesn't
+    // keep, so neither can be undone here (nor a snippet save).
+    const keep = undoable && !hasCommand(plan) && outcome.kind === "applied" && outcome.result.written > 0;
     if (keep) this.undoStack.push(plan);
     return this.settle(outcome);
   }
@@ -111,9 +120,17 @@ export class Operator {
     const loaded = plan.load ? await loadPreset(this.desk, plan.load) : null;
     if (loaded) return { kind: "mismatch", plan, mismatch: loaded };
     const result = await applyChanges(this.desk, plan.changes, this.allowed);
-    const mismatch = result.mismatches[0];
+    const mismatch = result.mismatches[0] ?? (await this.show(plan));
     if (mismatch) return { kind: "mismatch", plan, mismatch };
-    return { kind: "applied", plan, result: { ...result, written: result.written + (plan.load ? 1 : 0) } };
+    return { kind: "applied", plan, result: { ...result, written: result.written + Number(!!plan.load) + Number(!!plan.show) } };
+  }
+
+  // A scene or snippet save or load after the changes. After a load the desk changed under the cache: read it again.
+  private async show(plan: Plan): Promise<Mismatch | null> {
+    if (!plan.show) return null;
+    const mismatch = await runShowCommand(this.desk, plan.show);
+    if (plan.show.action === "load") this.afterLoad();
+    return mismatch;
   }
 
   private settle(outcome: Outcome): Outcome {

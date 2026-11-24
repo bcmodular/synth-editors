@@ -1,6 +1,6 @@
 // The MIDI monitor: logs what arrives from the H12's copy to the Mac (what it sends the target, after the mappers),
 // the Launchkey's own USB port (what the keys play) and the pedal converter's USB port. Messages are buffered and
-// shown a few times a second, newest first. Clock and active sensing are left out.
+// shown a few times a second, newest first by arrival time. Clock and active sensing are left out.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { describe, isTicker } from "../core/midiText";
@@ -27,6 +27,10 @@ export interface LogEntry {
 }
 
 const MAX_ENTRIES = 300;
+
+// By arrival time, newest first, so rows from different sources (whose events can be handled a few ms apart) read in
+// the order the messages arrived; the same time keeps the order they were logged in.
+const newestFirst = (a: LogEntry, b: LogEntry) => b.at - a.at || b.id - a.id;
 const FLUSH_MS = 100;
 
 // Each source's input, if connected.
@@ -74,7 +78,7 @@ export function useMonitor(midi: Midi) {
     const id = setInterval(() => {
       const fresh = capture.current.pending.splice(0);
       if (fresh.length === 0 || paused) return;
-      setEntries((was) => [...fresh.reverse(), ...was].slice(0, MAX_ENTRIES));
+      setEntries((was) => [...fresh, ...was].sort(newestFirst).slice(0, MAX_ENTRIES));
     }, FLUSH_MS);
     return () => clearInterval(id);
   }, [paused]);

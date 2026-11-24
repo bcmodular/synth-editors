@@ -2,27 +2,10 @@
 // Under them, what the last switch wrote, and the way back to the H12's previous settings.
 
 import { useEffect, useState } from "react";
+import { portName } from "../core/ports";
 import { MONITOR_PORT, type Target } from "../core/targets";
-import { summary, type Outcome, type Targets } from "./useTargets";
-
-// The H12's port index as the H12 labels it (docs/h12-spec.md › Port index).
-export function portName(index: number): string {
-  if (index < 16) return `USB host ${index + 1}`;
-  if (index < 24) return `USB-C cable ${index - 15}`;
-  return `MIDI Out ${index - 23}`;
-}
-
-function Result({ outcome }: { outcome: Outcome }) {
-  const r = outcome.report;
-  return (
-    <div className="result">
-      <p className={r.problem ? "bad" : "note"} role={r.problem ? "alert" : "status"}>
-        {summary(outcome)}{r.problem && <><br />{r.problem}</>}
-      </p>
-      {r.written.length > 0 && <ul className="written">{r.written.map((w) => <li key={w}>{w}</li>)}</ul>}
-    </div>
-  );
-}
+import { BackupLine, Result } from "../settings/WriteResult";
+import type { Targets } from "./useTargets";
 
 // A multitimbral target's channels: one small button each, the one it's set to lit.
 function Channels({ target, t, active }: { target: Target; t: Targets; active?: number }) {
@@ -107,17 +90,6 @@ function InitWarning({ t }: { t: Targets }) {
   );
 }
 
-function BackupLine({ t }: { t: Targets }) {
-  if (!t.backup) return null;
-  const date = new Date(t.backup.savedAt).toLocaleString();
-  return (
-    <p className="note backup">
-      The H12's previous settings for these inputs and mappers were saved on {date}.{" "}
-      <button disabled={!t.ready || !!t.busy} onClick={t.restore}>Put them back</button>
-    </p>
-  );
-}
-
 export function TargetsPanel({ t }: { t: Targets }) {
   return (
     <section className="panel targets" aria-busy={!!t.busy}>
@@ -132,8 +104,9 @@ export function TargetsPanel({ t }: { t: Targets }) {
       <div className="target-grid">{t.targets.map((target) => <TargetButton key={target.name} target={target} t={t} />)}</div>
       <PedalCc t={t} />
       <MonitorSwitch t={t} />
-      {t.outcome && <Result outcome={t.outcome} />}
-      <BackupLine t={t} />
+      <Result outcome={t.outcome} />
+      <BackupLine backup={t.backup} restore={t.restore} disabled={!t.ready || !!t.busy}
+        what="settings for these inputs and mappers" />
       <p className="note">Close HxMIDI Tools before switching: the H12 should have one writer at a time.</p>
     </section>
   );

@@ -54,9 +54,12 @@ open and tests on the hardware as work goes along, so keep the app runnable betw
 - Requirements are in `docs/h12-spec.md`. Read it before starting; it lists the only H12 settings the app may change.
 - Build order: a read-only check (done: finds the SysEx port, reads firmware and preset), a test of whether the
   Launchkey's arpeggiator follows clock sent to its USB MIDI port (done: it does), target switching (built; on test
-  on the hardware), the clock forwarder (built: always on, Nome II to the Launchkey), then sync modes.
-- Only `src/core/switcher.ts` writes to the H12, and it refuses any setting outside `SWITCH_SETTINGS`
-  (`core/targets.ts`). Sync modes will need their own allowed list (the sync bits of the output message filters). Findings on the real H12 are in `apps/h12/README.md`.
+  on the hardware), the clock forwarder (built: always on, Nome II to the Launchkey), sync modes (built, not yet
+  tried on the hardware) and a read-only dump with a rule check.
+- Only `src/core/switcher.ts` writes to the H12, and it refuses any setting outside its allowed list:
+  `SWITCH_SETTINGS` (`core/targets.ts`) for targets, `SYNC_SETTINGS` (`core/sync.ts`) for sync modes, whose entries
+  carry a bit mask (a write changing any other bit is refused). All H12 traffic goes through one queue
+  (`settings/useWriter.ts`). Findings on the real H12 are in `apps/h12/README.md`.
 - `src/core/` is pure logic (frames, encodings, the port probe) with vitest tests beside it; `src/hub/` is Web MIDI
   and React. `e2e/fakeH12.ts` stands in for the hub; `npm run test:h12` runs the check on the real one (read-only).
 - The spec suggests a native MIDI library (`@julusian/midi`) in the Electron main process. The other apps use Web MIDI

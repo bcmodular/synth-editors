@@ -33,6 +33,8 @@ export interface FakeReceived extends OscMessage {
   from: number; // the client's port
 }
 
+// What a snippet load puts back in the fake: a routing snippet's sends, outputs and names, and inserts and FX.
+const SNIPPET_HOLDS = /\/mix\/\d\d\/(on|level)$|^\/outputs\/|\/config\/name$|\/insert\/|^\/fx\//;
 const XREMOTE_MS = 10_000; // the desk drops a client after 10 s without /xremote
 const DEFAULT_SWITCHES: FakeSwitches = { maxXremoteClients: 4 };
 
@@ -45,6 +47,7 @@ interface Client {
 export class FakeX32 {
   readonly received: FakeReceived[] = [];
   readonly scenes = new Map<number, Map<string, OscArg>>(); // saved scenes: a copy of the desk
+  readonly snippets = new Map<number, Map<string, OscArg>>(); // saved snippets, the same way
   offline = false; // drop everything, as if the network were down
 
   private readonly socket = dgram.createSocket("udp4");
@@ -128,7 +131,7 @@ export class FakeX32 {
     "/xinfo": (_m, from) => this.reply(from, "/xinfo", [str("127.0.0.1"), str("FAKE-X32"), str(this.model), str(this.firmware)]),
     "/status": (_m, from) => this.reply(from, "/status", [str("active"), str("127.0.0.1"), str(this.model)]),
     "/save": (m, from) => this.save(m, from),
-    "/load": (m, from) => this.loadLibrary(m, from),
+    "/load": (m, from) => (m.args[0]?.value === "libfx" ? this.loadLibrary(m, from) : this.loadShow(m, from)),
   };
 
   private answer(m: OscMessage, from: dgram.RemoteInfo): void {
@@ -141,14 +144,25 @@ export class FakeX32 {
   }
 
   // `/save ,siss scene <n> <name> <note>`: keeps a copy of the desk as it is, and answers `/save ,si scene 1`.
+  // `/save ,sis snippet <n> <name>` keeps a copy too; loading it puts back what a routing snippet holds.
   private save(m: OscMessage, from: dgram.RemoteInfo): void {
     const [kind, n, name] = m.args.map((a) => a.value);
-    if (kind !== "scene" || typeof n !== "number") return this.reply(from, "/save", [str(String(kind)), int(0)]);
+    const shows = kind === "scene" ? this.scenes : kind === "snippet" ? this.snippets : null;
+    if (!shows || typeof n !== "number") return this.reply(from, "/save", [str(String(kind)), int(0)]);
     const slot = String(n).padStart(3, "0");
-    this.values.set(`/-show/showfile/scene/${slot}/name`, str(String(name ?? "")));
-    this.values.set(`/-show/showfile/scene/${slot}/hasdata`, int(1));
-    this.scenes.set(n, new Map(this.values));
-    this.reply(from, "/save", [str("scene"), int(1)]);
+    this.values.set(`/-show/showfile/${kind}/${slot}/name`, str(String(name ?? "")));
+    this.values.set(`/-show/showfile/${kind}/${slot}/hasdata`, int(1));
+    shows.set(n, new Map(this.values));
+    this.reply(from, "/save", [str(String(kind)), int(1)]);
+  }
+
+  // `/load ,si scene|snippet <n>`: puts the saved copy back (a snippet: its sends, outputs, names, inserts and FX).
+  private loadShow(m: OscMessage, from: dgram.RemoteInfo): void {
+    const [kind, n] = m.args.map((a) => a.value);
+    const saved = (kind === "scene" ? this.scenes : this.snippets).get(Number(n));
+    const held = (a: string) => kind === "scene" || SNIPPET_HOLDS.test(a);
+    if (saved) for (const [address, arg] of saved) if (!address.startsWith("/-show/") && held(address)) this.values.set(address, arg);
+    this.reply(from, "/load", [str(String(kind)), int(saved ? 1 : 0)]);
   }
 
   // A library load changes the slot as the desk would (through set, so other clients hear of it) and answers 1 or 0.

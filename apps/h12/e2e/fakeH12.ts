@@ -1,7 +1,7 @@
 // A stand-in for the H12MIDI Pro's Web MIDI ports: eight virtual cables, "H12MIDI-Pro Port 1" to "Port 8", in and
 // out. One output (Port 1 by default) answers the hub's SysEx. The Launchkey's MIDI and DAW ports and the Nome II's
-// clock port are there too. The hub keeps the settings target switching reads and writes (routing, mappers, the
-// current preset). Every message the app sends, on any port, is recorded. Self-contained (no imports, no closures
+// clock port are there too. The hub keeps the settings the app reads and writes (routing, channel and message
+// filters, mappers, the current preset). Every message the app sends, on any port, is recorded. Self-contained (no imports, no closures
 // over module scope): it is stringified into the page.
 
 export interface FakeH12Init {
@@ -33,7 +33,7 @@ export function fakeH12Midi(init: FakeH12Init) {
     | (d[at + 3]! << 18) | (d[at + 4]! << 25)) >>> 0;
   const settings = new Map<string, number[]>(Object.entries(init.settings ?? {}));
   settings.set("4:0", [init.preset ?? 0]);
-  const SIZES: Record<number, number> = { 0: 1, 3: 6, 4: 1 };
+  const SIZES: Record<number, number> = { 0: 1, 1: 1, 2: 1, 3: 6, 4: 1 };
 
   const firmware = () => status(0, [...byte(init.firmware ?? 0x47), ...byte(0x26), ...word(1), ...word(2), ...word(3)]);
   const corrupt = (d: number[]) => [...d.slice(0, -2), (d[d.length - 2]! + 1) & 0x7f, 0xf7];
@@ -42,7 +42,10 @@ export function fakeH12Midi(init: FakeH12Init) {
   const unset = (id: number) => (id === 3 ? FACTORY_MAPPER : new Array<number>(SIZES[id]!).fill(0));
   const read = (id: number, index: number) => {
     const words = settings.get(`${id}:${index}`) ?? unset(id);
-    const a = frame([0x42, id, words.length, index, ...words.flatMap(word)]);
+    // A channel filter is an Int16 (3 bytes); everything else, 32-bit words.
+    const int16 = (v: number) => [v & 0x03, (v >>> 2) & 0x7f, (v >>> 9) & 0x7f];
+    const payload = id === 1 ? int16(words[0]!) : words.flatMap(word);
+    const a = frame([0x42, id, words.length, index, ...payload]);
     return id === 4 && init.corruptPreset ? corrupt(a) : a;
   };
   const write = (d: number[]) => {
@@ -57,7 +60,7 @@ export function fakeH12Midi(init: FakeH12Init) {
   const handlers: Record<number, (d: number[]) => number[] | undefined> = {
     0x01: (d) => (d[7] === 0x00 ? firmware() : undefined),
     0x02: (d) => (known(d) ? read(d[7]!, d[9]!) : undefined),
-    0x03: (d) => (known(d) && d[7] !== 4 ? write(d) : undefined),
+    0x03: (d) => (known(d) && d[7] !== 4 && d[7] !== 1 ? write(d) : undefined),
   };
   const isHub = (d: number[]) => d.length >= 10 && HEAD.every((b, i) => d[i] === b);
   const answer = (d: number[]): number[] | undefined => {

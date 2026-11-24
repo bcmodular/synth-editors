@@ -145,6 +145,40 @@ button.on {
   padding: 2px 6px;
 }
 
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.modes button {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.sync-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.sync-table td {
+  padding: 6px 10px 6px 0;
+  border-top: 1px solid var(--rule);
+  vertical-align: middle;
+}
+
+.rules {
+  margin: 10px 0 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.rules li {
+  margin-bottom: 6px;
+}
+
 .target-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));

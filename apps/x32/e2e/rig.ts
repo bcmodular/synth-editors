@@ -5,7 +5,7 @@
 
 import { config, fader, fx, FX_SEND_SLOTS, FX_SLOTS, insert, link, send, strip, STRIP_COUNT, stripOn, type Param, type Strip, type StripKind } from "../src/core/addresses.ts";
 import {
-  FX_LIBRARY_SIZE, IN_BLOCKS, libFx, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, userIn, userOut,
+  FX_LIBRARY_SIZE, IN_BLOCKS, libFx, output, OUTPUT_COUNT, OUTPUT_SOURCE, outputPos, routingCard, routingIn, scene, SCENE_SLOTS, snippet, userIn, userOut,
   USER_IN_SLOTS, USER_OUT_SLOTS,
 } from "../src/core/routing.ts";
 import type { OscArg } from "../src/core/osc.ts";
@@ -46,7 +46,14 @@ function blankRouting(values: Values): void {
   for (let n = 0; n < SCENE_SLOTS; n++) {
     put(values, scene(n).name, "");
     put(values, scene(n).hasdata, 0);
+    blankSnippet(values, n);
   }
+}
+
+function blankSnippet(values: Values, n: number): void {
+  const s = snippet(n);
+  put(values, s.name, "");
+  for (const p of [s.hasdata, s.eventtyp, s.channels, s.auxbuses, s.maingrps]) put(values, p, 0);
 }
 
 function blankStrip(values: Values, kind: StripKind, n: number): void {

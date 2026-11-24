@@ -172,3 +172,31 @@ test("a vocal plate preset goes into the reverb's slot from the desk's library, 
   expect(r.fake!.get("/fx/1/source/l")).toBe(1); // still fed by the Reverb bus
   await expect(r.page.locator(".rig table.fx-slots")).toContainText("Plate Reverb (PLAT)");
 });
+
+test("saves the routing as a snippet, then recalls it after a change (phase 9)", async () => {
+  const r = await ready();
+  await script(r, [
+    reply([tool("save_snippet", { name: "TB-3 verb", effects: false })], "tool_use"),
+    reply([text("Saved.")], "end_turn"),
+    reply([tool("send_to", { source: "TB-3", destination: "Reverb", mode: "add", level_db: -20 })], "tool_use"),
+    reply([text("Turned down.")], "end_turn"),
+    reply([tool("recall", { kind: "snippet", name: "verb" })], "tool_use"),
+    reply([text("Press Apply to load it.")], "end_turn"),
+  ]);
+  await say(r.page, "save this as TB-3 verb");
+  await expect(panel(r.page).locator(".transcript")).toContainText('Done: Save the routing as snippet 0 "TB-3 verb"');
+  expect(r.fake!.get("/-show/showfile/snippet/000/name")).toBe("TB-3 verb");
+  expect(r.fake!.get("/-show/showfile/snippet/000/channels")).toBe(-1);
+
+  await say(r.page, "TB-3 to the reverb at -20");
+  await expect(panel(r.page).locator(".transcript")).toContainText("Turned down.");
+  expect(r.fake!.get("/ch/07/mix/01/level")).toBeLessThan(0.4);
+
+  await say(r.page, "go back to TB-3 verb");
+  const pending = panel(r.page).getByRole("alertdialog");
+  await expect(pending).toContainText('Load snippet 0 "TB-3 verb"');
+  await pending.getByRole("button", { name: "Apply" }).click();
+  await expect(panel(r.page).locator(".transcript")).toContainText('Done: Load snippet 0 "TB-3 verb"');
+  expect(r.fake!.get("/ch/07/mix/01/level")).toBeCloseTo(0.7, 2);
+  await expect(r.page.locator(".rig table.sources")).toContainText("Reverb -2 dB"); // re-read after the load
+});

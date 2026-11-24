@@ -53,7 +53,18 @@ export function studioDesk(): Values {
   return values;
 }
 
-// An in-memory desk the operator can drive, library loads included.
+// A scene or snippet /save (names the slot) or /load (works if the slot holds something); null for anything else.
+function showCommand(values: Map<string, DeskValue>, address: string, args: OscArg[]): boolean | null {
+  const [kind, n, name] = args.map((a) => a.value);
+  if (kind !== "scene" && kind !== "snippet") return null;
+  const slot = `/-show/showfile/${kind}/${String(n).padStart(3, "0")}`;
+  if (address === "/load") return values.get(`${slot}/hasdata`) === 1;
+  values.set(`${slot}/name`, String(name));
+  values.set(`${slot}/hasdata`, 1);
+  return true;
+}
+
+// An in-memory desk the operator can drive, library loads, saves and scene loads included.
 export function memoryDesk(connected = true): OperatorDesk & { values: Map<string, DeskValue>; writes: string[] } {
   const values = new Map([...studioDesk()].map(([a, arg]) => [a, arg.value as DeskValue]));
   const writes: string[] = [];
@@ -66,7 +77,7 @@ export function memoryDesk(connected = true): OperatorDesk & { values: Map<strin
     read: async (p: Param) => values.get(p.address)!,
     request: async (address: string, args: OscArg[]): Promise<OscMessage> => {
       writes.push(`${address} ${args.map((a) => a.value).join(" ")}`);
-      const ok = address === "/load" && loadInto(args, (a) => values.get(a), (p, v) => values.set(p.address, v));
+      const ok = showCommand(values, address, args) ?? (address === "/load" && loadInto(args, (a) => values.get(a), (p, v) => values.set(p.address, v)));
       return { address, args: [str(String(args[0]?.value ?? "")), int(ok ? 1 : 0)] };
     },
   };

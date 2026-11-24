@@ -33,6 +33,16 @@ export const scene = (n: number) => {
   return { name: p(`${base}/name`, "s"), hasdata: p(`${base}/hasdata`, "i") };
 };
 export const SAVE = "/save";
+
+// Snippets 0-99: what each holds is set by its filters (bitmaps), which /save reads (Maillot p. 47-48, 50).
+export const snippet = (n: number) => {
+  const base = `/-show/showfile/snippet/${String(n).padStart(3, "0")}`;
+  return {
+    name: p(`${base}/name`, "s"), hasdata: p(`${base}/hasdata`, "i"),
+    eventtyp: p(`${base}/eventtyp`, "i"), channels: p(`${base}/channels`, "i"), auxbuses: p(`${base}/auxbuses`, "i"),
+    maingrps: p(`${base}/maingrps`, "i"),
+  };
+};
 export const LOAD = "/load";
 
 // The desk's FX library: /-libs/fx/001-100. A preset's index in /load is its number less one.

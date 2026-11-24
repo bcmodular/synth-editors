@@ -16,10 +16,17 @@ test("the H12 answers SysEx and runs firmware 4.7 or later", async () => {
   const now = await targets.locator("> p").first().innerText();
   // Mappers without firmware 4.x's init byte 5A would reset the H12 at power-up.
   const init = await targets.getByText("lack the init byte").allInnerTexts();
-  console.log({ ...f, problems, targets: now, init });
+  // The sync modes, read only: each device's lit mode, and whether the Nome II's input lets Start/Stop through.
+  const sync = r.page.locator(".panel.sync");
+  await expect(sync.getByText("Waiting for the H12")).toHaveCount(0);
+  const nome = await sync.locator("> p").first().innerText();
+  const modes = await sync.locator("tr").evaluateAll((rows) => rows.map((tr) =>
+    `${tr.querySelector("td")?.firstChild?.textContent}: ${tr.querySelector("button.on")?.textContent ?? "custom"}`));
+  console.log({ ...f, problems, targets: now, init, nome, modes });
   expect(now).not.toMatch(/answer/);
   expect(f["SysEx port"]).toMatch(/H12MIDI/);
   expect(f.Firmware).toMatch(/^\d+\.\d+$/); // no "older than" warning
   expect(problems).toEqual([]);
   expect(init).toEqual([]);
+  expect(modes).toHaveLength(7);
 });

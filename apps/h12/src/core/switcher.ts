@@ -1,5 +1,8 @@
-// Writing a target to the H12 (docs/h12-spec.md › What setTarget does). The rules, from the spec and CLAUDE.md:
-// - write only the settings in SWITCH_SETTINGS (routing of inputs 25 and 26, mappers 18–23), and only in preset 1;
+// Writing to the H12: targets (docs/h12-spec.md › What setTarget does) and sync modes (› Sync mode per device). The
+// rules, from the spec and CLAUDE.md:
+// - write only the settings in an allowed list, and only in preset 1: SWITCH_SETTINGS for targets (routing of inputs
+//   25 and 26, mappers 18–23), SYNC_SETTINGS for sync modes (message filters, and only their sync bits: a write
+//   that changes any other bit is refused);
 // - skip a setting that already has the wanted value (every write wears the H12's flash);
 // - read every written setting back, and stop at the first problem: an error answer, no answer, a bad checksum or a
 //   value that reads back differently.
@@ -8,6 +11,7 @@ import { answerBytes } from "./hub";
 import { ask, type Lane, type Listen } from "./link";
 import { hasInit } from "./mapper";
 import { presetOf } from "./status";
+import type { MaskedSetting } from "./sync";
 import { readSetting, Setting, settingWords, writeSetting } from "./sysex";
 import { sameWords, settingKey, SWITCH_SETTINGS, type SettingValue } from "./targets";
 
@@ -37,16 +41,21 @@ async function readWords(io: Io, w: Wanted): Promise<Got<number[]>> {
 
 export type Current = Map<string, number[]>;
 
-// Reads every setting a switch may write, so a switch can skip what already matches and the backup can keep them.
-export async function readSwitchSettings(io: Io): Promise<Got<Current>> {
+// A setting the app may write; with a mask, only those bits may change.
+export type Allowed = { label: string; setting: number; index: number; words: number; mask?: number };
+
+// Reads every setting in a list, so a write can skip what already matches and the backup can keep them.
+export async function readSettings(io: Io, list: readonly Allowed[]): Promise<Got<Current>> {
   const current: Current = new Map();
-  for (const s of SWITCH_SETTINGS) {
+  for (const s of list) {
     const got = await readWords(io, { label: s.label, setting: s.setting, index: s.index, count: s.words });
     if ("problem" in got) return got;
     current.set(settingKey(s), got.ok);
   }
   return { ok: current };
 }
+
+export const readSwitchSettings = (io: Io): Promise<Got<Current>> => readSettings(io, SWITCH_SETTINGS);
 
 async function presetProblem(io: Io): Promise<string | undefined> {
   const got = await readWords(io, { label: "Current preset", setting: Setting.currentPreset, index: 0, count: 1 });
@@ -55,12 +64,15 @@ async function presetProblem(io: Io): Promise<string | undefined> {
   return preset === 0 ? undefined : `The H12 is on preset ${preset + 1}: switch it to preset 1 first`;
 }
 
-// Refuses anything outside SWITCH_SETTINGS: the spec lists the only settings the app may change.
-function assertAllowed(v: SettingValue): void {
-  const allowed = SWITCH_SETTINGS.find((s) => s.setting === v.setting && s.index === v.index);
-  if (!allowed || allowed.words !== v.words.length) {
-    throw new Error(`Not a setting target switching may write: ${v.setting}:${v.index}`);
-  }
+// Refuses anything outside the allowed list (the spec lists the only settings the app may change), and for a masked
+// setting, any change outside its mask.
+function assertAllowed(v: SettingValue, list: readonly Allowed[], current: Current): void {
+  const allowed = list.find((s) => s.setting === v.setting && s.index === v.index);
+  if (!allowed || allowed.words !== v.words.length) throw new Error(`Not a setting the app may write: ${v.setting}:${v.index}`);
+  if (allowed.mask === undefined) return;
+  const now = current.get(settingKey(v));
+  const outside = now === undefined || v.words.some((w, i) => ((w ^ now[i]!) & ~allowed.mask!) !== 0);
+  if (outside) throw new Error(`${v.label}: only bits ${hexWords([allowed.mask])} may change`);
 }
 
 async function writeAndCheck(io: Io, v: SettingValue): Promise<string | undefined> {
@@ -85,9 +97,11 @@ function initProblem(wanted: SettingValue[]): string | undefined {
   return bad && `${bad.label}: ${hexWords(bad.words)} lacks the init byte 5A, which would reset the H12 at power-up`;
 }
 
-// Writes the settings that differ from `current` (read just before), each read back before the next.
-export async function applySettings(io: Io, wanted: SettingValue[], current: Current): Promise<ApplyReport> {
-  wanted.forEach(assertAllowed);
+// Writes the settings that differ from `current` (read just before), each read back before the next. `allowed` is
+// the list they must come from: SWITCH_SETTINGS unless given.
+export async function applySettings(io: Io, wanted: SettingValue[], current: Current,
+  allowed: readonly (Allowed | MaskedSetting)[] = SWITCH_SETTINGS): Promise<ApplyReport> {
+  wanted.forEach((v) => assertAllowed(v, allowed, current));
   const report: ApplyReport = { written: [], skipped: [], problem: initProblem(wanted) };
   if (report.problem) return report;
   const changes = wanted.filter((v) => !sameWords(current.get(settingKey(v)), v.words));

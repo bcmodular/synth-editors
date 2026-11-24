@@ -218,8 +218,8 @@ Value ranges for "all values": word 0 and word 1 = `0x7F007F00`.
 
 - **Live status:** send action `0x06` (start reports) on connect and `0x07` on close. Show the current preset and connected USB devices, and re-read settings when a "reload" bit (bit 31 of setting 4) arrives.
 - **Launchpad Pro row:** one pad per target, lit for the active target.
-- **Dump and restore:** read all routing (indices 0–29), channel filters and message filters (0–59) and mappers (0–23) into JSON for version control, and restore from it.
-- **Rule check on the dump:** clock only from MIDI In 1, channels 13–14 blocked on synth outputs, only channel 14 reaching the OXI.
+- **Dump and restore:** (dump and rule check built, 2026-11-24; restore not) read all routing (indices 0–29), channel filters and message filters (0–59) and mappers (0–23) into JSON for version control, and restore from it.
+- **Rule check on the dump:** (built) clock only from MIDI In 1, channels 13–14 blocked on synth outputs, only channel 14 reaching the OXI.
 
 ## Acceptance tests
 

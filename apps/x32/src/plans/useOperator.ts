@@ -39,13 +39,13 @@ export interface Plans extends Actions {
 const BAD: Outcome["kind"][] = ["mismatch", "offline"];
 const OFFLINE: Message = { text: "The desk isn't connected, so nothing was sent.", bad: true, kind: "offline" };
 
-function makeOperator(client: DeskClient | null): Operator | null {
+function makeOperator(client: DeskClient | null, reread: () => void): Operator | null {
   if (!client) return null;
   const io = {
     read: client.read.bind(client), write: client.write.bind(client), request: client.request.bind(client),
     connected: () => client.link === "connected",
   };
-  return new Operator(io, chatAllowed(studioShared));
+  return new Operator(io, chatAllowed(studioShared), reread);
 }
 
 // The catalogue matched to the desk's library as it is now (it can change in X32-Edit).
@@ -84,7 +84,7 @@ function actionsFor(operator: Operator | null, context: () => PlanContext, repor
 }
 
 export function useOperator(desk: Desk): Plans {
-  const operator = useMemo(() => makeOperator(desk.client), [desk.client]);
+  const operator = useMemo(() => makeOperator(desk.client, desk.reread), [desk.client, desk.reread]);
   const context = useMemo(() => contextOf(desk.cache, CATALOGUE), [desk.cache]);
   const [, setTick] = useState(0);
   const [message, setMessage] = useState<Message | null>(null);

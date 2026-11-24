@@ -141,17 +141,27 @@ export function removeInsert(ctx: PlanContext, req: { source: string }): Plan {
   return guarded(ctx, { summary, changes: [...off, ...refeed], confirm: "It changes an insert" });
 }
 
+// A synced delay's Time belongs to the tempo button, unless the delay runs free (Tempo panel).
+function checkTempoOwns(ctx: PlanContext, t: { slot: number; value: number }, param: string | undefined): void {
+  const synced = SYNCED.has(typeCode(t)) && !ctx.freeDelays?.includes(t.slot);
+  if (!synced || param !== "Time") return;
+  throw new Refused(`FX ${t.slot}'s delay time follows the tempo (the tempo button sets it; untick it in the Tempo panel to set it yourself); change Factor L/R for the note value instead`);
+}
+
+function knownEffect(t: { slot: number; value: number }): EffectDef {
+  const def = effectAt(t);
+  if (!def) throw new Refused(`The app doesn't know ${typeName(t)}'s parameters yet; it knows ${Object.keys(EFFECTS).join(", ")}`);
+  return def;
+}
+
 export function setFxParam(ctx: PlanContext, req: FxParamRequest): Plan {
   const slot = findSlot(deriveRig(ctx.get), req.target);
-  const value = typeOf(ctx, slot);
-  const def = effectAt({ slot, value });
-  if (!def) throw new Refused(`The app doesn't know ${typeName({ slot, value })}'s parameters yet; it knows ${Object.keys(EFFECTS).join(", ")}`);
+  const t = { slot, value: typeOf(ctx, slot) };
+  const def = knownEffect(t);
   const d = findParam(def, req.param);
-  if (SYNCED.has(typeCode({ slot, value })) && d?.name === "Time") {
-    throw new Refused(`FX ${slot}'s delay time follows the tempo (the tempo button sets it); change Factor L/R for the note value instead`);
-  }
+  checkTempoOwns(ctx, t, d?.name);
   const changes = paramChanges(ctx, slot, def, { [req.param]: req.value });
-  return guarded(ctx, { summary: `Set FX ${slot} (${typeName({ slot, value })}) ${d!.name} to ${req.value}${d!.unit ? ` ${d!.unit}` : ""}`, changes, confirm: null });
+  return guarded(ctx, { summary: `Set FX ${slot} (${typeName(t)}) ${d!.name} to ${req.value}${d!.unit ? ` ${d!.unit}` : ""}`, changes, confirm: null });
 }
 
 export function setFxType(ctx: PlanContext, req: FxTypeRequest): Plan {

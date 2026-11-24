@@ -68,6 +68,7 @@ export interface SyncedDelay {
   beats: number; // the note Time is set to
   time: string; // Time now, as the desk has it ("250 ms")
   factors: string; // the Factors, which set the note values ("Factor L 3/2, Factor R 3/2")
+  free: boolean; // runs free: the tempo button leaves it alone
 }
 
 const FX_SLOTS_WITH_DELAYS = [1, 2, 3, 4]; // FX 5-8 can't hold delays
@@ -84,17 +85,18 @@ export function syncedDelays(ctx: PlanContext): SyncedDelay[] {
       return `${d.name} ${fromDesk(d, Number(ctx.get(fxParam({ slot }, d).address) ?? 0))}`;
     };
     const factors = def.params.filter((d) => d.name.startsWith("Factor")).map((d) => read(d.name)).join(", ");
-    return [{ slot, name: typeName({ slot, value }), beats, time: read("Time").replace(/^Time /, ""), factors }];
+    const free = ctx.freeDelays?.includes(slot) ?? false;
+    return [{ slot, name: typeName({ slot, value }), beats, time: read("Time").replace(/^Time /, ""), factors, free }];
   });
 }
 
 // Time in ms for a note at a tempo, within the delay's range.
 export const timeMs = (bpm: number, beats: number): number => Math.min(3000, Math.max(1, (60_000 / bpm) * beats));
 
-// The plan the tempo button applies: every synced delay's Time to the tempo. Not confirmed (the press is the
-// confirmation) and not undone (the next press sets it again).
+// The plan the tempo button applies: every synced delay's Time to the tempo, except those running free. Not confirmed
+// (the press is the confirmation) and not undone (the next press sets it again).
 export function tempoPlan(ctx: PlanContext, bpm: number): Plan {
-  const delays = syncedDelays(ctx);
+  const delays = syncedDelays(ctx).filter((d) => !d.free);
   const changes = delays.flatMap((d) => {
     const def = effectAt({ slot: d.slot, value: Number(ctx.get(fx(d.slot).type.address)) })!;
     const time = findParam(def, "Time")!;

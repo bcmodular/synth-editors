@@ -11,6 +11,7 @@ import { libraryNames } from "../core/library";
 import { inLibrary, parsePresets, type Preset } from "../core/presets";
 import fxPresets from "../../rig/fx-presets.json";
 import type { Desk } from "../desk/useDesk";
+import { freeDelays } from "../tempo/freeDelays";
 import { studioFeeds, studioShared } from "./studioShared";
 
 export interface Message {
@@ -51,7 +52,7 @@ function makeOperator(client: DeskClient | null, reread: () => void): Operator |
 // The catalogue matched to the desk's library as it is now (it can change in X32-Edit).
 const contextOf = (cache: DeskCache, catalogue: Preset[]) => (): PlanContext => {
   const get = (a: string) => cache.get(a);
-  return { get, shared: studioShared, feeds: studioFeeds, presets: inLibrary(catalogue, libraryNames(get)) };
+  return { get, shared: studioShared, feeds: studioFeeds, presets: inLibrary(catalogue, libraryNames(get)), freeDelays: freeDelays() };
 };
 
 // The catalogue of the desk's factory FX library (rig/fx-presets.json).

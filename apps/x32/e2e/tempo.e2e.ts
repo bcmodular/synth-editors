@@ -57,6 +57,17 @@ test("shows the tempo and writes the delays only when the button is pressed (acc
   await expect(r.page.locator(".panel.sends .undo")).toHaveCount(0); // not on the undo stack
 });
 
+test("a delay set to run free is left alone, and the choice is remembered", async () => {
+  const r = await ready();
+  await panel(r.page).getByLabel("FX 3 follows the tempo").uncheck();
+  await expect(panel(r.page).locator(".delays")).toContainText("runs free");
+  await clock(r.page, 120, 3);
+  await button(r.page).click();
+  await expect(panel(r.page).locator(".outcome")).toContainText("Done: Set the delays to 120 BPM: FX 2 500 ms");
+  await r.page.reload();
+  await expect(panel(r.page).getByLabel("FX 3 follows the tempo")).not.toBeChecked();
+});
+
 test("keeps the last tempo after the clock stops, and can still set it", async () => {
   const r = await ready();
   const at = await clock(r.page, 128, 3);

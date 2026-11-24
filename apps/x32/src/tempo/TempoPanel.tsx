@@ -1,9 +1,10 @@
 // The tempo bridge (docs/x32-spec.md, phase 6): the clock's tempo, the delays it syncs and their times now, and the
 // one button that writes them. Nothing changes until it's pressed.
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { syncedDelays, timeMs, type SyncedDelay } from "../core/tempo";
 import type { Message, Plans } from "../plans/useOperator";
+import { freeDelays, onFreeChange, setFree } from "./freeDelays";
 import type { TempoState } from "./useTempoBridge";
 
 const NOTE: Record<number, string> = { 0.5: "an eighth", 1: "a quarter" };
@@ -16,20 +17,26 @@ function clockText(t: TempoState): string {
 }
 
 function DelayRow({ d, bpm }: { d: SyncedDelay; bpm: number | null }) {
-  const next = bpm === null ? "" : ` → ${Math.round(timeMs(bpm, d.beats))} ms`;
+  const next = bpm === null || d.free ? "" : ` → ${Math.round(timeMs(bpm, d.beats))} ms`;
+  const note = d.free ? "runs free" : `Time is ${NOTE[d.beats] ?? `${d.beats} beats`}`;
   return (
-    <li>
-      FX {d.slot} {d.name}: {d.time}{next} <span className="dim">(Time is {NOTE[d.beats] ?? `${d.beats} beats`}; {d.factors})</span>
+    <li className={d.free ? "free" : ""}>
+      <label>
+        <input type="checkbox" checked={!d.free} onChange={(e) => setFree(d.slot, !e.target.checked)} aria-label={`FX ${d.slot} follows the tempo`} />{" "}
+        FX {d.slot} {d.name}: {d.time}{next}
+      </label>{" "}
+      <span className="dim">({note}; {d.factors})</span>
     </li>
   );
 }
 
 // Ready when there's a tempo that isn't moving (or the clock has stopped on one), delays to set and a desk to set them on.
 const ready = (t: TempoState, delays: SyncedDelay[], connected: boolean) =>
-  connected && delays.length > 0 && t.bpm !== null && (t.settled || !t.running);
+  connected && delays.some((d) => !d.free) && t.bpm !== null && (t.settled || !t.running);
 
 export function TempoPanel({ tempo, plans, connected }: { tempo: TempoState; plans: Plans; connected: boolean }) {
   const [done, setDone] = useState<Message | null>(null);
+  useSyncExternalStore(onFreeChange, freeDelays); // a switch changes the list and the button
   const delays = syncedDelays(plans.context());
   const press = async () => setDone(await tempo.set());
   return (

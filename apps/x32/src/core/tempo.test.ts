@@ -60,6 +60,15 @@ describe("tempoPlan", () => {
     expect(w["/fx/3/par/02"]).toBeCloseTo(249 / 2999, 6); // DLY Time is par 2
   });
 
+  it("leaves a delay that runs free", () => {
+    const { ctx, set } = setup();
+    set(2, 12);
+    set(3, 10);
+    const free = { ...ctx, freeDelays: [3] };
+    expect(syncedDelays(free).map((d) => d.free)).toEqual([false, true]);
+    expect(tempoPlan(free, 120).summary).toBe("Set the delays to 120 BPM: FX 2 500 ms");
+  });
+
   it("does nothing without delays, and keeps Time in range", () => {
     expect(tempoPlan(setup().ctx, 120).changes).toEqual([]);
     expect([timeMs(30, 1), timeMs(10, 1), timeMs(300, 0.5)]).toEqual([2000, 3000, 100]);

@@ -42,6 +42,7 @@ export interface PlanContext {
   shared: SharedBus[];
   feeds?: RigFx[]; // the rig file's FX feeds, put back when an insert that took a fed slot is removed
   presets?: LibPreset[]; // the preset catalogue, matched to the desk's FX library
+  freeDelays?: number[]; // FX slots whose delay runs free: the tempo button leaves them, and the chat may set their Time
 }
 
 export type SendMode = "add" | "replace";

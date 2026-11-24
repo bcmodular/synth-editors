@@ -87,6 +87,7 @@ describe("setFxParam and setFxType", () => {
     const ctx = desk();
     ctx.apply(insertFx(ctx, { source: "TD-3-MO", effect: "DLY" }));
     expect(() => setFxParam(ctx, { target: "TD-3-MO", param: "Time", value: 300 })).toThrow("follows the tempo");
+    expect(setFxParam({ ...ctx, freeDelays: [4] }, { target: "TD-3-MO", param: "Time", value: 300 }).summary).toMatch(/Time to 300 ms/); // runs free
     expect(writes(setFxParam(ctx, { target: "FX 4", param: "Factor L", value: "1" }))).toEqual({ "/fx/4/par/04": 4 });
   });
 

@@ -2,18 +2,20 @@
 
 An inventory made 2026-11-16 from [jv2080-design.md](jv2080-design.md), [jv2080-not-in-editor.md](jv2080-not-in-editor.md),
 PLAN.md and the code in `apps/jv2080`; updated the same day after undo, the library, CC learn and the end-to-end
-tests went in. Where these disagree, this list says which is current.
+tests went in, and again on 2026-11-24 after the controllers, CC learn on handles, the packaged build and the
+hardware test mode. Where these disagree, this list says which is current.
 
 ## Where it stands
 
-Phases 3 and 4 are done, and Phase 5 apart from packaging. The editor has:
+Phases 3, 4 and 5 are done. The editor has:
 - the mixer, EFX with a view for every type, chorus, reverb, patch settings, four tone columns with envelope
   graphs, the wave library;
 - (i) help for every section;
 - fit zoom, demo mode;
-- every patch parameter except the controller matrix and the EFX control;
+- every patch parameter, the controller matrix and EFX control included;
 - undo / redo, the library sidebar (slots, sets, patch files, auditions), and CC learn from a controller;
-- end-to-end tests against a fake JV.
+- a name and icon, and a packaged build (`npm run package:jv2080`);
+- end-to-end tests against a fake JV, and on the real one (`npm run test:jv2080`).
 
 ## 1. Check on the JV
 
@@ -36,18 +38,18 @@ Much of the recent work has only been tested in demo mode or against the manual.
 - [ ] Recall a slot, hold ▶ on a file, GRAB a slot: each audition plays on the JV and the release goes back.
 - [ ] Quit and reopen: the editor's patch goes to the JV.
 - [ ] CC learn with a real controller: a knob in pickup and relative modes, and an EFX knob that stops when the
-      type changes.
+      type changes; an envelope point (it asks time or level) and an EQ handle.
+- [ ] CONTROL: controller 2 on an expression pedal or aftertouch to CUT on tone 1, and the mod lever to PL1 for
+      vibrato; an EFX control source with a type whose realtime parameter you know (eg. ROTARY's speed).
+- [ ] `npm run test:jv2080` with the JV on: every hardware test passes and the JV ends on the patch it started on.
+- [ ] The packaged app: `npm run package:jv2080`, open the DMG, check the name and icon in the Dock and menu bar.
 
 ## 2. Finish Phase 3 (editor)
 
 - [x] **Undo / redo** (2026-11-16).
-- [ ] **Controller matrix:**
-      - Patch Control Source 2–3 and Control 1–3 Hold/Peak;
-      - each tone's Controller 1–3 × Destination 1–4 with their depths.
-
-      It's the last group of patch parameters. A panel with a 3 × 4 matrix per tone.
-- [ ] **EFX control:** EFX Control Source 1–2, Depth 1–2 and Hold/Peak, which move the type's realtime (#)
-      parameter.
+- [x] **Controller matrix** and **EFX control** (2026-11-24): CONTROL in the mixer's header.
+- [ ] The EFX help could say which parameter is each type's realtime (#) one: the manual marks them on p. 34–53, but
+      they aren't transcribed yet.
 - [ ] **Rates and times in real units.** 75 EFX parameters have kind `unknown` and show the raw value, as "(63)".
       The chorus rate and pre-delay, reverb time, LFO rates and envelope times are raw 0–127 too. The EFX drawings
       for delays, pre-delays and rates are drawn in proportion only. This needs a table of raw → Hz / ms: measured
@@ -84,15 +86,16 @@ Built 2026-11-16 (see jv2080-design.md, Phases). Left over:
 ## 5. Phase 5 — controllers and packaging
 
 - [x] CC learn (2026-11-16): CC ▾ in the top strip.
-- [ ] CC learn for the envelope graphs and the EFX drawings' handles: they have no single control to click. Their
-      parameters can still be learned where a knob shows them.
+- [x] CC learn for the envelope points and the EFX drawings' handles (2026-11-24).
 - [x] Launchpad: not wanted.
-- [ ] A packaged build. The TB-3 has an `electron-builder` config; the JV app has only `vite build`.
+- [x] A packaged build, with the app's name and icon (2026-11-24). Unsigned, as the TB-3's: the first open needs
+      right-click › Open.
 
 ## 6. Tests
 
-- [x] **End-to-end tests** (`npm run test:e2e:jv2080`, 17 tests) against a fake JV with a stand-in controller.
-- [ ] A hardware mode for them, like the TB-3's `TB3_HW=1`, that restores the JV's patch afterwards.
+- [x] **End-to-end tests** (`npm run test:e2e:jv2080`, 19 tests) against a fake JV with a stand-in controller.
+- [x] A hardware mode (`npm run test:jv2080`, 2026-11-24) that restores the JV's patch afterwards. Not yet run on
+      the JV.
 - [x] Edits from the JV's own panel coming back into the editor.
 - [ ] Unit tests cover `core/`, the session rules, undo history, set files, CC targets and solo; the React
       components are covered only by the end-to-end tests.

@@ -1,5 +1,8 @@
 # JV-2080 editor — patch features not in the editor yet
 
+**Update, 2026-11-24:** the controller matrix and the EFX control are in too (CONTROL in the mixer's header), so
+every patch parameter below is now in the editor.
+
 **Update, 2026-11-15:** everything below except the controller matrix (Patch Control Sources, Hold/Peak, the
 tones' Controller 1–3 destinations and depths) and the EFX Control Source/Depth is now in the editor
 (`core/paramsMore.ts`):

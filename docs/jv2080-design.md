@@ -1,6 +1,6 @@
 # JV-2080 editor — design (draft)
 
-Status: **the editor, library and CC learn are built** (2026-11-16); what is left is in
+Status: **the editor, library, CC learn and a packaged build are done** (2026-11-24); what is left is in
 [jv2080-remaining.md](jv2080-remaining.md). It started as a TouchOSC plan in `touchosc-controllers` and moved here on
 2026-11-14 so it follows the TB-3 and SP-404 apps' stack and conventions (see [PLAN.md](../PLAN.md)).
 
@@ -188,7 +188,9 @@ Follows the TB-3's split:
    new EFX type with its start values, an envelope reset), other edits merge per parameter
    (`editor/undoGesture.ts`); a restored patch goes to the JV as the bytes that differ from what it holds
    (`editor/useJvSender.ts`). Controls are copied from the TB-3 (`src/ui`) until the shared-package question is
-   decided. Still to do: the controller matrix and EFX control (see jv2080-remaining.md).
+   decided. **Controllers** (2026-11-24): CONTROL in the mixer's header, a tab per controller (source, hold/peak, and
+   each tone's four destinations with depths) and one for the EFX control (`core/paramsControl.ts`). Every patch
+   parameter is now in the editor.
 4. **Library** ✅ (2026-11-16) — the TB-3's sidebar without the morph, shown or hidden by LIBRARY in the top strip
    (the fit zoom takes in its width): PATCH (SAVE AS… `.syx`), SET (16 slots, 8 × 2: recall, STORE, DELETE, GRAB,
    swap and copy by dragging, rename, revert; NEW / SAVE / SAVE AS… `.jvset`) and the library browser (▶ to audition,
@@ -199,13 +201,19 @@ Follows the TB-3's split:
 5. **Controllers and packaging** — **CC learn** ✅ (2026-11-16): CC ▾ in the top strip chooses the controller's
    port; LEARN, then click a knob, fader or row of buttons and move a knob. A CC drives a patch parameter (in its
    tone) or one EFX type's parameter, which only moves while that type is selected; modes relative / pickup / jump
-   (`packages/cc-learn`). Nothing from the controller is passed on to the JV. Launchpad: not wanted. Still to do: a
-   packaged build.
+   (`packages/cc-learn`). Nothing from the controller is passed on to the JV. Envelope points and the effect drawings'
+   handles can be learned too (2026-11-24): pressing one while learning picks what it sets, asking which for a handle
+   that sets two values (`ui/dragXY.ts` setDragPicker). Launchpad: not wanted. **Packaged build** ✅ (2026-11-24):
+   `npm run package:jv2080` (electron-builder, Mac DMGs; `--win` adds a Windows installer). The app is called
+   "JV-2080 Editor", in dev too; its icon (`build/icon.svg`, rendered by `scripts/makeIcon.mjs`) is the four tones
+   side by side, each an envelope in its colour, over "JV" in the editor's green.
 
 **Tests.** `npm run test:e2e:jv2080` runs the built app in Electron against a fake JV (`apps/jv2080/e2e/fakeJv.ts`)
 that keeps its memory by address, answers RQ1s, loads presets on a program change and has a stand-in controller:
 reading on start, edits with undo, the bank browser, EFX start values, a JV that doesn't answer, the library, a
-relaunch and CC learn. There is no hardware mode yet.
+relaunch, the controllers and CC learn. `npm run test:jv2080` runs them on the real JV (`JV_PORT`, default H12MIDI-Pro
+Port 5): each test sends the JV its patch first and puts the JV's own back at the end; the tests that need the fake
+are skipped.
 
 ## Open questions
 

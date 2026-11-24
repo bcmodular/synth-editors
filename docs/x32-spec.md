@@ -415,7 +415,11 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
    desk's settings, it follows a source to a bus, a shared bus's target or the main mix and lists what stops it: no
    socket routed to a channel, mutes and engaged mute groups, the fader and DCAs when the send is post-fader, the send,
    the bus's mute and master, and where the bus goes; with the target's notes from the rig file. It writes nothing; the
-   model offers the fixes its tools can make. Addendum test 6. Still to do: `traceSignal` with `/meters` (tests 7-9).
+   model offers the fixes its tools can make. Addendum test 6. `traceSignal` **built 24 Nov** too (`meters.ts`,
+   `trace.ts`, the chat's `trace_signal`; against the fake): it subscribes to the meter banks along the path, keeps the
+   peaks for 1-8 s while the source plays, and names the first silent stage (below -60 dBFS), with the settings check's
+   reasons. Tests 7-8 (no level at the channel; a silent bus). Not yet checked on the desk: bank 4's indices for
+   outputs and aux outs, partly inferred. The desk tests are in `docs/x32-test-checklist.md`.
 8. **Scenes and snippets (built 24 Nov, against the fake):** `show.ts` and the chat's `recall` and `save_snippet`.
    Recall a scene or snippet by name; save the routing (sends, output patches, names; optionally inserts and FX) as a
    snippet, by setting its filters (`/-show/showfile/snippet/NNN/eventtyp` and the strip bitmaps) and then

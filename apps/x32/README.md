@@ -25,7 +25,8 @@ The window has six panels:
   - a channel insert ("put a delay on the TD-3") and effect settings ("give the reverb a 3 second tail");
   - presets from the desk's factory FX library, chosen by sound ("a warm slapback on the TD-3");
   - why something can't be heard, from the desk's settings ("I can't hear the S-1 on the sampler"): no input, mutes,
-    mute groups, faders and DCAs, the send, the bus, and where the bus goes;
+    mute groups, faders and DCAs, the send, the bus, and where the bus goes; and, while the source plays, from the
+    desk's meters along the path ("trace the TB-3 to the reverb, it's playing");
   - whether the desk still matches the rig file ("is everything still set up right?");
   - scenes and snippets: recall one by name, or save the routing as a snippet ("save this as TR-8S into SP-404").
 

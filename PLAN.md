@@ -25,14 +25,18 @@ Mk1 for preset triggering, generic CC learn for other controllers (e.g. Launchke
 ```
 apps/
   tb3/            TB-3 editor (Electron main + React renderer)
-  sp404/          SP-404 MK2 editor (later)
+  sp404/          SP-404 MK2 editor
+  jv2080/         JV-2080 editor and librarian
+  h12/            H12 target switcher
+  x32/            X32 Rack chat control over OSC
 packages/
-  midi/           Web MIDI access, port selection, remembered ports, reconnect, SysEx helpers
+  midi/           Web MIDI access, port listing, remembered port choices, SysEx helpers
   launchpad/      Launchpad Pro Mk1 driver: Programmer layout, LED colours, pad/side-button events, pressure
-  cc-learn/       learn + dispatch of CC assignments, takeover modes, persisted assignments
-  bank-files/     versioned JSON bank format, open/save/recent/autosave
-  ui/             fader, value label, slot grid, double-click-to-reset
+  cc-learn/       CC assignments, takeover modes, parsing stored assignments
+  audio/          USB audio input, and the scopes' pure pieces (meters, spectrum, spectrogram)
 ```
+
+Each app keeps its own set files, dialogs and controls: the planned `bank-files` and `ui` packages were never needed.
 
 ## CC learn and controller behaviour
 
@@ -77,20 +81,23 @@ those blocks through a typed parameter table. This replaces the TouchOSC split b
 - Sync from TB-3, sync to TB-3.
 - Parameter assign mode (XY pad MOD / X / Y, effect knob).
 
-### Phase 3 — Patch library, slots and sets
-- See [docs/tb3-phase3-design.md](docs/tb3-phase3-design.md): a browsable folder of .syx patches,
-  16 slots per self-contained set file, click-empty-to-store, DELETE / GRAB modes, preset morph to a slot,
-  unsaved edits kept across launches.
-- To do: [docs/tb3-phase3-todo.md](docs/tb3-phase3-todo.md).
+### Phase 3 — Patch library, slots and sets (done: docs/tb3-phase3-design.md)
+- A browsable folder of .syx patches, 64 slots (8 × 8) per self-contained set file, click-empty-to-store, drag to
+  swap, revert to saved, DELETE / GRAB modes, preset morph to a slot, undo, unsaved edits kept across launches.
+- Morph stays marked experimental: a fast drag between very different patches can leave the TB-3 out of step
+  ([docs/tb3-phase3-todo.md](docs/tb3-phase3-todo.md)).
 
 ### Phase 4 — Controllers (done: docs/tb3-phase4-design.md)
-- Launchpad: top two rows → 16 slots with mode colours; side buttons for morph, delete (hold),
-  grab (hold), sync, brightness; pad pressure → morph amount.
-- Launchkey: note / pitch-bend pass-through, CC learn with seeded defaults.
+- Launchpad: the 8 × 8 grid → the 64 slots, in their row colours, with mode colours; side buttons for morph,
+  delete (hold), grab (hold), sync, brightness; pad pressure → morph amount.
+- Launchkey: note / pitch-bend pass-through, CC learn with seeded defaults, EFX parameters included.
 
 ### Phase 5 — Packaging
-- Signed Electron build, remembered ports with reconnect, settings window.
-- Settings window done: [docs/tb3-phase5-design.md](docs/tb3-phase5-design.md).
+- Done: Mac (arm64, x64) and Windows installers built by GitHub Actions on a `tb3-v*` tag, unsigned (ad-hoc on the
+  Mac); the app's name and icon (`apps/tb3/build/icon.svg`); a settings window
+  ([docs/tb3-phase5-design.md](docs/tb3-phase5-design.md)).
+- To do: signing (an Apple Developer ID and a Windows certificate, both paid); checking that an unplugged TB-3 or
+  Launchpad picks up again cleanly; trying the Windows build on a real PC.
 
 ## SP-404 MK2 — after TB-3
 

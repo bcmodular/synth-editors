@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- The TB-3 Editor's icon, in the JV-2080 Editor's style: a dark panel with a resonant low-pass sweep, as the
+       editor's FILTER section draws it (its cyan), and "TB-3" in the editor's green. Rendered to icon.png by
+       scripts/makeIcon.mjs. -->
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2b30" />
+      <stop offset="1" stop-color="#141417" />
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b0c0e" />
+      <stop offset="1" stop-color="#18191c" />
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#panel)" />
+  <rect x="101.5" y="101.5" width="821" height="821" rx="183.5" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="3" />
+  <rect x="172" y="206" width="680" height="290" rx="22" fill="url(#screen)" stroke="#000" stroke-opacity="0.6" stroke-width="3" />
+  <g stroke="#ffffff" stroke-opacity="0.06" stroke-width="3">
+    <line x1="342" y1="214" x2="342" y2="488" />
+    <line x1="512" y1="214" x2="512" y2="488" />
+    <line x1="682" y1="214" x2="682" y2="488" />
+    <line x1="180" y1="351" x2="844" y2="351" />
+  </g>
+  <path d="M190,351 L500,351 C570,351 592,238 628,238 C664,238 682,380 730,448 C752,478 772,482 800,482 L190,482 Z"
+    fill="#8de3ee" fill-opacity="0.22" />
+  <path d="M190,351 L500,351 C570,351 592,238 628,238 C664,238 682,380 730,448 C752,478 772,482 800,482 L834,482"
+    fill="none" stroke="#8de3ee" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="512" y="812" text-anchor="middle" font-family="Archivo" font-weight="800" font-stretch="75%" font-size="250"
+    letter-spacing="6" fill="#7be890">TB-3</text>
+</svg>

@@ -6,6 +6,14 @@ const fsp = require("node:fs/promises");
 const path = require("node:path");
 
 const MIDI_PERMISSIONS = new Set(["midi", "midiSysex"]);
+const APP_NAME = "TB-3 Editor";
+const ICON = path.join(__dirname, "..", "build", "icon.png"); // dev only: a packaged app has its own (package.json build)
+
+// The app's name in the menu bar, the Dock and About, in dev too (a packaged app takes it from build.productName).
+// Settings stay where they were, under the package's name, so a dev run keeps its ports, library and session.
+const userData = app.getPath("userData");
+app.setName(APP_NAME);
+app.setPath("userData", userData);
 const LIBRARY_EXTS = new Set([".syx", ".tb3set"]);
 
 // End-to-end tests set this to keep the window off screen and out of the Dock, painting as if it were shown.
@@ -19,7 +27,8 @@ function createWindow() {
     height: 860,
     minWidth: 640,
     minHeight: 360,
-    title: "TB-3 Editor",
+    title: APP_NAME,
+    icon: app.isPackaged ? undefined : ICON,
     backgroundColor: "#121214",
     autoHideMenuBar: process.platform !== "darwin", // Windows: no menu bar over the editor (Alt shows it)
     show: !HIDDEN,
@@ -160,6 +169,7 @@ function buildMenu() {
 
 app.whenReady().then(() => {
   if (HIDDEN) app.dock?.hide();
+  else if (!app.isPackaged) app.dock?.setIcon(ICON);
   // MIDI, and audio input for VCO MIX's LIVE view (never the camera).
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
     const types = details.mediaTypes ?? [];

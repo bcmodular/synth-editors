@@ -1,6 +1,6 @@
 {
   "name": "@synth-editors/tb3",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",
@@ -37,8 +37,10 @@
     "productName": "TB-3 Editor",
     "artifactName": "TB-3-Editor-${version}-${os}-${arch}.${ext}",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
+    "icon": "build/icon.png",
     "files": [
       "electron/**",
       "dist/**",

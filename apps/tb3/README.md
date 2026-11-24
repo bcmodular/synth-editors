@@ -43,8 +43,8 @@ so build somewhere else with `TB3_RELEASE_DIR`.
 For a release, bump `version` in `apps/tb3/package.json`, then push a tag:
 
 ```bash
-git tag tb3-v0.1.1
-git push origin tb3-v0.1.1
+git tag tb3-v0.2.0
+git push origin tb3-v0.2.0
 ```
 
 GitHub Actions (`.github/workflows/tb3-release.yml`) builds the Mac and Windows installers and

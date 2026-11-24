@@ -1,7 +1,7 @@
 # TB-3 Phase 3 — to do
 
-What's left for the patch library, slots and sets. The design is in
-[tb3-phase3-design.md](tb3-phase3-design.md); tick items off here as they land.
+Status: **done**. Everything here has landed, apart from morph, which is parked as experimental (below). The
+design is in [tb3-phase3-design.md](tb3-phase3-design.md).
 
 ## Features
 

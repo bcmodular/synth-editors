@@ -30,6 +30,7 @@ const host = (): ToolHost & { ran: string[] } => {
     state: (names) => `state of ${names.join(", ") || "everything"}`,
     presets: (query) => `presets for ${query}`,
     check: () => ({ text: "checked", kind: "state" }),
+    checkRig: async () => ({ text: "matches", kind: "state" }),
     run: async (make) => {
       ran.push("run");
       void make;

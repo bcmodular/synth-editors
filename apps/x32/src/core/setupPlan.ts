@@ -54,3 +54,20 @@ export function show(v: DeskValue | undefined, type?: string): string {
   if (showsAsDb(v, type)) return formatDb(v);
   return typeof v === "string" ? `"${v}"` : String(v);
 }
+
+const AREA_NAME: Record<Area, string> = {
+  routing: "input routing", channels: "channels", buses: "buses", outputs: "outputs", fx: "FX feeds", card: "USB card",
+};
+const EXAMPLES = 3;
+
+// The plan in a few lines, for the chat: what differs by area, with a few examples each.
+export function driftText(plan: SetupPlan): string {
+  if (!plan.changes.length) return `The desk matches the rig file (${plan.unchanged} settings checked).`;
+  const areas = AREAS.filter((a) => plan.byArea[a].length).map((a) => {
+    const c = plan.byArea[a];
+    const shown = c.slice(0, EXAMPLES).map((x) => `${x.what} (now ${show(x.from, x.param.type)})`).join("; ");
+    return `- ${AREA_NAME[a]}: ${c.length} ${c.length === 1 ? "setting" : "settings"}, e.g. ${shown}`;
+  });
+  const n = plan.changes.length;
+  return `${n} ${n === 1 ? "setting differs" : "settings differ"} from the rig file; ${plan.unchanged} match.\n${areas.join("\n")}\nThe Setup panel's Apply sets them (after a backup scene); the chat doesn't.`;
+}

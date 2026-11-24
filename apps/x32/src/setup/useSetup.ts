@@ -25,7 +25,7 @@ export interface Setup {
   apply: (areas: Area[]) => Promise<void>;
 }
 
-function loadTargets(): { targets: Target[]; manual: string[] } | { error: string } {
+export function loadTargets(): { targets: Target[]; manual: string[] } | { error: string } {
   try {
     const rig = parseRigFile(studio);
     return { targets: desiredTargets(rig), manual: manualSteps(rig) };

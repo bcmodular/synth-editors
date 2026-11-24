@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import studio from "../../rig/studio.json";
 import { desiredTargets } from "./desired";
 import { parseRigFile } from "./rigFile";
-import { applyOrder, manualSteps, planSetup, show } from "./setupPlan";
+import { applyOrder, driftText, manualSteps, planSetup, show } from "./setupPlan";
 
 const rig = parseRigFile(studio);
 const targets = desiredTargets(rig);
@@ -42,5 +42,12 @@ describe("planSetup", () => {
     expect(show(3)).toBe("3");
     expect(show(0, "f")).toBe("-∞");
     expect(show(0, "i")).toBe("0");
+  });
+
+  it("says what differs in a few lines for the chat", () => {
+    expect(driftText(planSetup(targets, (a) => new Map(targets.map((t) => [t.param.address, t.value])).get(a)))).toMatch(/^The desk matches the rig file/);
+    const text = driftText(planSetup(targets, () => undefined));
+    expect(text).toMatch(/settings differ from the rig file; 0 match\.\n- input routing: 36 settings, e\.g\. /);
+    expect(text).toContain("The Setup panel's Apply sets them");
   });
 });

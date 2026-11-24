@@ -5,7 +5,9 @@
 import { execFileSync } from "node:child_process";
 import Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it } from "vitest";
-import { memoryDesk, STUDIO_PRESETS, studioShared } from "../../e2e/studio";
+import { memoryDesk, STUDIO_PRESETS, studioRig, studioShared } from "../../e2e/studio";
+import { desiredTargets } from "./desired";
+import { driftText, planSetup } from "./setupPlan";
 import { libraryNames } from "./library";
 import { checkOutcome } from "./pathCheck";
 import { inLibrary, presetsText } from "./presets";
@@ -45,6 +47,7 @@ function session(create: Create) {
     state: (names) => rigSummary({ get: ctx().get, shared: studioShared, names }),
     presets: (query) => presetsText(ctx().presets ?? [], query),
     check: (req) => checkOutcome(ctx(), req),
+    checkRig: async () => ({ text: driftText(planSetup(desiredTargets(studioRig), ctx().get)), kind: "state" }),
     run: (make) => settle(async () => operator.propose(make(ctx()))),
     undo: () => settle(() => operator.undo(ctx())),
   };
@@ -140,6 +143,10 @@ const CASES: Case[] = [
       const c = t.calls.find((x) => x.name === "save_snippet");
       return c?.input.name === "Jam night" && c.kind === "applied" ? null : `expected save_snippet "Jam night", got ${JSON.stringify(t.calls.map((x) => [x.name, x.input, x.kind]))}`;
     },
+  },
+  {
+    say: ["is the desk still set up the way the rig file says?"],
+    check: (t) => (t.calls.some((x) => x.name === "check_rig") ? null : `expected check_rig, got ${JSON.stringify(t.calls.map((x) => x.name))}`),
   },
   {
     say: ["what's going to the reverb?"],

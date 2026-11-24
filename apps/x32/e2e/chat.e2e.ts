@@ -213,3 +213,15 @@ test("finds why a source can't be heard, from the desk's settings (acceptance 16
   expect(JSON.stringify((await requests(r))[1]!.messages.at(-1))).toContain("ch 7 is muted");
   expect(r.fake!.received.filter((m) => m.args.length && m.address.startsWith("/ch/"))).toEqual([]); // wrote nothing
 });
+
+test("says how the desk differs from the rig file, writing nothing", async () => {
+  const r = await ready();
+  r.fake!.set({ address: "/ch/09/config/name", type: "s" }, "S1 typo");
+  await script(r, [reply([tool("check_rig", {})], "tool_use"), reply([text("One name differs.")], "end_turn")]);
+  await say(r.page, "is everything still set up right?");
+  await expect(panel(r.page).locator(".transcript")).toContainText("One name differs.");
+  const result = JSON.stringify((await requests(r))[1]!.messages.at(-1));
+  expect(result).toContain("1 setting differs from the rig file");
+  expect(result).toContain('ch 9 named \\"S-1\\" (now \\"S1 typo\\")');
+  expect(r.fake!.received.filter((m) => m.args.length && m.address.startsWith("/ch/"))).toEqual([]);
+});

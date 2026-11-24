@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- SP40MORE's icon: the SP-404's 4×4 pads, a diagonal lit in its button orange, ending in a "+" (more).
+       The tile follows the macOS icon grid (824 px on a 1024 canvas). Rendered by scripts/icon.mjs. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232429"/>
+      <stop offset="1" stop-color="#0b0b0c"/>
+    </linearGradient>
+    <linearGradient id="pad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34353b"/>
+      <stop offset="1" stop-color="#26272c"/>
+    </linearGradient>
+    <linearGradient id="lit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffa04d"/>
+      <stop offset="1" stop-color="#ff7a1a"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#tile)" filter="url(#shadow)"/>
+  <rect x="101.5" y="101.5" width="821" height="821" rx="183.5" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="3"/>
+  <g id="pads">
+    <!-- 4×4, 132 px pads, 32 px gaps, from (200, 200) -->
+    <g fill="url(#pad)">
+      <rect x="364" y="200" width="132" height="132" rx="24"/><rect x="528" y="200" width="132" height="132" rx="24"/>
+      <rect x="692" y="200" width="132" height="132" rx="24"/>
+      <rect x="200" y="364" width="132" height="132" rx="24"/><rect x="528" y="364" width="132" height="132" rx="24"/>
+      <rect x="692" y="364" width="132" height="132" rx="24"/>
+      <rect x="200" y="528" width="132" height="132" rx="24"/><rect x="364" y="528" width="132" height="132" rx="24"/>
+      <rect x="692" y="528" width="132" height="132" rx="24"/>
+      <rect x="200" y="692" width="132" height="132" rx="24"/><rect x="364" y="692" width="132" height="132" rx="24"/>
+      <rect x="528" y="692" width="132" height="132" rx="24"/>
+    </g>
+    <g fill="#ff7a1a" opacity="0.55" filter="url(#glow)">
+      <rect x="200" y="200" width="132" height="132" rx="24"/><rect x="364" y="364" width="132" height="132" rx="24"/>
+      <rect x="528" y="528" width="132" height="132" rx="24"/>
+    </g>
+    <g fill="url(#lit)">
+      <rect x="200" y="200" width="132" height="132" rx="24"/><rect x="364" y="364" width="132" height="132" rx="24"/>
+      <rect x="528" y="528" width="132" height="132" rx="24"/>
+    </g>
+    <!-- the last pad is a "+" -->
+    <g fill="#ff7a1a">
+      <rect x="738" y="692" width="40" height="132" rx="12"/>
+      <rect x="692" y="738" width="132" height="40" rx="12"/>
+    </g>
+  </g>
+</svg>

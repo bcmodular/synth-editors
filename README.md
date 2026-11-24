@@ -28,7 +28,7 @@ in development and run from source. The roadmap is in [PLAN.md](PLAN.md).
 ```bash
 npm install
 npm run dev:tb3      # Vite dev server + Electron window
-npm run dev:sp404    # SP-404 MK2 editor (the Phase 0 spike is at #spike)
+npm run dev:sp404    # SP40MORE, the SP-404 MK2 editor (the Phase 0 spike is at #spike)
 npm run dev:jv2080   # JV-2080 editor and librarian
 npm run dev:h12      # H12 target switcher
 npm run dev:x32      # X32 chat control (finds the desk on the network)
@@ -38,7 +38,7 @@ npm run typecheck
 
 To install the TB-3 Editor without Node, or to package a release, see
 [apps/tb3/README.md](apps/tb3/README.md). The [user guide](apps/tb3/docs/user-guide.md) explains
-every feature. The SP-404 MK2 editor has its own [README](apps/sp404/README.md) (installing, releasing) and
+every feature. SP40MORE, the SP-404 MK2 editor, has its own [README](apps/sp404/README.md) (installing, releasing) and
 [user guide](apps/sp404/docs/user-guide.md).
 
 `npm run dev:browser -w @synth-editors/tb3` serves the renderer on its own for use in Chrome,
@@ -48,7 +48,7 @@ which asks for MIDI + SysEx permission on first load.
 
 ```
 apps/tb3/            TB-3 editor (Electron main in electron/, React renderer in src/)
-apps/sp404/          SP-404 MK2 editor (FX, pad mixer, scopes, controllers)
+apps/sp404/          SP40MORE, the SP-404 MK2 editor (FX, pad mixer, scopes, controllers)
 apps/jv2080/         JV-2080 editor and librarian
 apps/h12/            H12 target switcher (CME H12MIDI Pro routing over SysEx)
 apps/x32/            X32 chat control (Electron; plain-language routing over OSC, rig file setup)

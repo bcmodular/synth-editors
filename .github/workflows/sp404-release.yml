@@ -1,4 +1,4 @@
-# Builds the SP-404 MK2 Editor for macOS (Apple Silicon and Intel .dmg) and Windows (x64 installer).
+# Builds SP40MORE, the SP-404 MK2 editor, for macOS (Apple Silicon and Intel .dmg) and Windows (x64 installer).
 # Push a tag like sp404-v0.1.0 to build and attach both to a GitHub Release (a draft, to check
 # before publishing), or run it by hand from the Actions tab to just get the build artifacts.
 # The apps are unsigned: see apps/sp404/README.md for what that means for people installing them.
@@ -48,6 +48,6 @@ jobs:
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
-          name: SP-404 MK2 Editor ${{ github.ref_name }}
+          name: SP40MORE ${{ github.ref_name }}
           draft: true
           files: artifacts/*

@@ -125,9 +125,9 @@ async function fxShots(page: Page) {
   await shot(page, "audition", [module(page, 4).locator(".pcol"), page.locator(".fxrow > .side")]);
   await page.getByRole("button", { name: "AUDITION" }).click();
 
-  await page.getByRole("button", { name: "DEL" }).click();
+  await page.getByRole("button", { name: "DEL", exact: true }).click();
   await shot(page, "delete-mode", [module(page, 4)]);
-  await page.getByRole("button", { name: "DEL" }).click();
+  await page.getByRole("button", { name: "DEL", exact: true }).click();
 }
 
 async function mixerShots(page: Page) {

@@ -1,6 +1,6 @@
-// Electron main process for the SP-404 MK2 editor: one window (its position remembered), Web MIDI, Web Serial and
-// audio input granted to our own page, the FX library file, and a capture log the page appends to (exposed by
-// preload.cjs).
+// Electron main process for SP40MORE, the SP-404 MK2 editor: one window (its position remembered), Web MIDI, Web
+// Serial and audio input granted to our own page, the FX library file, and a capture log the page appends to
+// (exposed by preload.cjs).
 const { app, BrowserWindow, ipcMain, session, shell } = require("electron");
 const fsp = require("node:fs/promises");
 const path = require("node:path");
@@ -18,6 +18,9 @@ const NO_REAL_SERIAL = process.env.SP404_NO_REAL_SERIAL === "1";
 // They also set this to keep the window off screen and out of the Dock, painting as if it were shown.
 const HIDDEN = process.env.E2E_HIDDEN === "1";
 
+// The app icon (scripts/icon.cjs renders it): public/ in development, copied into dist/ by Vite for the build.
+const ICON = path.join(__dirname, "..", process.env.VITE_DEV_SERVER_URL ? "public" : "dist", "icon.png");
+
 let win = null;
 let captureFile = null;
 
@@ -26,7 +29,8 @@ function createWindow() {
   const { maximized, ...bounds } = loadWindowState(remember);
   win = new BrowserWindow({
     ...bounds,
-    title: "SP-404 MK2 Editor",
+    title: "SP40MORE",
+    icon: ICON, // Windows and Linux; macOS takes the bundle's icon (build/icon.icns)
     backgroundColor: "#121214",
     autoHideMenuBar: process.platform !== "darwin",
     show: !HIDDEN,
@@ -67,6 +71,7 @@ function registerCaptureIpc() {
 
 app.whenReady().then(() => {
   if (HIDDEN) app.dock?.hide();
+  else if (!app.isPackaged) app.dock?.setIcon(ICON); // in development the Dock would show Electron's icon
   // Audio-only media is the scopes listening to the SP-404's USB audio (never the camera).
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
     const types = details.mediaTypes ?? [];

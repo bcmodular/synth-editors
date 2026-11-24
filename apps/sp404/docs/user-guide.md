@@ -1,6 +1,6 @@
-# SP-404 MK2 Editor user guide
+# SP40MORE user guide
 
-SP-404 MK2 Editor plays and edits the SP-404 MK2's effects and mixes its pads from the computer. The top half is the
+SP40MORE plays and edits the SP-404 MK2's effects and mixes its pads from the computer. The top half is the
 five effect buses: every effect has its own module with a drawing you can drag, eight presets per effect per bus,
 and 16 FX scenes that recall all five buses at once. The bottom half is a mixer for the pads in the current project,
 with level, pan, routing, mute group and envelope for each one, and scopes of what the SP-404 plays.

@@ -40,7 +40,7 @@ interface Opening {
 // there's no input, or opening it.
 function startAudio(named: boolean, picked: AudioInput | undefined, o: Opening) {
   const fail = (e: unknown) =>
-    !o.isCancelled() && o.setStatus({ kind: "error", message: explainAudioError(e, "SP-404 Editor") });
+    !o.isCancelled() && o.setStatus({ kind: "error", message: explainAudioError(e, "SP40MORE") });
   if (!named) return void listAudioInputsWithNames().then((list) => !o.isCancelled() && o.take(list, true), fail);
   if (!picked) return o.setStatus({ kind: "error", message: NO_INPUT });
   o.setStatus({ kind: "starting" });

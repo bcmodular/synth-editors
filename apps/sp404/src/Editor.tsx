@@ -52,7 +52,7 @@ function TopBar({ device, fx, midiInput, bcr, launchpad, learn, firmware, onSett
   const usb = link === "on" ? `USB ●${project}` : link === "connecting" ? "USB …" : "USB ○";
   return (
     <div className="bar">
-      <span className="logo">SP-404 MK2</span>
+      <span className="logo" title="SP40MORE, for the SP-404 MK2">SP40MORE</span>
       <span className={`pill ${midiOutput ? "on" : ""}`} title={midiOutput ?? "The SP-404's MIDI isn't connected"}>
         {midiOutput ? "MIDI ● SP-404" : "MIDI ○"}
       </span>

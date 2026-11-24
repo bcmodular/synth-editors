@@ -28,12 +28,12 @@
     "react-dom": "^19.3.1",
     "vite": "^8.3.5"
   },
-  "description": "FX and pad mixer editor for the Roland SP-404 MK2",
+  "description": "SP40MORE: FX and pad mixer editor for the Roland SP-404 MK2",
   "author": "BC Modular",
   "build": {
-    "appId": "com.bcmodular.sp404editor",
-    "productName": "SP-404 MK2 Editor",
-    "artifactName": "SP-404-Editor-${version}-${os}-${arch}.${ext}",
+    "appId": "com.bcmodular.sp40more",
+    "productName": "SP40MORE",
+    "artifactName": "SP40MORE-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "release"
     },
@@ -56,8 +56,8 @@
       "identity": "-",
       "hardenedRuntime": false,
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "SP-404 MK2 Editor listens to the SP-404's USB audio for its meter and scopes.",
-        "NSBluetoothAlwaysUsageDescription": "SP-404 MK2 Editor looks for the SP-404's USB serial port; it doesn't use Bluetooth."
+        "NSMicrophoneUsageDescription": "SP40MORE listens to the SP-404's USB audio for its meter and scopes.",
+        "NSBluetoothAlwaysUsageDescription": "SP40MORE looks for the SP-404's USB serial port; it doesn't use Bluetooth."
       }
     },
     "win": {

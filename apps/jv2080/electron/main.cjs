@@ -1,11 +1,19 @@
 // Electron main process for the JV-2080 editor: one window with Web MIDI (SysEx included) granted to our own page,
 // and the patch library's file access (IPC handlers below, exposed to the page by preload.cjs; after the TB-3's).
-const { app, BrowserWindow, dialog, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, session, shell } = require("electron");
 const fs = require("node:fs");
 const fsp = require("node:fs/promises");
 const path = require("node:path");
 
 const PERMISSIONS = new Set(["midi", "midiSysex"]);
+const APP_NAME = "JV-2080 Editor";
+const ICON = path.join(__dirname, "..", "build", "icon.png"); // dev only: a packaged app has its own (package.json build)
+
+// The app's name in the menu bar, the Dock and About, in dev too (a packaged app takes it from build.productName).
+// Settings stay where they were, under the package's name, so a dev run keeps its ports, library and session.
+const userData = app.getPath("userData");
+app.setName(APP_NAME);
+app.setPath("userData", userData);
 const LIBRARY_EXTS = new Set([".syx", ".jvset"]);
 
 // End-to-end tests set this to keep the window off screen and out of the Dock, painting as if it were shown.
@@ -24,7 +32,8 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: "JV-2080 Editor",
+    title: APP_NAME,
+    icon: app.isPackaged ? undefined : ICON,
     backgroundColor: "#121214",
     autoHideMenuBar: process.platform !== "darwin",
     show: !HIDDEN,
@@ -160,8 +169,19 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
 }
 
+// The standard menus, under the app's name on the Mac.
+function buildMenu() {
+  const mac = process.platform === "darwin";
+  const appMenu = { role: "appMenu", label: APP_NAME };
+  const menus = [...(mac ? [appMenu] : []), { role: "fileMenu" }, { role: "editMenu" }, { role: "viewMenu" }, { role: "windowMenu" }];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
+}
+
 app.whenReady().then(() => {
   if (HIDDEN) app.dock?.hide();
+  else if (!app.isPackaged) app.dock?.setIcon(ICON);
+  app.setAboutPanelOptions({ applicationName: APP_NAME, credits: "Patch editor and librarian for the Roland JV-2080. BC Modular." });
+  buildMenu();
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(PERMISSIONS.has(permission)));
   session.defaultSession.setPermissionCheckHandler((_wc, permission) => PERMISSIONS.has(permission));
   registerLibraryIpc();

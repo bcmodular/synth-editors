@@ -25,7 +25,8 @@
     "fake:x32": "npm run fake -w @synth-editors/x32",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "package:tb3": "npm run package -w @synth-editors/tb3",
-    "package:sp404": "npm run package -w @synth-editors/sp404"
+    "package:sp404": "npm run package -w @synth-editors/sp404",
+    "package:jv2080": "npm run package -w @synth-editors/jv2080"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

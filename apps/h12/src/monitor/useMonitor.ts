@@ -1,6 +1,6 @@
 // The MIDI monitor: logs what arrives from the H12's copy to the Mac (what it sends the target, after the mappers),
 // the Launchkey's own USB port (what the keys play) and the pedal converter's USB port. Messages are buffered and
-// shown a few times a second, newest first; clock and active sensing are left out unless asked for.
+// shown a few times a second, newest first. Clock and active sensing are left out.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { describe, isTicker } from "../core/midiText";
@@ -42,22 +42,18 @@ function useSourceInputs({ access, ports }: Midi) {
 interface Capture {
   pending: LogEntry[];
   next: number;
-  ticks: boolean;
   start: number;
 }
 
-// Whether a message goes in the log: everything but clock and active sensing, unless those are asked for.
-function logged(data: Uint8Array | null, ticks: boolean): data is Uint8Array {
-  if (!data) return false;
-  return ticks || !isTicker(data);
-}
+// Whether a message goes in the log: everything but clock and active sensing.
+const logged = (data: Uint8Array | null): data is Uint8Array => !!data && !isTicker(data);
 
 function useCapture(inputs: { source: Source; input?: MIDIInput }[], capture: React.RefObject<Capture>) {
   useEffect(() => {
     const removers = inputs.map(({ source, input }) => {
       const onMessage = (e: MIDIMessageEvent) => {
         const c = capture.current;
-        if (!logged(e.data, c.ticks)) return;
+        if (!logged(e.data)) return;
         c.pending.push({ id: c.next++, at: (e.timeStamp - c.start) / 1000, source: source.label, ...describe(e.data) });
       };
       input?.addEventListener("midimessage", onMessage);
@@ -69,10 +65,9 @@ function useCapture(inputs: { source: Source; input?: MIDIInput }[], capture: Re
 
 export function useMonitor(midi: Midi) {
   const inputs = useSourceInputs(midi);
-  const capture = useRef<Capture>({ pending: [], next: 0, ticks: false, start: performance.now() });
+  const capture = useRef<Capture>({ pending: [], next: 0, start: performance.now() });
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [paused, setPaused] = useState(false);
-  const [ticks, setTicksState] = useState(false);
   useCapture(inputs, capture);
 
   useEffect(() => {
@@ -84,10 +79,6 @@ export function useMonitor(midi: Midi) {
     return () => clearInterval(id);
   }, [paused]);
 
-  const setTicks = useCallback((on: boolean) => {
-    capture.current.ticks = on;
-    setTicksState(on);
-  }, []);
   const clear = useCallback(() => setEntries([]), []);
   // A line from the app itself (a target switch), in the same timeline as the MIDI.
   const note = useCallback((text: string) => {
@@ -95,7 +86,7 @@ export function useMonitor(midi: Midi) {
     c.pending.push({ id: c.next++, at: (performance.now() - c.start) / 1000, source: "App", text });
   }, []);
   const connected = inputs.map(({ source, input }) => ({ label: source.label, port: input?.name }));
-  return { entries, connected, paused, setPaused, ticks, setTicks, clear, note };
+  return { entries, connected, paused, setPaused, clear, note };
 }
 
 export type Monitor = ReturnType<typeof useMonitor>;

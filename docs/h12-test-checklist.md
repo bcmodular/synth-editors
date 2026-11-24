@@ -43,13 +43,21 @@ For any that stay silent while **H12 → Mac** shows the right channel: check th
 TD-3 has separate in and out channels; others may too), the cable goes into its MIDI IN, and its sound (decay,
 volume).
 
-## 4. Pedal
+## 4. Pedal (working on the JV-2080 since 2026-11-24)
 
 - [ ] **JV-2080 ch 6**, move the pedal: **Pedal** shows CC 11 on ch 1, **H12 → Mac** CC 11 on ch 6, and the JV's
       expression follows.
 - [ ] Another JV channel (e.g. 8): **H12 → Mac** shows CC 11 on ch 8.
-- [ ] Any other target: **H12 → Mac** shows only raw CC 11 on ch 1, and no synth reacts.
-- [ ] Note the CC you want the pedal to send on each other target (cutoff etc.).
+- [ ] Any other target: **H12 → Mac** shows the pedal CC on the target's channel. The first switch after this update
+      writes mapper 23 for every target, so the lit target may be unlit until you click one.
+- [ ] Set the pedal CC to something else (e.g. 74), **Set**: an **App** row "Set the pedal to CC 74", and the next
+      pedal move shows CC 74. Switch target: it stays 74.
+- [ ] Note the CC you'd want on each target, in case one for all isn't enough.
+
+## 4b. Launchkey clock
+
+- [ ] The **Launchkey clock** panel shows both ports and the Nome II's tempo, with no Start button to press.
+- [ ] Arpeggiator on, hold a chord, start the Nome II: the arpeggio follows its tempo and restarts on Start.
 
 ## 5. Spec checks (docs/h12-spec.md)
 
@@ -69,6 +77,6 @@ volume).
 - Which targets work, and for those that don't, what the monitor showed.
 - Whether settings survived the power cycle, and how switching back went.
 - Whether notes hang when switching, and on which synths.
-- The pedal CC for each target.
+- Whether one pedal CC for every target is enough.
 - Whether to put the Launchkey's drum pads on ch 1, so they follow the target like the keys.
 - Whether the monitor should sort by time (rows from different sources can come out of order by a few ms).

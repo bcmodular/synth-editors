@@ -6,7 +6,10 @@ import { useCallback, useEffect, useState } from "react";
 import { backupOf, parseBackup, type Backup } from "../core/backup";
 import { mapperFormatProblem } from "../core/status";
 import { applySettings, readSwitchSettings, type ApplyReport, type Current, type Io } from "../core/switcher";
-import { currentTarget, mappersWithoutInit, parseTargets, targetSettings, type Choice, type SettingValue, type Target } from "../core/targets";
+import {
+  currentTarget, DEFAULT_PEDAL_CC, mappersWithoutInit, parseTargets, targetSettings, type Choice, type SettingValue,
+  type Target,
+} from "../core/targets";
 import list from "../targets.json";
 import type { HubReport } from "../core/hub";
 import type { HubState } from "../hub/useHub";
@@ -52,6 +55,10 @@ const monitorWording = (on: boolean): Wording => {
   return { doing: `Turning ${what}`, done: `Turned ${what}`, stopped: `Stopped turning ${what}`,
     unchanged: `The copy to the Mac is already ${on ? "on" : "off"}` };
 };
+
+const pedalWording = (cc: number): Wording => ({ doing: `Setting the pedal to CC ${cc}`,
+  done: `Set the pedal to CC ${cc}`, stopped: `Stopped setting the pedal to CC ${cc}`,
+  unchanged: `The pedal already sends CC ${cc}` });
 
 const nameOf = (c: Pick<Choice, "target" | "channel">) =>
   (c.target.channels ? `${c.target.name} ch ${c.channel}` : c.target.name);
@@ -111,20 +118,26 @@ function useCurrent(io: Io | undefined) {
 
 type Apply = (wording: Wording, wanted: (current: Current) => SettingValue[]) => Promise<void>;
 
-// What the panel can do: switch target (keeping the copy to the Mac as it is), turn the copy on or off, restore.
+// What the panel can do: switch target (keeping the pedal CC and the copy to the Mac as they are), change the pedal
+// CC, turn the copy on or off, restore. With no target set, a new pedal CC waits for the next switch.
 function useActions(apply: Apply, active: Choice | undefined, backup: Backup | undefined) {
+  const [chosenCc, setChosenCc] = useState(DEFAULT_PEDAL_CC);
   const monitor = active?.monitor ?? false;
+  const pedalCc = active?.pedalCc ?? chosenCc;
   const switchTo = useCallback((target: Target, channel = target.channel) =>
-    apply(switchWording(nameOf({ target, channel })), () => targetSettings(target, { channel, monitor })),
-  [apply, monitor]);
+    apply(switchWording(nameOf({ target, channel })), () => targetSettings(target, { channel, pedalCc, monitor })),
+  [apply, pedalCc, monitor]);
   const setMonitor = useCallback((on: boolean) => {
-    if (!active) return;
-    void apply(monitorWording(on), () => targetSettings(active.target, { channel: active.channel, monitor: on }));
+    if (active) void apply(monitorWording(on), () => targetSettings(active.target, { ...active, monitor: on }));
+  }, [apply, active]);
+  const setPedalCc = useCallback((cc: number) => {
+    setChosenCc(cc);
+    if (active) void apply(pedalWording(cc), () => targetSettings(active.target, { ...active, pedalCc: cc }));
   }, [apply, active]);
   const restore = useCallback(() => {
     if (backup) void apply(RESTORE, () => backup.settings);
   }, [apply, backup]);
-  return { switchTo, setMonitor, restore };
+  return { pedalCc, switchTo, setMonitor, setPedalCc, restore };
 }
 
 // `note` puts each outcome in the MIDI monitor's log, so it can be read against what the H12 sends.

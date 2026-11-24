@@ -26,6 +26,20 @@ test("switches to a target, writing only the allowed settings", async () => {
   expect(await fakeSetting(r.page, "0:25")).toEqual([1 << 1]);
 });
 
+test("sets one pedal CC for every target, and keeps it when switching", async () => {
+  const r = (running = await start({ settings: BEFORE }));
+  await switchTo(r.page, "TB-3");
+  const cc = r.page.getByLabel("Pedal CC");
+  await expect(cc).toHaveValue("11");
+  await cc.fill("74");
+  await r.page.getByRole("button", { name: "Set" }).click();
+  await expect(r.page.getByRole("status")).toHaveText("Set the pedal to CC 74: wrote 1 setting, 7 already matched.");
+  expect((await fakeSetting(r.page, "3:23"))![1]! >>> 24).toBe(74);
+  await switchTo(r.page, "S-1");
+  expect((await fakeSetting(r.page, "3:23"))![1]! >>> 24).toBe(74);
+  await expect(cc).toHaveValue("74");
+});
+
 test("writes nothing when the target is already set", async () => {
   const r = (running = await start({ settings: BEFORE }));
   await switchTo(r.page, "TB-3");
@@ -40,8 +54,8 @@ test("switching between targets on one output only rewrites the mappers", async 
   await switchTo(r.page, "TD-3-MO");
   const before = (await settingWrites(r.page)).length;
   await switchTo(r.page, "Volca Bass");
-  expect((await settingWrites(r.page)).slice(before)).toEqual(["3:18", "3:19", "3:20", "3:21", "3:22"]);
-  await expect(r.page.getByRole("status")).toHaveText("Switched to Volca Bass: wrote 5 settings, 2 already matched.");
+  expect((await settingWrites(r.page)).slice(before)).toEqual(["3:18", "3:19", "3:20", "3:21", "3:22", "3:23"]);
+  await expect(r.page.getByRole("status")).toHaveText("Switched to Volca Bass: wrote 6 settings, 2 already matched.");
 });
 
 test("refuses to write when the H12 isn't on preset 1", async () => {

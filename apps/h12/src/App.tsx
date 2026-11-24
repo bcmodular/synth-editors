@@ -1,8 +1,8 @@
 // The H12 target switcher: the H12 check (docs/h12-spec.md, build order step 1), target switching (step 3, the only
-// part that writes to the H12), a MIDI monitor and the Launchkey clock test (step 2).
+// part that writes to the H12), a MIDI monitor and the clock forwarder for the Launchkey's arpeggiator.
 
-import { ClockTestPanel } from "./clock/ClockTestPanel";
-import { useClockTest } from "./clock/useClockTest";
+import { ClockPanel } from "./clock/ClockPanel";
+import { useClockForward } from "./clock/useClockForward";
 import { HubStatus } from "./hub/HubStatus";
 import { useHub } from "./hub/useHub";
 import { useMidi } from "./midi/useMidi";
@@ -16,13 +16,13 @@ export function App() {
   const { state, recheck } = useHub(midi);
   const monitor = useMonitor(midi);
   const targets = useTargets(state, monitor.note);
-  const clock = useClockTest(midi);
+  const clock = useClockForward(midi);
   return (
     <main>
       <HubStatus state={state} recheck={recheck} />
       <TargetsPanel t={targets} />
       <MonitorPanel m={monitor} />
-      <ClockTestPanel test={clock} />
+      <ClockPanel c={clock} />
     </main>
   );
 }

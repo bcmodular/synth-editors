@@ -1,6 +1,7 @@
 // The target buttons: the one the H12 is set to is lit; a click switches the Launchkey and the pedal to another.
 // Under them, what the last switch wrote, and the way back to the H12's previous settings.
 
+import { useEffect, useState } from "react";
 import { MONITOR_PORT, type Target } from "../core/targets";
 import { summary, type Outcome, type Targets } from "./useTargets";
 
@@ -40,12 +41,11 @@ function Channels({ target, t, active }: { target: Target; t: Targets; active?: 
 function TargetButton({ target, t }: { target: Target; t: Targets }) {
   const active = t.active?.target.name === target.name ? t.active.channel : undefined;
   const on = active !== undefined;
-  const pedal = target.pedalCc === null ? "" : ` · pedal CC ${target.pedalCc}`;
   return (
     <div className={`target${on ? " on" : ""}`}>
       <button aria-pressed={on} disabled={!t.ready || !!t.busy} onClick={() => t.switchTo(target)}>
         <span className="name">{target.name}</span>
-        <span className="where">{portName(target.output)} · ch {active ?? target.channel}{pedal}</span>
+        <span className="where">{portName(target.output)} · ch {active ?? target.channel}</span>
       </button>
       <Channels target={target} t={t} active={active} />
     </div>
@@ -72,6 +72,25 @@ function MonitorSwitch({ t }: { t: Targets }) {
         onChange={(e) => t.setMonitor(e.target.checked)} />
       {" "}Copy to the Mac ({MONITOR_PORT}), for the MIDI monitor
     </label>
+  );
+}
+
+// The CC the pedal sends the target, one for every target for now. Set writes mapper 23 (when a target is set).
+function PedalCc({ t }: { t: Targets }) {
+  const [draft, setDraft] = useState(String(t.pedalCc));
+  useEffect(() => setDraft(String(t.pedalCc)), [t.pedalCc]);
+  const cc = Number(draft);
+  const valid = draft !== "" && Number.isInteger(cc) && cc >= 0 && cc <= 127;
+  return (
+    <form className="pedal" onSubmit={(e) => { e.preventDefault(); if (valid) t.setPedalCc(cc); }}>
+      <label>
+        Pedal sends CC{" "}
+        <input type="number" min={0} max={127} value={draft} aria-label="Pedal CC"
+          onChange={(e) => setDraft(e.target.value)} />
+      </label>
+      <button type="submit" disabled={!valid || cc === t.pedalCc || !!t.busy}>Set</button>
+      <span className="dim">to every target</span>
+    </form>
   );
 }
 
@@ -111,6 +130,7 @@ export function TargetsPanel({ t }: { t: Targets }) {
       <InitWarning t={t} />
       <Now t={t} />
       <div className="target-grid">{t.targets.map((target) => <TargetButton key={target.name} target={target} t={t} />)}</div>
+      <PedalCc t={t} />
       <MonitorSwitch t={t} />
       {t.outcome && <Result outcome={t.outcome} />}
       <BackupLine t={t} />

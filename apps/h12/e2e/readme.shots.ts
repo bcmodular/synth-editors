@@ -41,7 +41,7 @@ test("README screenshots", async () => {
   await expect(r.page.getByLabel(/Copy to the Mac/)).toBeChecked();
   await expect(r.page.locator(".monitor .note").first()).not.toContainText("not connected");
   await play(r.page);
-  await expect(r.page.locator(".monitor tbody tr")).toHaveCount(20);
+  await expect(r.page.locator(".monitor tbody tr")).toHaveCount(22); // 20 MIDI rows, and App rows for the switch and the copy
   await shot(r.page, "targets", r.page.locator(".panel.targets"));
   await shot(r.page, "monitor", r.page.locator(".panel.monitor"));
 });

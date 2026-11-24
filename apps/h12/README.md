@@ -3,8 +3,8 @@
 Picks one target synth for the Launchkey 49 Mk4 and the DOREMIDI pedal by writing routing and mapper settings to the
 CME H12MIDI Pro over SysEx. Requirements: [docs/h12-spec.md](../../docs/h12-spec.md).
 
-So far the app has steps 1–3 of the build order: a **read-only check** of the H12, a **Launchkey clock test** and
-**target switching**, the only part that writes to the H12.
+So far the app has a **read-only check** of the H12, **target switching** (the only part that writes to the H12), a
+**MIDI monitor** and a **clock forwarder** for the Launchkey's arpeggiator.
 
 ## Read-only check
 
@@ -21,7 +21,7 @@ SysEx, so when no port answers the app asks again every 2 seconds, up to 5 times
 
 ## Target switching
 
-One button per target in [src/targets.json](src/targets.json) (output port index, channel 1–16, pedal CC or `null`).
+One button per target in [src/targets.json](src/targets.json) (output port index, channel 1–16).
 A target can list `channels` to choose from, as the JV-2080 does for its parts 6–10: small channel buttons under it.
 The lit one is the target the H12 is set to now, worked out by reading its settings back. Clicking another:
 
@@ -35,8 +35,10 @@ The lit one is the target the H12 is set to now, worked out by reading its setti
 
 The H12 must be on firmware 4.x: on 5.0 or later the app doesn't switch, as 5.0 stores mappers differently (see
 *CME's answers* below). The Launchkey's input is routed to the target's output only, and mappers 18–22 turn its channel 1 (Note On, Note Off,
-CC, Pitch Bend, Channel AT) into the target's channel. The pedal follows the keys and mapper 23 turns its CC 11 into
-the target's pedal CC; with no pedal CC, the pedal is routed nowhere and mapper 23 is left alone. Nothing else on the
+CC, Pitch Bend, Channel AT) into the target's channel. The pedal follows the keys and mapper 23 turns its CC 11 on
+channel 1 into the **pedal CC** on the target's channel. For now that is one CC for every target, set under the target
+buttons (11, expression, at first): **Set** rewrites mapper 23 for the current target, and a switch keeps it. The app
+reads it back from mapper 23, so it survives a restart. Nothing else on the
 H12 is ever written: `core/switcher.ts` refuses any other setting. The backup is kept in the app's local storage
 (separately for `npm run dev:h12` and a packaged build).
 
@@ -46,28 +48,23 @@ H12 is ever written: `core/switcher.ts` refuses any other setting. The backup is
 (`H12MIDI-Pro Port 8`, which nothing else uses and which has no filters), so the Mac gets what the target gets,
 after the mappers. Switching target keeps it on or off. The **MIDI monitor** panel logs, newest first:
 
-- **H12 → Mac**: that copy (with no pedal CC set, the pedal's own CC 11 on channel 1);
+- **H12 → Mac**: that copy;
 - **Launchkey**: what the keys play, from the Launchkey's own USB port;
 - **Pedal**: what the pedal converter sends, from its own USB port;
 - **App**: each target switch and its result, so a switch can be read against the channels before and after it.
 
 ![The MIDI monitor: the keys on channel 1, and the H12's copy on the JV-2080's channel 8](docs/images/monitor.png)
 
-Clock and active sensing are left out unless asked for. Turn the copy off when you're done: Ableton or another app
+Clock and active sensing are left out. Turn the copy off when you're done: Ableton or another app
 listening on Port 8 would get the notes too.
 
-## Launchkey clock test
+## Launchkey clock
 
-Does the Launchkey 49 Mk4's arpeggiator follow clock sent to its USB MIDI port? The panel sends clock to
-`Launchkey MK4 49 MIDI In` (never its DAW port), from one of two sources:
-
-- **Generated here**, at the tempo set on the slider (30–300 BPM). Ticks are scheduled 100 ms ahead with Web MIDI
-  timestamps, so timer jitter doesn't reach them. A tempo change takes effect at once, without restarting.
-- **Forwarded from the Nome II**: each message from `Nome II Clock` is sent on as it arrives. The panel shows the
-  tempo the Nome II is sending.
-
-Clock only by default; **Also send Start, Stop and Continue** adds transport, in case the arpeggiator needs it to
-reset its phase. Turn Ableton's Sync off for the Launchkey's ports while testing, so it gets one clock only.
+The Launchkey has no MIDI input, so the H12 can't clock its arpeggiator. While the app runs, it forwards clock, Start,
+Stop and Continue from `Nome II Clock` to `Launchkey MK4 49 MIDI In` (never its DAW port), each message as it
+arrives; nothing else is forwarded, and nothing from the Launchkey's own ports goes back to it. There's no switch: it
+pauses while either port is missing and resumes when it's back. The **Launchkey clock** panel shows both ports and the
+Nome II's tempo. Keep Ableton's Sync off for the Launchkey's ports, so it gets one clock only.
 
 ```bash
 npm run dev:h12        # Vite dev server + Electron window
@@ -117,8 +114,8 @@ npm run readme:shots -w @synth-editors/h12   # retake the README screenshots aga
 
 ## Findings on the Launchkey 49 Mk4 (2026-11-16)
 
-- **The arpeggiator follows clock sent to its USB MIDI port** (`Launchkey MK4 49 MIDI In`), both generated here and
-  forwarded from the Nome II: changing the tempo changes the arpeggio rate. Forwarding through Web MIDI in the
+- **The arpeggiator follows clock sent to its USB MIDI port** (`Launchkey MK4 49 MIDI In`), both generated by the
+  app (a test since removed) and forwarded from the Nome II: changing the tempo changes the arpeggio rate. Forwarding through Web MIDI in the
   renderer sounded fine, so a native MIDI library isn't needed so far.
 - **Start (`FA`) restarts the arpeggio** from its first step, so forwarding Start keeps it in phase with the Nome II.
 - **Stop (`FC`) doesn't stop it**: the arpeggio runs while keys are held, whatever the transport. That is expected.

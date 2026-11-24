@@ -41,10 +41,6 @@ export function MonitorPanel({ m }: { m: Monitor }) {
         </div>
       </header>
       <Sources m={m} />
-      <label className="check">
-        <input type="checkbox" checked={m.ticks} onChange={(e) => m.setTicks(e.target.checked)} />
-        {" "}Show clock and active sensing
-      </label>
       <div className="log">
         <table>
           <thead><tr><th>Time (s)</th><th>From</th><th>Ch</th><th>Message</th></tr></thead>

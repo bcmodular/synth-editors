@@ -10,18 +10,20 @@ export interface Target {
   output: number; // H12 output port index, 0–29
   channel: number; // 1–16, as in the file; 0-based on the wire. With `channels`, the one a plain click picks
   channels?: number[]; // a multitimbral synth's channels to choose from (e.g. the JV-2080's parts)
-  pedalCc: number | null; // null: the pedal is routed nowhere
 }
 
-// What the keys play: a target, on one of its channels, and whether a copy goes to the Mac for the monitor.
+// What the keys and the pedal play: a target, on one of its channels, the CC the pedal sends it, and whether a copy
+// goes to the Mac for the monitor.
 export interface Choice {
   target: Target;
   channel: number; // 1–16
+  pedalCc: number; // 0–127
   monitor: boolean;
 }
 
 export interface SwitchOptions {
   channel?: number; // one of the target's channels; its own by default
+  pedalCc?: number; // the CC the pedal sends the target; DEFAULT_PEDAL_CC by default
   monitor?: boolean; // also send the keys and the pedal to the Mac
 }
 
@@ -44,8 +46,9 @@ export const PEDAL_IN = 25; // MIDI In 2: the DOREMIDI pedal converter
 export const LAUNCHKEY_IN = 26; // MIDI In 3: the Launchkey 49 Mk4
 const PEDAL_MIDI_IN = 2;
 const LAUNCHKEY_MIDI_IN = 3;
-const PEDAL_CC = 11; // the pedal sends CC 11 on channel 1 (set once in DOREMIDI's tool)
+const PEDAL_SENDS = 11; // the pedal sends CC 11 on channel 1 (set once in DOREMIDI's tool)
 const PEDAL_MAPPER = 23;
+export const DEFAULT_PEDAL_CC = 11; // expression, which the JV-2080 follows
 
 // Mappers 18–22: the Launchkey's channel 1 becomes the target's channel, one mapper per message type.
 const LAUNCHKEY_MAPPERS = [
@@ -78,26 +81,32 @@ const launchkeyMappers = (channel: number): SettingValue[] =>
     follow1: true, follow2: true, midiIn: LAUNCHKEY_MIDI_IN,
   })));
 
-const pedalMapper = (t: Target, channel: number): MapperSpec => ({
-  input: { message: MapperMessage.cc, channel: 0, value1: only(PEDAL_CC), value2: ALL },
-  output: { message: MapperMessage.cc, channel, value1: only(t.pedalCc ?? 0), value2: ALL },
-  follow1: false, follow2: true, midiIn: PEDAL_MIDI_IN,
-});
+// Mapper 23: the pedal's CC 11 on channel 1 becomes the given CC on a channel (0-based).
+const pedalMapper = (cc: number, channel: number): SettingValue =>
+  value({ setting: Setting.mapper, index: PEDAL_MAPPER }, mapperWords({
+    input: { message: MapperMessage.cc, channel: 0, value1: only(PEDAL_SENDS), value2: ALL },
+    output: { message: MapperMessage.cc, channel, value1: only(cc), value2: ALL },
+    follow1: false, follow2: true, midiIn: PEDAL_MIDI_IN,
+  }));
+
+// The CC mapper 23 sends now (value 1 of its output, word 1 bits 31–24), if the H12 has it.
+const pedalCcIn = (current: ReadonlyMap<string, number[]>): number | undefined => {
+  const words = current.get(`${Setting.mapper}:${PEDAL_MAPPER}`);
+  return words ? (words[1]! >>> 24) & 0x7f : undefined;
+};
 
 // The settings that make a target: both inputs routed to its output only (and to the Mac when monitoring), and the
-// mappers onto its channel (the target's own, unless another of its channels is chosen). With no pedal CC, the
-// pedal goes nowhere but the Mac, and mapper 23 is left as it is.
+// mappers onto its channel (the target's own, unless another of its channels is chosen), the pedal's onto the
+// pedal CC (one for every target, for now).
 export function targetSettings(t: Target, opts: SwitchOptions = {}): SettingValue[] {
   const mac = opts.monitor ? (1 << MONITOR_OUT) >>> 0 : 0;
   const bit = ((1 << t.output) | mac) >>> 0;
   const channel = (opts.channel ?? t.channel) - 1;
-  const pedal = t.pedalCc === null ? []
-    : [value({ setting: Setting.mapper, index: PEDAL_MAPPER }, mapperWords(pedalMapper(t, channel)))];
   return [
-    value({ setting: Setting.routing, index: PEDAL_IN }, [t.pedalCc === null ? mac : bit]),
+    value({ setting: Setting.routing, index: PEDAL_IN }, [bit]),
     value({ setting: Setting.routing, index: LAUNCHKEY_IN }, [bit]),
     ...launchkeyMappers(channel),
-    ...pedal,
+    pedalMapper(opts.pedalCc ?? DEFAULT_PEDAL_CC, channel),
   ];
 }
 
@@ -109,8 +118,8 @@ export const sameWords = (a: readonly number[] | undefined, b: readonly number[]
 const matches = (current: ReadonlyMap<string, number[]>, wanted: SettingValue[]) =>
   wanted.every((s) => sameWords(current.get(settingKey(s)), s.words));
 
-const choicesOf = (target: Target): Choice[] =>
-  channelsOf(target).flatMap((channel) => [false, true].map((monitor) => ({ target, channel, monitor })));
+const choicesOf = (target: Target, pedalCc: number): Choice[] =>
+  channelsOf(target).flatMap((channel) => [false, true].map((monitor) => ({ target, channel, pedalCc, monitor })));
 
 // The app's mappers that lack firmware 4.x's init byte 5A (written before 2026-11-19): at power-up the H12 would reset
 // every setting to factory defaults.
@@ -119,9 +128,10 @@ export const mappersWithoutInit = (current: ReadonlyMap<string, number[]>): stri
     .filter((s) => { const w = current.get(settingKey(s)); return !!w && !hasInit(w); })
     .map((s) => s.label);
 
-// The target, channel and monitoring the H12 is set to now, if its settings match one exactly.
+// The target, channel, pedal CC and monitoring the H12 is set to now, if its settings match one exactly.
 export function currentTarget(targets: readonly Target[], current: ReadonlyMap<string, number[]>): Choice | undefined {
-  return targets.flatMap(choicesOf).find((c) => matches(current, targetSettings(c.target, c)));
+  const pedalCc = pedalCcIn(current) ?? DEFAULT_PEDAL_CC;
+  return targets.flatMap((t) => choicesOf(t, pedalCc)).find((c) => matches(current, targetSettings(c.target, c)));
 }
 
 const isInt = (v: unknown, min: number, max: number): v is number =>
@@ -133,7 +143,6 @@ function targetProblem(t: Record<string, unknown>, i: number): string | undefine
   if (!name) return `${which}: no name`;
   if (!isInt(t.output, 0, 29)) return `${which}: output must be a port index from 0 to 29`;
   if (!isInt(t.channel, 1, 16)) return `${which}: channel must be from 1 to 16`;
-  if (t.pedalCc !== null && !isInt(t.pedalCc, 0, 127)) return `${which}: pedalCc must be null or from 0 to 127`;
   return channelsProblem(t, which);
 }
 

@@ -5,8 +5,8 @@ import { Setting } from "./sysex";
 import { currentTarget, settingKey, targetSettings, type Target } from "./targets";
 import { FACTORY_MAPPER, testHub, type TestHubInit } from "./testHub";
 
-const TB3: Target = { name: "TB-3", output: 0, channel: 2, pedalCc: null };
-const JV: Target = { name: "JV-2080", output: 1, channel: 6, pedalCc: 11 };
+const TB3: Target = { name: "TB-3", output: 0, channel: 2 };
+const JV: Target = { name: "JV-2080", output: 1, channel: 6 };
 
 async function switchTo(hub: ReturnType<typeof testHub>, t: Target) {
   const current = await readSwitchSettings(hub.io);
@@ -33,7 +33,7 @@ describe("applySettings", () => {
     const report = await switchTo(hub, TB3);
     expect(hub.writes()).toHaveLength(before);
     expect(report.written).toEqual([]);
-    expect(report.skipped).toHaveLength(7);
+    expect(report.skipped).toHaveLength(8);
   });
 
   it("writes only what changes between targets", async () => {
@@ -41,7 +41,7 @@ describe("applySettings", () => {
     await switchTo(hub, TB3);
     const before = hub.writes().length;
     await switchTo(hub, { ...TB3, name: "TB-3 on 3", channel: 3 });
-    expect(hub.writes().slice(before)).toEqual(["3:18", "3:19", "3:20", "3:21", "3:22"]); // routing unchanged
+    expect(hub.writes().slice(before)).toEqual(["3:18", "3:19", "3:20", "3:21", "3:22", "3:23"]); // routing unchanged
   });
 
   it("refuses to write in another preset", async () => {

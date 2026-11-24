@@ -32,24 +32,26 @@ Other routes, filters and mappers must not be changed.
 
 ## Target list (JSON, user-editable)
 
-| Target | Output port index | Channel | Pedal CC |
-|---|---|---|---|
-| TB-3 | 0 (U6MIDI Pro-1) | 2 | TBD (e.g. cutoff) |
-| JV-2080 | 1 (U6MIDI Pro-2) | 6, or a choice of 6–10 (its parts) | 11 (expression) |
-| TR-8S | 2 (U6MIDI Pro-3) | 10 | TBD |
-| OXI (play/record into selected track) | 3 (OXI ONE MKII-1) | 14 | TBD |
-| Thru5 synths: TD-3-MO | 24 (MIDI Out 1) | 5 | TBD |
-| Thru5 synths: Volca Bass | 24 (MIDI Out 1) | 8 | TBD |
-| Thru5 synths: Volca Kick | 24 (MIDI Out 1) | 9 | TBD |
-| S-1 | 26 (MIDI Out 3) | 3 | TBD |
-| SP-404 Mk2, chromatic | 28 (MIDI Out 5) | 16 | TBD |
-| SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 1 | TBD |
-| SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 2 | TBD |
-| SP-404 Mk2, vocoder | 28 (MIDI Out 5) | 11 | TBD |
-| P-6 sample pads | 29 (MIDI Out 6) | 11 | TBD |
-| P-6 auto channel (granular play didn't work, 2026-11-22) | 29 (MIDI Out 6) | 15 | TBD |
+| Target | Output port index | Channel |
+|---|---|---|
+| TB-3 | 0 (U6MIDI Pro-1) | 2 |
+| JV-2080 | 1 (U6MIDI Pro-2) | 6, or a choice of 6–10 (its parts) |
+| TR-8S | 2 (U6MIDI Pro-3) | 10 |
+| OXI (play/record into selected track) | 3 (OXI ONE MKII-1) | 14 |
+| Thru5 synths: TD-3-MO | 24 (MIDI Out 1) | 5 |
+| Thru5 synths: Volca Bass | 24 (MIDI Out 1) | 8 |
+| Thru5 synths: Volca Kick | 24 (MIDI Out 1) | 9 |
+| S-1 | 26 (MIDI Out 3) | 3 |
+| SP-404 Mk2, chromatic | 28 (MIDI Out 5) | 16 |
+| SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 1 |
+| SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 2 |
+| SP-404 Mk2, vocoder | 28 (MIDI Out 5) | 11 |
+| P-6 sample pads | 29 (MIDI Out 6) | 11 |
+| P-6 auto channel (granular play didn't work, 2026-11-22) | 29 (MIDI Out 6) | 15 |
 
-Store as JSON, e.g. `{ "name": "TB-3", "output": 0, "channel": 2, "pedalCc": 74 }` (channel 1-based in the file, 0-based on the wire). Unknown pedal CCs: leave null and send no pedal mapping (route the pedal nowhere). A multitimbral synth can list its channels, e.g. `"channels": [6, 7, 8, 9, 10]`, to choose from; `channel` is the default.
+Store as JSON, e.g. `{ "name": "TB-3", "output": 0, "channel": 2 }` (channel 1-based in the file, 0-based on the wire). A multitimbral synth can list its channels, e.g. `"channels": [6, 7, 8, 9, 10]`, to choose from; `channel` is the default.
+
+**Pedal CC:** for now one CC for every target, set in the app (11, expression, by default; the JV-2080 follows it). The pedal is always routed with the keys, and mapper 23 sends that CC on the target's channel. Per-target CCs can come later, as an optional `pedalCc` in the list.
 
 **Monitor:** the app can also route both inputs to USB-C virtual cable 8 (index 23), so a MIDI monitor on the Mac sees what the target gets. It's off unless turned on, and a switch keeps it as it is.
 
@@ -110,10 +112,10 @@ The Launchkey 49 Mk4 has no MIDI input, so the H12 can't clock it. Its USB is co
 
 - **Source:** the Nome II's own USB port "Nome II Clock" (macOS MIDI source). It sends clock in both dawless and Ableton modes (in Ableton mode the Nome II follows Ableton via U-SYNC), and doesn't depend on the H12.
 - **Destination:** the Launchkey's **MIDI** port (not its DAW port).
-- **Forward:** Timing Clock (`F8`) only by default. Start/Stop/Continue (`FA FC FB`) behind an option, in case the arpeggiator needs them to reset its phase. Tested: Start restarts the arpeggio from its first step; Stop doesn't stop it (it runs while keys are held). See apps/h12/README.md.
+- **Forward:** Timing Clock (`F8`) and Start/Stop/Continue (`FA FC FB`). Tested: Start restarts the arpeggio from its first step, keeping it in phase; Stop doesn't stop it (it runs while keys are held). See apps/h12/README.md.
 - **Timing:** forward each message as soon as it arrives, with no batching or timers. Use a native MIDI library (e.g. `@julusian/midi` in the Electron main process) rather than Web MIDI in the renderer, to keep jitter low. Tested: forwarding through Web MIDI in the renderer sounded fine, so start with that.
-- **One clock only:** if Ableton is set to send clock to the Launchkey's port (Sync output on), the app must not forward as well. Show a warning, or provide a toggle and a note in the Ableton setup.
-- **Toggle:** on/off in the app, remembered between runs. Pause automatically if the source or destination port disappears, and resume when it comes back.
+- **One clock only:** if Ableton is set to send clock to the Launchkey's port (Sync output on), the app must not forward as well. The app has a note to keep Ableton's Sync off for the Launchkey's ports.
+- **Always on** while the app runs (decided 2026-11-24: no toggle). Pause automatically if the source or destination port disappears, and resume when it comes back.
 - **No loops:** never forward anything coming from the Launchkey's own ports back to it.
 
 Requires the Mac to be on and the app running. The H12 already blocks clock on the Launchkey's DIN input (MIDI In 3), so if the Launchkey echoes clock out of its DIN port it won't reach the synths.
@@ -238,4 +240,4 @@ Value ranges for "all values": word 0 and word 1 = `0x7F007F00`.
 - ~~Which H12 port answers SysEx~~ Answered: `H12MIDI-Pro Port 1` (USB-C virtual cable 1). See apps/h12/README.md.
 - ~~How to confirm the host port numbers~~ Answered: confirmed and reserved in HxMIDI Tools (status 0x02 is unusable on firmware 4.7; apps/h12/README.md).
 - Whether a note held during a target switch hangs on the old synth; if so, send All Notes Off (CC 123) on the old target before switching.
-- Pedal CC per target (fill in the TBDs).
+- Pedal CC per target, if one CC for all of them turns out not to be enough.

@@ -13,7 +13,7 @@ This repo is public. The roadmap is in [PLAN.md](PLAN.md); design notes and to-d
 ```
 apps/tb3/            TB-3 editor: Electron main in electron/, React + TS renderer in src/, Playwright e2e in e2e/
 apps/jv2080/         JV-2080 editor and librarian (docs/jv2080-design.md; to do: docs/jv2080-remaining.md)
-apps/h12/            H12 target switcher: H12 check, clock test, target switching (requirements: docs/h12-spec.md)
+apps/h12/            H12 target switcher: H12 check, target switching, clock forwarder (requirements: docs/h12-spec.md)
 apps/x32/            X32 Rack chat control over OSC (plan and build order: docs/x32-spec.md)
 packages/midi/       Web MIDI access, port listing, SysEx helpers
 packages/launchpad/  Launchpad Pro Mk1 Programmer layout, LEDs, input parsing
@@ -54,7 +54,7 @@ open and tests on the hardware as work goes along, so keep the app runnable betw
 - Requirements are in `docs/h12-spec.md`. Read it before starting; it lists the only H12 settings the app may change.
 - Build order: a read-only check (done: finds the SysEx port, reads firmware and preset), a test of whether the
   Launchkey's arpeggiator follows clock sent to its USB MIDI port (done: it does), target switching (built; on test
-  on the hardware), then sync modes and the clock forwarder.
+  on the hardware), the clock forwarder (built: always on, Nome II to the Launchkey), then sync modes.
 - Only `src/core/switcher.ts` writes to the H12, and it refuses any setting outside `SWITCH_SETTINGS`
   (`core/targets.ts`). Sync modes will need their own allowed list (the sync bits of the output message filters). Findings on the real H12 are in `apps/h12/README.md`.
 - `src/core/` is pure logic (frames, encodings, the port probe) with vitest tests beside it; `src/hub/` is Web MIDI

@@ -27,19 +27,17 @@ test("logs what the Launchkey plays and what the H12 sends the Mac, newest first
   await expect(rows(r).nth(1).locator("td").nth(2)).toHaveText("1");
 });
 
-test("leaves clock out unless asked, pauses and clears", async () => {
+test("leaves clock and active sensing out, pauses and clears", async () => {
   const r = (running = await start());
   await listening(r);
   await playLaunchkey(r.page, 0xf8);
+  await playLaunchkey(r.page, 0xfe);
   await playLaunchkey(r.page, 0xb0, 1, 64);
   await expect(rows(r)).toHaveCount(1);
-  await r.page.getByLabel("Show clock and active sensing").check();
-  await playLaunchkey(r.page, 0xf8);
-  await expect(rows(r)).toHaveCount(2);
   await r.page.getByRole("button", { name: "Pause" }).click();
   await playLaunchkey(r.page, 0xb0, 1, 65);
   await r.page.waitForTimeout(300);
-  await expect(rows(r)).toHaveCount(2);
+  await expect(rows(r)).toHaveCount(1);
   await r.page.getByRole("button", { name: "Clear" }).click();
   await expect(rows(r)).toHaveCount(0);
 });
@@ -51,9 +49,9 @@ test("the copy to the Mac adds cable 8 to the routing, and switching keeps it", 
   const copy = r.page.getByLabel(/Copy to the Mac/);
   await copy.click(); // ticked once the H12 has been written and read back
   await expect(copy).toBeChecked();
-  await expect(r.page.getByRole("status")).toHaveText("Turned the copy to the Mac on: wrote 2 settings, 5 already matched.");
+  await expect(r.page.getByRole("status")).toHaveText("Turned the copy to the Mac on: wrote 2 settings, 6 already matched.");
   expect(await fakeSetting(r.page, "0:26")).toEqual([(1 | (1 << 23)) >>> 0]);
-  expect(await fakeSetting(r.page, "0:25")).toEqual([1 << 23]); // the pedal, unmapped, to the Mac only
+  expect(await fakeSetting(r.page, "0:25")).toEqual([(1 | (1 << 23)) >>> 0]); // the pedal follows the keys
   await r.page.getByRole("button", { name: /^S-1 / }).click();
   await expect(r.page.getByRole("button", { name: /^S-1 / })).toHaveAttribute("aria-pressed", "true");
   await expect(copy).toBeChecked();

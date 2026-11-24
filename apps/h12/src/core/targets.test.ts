@@ -4,9 +4,9 @@ import { hasInit } from "./mapper";
 import { Setting } from "./sysex";
 import { currentTarget, mappersWithoutInit, parseTargets, settingKey, targetSettings, type Target } from "./targets";
 
-const TB3: Target = { name: "TB-3", output: 0, channel: 2, pedalCc: null };
-const JV: Target = { name: "JV-2080", output: 1, channel: 6, pedalCc: 11 };
-const SP: Target = { name: "SP-404 Mk2", output: 28, channel: 16, pedalCc: null };
+const TB3: Target = { name: "TB-3", output: 0, channel: 2 };
+const JV: Target = { name: "JV-2080", output: 1, channel: 6 };
+const SP: Target = { name: "SP-404 Mk2", output: 28, channel: 16 };
 
 describe("mappersWithoutInit", () => {
   it("names the app's mappers that would reset the H12 at power-up", () => {
@@ -16,26 +16,27 @@ describe("mappersWithoutInit", () => {
 });
 
 describe("targetSettings", () => {
-  it("routes the Launchkey to the target's output only, and the pedal nowhere without a pedal CC", () => {
+  it("routes the Launchkey and the pedal to the target's output only", () => {
     const s = targetSettings(SP);
     expect(s.find((v) => v.index === 26 && v.setting === Setting.routing)!.words).toEqual([1 << 28]);
-    expect(s.find((v) => v.index === 25 && v.setting === Setting.routing)!.words).toEqual([0]);
-    expect(s.some((v) => v.setting === Setting.mapper && v.index === 23)).toBe(false); // mapper 23 left alone
+    expect(s.find((v) => v.index === 25 && v.setting === Setting.routing)!.words).toEqual([1 << 28]);
   });
 
   it("writes mappers 18–22 onto the target's channel, 0-based", () => {
-    const mappers = targetSettings(TB3).filter((v) => v.setting === Setting.mapper);
+    const mappers = targetSettings(TB3).filter((v) => v.setting === Setting.mapper && v.index < 23);
     expect(mappers.map((m) => m.index)).toEqual([18, 19, 20, 21, 22]);
     expect(mappers.every((m) => ((m.words[2]! >>> 24) & 0x0f) === 1 && hasInit(m.words))).toBe(true);
   });
 
-  it("routes the pedal with the keys and maps CC 11 to the target's pedal CC", () => {
-    const s = targetSettings(JV);
-    expect(s.find((v) => v.index === 25 && v.setting === Setting.routing)!.words).toEqual([1 << 1]);
-    const pedal = s.find((v) => v.setting === Setting.mapper && v.index === 23)!;
-    expect(pedal.label).toBe("Mapper 23 (pedal)");
-    expect(pedal.words[1]! >>> 24).toBe(11);
-    expect((pedal.words[2]! >>> 24) & 0x0f).toBe(5);
+  it("maps the pedal's CC 11 onto the pedal CC (11 by default) on the target's channel", () => {
+    const pedal = (cc?: number) =>
+      targetSettings(JV, { pedalCc: cc }).find((v) => v.setting === Setting.mapper && v.index === 23)!;
+    expect(pedal().label).toBe("Mapper 23 (pedal)");
+    expect(pedal().words[1]! >>> 24).toBe(11);
+    expect(pedal(74).words[1]! >>> 24).toBe(74);
+    expect(pedal(74).words[0]! >>> 24).toBe(11); // still listens for CC 11
+    expect((pedal(74).words[2]! >>> 24) & 0x0f).toBe(5);
+    expect(hasInit(pedal(74).words)).toBe(true);
   });
 
   it("only touches inputs 25 and 26 and mappers 18–23", () => {
@@ -56,9 +57,14 @@ describe("currentTarget", () => {
   });
 
   it("tells apart targets on one output by their channel", () => {
-    const td3: Target = { name: "TD-3-MO", output: 24, channel: 5, pedalCc: null };
-    const m300: Target = { name: "TC M300", output: 24, channel: 1, pedalCc: null };
+    const td3: Target = { name: "TD-3-MO", output: 24, channel: 5 };
+    const m300: Target = { name: "TC M300", output: 24, channel: 1 };
     expect(currentTarget([td3, m300], read(m300))?.target.name).toBe("TC M300");
+  });
+
+  it("reads the pedal CC from mapper 23", () => {
+    const current = new Map(targetSettings(TB3, { pedalCc: 74 }).map((v) => [settingKey(v), v.words]));
+    expect(currentTarget([TB3, JV], current)).toMatchObject({ target: TB3, pedalCc: 74 });
   });
 
   it("finds nothing when a setting differs", () => {
@@ -78,7 +84,7 @@ describe("channel choice", () => {
 
   it("finds which of a target's channels the H12 is set to", () => {
     const current = new Map(targetSettings(multi, { channel: 9 }).map((v) => [settingKey(v), v.words]));
-    expect(currentTarget([TB3, multi], current)).toEqual({ target: multi, channel: 9, monitor: false });
+    expect(currentTarget([TB3, multi], current)).toEqual({ target: multi, channel: 9, pedalCc: 11, monitor: false });
   });
 
   it("checks the channel list", () => {
@@ -98,13 +104,9 @@ describe("monitor", () => {
     expect(routing(JV, 25)).toBe(((1 << 1) | (1 << 23)) >>> 0);
   });
 
-  it("sends a target without a pedal CC the pedal's raw messages on the Mac only", () => {
-    expect(routing(TB3, 25)).toBe(1 << 23);
-  });
-
   it("is recognised in the current settings", () => {
     const current = new Map(targetSettings(TB3, { monitor: true }).map((v) => [settingKey(v), v.words]));
-    expect(currentTarget([TB3, JV], current)).toEqual({ target: TB3, channel: 2, monitor: true });
+    expect(currentTarget([TB3, JV], current)).toEqual({ target: TB3, channel: 2, pedalCc: 11, monitor: true });
   });
 });
 
@@ -116,17 +118,15 @@ describe("parseTargets", () => {
 
   it("lists every problem", () => {
     const parsed = parseTargets([
-      { name: "A", output: 30, channel: 1, pedalCc: null },
-      { name: "B", output: 0, channel: 0, pedalCc: null },
-      { name: "C", output: 0, channel: 1, pedalCc: 128 },
-      { output: 0, channel: 1, pedalCc: null },
-      { name: "A", output: 0, channel: 1, pedalCc: null },
+      { name: "A", output: 30, channel: 1 },
+      { name: "B", output: 0, channel: 0 },
+      { output: 0, channel: 1 },
+      { name: "A", output: 0, channel: 1 },
     ]);
     expect(parsed).toEqual({ problems: [
       "A: output must be a port index from 0 to 29",
       "B: channel must be from 1 to 16",
-      "C: pedalCc must be null or from 0 to 127",
-      "Target 4: no name",
+      "Target 3: no name",
       "A: the name is used twice",
     ] });
   });

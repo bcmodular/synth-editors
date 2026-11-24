@@ -9,6 +9,7 @@
     "build": "vite build",
     "start": "vite build && electron .",
     "e2e": "vite build && playwright test",
+    "e2e:hw": "vite build && JV_HW=1 playwright test",
     "package": "vite build && node scripts/package.mjs"
   },
   "devDependencies": {

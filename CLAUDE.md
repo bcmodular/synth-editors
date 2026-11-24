@@ -31,6 +31,7 @@ npm run test:e2e                                  # Playwright against a fake TB
 npm run test:e2e:jv2080                           # Playwright against a fake JV-2080
 npm run test:e2e:x32                              # Playwright against a fake X32 (UDP, e2e/fakeX32.ts)
 TB3_PORT="H12MIDI-Pro Port 4" npm run test:tb3    # Playwright against the real TB-3 (restores its sound afterwards)
+npm run test:jv2080                               # the same against the real JV-2080 (JV_PORT, default H12 Port 5)
 ```
 
 The e2e tests run with the window hidden and out of the Dock; `E2E_SHOW=1` shows it, to watch a test.

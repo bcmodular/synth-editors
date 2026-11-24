@@ -2,9 +2,10 @@
 import { expect, test } from "@playwright/test";
 import { getParam, setParam } from "../src/core/patch";
 import { param } from "../src/core/paramValue";
-import { CONTROLLER_PORT, cutoffOf, expectJv, finish, knob, PATCHES, patchTitle, readJv, sendCc, start, type JvApp } from "./jv";
+import { FAKE_ONLY, HW, CONTROLLER_PORT, cutoffOf, expectJv, finish, knob, PATCHES, patchTitle, readJv, sendCc, start, type JvApp } from "./jv";
 
 let running: JvApp | undefined;
+test.skip(HW, FAKE_ONLY); // the controller is the fake JV's stand-in
 test.afterEach(async () => finish(running));
 
 test("learn a CC for a knob, then the controller moves it on the JV", async () => {

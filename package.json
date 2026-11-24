@@ -19,6 +19,7 @@
     "test:e2e:h12": "npm run e2e -w @synth-editors/h12",
     "test:e2e:x32": "npm run e2e -w @synth-editors/x32",
     "test:tb3": "npm run e2e:hw -w @synth-editors/tb3",
+    "test:jv2080": "npm run e2e:hw -w @synth-editors/jv2080",
     "test:h12": "npm run e2e:hw -w @synth-editors/h12",
     "test:x32": "npm run e2e:hw -w @synth-editors/x32",
     "prompt-check:x32": "X32_PROMPT_CHECK=1 vitest run apps/x32/src/core/promptCheck.live.test.ts --silent=false",

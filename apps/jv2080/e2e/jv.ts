@@ -1,5 +1,7 @@
 // Harness for the end-to-end tests (after apps/tb3/e2e/tb3.ts): launches the built app in Electron with a throwaway
-// profile and patch library, wired to the fake JV-2080 (fakeJv.ts), and reads back what the fake JV holds.
+// profile and patch library, wired to the fake JV-2080 (fakeJv.ts) or, with JV_HW=1, to the real one (realJv.ts), and
+// reads back what the JV holds. On the real JV each test starts by sending it the test's patch and ends by putting
+// back the patch it held (its temporary patch only: nothing is written to its memory).
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -12,6 +14,11 @@ import { param } from "../src/core/paramValue";
 import { addrToInt } from "../src/core/sysex";
 import { demoPatch } from "../src/editor/demoPatch";
 import { installFakeJv, type FakeJvInit } from "./fakeJv";
+import { checkPort, HW, HW_PORT, readReal, sendReal } from "./realJv";
+
+export { HW } from "./realJv";
+// Tests that need the fake JV (presets, a silent JV, its panel, the stand-in controller) skip on the real one.
+export const FAKE_ONLY = "needs the fake JV";
 
 const APP_DIR = fileURLToPath(new URL("..", import.meta.url));
 const FAKE_PORT = "JV-2080 (test)";
@@ -43,6 +50,7 @@ export interface JvApp {
   page: Page;
   profile: string;
   library: string;
+  original?: Patch; // the real JV's patch from before the test, put back at the end
 }
 
 async function launchElectron(profile: string) {
@@ -57,25 +65,36 @@ async function launchElectron(profile: string) {
   return { app, page };
 }
 
-// Put the fake JV in place, point the app at it and reload. The first load of a fresh profile has no ports chosen,
-// so nothing is sent before the fake is there.
+// Point the app at the JV and reload. The first load of a fresh profile has no ports chosen, so nothing is sent before
+// the fake is in place (or, on the real JV, before the test patch is there).
 async function connect(page: Page, opts: { library?: string; silent?: boolean }) {
-  const init: FakeJvInit = {
-    name: FAKE_PORT,
-    temp: blocksOf(PATCHES.jv),
-    presets: { [PRESET_PROGRAM]: blocksOf(PATCHES.preset) },
-    silent: opts.silent,
-  };
-  await page.addInitScript(installFakeJv, init);
+  if (!HW) {
+    const init: FakeJvInit = {
+      name: FAKE_PORT,
+      temp: blocksOf(PATCHES.jv),
+      presets: { [PRESET_PROGRAM]: blocksOf(PATCHES.preset) },
+      silent: opts.silent,
+    };
+    await page.addInitScript(installFakeJv, init);
+  }
   await page.evaluate(([port, library, channel]) => {
     localStorage.setItem("jv2080.out", port!);
     localStorage.setItem("jv2080.in", port!);
     localStorage.setItem("jv2080.channel", channel!);
     if (library) localStorage.setItem("jv2080.libraryRoot", library);
-  }, [FAKE_PORT, opts.library, String(PATCH_CHANNEL)]);
+  }, [HW ? HW_PORT : FAKE_PORT, opts.library, String(PATCH_CHANNEL)]);
   await page.reload();
   await page.locator(".top").waitFor();
-  expect(await page.evaluate(() => "__fakeJv" in window)).toBe(true);
+  expect(await page.evaluate(() => "__fakeJv" in window)).toBe(!HW);
+}
+
+// On the real JV: keep the patch it holds, and give it the one the tests expect to find.
+async function prepareReal(page: Page): Promise<Patch | undefined> {
+  if (!HW) return undefined;
+  await checkPort(page, HW_PORT);
+  const original = await readReal(page, HW_PORT);
+  await sendReal(page, HW_PORT, PATCHES.jv);
+  return original;
 }
 
 // Launch on a fresh profile with a library holding "Test set.jvset" (A, B, C in slots 1–3) and "Audition.syx".
@@ -89,14 +108,17 @@ export async function start(opts: { silent?: boolean } = {}): Promise<JvApp> {
   await writeFile(path.join(library, "Test set.jvset"), setToJson(slots));
   await writeFile(path.join(library, "Audition.syx"), patchToBytes(PATCHES.file));
   const { app, page } = await launchElectron(profile);
+  let original: Patch | undefined;
   try {
+    original = await prepareReal(page);
     await connect(page, { library, silent: opts.silent });
   } catch (e) {
+    if (original) await sendReal(page, HW_PORT, original).catch(() => undefined);
     await app.close();
     await Promise.all([profile, library].map((d) => rm(d, { recursive: true, force: true })));
     throw e;
   }
-  return { app, page, profile, library };
+  return { app, page, profile, library, original };
 }
 
 // Quit and launch again on the same profile, as a user reopening the app.
@@ -109,12 +131,14 @@ export async function relaunch(t: JvApp): Promise<JvApp> {
 
 export async function finish(t: JvApp | undefined) {
   if (!t) return; // start() failed and cleaned up after itself
+  if (t.original) await sendReal(t.page, HW_PORT, t.original).catch(() => undefined);
   await t.app.close();
   await Promise.all([t.profile, t.library].map((d) => rm(d, { recursive: true, force: true })));
 }
 
-// What the fake JV's temporary patch holds now.
+// What the JV's temporary patch holds now.
 export async function readJv(page: Page): Promise<Patch> {
+  if (HW) return readReal(page, HW_PORT);
   const ranges = PATCH_BLOCKS.map((b) => [addrToInt(b.addr), b.size] as const);
   return page.evaluate((ranges) => {
     const jv = (window as unknown as { __fakeJv: { read(at: number, size: number): number[] } }).__fakeJv;
@@ -122,7 +146,7 @@ export async function readJv(page: Page): Promise<Patch> {
   }, ranges);
 }
 
-// Wait until the fake JV holds `want` (sends are paced, so they trail the click).
+// Wait until the JV holds `want` (sends are paced, so they trail the click).
 export async function expectJv(page: Page, want: Patch, what: string) {
   await expect.poll(async () => JSON.stringify(await readJv(page)), { message: `the JV should hold ${what}`, timeout: 5000 })
     .toBe(JSON.stringify(want));

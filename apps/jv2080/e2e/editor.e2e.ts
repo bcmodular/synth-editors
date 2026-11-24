@@ -5,7 +5,7 @@ import { getParam, setParam } from "../src/core/patch";
 import { EFX_TYPES, efxParamOffset, efxStartValue } from "../src/core/efx";
 import { param } from "../src/core/paramValue";
 import {
-  cutoffOf, expectJv, finish, knob, panelEdit, PATCHES, patchTitle, PATCH_CHANNEL, PRESET_PROGRAM, programsChosen, readJv, start,
+  FAKE_ONLY, HW, cutoffOf, expectJv, finish, knob, panelEdit, PATCHES, patchTitle, PATCH_CHANNEL, PRESET_PROGRAM, programsChosen, readJv, start,
   type JvApp,
 } from "./jv";
 
@@ -35,6 +35,7 @@ test("an edit goes to the JV, and undo and redo put it back", async () => {
 });
 
 test("the bank browser chooses the patch on the JV and reads it in; undo goes back", async () => {
+  test.skip(HW, FAKE_ONLY);
   const { page } = (running = await start());
   await expect(patchTitle(page)).toHaveText("ON THE JV");
   await page.locator(".bank input.num").fill(String(PRESET_PROGRAM + 1));
@@ -63,12 +64,14 @@ test("a new EFX type goes to the JV with its start values", async () => {
 });
 
 test("a JV that doesn't answer is reported", async () => {
+  test.skip(HW, FAKE_ONLY);
   const { page } = (running = await start({ silent: true }));
   await expect(page.locator(".read-failed")).toHaveText("NO REPLY FROM THE JV", { timeout: 10_000 });
   await expect(page.locator(".empty")).toContainText("No reply from the JV");
 });
 
 test("an edit on the JV's panel shows in the editor", async () => {
+  test.skip(HW, FAKE_ONLY);
   const { page } = (running = await start());
   await expect(patchTitle(page)).toHaveText("ON THE JV");
   await panelEdit(page, { block: 2, offset: param("cutoff").offset, bytes: [33] }); // tone 2's cutoff

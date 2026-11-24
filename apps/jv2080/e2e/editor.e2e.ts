@@ -75,3 +75,16 @@ test("an edit on the JV's panel shows in the editor", async () => {
   await expect(knob(page, "CUTOFF", 1)).toHaveAttribute("aria-valuenow", "33");
   await expect(knob(page, "CUTOFF", 0)).toHaveAttribute("aria-valuenow", String(cutoffOf(PATCHES.jv)));
 });
+
+test("the controllers: a destination for tone 1 and an EFX source go to the JV", async () => {
+  const { page } = (running = await start());
+  await expect(patchTitle(page)).toHaveText("ON THE JV");
+  await page.getByRole("button", { name: "Controllers" }).click();
+  const pop = page.locator(".popover");
+  await pop.getByRole("button", { name: "CTRL 2" }).click();
+  await pop.locator(".ct-col").first().locator("select").first().selectOption({ label: "CUT" });
+  await expect.poll(async () => getParam(await readJv(page), param("ctrl2Dest1"), 0)).toBe(2);
+  await pop.getByRole("button", { name: "EFX", exact: true }).click();
+  await pop.locator(".ct-efx select").first().selectOption({ label: "AFTERTOUCH" });
+  await expect.poll(async () => getParam(await readJv(page), param("efxCtrlSource1"))).toBe(10);
+});

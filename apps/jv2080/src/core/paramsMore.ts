@@ -1,6 +1,6 @@
 // Patch parameters beyond the first set (docs/jv2080-not-in-editor.md): velocity and keyfollow, ranges, structure,
 // LFO and pan extras, wave extras, tone delay, MIDI receive switches and the rest of the patch settings. Offsets and
-// ranges from the manual's address map (p. 189–190). The controller matrix and EFX control are left for later.
+// ranges from the manual's address map (p. 189–190). The controller matrix and EFX control are in paramsControl.ts.
 
 import { fmtNote, fmtPan, fmtPanDepth, fmtVelSens, KEYFOLLOW, RANDOM_PITCH, TIME_SENS } from "./display";
 import { choice, common, level, onOff, range, tone, type ParamDef, type Where } from "./paramDefs";

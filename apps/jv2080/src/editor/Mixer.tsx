@@ -14,6 +14,7 @@ import { HelpButton } from "./help/HelpPanel";
 import { Lit } from "./help/Lit";
 import { sectionContentHook } from "./help/sectionContent";
 import { ParamKnob } from "./ParamControls";
+import { ControllersButton } from "./Controllers";
 import { RangesButton } from "./Ranges";
 import { paramTarget } from "./ccTargets";
 import { soloedSwitches, toggleSolo } from "./solo";
@@ -131,6 +132,7 @@ export function Mixer({ inHelp = false }: { inHelp?: boolean }) {
         <h2>MIXER</h2>
         <div className="extra">
           <RangesButton />
+          <ControllersButton />
           {!inHelp && <HelpButton label="the mixer" useContent={sectionContentHook(MIXER_HELP)} side={<Mixer inHelp />} sideStyle={MIXER_SIDE} />}
         </div>
       </header>

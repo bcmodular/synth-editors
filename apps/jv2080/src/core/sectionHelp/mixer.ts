@@ -63,6 +63,8 @@ export const MIXER_HELP: SectionHelp = {
   ],
   notes: [
     "RANGES in the header opens the four tones' key and velocity ranges: splits and velocity layers.",
+    "CONTROL in the header opens the patch's controllers: where the mod lever and two other sources (an expression " +
+      "pedal, aftertouch, velocity…) go in each tone, and the two sources that move the EFX.",
     "SOLO is for listening only: it turns the other tones off on the JV while held, without changing the patch, and " +
       "puts them back when released.",
     "Rows for the tones show all four tones' values, tone 1 first.",

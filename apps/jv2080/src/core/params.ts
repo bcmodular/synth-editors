@@ -5,6 +5,7 @@
 
 import { fmtBendDown, fmtPan, fmtSigned, fmtWaveNumber, HF_DAMP, PAN_CENTRE } from "./display";
 import { choice, common, depth, envRows, level, onOff, range, tone } from "./paramDefs";
+import { COMMON_CONTROL, TONE_CONTROL } from "./paramsControl";
 import { COMMON_MORE, TONE_MORE } from "./paramsMore";
 import { EFX_TYPES } from "./efx";
 
@@ -43,6 +44,7 @@ export const COMMON_PARAMS: readonly ParamDef[] = [
   range(common("octaveShift", "Octave", 0x41), 0, 6, { center: 3 }),
   choice(common("clockSource", "Clock", 0x48), ["PATCH", "SYSTEM"]),
   ...COMMON_MORE,
+  ...COMMON_CONTROL,
 ];
 
 // --- Patch Tone ---
@@ -84,6 +86,7 @@ export const TONE_PARAMS: readonly ParamDef[] = [
   level(tone("chorusSend", "Chorus Send", 0x7f)),
   level(tone("reverbSend", "Reverb Send", 0x80)), // offset 128: address 01 00 within the tone
   ...TONE_MORE,
+  ...TONE_CONTROL,
 ];
 
 export const ALL_PARAMS: readonly ParamDef[] = [...COMMON_PARAMS, ...TONE_PARAMS];

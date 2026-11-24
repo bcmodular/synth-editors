@@ -148,3 +148,19 @@ describe("the further parameters (paramsMore.ts)", () => {
     expect([at("panLfo2"), at("structure34"), at("patchCategory")]).toEqual([0x7c, 0x46, 0x49]);
   });
 });
+
+describe("the controller matrix and EFX control (paramsControl.ts)", () => {
+  const at = (id: string) => param(id).offset;
+  it("sit at the manual's offsets (p. 189–190)", () => {
+    expect([at("efxCtrlSource1"), at("efxCtrlDepth2"), at("ctrlSource2"), at("efxCtrlHold"), at("ctrl3Hold")])
+      .toEqual([0x1d, 0x20, 0x3a, 0x3c, 0x3f]);
+    expect([at("ctrl1Dest1"), at("ctrl1Depth1"), at("ctrl1Dest4"), at("ctrl2Dest1"), at("ctrl3Depth4")])
+      .toEqual([0x15, 0x16, 0x1b, 0x1d, 0x2c]);
+  });
+  it("show the manual's lists", () => {
+    expect([param("ctrl2Dest3").display(0), param("ctrl2Dest3").display(18)]).toEqual(["OFF", "L2R"]);
+    expect([param("ctrlSource3").display(15), param("efxCtrlSource1").display(10)]).toEqual(["PLAYMATE", "AFTERTOUCH"]);
+    expect([param("ctrl1Depth1").display(0), param("ctrl1Depth1").display(63), param("ctrl1Depth1").display(126)])
+      .toEqual(["-63", "0", "+63"]);
+  });
+});

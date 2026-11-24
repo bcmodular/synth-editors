@@ -1677,6 +1677,62 @@ input {
   color: var(--dim);
 }
 
+/* The controllers (editor/Controllers.tsx): a tab per controller, the tones side by side. */
+.popover:has(.ct-grid) {
+  max-width: none;
+}
+.popover:has(.ct-grid) .pop-note {
+  max-width: 630px;
+}
+.ct-head {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.ct-fixed {
+  color: var(--val);
+  font-size: var(--text-m);
+}
+.ct-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 150px);
+  gap: 10px;
+}
+.ct-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ct-tone {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--led);
+}
+.ct-slot {
+  display: grid;
+  grid-template-columns: 1fr 44px;
+  align-items: center;
+  gap: 4px;
+}
+.ct-slot .prow > .lbl {
+  flex-basis: 12px;
+}
+.ct-slot .kn .lbl {
+  display: none;
+}
+.ct-col .kn i {
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--led) 85%, #fff), var(--led) 45%,
+    color-mix(in srgb, var(--led) 55%, #000) 100%);
+}
+.ct-efx {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ct-efx .prow > .lbl {
+  flex-basis: 70px;
+}
+
 /* A part's "⋯" settings in place, under the part in the copy beside its help (editor/ToneMore.tsx). The help's rows
    say what they do, so the popover's notes are left out. */
 .more-inline {

@@ -69,10 +69,13 @@ async function presetProblem(io: Io): Promise<string | undefined> {
 function assertAllowed(v: SettingValue, list: readonly Allowed[], current: Current): void {
   const allowed = list.find((s) => s.setting === v.setting && s.index === v.index);
   if (!allowed || allowed.words !== v.words.length) throw new Error(`Not a setting the app may write: ${v.setting}:${v.index}`);
-  if (allowed.mask === undefined) return;
-  const now = current.get(settingKey(v));
-  const outside = now === undefined || v.words.some((w, i) => ((w ^ now[i]!) & ~allowed.mask!) !== 0);
-  if (outside) throw new Error(`${v.label}: only bits ${hexWords([allowed.mask])} may change`);
+  if (allowed.mask !== undefined) assertInMask(v, allowed.mask, current.get(settingKey(v)));
+}
+
+// A masked setting must have been read, and may differ from it only within the mask.
+function assertInMask(v: SettingValue, mask: number, now: number[] | undefined): void {
+  const outside = !now || v.words.some((w, i) => ((w ^ now[i]!) & ~mask) !== 0);
+  if (outside) throw new Error(`${v.label}: only bits ${hexWords([mask])} may change`);
 }
 
 async function writeAndCheck(io: Io, v: SettingValue): Promise<string | undefined> {

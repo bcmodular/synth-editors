@@ -1,10 +1,10 @@
 // The target buttons: the one the H12 is set to is lit; a click switches the Launchkey and the pedal to another.
 // Under them, what the last switch wrote, and the way back to the H12's previous settings.
 
-import { useEffect, useState } from "react";
 import { portName } from "../core/ports";
 import { MONITOR_PORT, type Target } from "../core/targets";
 import { BackupLine, Result } from "../settings/WriteResult";
+import { PedalCc } from "./PedalCc";
 import type { Targets } from "./useTargets";
 
 // A multitimbral target's channels: one small button each, the one it's set to lit.
@@ -55,25 +55,6 @@ function MonitorSwitch({ t }: { t: Targets }) {
         onChange={(e) => t.setMonitor(e.target.checked)} />
       {" "}Copy to the Mac ({MONITOR_PORT}), for the MIDI monitor
     </label>
-  );
-}
-
-// The CC the pedal sends the target, one for every target for now. Set writes mapper 23 (when a target is set).
-function PedalCc({ t }: { t: Targets }) {
-  const [draft, setDraft] = useState(String(t.pedalCc));
-  useEffect(() => setDraft(String(t.pedalCc)), [t.pedalCc]);
-  const cc = Number(draft);
-  const valid = draft !== "" && Number.isInteger(cc) && cc >= 0 && cc <= 127;
-  return (
-    <form className="pedal" onSubmit={(e) => { e.preventDefault(); if (valid) t.setPedalCc(cc); }}>
-      <label>
-        Pedal sends CC{" "}
-        <input type="number" min={0} max={127} value={draft} aria-label="Pedal CC"
-          onChange={(e) => setDraft(e.target.value)} />
-      </label>
-      <button type="submit" disabled={!valid || cc === t.pedalCc || !!t.busy}>Set</button>
-      <span className="dim">to every target</span>
-    </form>
   );
 }
 

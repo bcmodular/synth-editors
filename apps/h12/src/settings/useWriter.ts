@@ -104,25 +104,35 @@ function useCurrent(io: Io | undefined, list: readonly Allowed[]) {
   return { current, setCurrent, readProblem };
 }
 
-// `note` puts each outcome in the MIDI monitor's log, so it can be read against what the H12 sends.
-export function useWriter(hub: HubState, spec: WriterSpec, note: (text: string) => void) {
-  const link = hub.kind === "ready" ? hub : undefined;
-  const { current, setCurrent, readProblem } = useCurrent(link?.io, spec.list);
-  const [busy, setBusy] = useState<string>();
+type Done = { report: ApplyReport; after?: Current };
+
+// The last change's outcome and the backup, updated when a change is done; `note` puts the outcome in the MIDI
+// monitor's log, so it can be read against what the H12 sends.
+function useOutcome(spec: WriterSpec, setCurrent: (c: Current) => void, note: (text: string) => void) {
   const [outcome, setOutcome] = useState<Outcome>();
   const [backup, setBackup] = useState(() => loadBackup(spec));
-
-  const apply = useCallback(async (wording: Wording, wanted: Wanted) => {
-    if (!link) return;
-    setBusy(wording.doing);
-    const done = await serial(() => run(link.io, link.report, spec, wanted)).catch(failed);
-    if ("after" in done && done.after) setCurrent(done.after);
+  const settle = useCallback((wording: Wording, done: Done) => {
+    if (done.after) setCurrent(done.after);
     setBackup(loadBackup(spec));
     const result = { wording, report: done.report };
     setOutcome(result);
     note([summary(result), done.report.problem].filter(Boolean).join(" "));
+  }, [spec, setCurrent, note]);
+  return { outcome, backup, settle };
+}
+
+export function useWriter(hub: HubState, spec: WriterSpec, note: (text: string) => void) {
+  const link = hub.kind === "ready" ? hub : undefined;
+  const { current, setCurrent, readProblem } = useCurrent(link?.io, spec.list);
+  const [busy, setBusy] = useState<string>();
+  const { outcome, backup, settle } = useOutcome(spec, setCurrent, note);
+
+  const apply = useCallback(async (wording: Wording, wanted: Wanted) => {
+    if (!link) return;
+    setBusy(wording.doing);
+    settle(wording, await serial(() => run(link.io, link.report, spec, wanted)).catch(failed));
     setBusy(undefined);
-  }, [link, spec, setCurrent, note]);
+  }, [link, spec, settle]);
 
   const restore = useCallback(() => {
     if (backup) void apply(restoreWording, () => backup.settings);

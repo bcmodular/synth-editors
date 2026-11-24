@@ -34,7 +34,14 @@ export function payloadValues(bytes: readonly number[]): number[] {
 
 const range = (n: number) => Array.from({ length: n }, (_, i) => i);
 
-async function readAll(io: Io, setting: number, count: number, words: number, label: string): Promise<number[][]> {
+interface Part {
+  setting: number;
+  count: number; // indices 0…count − 1
+  words: number;
+  label: string;
+}
+
+async function readAll(io: Io, { setting, count, words, label }: Part): Promise<number[][]> {
   const out: number[][] = [];
   for (const index of range(count)) {
     const got = answerBytes(`${label} ${index}`, await ask(io.lane, io.listen, readSetting({ setting, index }, words)));
@@ -49,10 +56,11 @@ export async function readDump(io: Io, about: { firmware?: string; serial?: stri
   const first = (v: number[][]) => v.map((w) => w[0] ?? 0);
   return {
     savedAt: now.toISOString(), ...about,
-    routing: first(await readAll(io, Setting.routing, INPUTS, 1, "Routing of input")),
-    channelFilters: first(await readAll(io, CHANNEL_FILTER, PORTS, 1, "Channel filter")),
-    messageFilters: first(await readAll(io, Setting.messageFilter, PORTS, 1, "Message filter")),
-    mappers: await readAll(io, Setting.mapper, MAPPERS, 6, "Mapper"),
+    routing: first(await readAll(io, { setting: Setting.routing, count: INPUTS, words: 1, label: "Routing of input" })),
+    channelFilters: first(await readAll(io, { setting: CHANNEL_FILTER, count: PORTS, words: 1, label: "Channel filter" })),
+    messageFilters: first(await readAll(io, { setting: Setting.messageFilter, count: PORTS, words: 1,
+      label: "Message filter" })),
+    mappers: await readAll(io, { setting: Setting.mapper, count: MAPPERS, words: 6, label: "Mapper" }),
   };
 }
 

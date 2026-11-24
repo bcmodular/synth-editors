@@ -15,6 +15,7 @@ import { HelpButton } from "./help/HelpPanel";
 import { Lit } from "./help/Lit";
 import { sectionContentHook } from "./help/sectionContent";
 import { useSize } from "../ui/useSize";
+import { paramTarget } from "./ccTargets";
 import { TONE_COLOURS, tintVars } from "./colours";
 import { useEditor } from "./EditorContext";
 import { ParamChoice, ParamKnob } from "./ParamControls";
@@ -63,6 +64,12 @@ function resetEnvelope(kind: EnvelopeKind, set: (id: string, value: number) => v
   levels.forEach((v, i) => set(`${kind}EnvLevel${i + 1}`, v));
 }
 
+// What CC learn picks from an envelope handle: its stage's time or level, in this tone.
+function envelopeCc(prefix: string, tone: number) {
+  const pick = (id: string) => ({ target: paramTarget(param(id), tone)!, label: param(id).name });
+  return { time: (s: number) => pick(`${prefix}Time${s + 1}`), level: (s: number) => pick(`${prefix}Level${s + 1}`) };
+}
+
 // An envelope as a graph filling the width it's given (ui/EnvelopeGraph.tsx).
 function Envelope({ tone, kind, height }: ToneProps & { kind: EnvelopeKind; height: number }) {
   const { patch, setValue } = useEditor();
@@ -86,7 +93,8 @@ function Envelope({ tone, kind, height }: ToneProps & { kind: EnvelopeKind; heig
         <EnvelopeGraph spec={spec} width={width} height={height}
           onTime={(stage, v) => setValue(param(`${prefix}Time${stage + 1}`), v, tone)}
           onLevel={(stage, v) => setValue(param(`${prefix}Level${stage + 1}`), v, tone)}
-          onReset={() => resetEnvelope(kind, (id, v) => setValue(param(id), v, tone))} />
+          onReset={() => resetEnvelope(kind, (id, v) => setValue(param(id), v, tone))}
+          cc={envelopeCc(prefix, tone)} />
       )}
     </div>
     </Lit>

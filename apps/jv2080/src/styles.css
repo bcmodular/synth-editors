@@ -2229,6 +2229,8 @@ input {
   word-spacing: normal;
 }
 /* Learning: every control a CC can drive is outlined and picks on a press. */
+.app.learning .fxdraw,
+.app.learning .envg,
 .app.learning [data-cc-target] {
   outline: 1px dashed #3ddc5a;
   outline-offset: 2px;

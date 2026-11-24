@@ -6,6 +6,7 @@ import { getParam } from "../../core/patch";
 import type { ParamDef } from "../../core/params";
 import { clampParam, param } from "../../core/paramValue";
 import type { DragAxis } from "../../ui/dragXY";
+import { efxTarget } from "../ccTargets";
 import { useEditor } from "../EditorContext";
 import { efxSlotParam } from "./efxParams";
 
@@ -36,7 +37,8 @@ export function useEfx(): { type: EfxTypeDef | undefined; typeRaw: number; param
     const def = efxSlotParam(p);
     const raw = clampParam(def, getParam(patch, def));
     const set = (v: number) => setValue(def, v);
-    return { p, def, raw, text: def.display(raw), set, axis: (px) => ({ value: raw, min: 0, max: p.max, px, onChange: set }) };
+    const cc = { target: efxTarget(typeRaw, p.slot), label: p.name }; // picked by pressing its handle while learning
+    return { p, def, raw, text: def.display(raw), set, axis: (px) => ({ value: raw, min: 0, max: p.max, px, onChange: set, cc }) };
   });
   const get: GetParam = (name) => {
     const found = params.find((x) => x.p.name === name);

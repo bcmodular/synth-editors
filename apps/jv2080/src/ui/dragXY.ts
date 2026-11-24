@@ -12,6 +12,19 @@ export interface DragAxis {
   max: number;
   px: number; // drag distance for the full range
   onChange: (raw: number) => void;
+  cc?: CcPick; // what a learned CC would drive along this axis (editor/ccTargets.ts)
+}
+
+export interface CcPick {
+  target: string;
+  label: string;
+}
+
+// While CC learn waits for a control (editor/useLearnPick.ts), pressing a handle hands what it sets to this instead of
+// dragging it.
+let picker: ((picks: CcPick[]) => void) | null = null;
+export function setDragPicker(fn: typeof picker) {
+  picker = fn;
 }
 
 const clamp = (v: number, a: DragAxis) => Math.max(a.min ?? 0, Math.min(a.max, v));
@@ -32,6 +45,8 @@ function follow(axis: DragAxis | undefined, start: number) {
 export function dragXY(e: ReactPointerEvent<Element>, axes: { x?: DragAxis; y?: DragAxis }) {
   if (e.button !== 0) return;
   e.stopPropagation();
+  const picks = [axes.x?.cc, axes.y?.cc].filter((c): c is CcPick => c !== undefined);
+  if (picker && picks.length) return picker(picks);
   const el = e.currentTarget;
   el.setPointerCapture(e.pointerId);
   const moveX = follow(axes.x, axes.x?.value ?? 0);

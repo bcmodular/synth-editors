@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { envelopeNodes, type EnvelopeSpec } from "../core/envelope";
-import { dragXY } from "./dragXY";
+import { dragXY, type CcPick, type DragAxis } from "./dragXY";
 
 const PAD = 8;
 const TIME_MAX = 127;
@@ -19,9 +19,18 @@ export interface EnvelopeGraphProps {
   onTime: (stage: number, raw: number) => void; // stage 0–3
   onLevel: (stage: number, raw: number) => void;
   onReset?: () => void; // shows a reset button in the corner
+  cc?: { time: (stage: number) => CcPick; level: (stage: number) => CcPick }; // what CC learn picks from a handle
 }
 
-export function EnvelopeGraph({ spec, width, height, onTime, onLevel, onReset }: EnvelopeGraphProps) {
+// A stage's handle drags its time sideways and (for a stage with a level) its level up and down, across `px`.
+function stageAxes(p: Pick<EnvelopeGraphProps, "spec" | "onTime" | "onLevel" | "cc">, stage: number, px: { time: number; level: number }) {
+  const time: DragAxis = { value: p.spec.times[stage] ?? 0, max: TIME_MAX, px: px.time, onChange: (v) => p.onTime(stage, v), cc: p.cc?.time(stage) };
+  if (stage >= p.spec.levels.length) return { x: time };
+  const level: DragAxis = { value: p.spec.levels[stage]!, max: p.spec.levelMax, px: px.level, onChange: (v) => p.onLevel(stage, v), cc: p.cc?.level(stage) };
+  return { x: time, y: level };
+}
+
+export function EnvelopeGraph({ spec, width, height, onTime, onLevel, onReset, cc }: EnvelopeGraphProps) {
   const [active, setActive] = useState<number | null>(null);
   const unit = (width - 2 * PAD) / (4 * TIME_MAX + SUSTAIN);
   const bipolar = spec.center !== undefined;
@@ -33,15 +42,10 @@ export function EnvelopeGraph({ spec, width, height, onTime, onLevel, onReset }:
   const line = nodes.map((n) => `${n.x.toFixed(1)},${n.y.toFixed(1)}`);
   const levelPx = bipolar ? 2 * span : span; // drag distance for the whole level range
 
+  const props = { spec, onTime, onLevel, cc };
   const startDrag = (stage: number) => (e: React.PointerEvent<SVGCircleElement>) => {
     setActive(stage);
-    const hasLevel = stage < spec.levels.length;
-    dragXY(e, {
-      x: { value: spec.times[stage] ?? 0, max: TIME_MAX, px: TIME_MAX * unit, onChange: (v) => onTime(stage, v) },
-      y: hasLevel
-        ? { value: spec.levels[stage]!, max: spec.levelMax, px: levelPx, onChange: (v) => onLevel(stage, v) }
-        : undefined,
-    });
+    dragXY(e, stageAxes(props, stage, { time: TIME_MAX * unit, level: levelPx }));
   };
 
   return (

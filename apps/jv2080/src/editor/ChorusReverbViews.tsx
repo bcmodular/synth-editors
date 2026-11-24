@@ -8,6 +8,7 @@
 import { getParam } from "../core/patch";
 import { param } from "../core/paramValue";
 import { dragXY } from "../ui/dragXY";
+import { paramTarget } from "./ccTargets";
 import { Drawing, Handle } from "../ui/Drawing";
 import { useEditor } from "./EditorContext";
 import { Lit } from "./help/Lit";
@@ -21,7 +22,8 @@ function useParamAxis(id: string, px: number) {
   const { patch, setValue } = useEditor();
   const def = param(id);
   const value = getParam(patch, def);
-  return { value, axis: { value, min: def.min, max: def.max, px, onChange: (v: number) => setValue(def, v) } };
+  const cc = { target: paramTarget(def)!, label: def.name }; // picked by pressing its handle while learning
+  return { value, axis: { value, min: def.min, max: def.max, px, onChange: (v: number) => setValue(def, v), cc } };
 }
 
 // Repeats dying away: heights 1, f, f², … for feedback 0–127.

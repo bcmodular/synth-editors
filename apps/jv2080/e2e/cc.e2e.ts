@@ -1,8 +1,8 @@
 // CC learn against the fake JV and its stand-in controller: learning a CC by clicking a control, then driving it.
 import { expect, test } from "@playwright/test";
-import { setParam } from "../src/core/patch";
+import { getParam, setParam } from "../src/core/patch";
 import { param } from "../src/core/paramValue";
-import { CONTROLLER_PORT, cutoffOf, expectJv, finish, knob, PATCHES, patchTitle, sendCc, start, type JvApp } from "./jv";
+import { CONTROLLER_PORT, cutoffOf, expectJv, finish, knob, PATCHES, patchTitle, readJv, sendCc, start, type JvApp } from "./jv";
 
 let running: JvApp | undefined;
 test.afterEach(async () => finish(running));
@@ -46,4 +46,21 @@ test("learned CCs are remembered", async () => {
   await expect(patchTitle(page)).toHaveText("ON THE JV");
   await sendCc(page, { channel: 1, cc: 71, value: 77 });
   await expect(knob(page, "RESO")).toHaveAttribute("aria-valuenow", "77");
+});
+
+test("learn a CC from an envelope point, choosing its level", async () => {
+  const { page } = (running = await start());
+  await expect(patchTitle(page)).toHaveText("ON THE JV");
+  await page.getByRole("button", { name: /^CC/ }).click();
+  await page.locator(".cc-pop select").first().selectOption(CONTROLLER_PORT);
+  await page.locator(".cc-pop").getByRole("button", { name: "LEARN" }).click();
+  await page.locator(".envg").nth(1).locator(".hit").nth(1).click(); // tone 1's filter envelope, the end of stage 2
+  await page.locator(".dialog").getByRole("button", { name: "Filter Env L2" }).click();
+  await expect(page.locator(".learnbar")).toContainText("Tone 1 · Filter Env L2");
+  await sendCc(page, { channel: 1, cc: 20, value: 0 });
+  await page.locator(".cc-set button").first().click();
+  await page.locator(".cclist select").selectOption("jump");
+  await page.keyboard.press("Escape");
+  await sendCc(page, { channel: 1, cc: 20, value: 33 });
+  await expect.poll(async () => getParam(await readJv(page), param("filterEnvLevel2"), 0)).toBe(33);
 });

@@ -12,7 +12,8 @@ import dgram from "node:dgram";
 import type { AddressInfo } from "node:net";
 import { argFor } from "../src/core/argFor.ts";
 import type { Param } from "../src/core/addresses.ts";
-import { decodePacket, encodeMessage, int, str, type OscArg, type OscMessage } from "../src/core/osc.ts";
+import { meterBlob } from "../src/core/meters.ts";
+import { blob, decodePacket, encodeMessage, int, str, type OscArg, type OscMessage } from "../src/core/osc.ts";
 import { defaultDesk } from "./rig.ts";
 
 export interface FakeSwitches {
@@ -48,6 +49,7 @@ export class FakeX32 {
   readonly received: FakeReceived[] = [];
   readonly scenes = new Map<number, Map<string, OscArg>>(); // saved scenes: a copy of the desk
   readonly snippets = new Map<number, Map<string, OscArg>>(); // saved snippets, the same way
+  private readonly meters = new Map<number, number[]>();
   offline = false; // drop everything, as if the network were down
 
   private readonly socket = dgram.createSocket("udp4");
@@ -131,6 +133,7 @@ export class FakeX32 {
     "/xinfo": (_m, from) => this.reply(from, "/xinfo", [str("127.0.0.1"), str("FAKE-X32"), str(this.model), str(this.firmware)]),
     "/status": (_m, from) => this.reply(from, "/status", [str("active"), str("127.0.0.1"), str(this.model)]),
     "/save": (m, from) => this.save(m, from),
+    "/meters": (m, from) => this.sendMeters(m, from),
     "/load": (m, from) => (m.args[0]?.value === "libfx" ? this.loadLibrary(m, from) : this.loadShow(m, from)),
   };
 
@@ -163,6 +166,19 @@ export class FakeX32 {
     const held = (a: string) => kind === "scene" || SNIPPET_HOLDS.test(a);
     if (saved) for (const [address, arg] of saved) if (!address.startsWith("/-show/") && held(address)) this.values.set(address, arg);
     this.reply(from, "/load", [str(String(kind)), int(saved ? 1 : 0)]);
+  }
+
+  // `/meters ,s /meters/N`: the bank's levels (setMeters), a few times, as the desk streams them every 50 ms.
+  private sendMeters(m: OscMessage, from: dgram.RemoteInfo): void {
+    const address = String(m.args[0]?.value ?? "");
+    const values = this.meters.get(Number(/\/meters\/(\d+)$/.exec(address)?.[1]));
+    if (!values) return;
+    for (const ms of [0, 50, 100]) setTimeout(() => this.reply(from, address, [blob(meterBlob(values))]), ms);
+  }
+
+  // Levels for a meter bank (linear, 1.0 = 0 dBFS), sent when the app subscribes.
+  setMeters(bank: number, values: number[]): void {
+    this.meters.set(bank, values);
   }
 
   // A library load changes the slot as the desk would (through set, so other clients hear of it) and answers 1 or 0.

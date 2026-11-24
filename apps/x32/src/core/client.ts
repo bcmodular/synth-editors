@@ -119,6 +119,11 @@ export class DeskClient {
     this.send(param.address, [argFor(param, value)]);
   }
 
+  // A message that isn't a value and has no single answer, such as a /meters subscription (its data streams back).
+  command(address: string, args: OscArg[] = []): void {
+    this.send(address, args);
+  }
+
   // Every message from the desk, answers included (the cache takes them all).
   onMessage(listener: (m: OscMessage) => void): () => void {
     this.messageListeners.add(listener);

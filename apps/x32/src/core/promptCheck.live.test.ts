@@ -48,6 +48,7 @@ function session(create: Create) {
     presets: (query) => presetsText(ctx().presets ?? [], query),
     check: (req) => checkOutcome(ctx(), req),
     checkRig: async () => ({ text: driftText(planSetup(desiredTargets(studioRig), ctx().get)), kind: "state" }),
+    trace: async () => ({ text: "The signal reaches XLR out 1 at -12 dBFS.", kind: "state" }),
     run: (make) => settle(async () => operator.propose(make(ctx()))),
     undo: () => settle(() => operator.undo(ctx())),
   };

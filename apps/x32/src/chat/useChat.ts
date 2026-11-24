@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Conversation, type Turn, type Usage } from "../core/agent";
 import { deskKind, requestEntry, rigHash, type ChatEntry } from "../core/chatLog";
 import { checkOutcome } from "../core/pathCheck";
+import { traceNow } from "../desk/traceNow";
 import { checkRigNow } from "../setup/rigCheck";
 import { presetsText } from "../core/presets";
 import { rigSummary } from "../core/rigSummary";
@@ -56,6 +57,7 @@ function useHost(desk: Desk, plans: Plans): ToolHost {
     presets: (query: string) => presetsText(latest.current.context().presets ?? [], query),
     check: (req) => checkOutcome(latest.current.context(), req),
     checkRig: () => checkRigNow(deskRef.current),
+    trace: (req) => traceNow(deskRef.current, latest.current.context(), req),
     run: async (make) => latest.current.run(make),
     undo: async () => latest.current.undo(),
   }), [desk.cache]);

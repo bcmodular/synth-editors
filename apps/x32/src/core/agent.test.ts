@@ -31,6 +31,7 @@ const host = (): ToolHost & { ran: string[] } => {
     presets: (query) => `presets for ${query}`,
     check: () => ({ text: "checked", kind: "state" }),
     checkRig: async () => ({ text: "matches", kind: "state" }),
+    trace: async () => ({ text: "traced", kind: "state" }),
     run: async (make) => {
       ran.push("run");
       void make;

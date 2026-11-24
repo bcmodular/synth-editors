@@ -17,6 +17,7 @@ export interface ToolOutcome {
 export interface ToolHost {
   state(names: string[]): string;
   checkRig(): Promise<ToolOutcome>;
+  trace(req: PathRequest & { seconds: number }): Promise<ToolOutcome>;
   check(req: PathRequest): ToolOutcome;
   presets(query: string): string;
   run(make: (ctx: PlanContext) => Plan): Promise<ToolOutcome>;
@@ -108,6 +109,15 @@ export const TOOLS: Anthropic.Tool[] = [
     }),
   },
   {
+    name: "trace_signal",
+    description: "Watch the desk's meters along the path from a source to a destination while the source plays, and say where the signal stops (and why, from the settings). Ask the user to play the source first, and call this once they say it's playing.",
+    input_schema: object({
+      source: name("Source name"),
+      destination: name("A destination, a shared bus's target, or \"main\""),
+      seconds: { type: ["number", "null"], description: "How long to listen, 1-8 s; null for 3" },
+    }),
+  },
+  {
     name: "check_rig",
     description: "Read the desk and compare it with the rig file (the studio's intended setup): what differs, by area. Writes nothing; the Setup panel's Apply puts it right.",
     input_schema: object({}),
@@ -144,6 +154,8 @@ const RUNNERS: Record<string, (host: ToolHost, input: Input) => Promise<ToolOutc
   undo: (host) => host.undo(),
   check_path: async (host, input) => host.check({ source: str(input.source), destination: str(input.destination) }),
   check_rig: (host) => host.checkRig(),
+  trace_signal: (host, input) =>
+    host.trace({ source: str(input.source), destination: str(input.destination), seconds: typeof input.seconds === "number" ? input.seconds : 3 }),
   recall: (host, input) => host.run((ctx) => recallPlan(ctx, { kind: input.kind === "snippet" ? "snippet" : "scene", name: str(input.name) })),
   save_snippet: (host, input) => host.run((ctx) => saveSnippetPlan(ctx, { name: str(input.name), effects: input.effects === true })),
   insert_fx: (host, input) =>

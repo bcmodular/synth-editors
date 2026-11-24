@@ -225,3 +225,18 @@ test("says how the desk differs from the rig file, writing nothing", async () =>
   expect(result).toContain('ch 9 named \\"S-1\\" (now \\"S1 typo\\")');
   expect(r.fake!.received.filter((m) => m.args.length && m.address.startsWith("/ch/"))).toEqual([]);
 });
+
+test("traces a playing source by the meters, and says where it stops (acceptance 17-18)", async () => {
+  const r = await ready();
+  const bank0 = Array.from({ length: 70 }, () => 0);
+  bank0[6] = 0.5; // ch 7, the TB-3, playing
+  r.fake!.setMeters(0, bank0); // nothing on bus 1
+  await script(r, [
+    reply([tool("trace_signal", { source: "TB-3", destination: "Reverb", seconds: 1 })], "tool_use"),
+    reply([text("It stops at the Reverb bus.")], "end_turn"),
+  ]);
+  await say(r.page, "it's playing now");
+  await expect(panel(r.page).locator(".transcript")).toContainText("It stops at the Reverb bus.", { timeout: 10_000 });
+  expect(JSON.stringify((await requests(r))[1]!.messages.at(-1))).toContain("TB-3 (ch 7) has level (-6 dBFS), but bus 1 (Reverb) is silent");
+  expect(r.fake!.sent("/meters").map((m) => m.args[0]?.value)).toEqual(["/meters/0"]);
+});

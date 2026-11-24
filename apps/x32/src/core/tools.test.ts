@@ -11,6 +11,7 @@ function host(): ToolHost & { asked: string[] } {
     presets: (query) => `presets:${query}`,
     check: (req) => ({ text: `checked ${req.source}`, kind: "state" }),
     checkRig: async () => ({ text: "matches", kind: "state" }),
+    trace: async () => ({ text: "traced", kind: "state" }),
     run: async (make) => {
       try {
         const plan = make({ get: () => undefined, shared: [] } as PlanContext);

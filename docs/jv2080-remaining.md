@@ -41,7 +41,9 @@ Much of the recent work has only been tested in demo mode or against the manual.
       type changes; an envelope point (it asks time or level) and an EQ handle.
 - [ ] CONTROL: controller 2 on an expression pedal or aftertouch to CUT on tone 1, and the mod lever to PL1 for
       vibrato; an EFX control source with a type whose realtime parameter you know (eg. ROTARY's speed).
-- [ ] `npm run test:jv2080` with the JV on: every hardware test passes and the JV ends on the patch it started on.
+- [x] `npm run test:jv2080` with the JV on (2026-11-25): all 13 hardware tests pass (reads, edits with undo, EFX
+      start values, the controllers, slots, auditions, files, a relaunch). It found a bug the fake couldn't: DT1s from
+      the JV during an audition were applied to the patch being edited, so the release sent nothing back.
 - [ ] The packaged app: `npm run package:jv2080`, open the DMG, check the name and icon in the Dock and menu bar.
 
 ## 2. Finish Phase 3 (editor)
@@ -94,8 +96,8 @@ Built 2026-11-16 (see jv2080-design.md, Phases). Left over:
 ## 6. Tests
 
 - [x] **End-to-end tests** (`npm run test:e2e:jv2080`, 19 tests) against a fake JV with a stand-in controller.
-- [x] A hardware mode (`npm run test:jv2080`, 2026-11-24) that restores the JV's patch afterwards. Not yet run on
-      the JV.
+- [x] A hardware mode (`npm run test:jv2080`, 2026-11-24) that restores the JV's patch afterwards; passing on the
+      JV since 2026-11-25.
 - [x] Edits from the JV's own panel coming back into the editor.
 - [ ] Unit tests cover `core/`, the session rules, undo history, set files, CC targets and solo; the React
       components are covered only by the end-to-end tests.

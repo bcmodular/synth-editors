@@ -24,17 +24,18 @@ import { useUndo } from "./useUndo";
 
 type Store = Latest<SessionState>;
 
-// DT1s that arrive outside a read update the patch (not an undo step: the JV's panel isn't ours to take back).
-function useIncomingEdits(link: JvLink, busy: boolean, store: Store, sender: JvSender) {
-  const { holds } = sender;
+// DT1s that arrive outside a read update the patch (not an undo step: the JV's panel isn't ours to take back). Not
+// during an audition: the JV holds the auditioned patch then, and what it sends belongs to that, not to the patch
+// being edited (which goes back to the JV on release).
+function useIncomingEdits(link: JvLink, busy: boolean, { store, sender: { holds }, previewing }: SessionCore) {
   useEffect(() => link.subscribe((msg) => {
-    const dt = busy ? undefined : parseDt1(msg);
+    const dt = busy || previewing.current ? undefined : parseDt1(msg);
     const cur = rules.currentPatch(store.ref.current);
     if (!dt?.checksumOk || !cur) return;
     const next = applyDt1(cur, dt.addr, dt.data);
     holds(next);
     store.commit(rules.replaceCurrent(store.ref.current, next));
-  }), [link.subscribe, busy, store, holds]);
+  }), [link.subscribe, busy, store, holds, previewing]);
 }
 
 // Reading the whole patch from the JV, remembering whether the last read failed. Resolves to the patch, or
@@ -143,10 +144,10 @@ export function useJvSession(link: JvLink, { demo, onError }: { demo: boolean; o
   const [busy, setBusy] = useState(false);
   const previewing = useRef(false);
   const sender = useJvSender(link, offline);
-  useIncomingEdits(link, busy, store, sender);
   const undo = useUndo({ session: store, sendPatch: sender.sendPatch, previewing, onError });
   const { read, readFailed } = useReadFromJv(link, offline, setBusy);
   const core: SessionCore = { store, sender, undo, previewing };
+  useIncomingEdits(link, busy, core);
   const edits = usePatchEdits(core, link.device);
   const sync = useSync(link, core, read);
   const setEdits = useSetEdits(core);

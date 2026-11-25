@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { patchFromBytes, setFromJson } from "../src/core/patchSet";
-import { expectJv, finish, hold, openTestSet, PATCHES, patchTitle, readJv, relaunch, slot, start, type JvApp } from "./jv";
+import { FAKE_ONLY, HW, expectJv, finish, hold, panelEdit, openTestSet, PATCHES, patchTitle, readJv, relaunch, slot, start, type JvApp } from "./jv";
 
 let t: JvApp;
 let running: JvApp | undefined;
@@ -59,6 +59,16 @@ test("GRAB, then holding a slot, auditions it; the editor shows it read only", a
   await expectJv(page, PATCHES.jv, "the patch from before");
   await page.keyboard.press("Escape");
   await expect(page.locator(".slotgrid")).not.toHaveClass(/grab/);
+});
+
+test("what the JV sends during an audition doesn't change the patch being edited", async () => {
+  test.skip(HW, FAKE_ONLY);
+  const { page } = t;
+  await hold(page, row(page, "patch", "Audition").locator(".play"), async () => {
+    await expectJv(page, PATCHES.file, "the auditioned file");
+    await panelEdit(page, { block: 1, offset: 0x51, bytes: [3] }); // tone 1's cutoff, turned on the JV's panel
+  });
+  await expectJv(page, PATCHES.jv, "the patch from before the audition");
 });
 
 test("double-clicking a file loads it, and undo goes back", async () => {

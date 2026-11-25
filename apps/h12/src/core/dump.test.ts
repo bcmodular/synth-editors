@@ -43,6 +43,13 @@ describe("checkRules", () => {
     expect(checkRules(good()).every((r) => r.ok)).toBe(true);
   });
 
+  it("counts clock as blocked when the output's filter blocks it", () => {
+    const d = good();
+    d.messageFilters[26] = 0;
+    d.messageFilters[30 + 1] = 1 << 12; // USB host 2 blocks clock
+    expect(checkRules(d)[0]!.ok).toBe(true);
+  });
+
   it("names what breaks them", () => {
     const d = good();
     d.messageFilters[26] = 0; // the Launchkey lets clock through
@@ -50,7 +57,7 @@ describe("checkRules", () => {
     d.channelFilters[33] = 0;
     const r = checkRules(d);
     expect(r.map((x) => x.ok)).toEqual([false, false, false]);
-    expect(r[0]!.detail).toBe("Routed inputs that let clock through: MIDI In 3");
+    expect(r[0]!.detail).toBe("Clock can also pass: MIDI In 3 → USB host 2");
     expect(r[1]!.detail).toBe("Not blocked on: SP-404 Mk2");
     expect(r[2]!.detail).toBe("The OXI's output channel filter is 0000, not DFFF");
   });

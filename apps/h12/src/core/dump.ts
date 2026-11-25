@@ -87,13 +87,23 @@ const OUTPUT_FILTERS = 30;
 
 // The rig's rules (docs/h12-spec.md › Rule check): clock only from MIDI In 1; channels 13–14 (the OXI's) blocked on
 // every synth output; only channel 14 reaching the OXI.
+// Where clock can go from an input other than the Nome II's: the outputs it's routed to, where neither the input's
+// filter nor the output's blocks clock. "USB host 4 → USB-C cable 1, MIDI Out 2".
+function clockPaths(d: Dump): string[] {
+  const passes = (filter: number) => !(d.messageFilters[filter]! & CLOCK_BIT);
+  return range(INPUTS).filter((i) => i !== NOME_IN && passes(i)).flatMap((i) => {
+    const outs = range(INPUTS).filter((o) => d.routing[i]! & (1 << o) && passes(OUTPUT_FILTERS + o));
+    return outs.length ? [`${portName(i, "In")} → ${outs.map((o) => portName(o)).join(", ")}`] : [];
+  });
+}
+
 export function checkRules(d: Dump): RuleCheck[] {
-  const clockFrom = range(INPUTS).filter((i) => i !== NOME_IN && d.routing[i] && !(d.messageFilters[i]! & CLOCK_BIT));
+  const clockFrom = clockPaths(d);
   const open = SYNC_DEVICES.filter((s) => (d.channelFilters[OUTPUT_FILTERS + s.output]! & CH13_14) !== CH13_14);
   const oxi = d.channelFilters[OUTPUT_FILTERS + OXI_OUT]!;
   return [
     { rule: "Clock comes only from MIDI In 1 (the Nome II)", ok: clockFrom.length === 0,
-      detail: clockFrom.length ? `Routed inputs that let clock through: ${clockFrom.map((i) => portName(i, "In")).join(", ")}` : undefined },
+      detail: clockFrom.length ? `Clock can also pass: ${clockFrom.join("; ")}` : undefined },
     { rule: "Channels 13–14 are blocked on every synth output", ok: open.length === 0,
       detail: open.length ? `Not blocked on: ${open.map((s) => s.name).join(", ")}` : undefined },
     { rule: "Only channel 14 reaches the OXI", ok: oxi === ONLY_CH14,

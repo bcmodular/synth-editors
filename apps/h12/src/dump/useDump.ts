@@ -34,7 +34,7 @@ export function useDump(hub: HubState) {
     a.href = URL.createObjectURL(new Blob([dumpJson(dump)], { type: "application/json" }));
     a.download = `h12-preset-1-${dump.savedAt.slice(0, 10)}.json`;
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => URL.revokeObjectURL(a.href), 10_000); // not at once: the download would be cancelled
   }, [dump]);
 
   return { ready: !!link, dump, rules, reading, problem, read, save };

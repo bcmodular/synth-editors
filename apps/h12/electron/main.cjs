@@ -10,6 +10,8 @@ const NO_REAL_MIDI = process.env.H12_NO_REAL_MIDI === "1";
 // They also set this to keep the window off screen and out of the Dock, painting as if it were shown.
 const HIDDEN = process.env.E2E_HIDDEN === "1";
 const PERMISSIONS = new Set(["midi", "midiSysex"]);
+// Tests set this to save downloads (the dump's JSON) there, with no save dialog.
+const DOWNLOAD_DIR = process.env.H12_DOWNLOAD_DIR;
 
 let win = null;
 
@@ -36,6 +38,12 @@ app.whenReady().then(() => {
   const allowed = (permission) => !NO_REAL_MIDI && PERMISSIONS.has(permission);
   session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(allowed(permission)));
   session.defaultSession.setPermissionCheckHandler((_wc, permission) => allowed(permission));
+  // A download (Save JSON) asks where to save, starting in Downloads.
+  session.defaultSession.on("will-download", (_e, item) => {
+    const name = item.getFilename();
+    if (DOWNLOAD_DIR) item.setSavePath(path.join(DOWNLOAD_DIR, name));
+    else item.setSaveDialogOptions({ defaultPath: path.join(app.getPath("downloads"), name) });
+  });
   createWindow();
 });
 

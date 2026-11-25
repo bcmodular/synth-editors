@@ -18,6 +18,9 @@ function ModeButtons({ s, device, mode }: { s: Sync; device: SyncDevice; mode: S
         </button>
       ))}
       {mode === "custom" && <span className="bad">custom bits: set in HxMIDI Tools</span>}
+      {mode !== "custom" && !device.modes.includes(mode) && (
+        <span className="bad">now {MODES.find((m) => m.mode === mode)!.label}, which it doesn't offer</span>
+      )}
     </div>
   );
 }

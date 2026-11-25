@@ -1,7 +1,7 @@
 // Harness for the end-to-end tests: launches the built app in Electron with a throwaway profile. With a fake, the
 // main process refuses real MIDI and the page gets the fake H12 (fakeH12.ts); without one (the hardware tests), it
 // talks to the real H12, read-only.
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,12 +19,15 @@ export interface H12App {
 
 export async function start(fake: FakeH12Init | "real" = {}): Promise<H12App> {
   const profile = await mkdtemp(path.join(tmpdir(), "h12-e2e-profile-"));
+  const downloads = path.join(profile, "downloads"); // where Save JSON saves, with no dialog
+  await mkdir(downloads);
   const env = Object.fromEntries(
     Object.entries(process.env).filter((e): e is [string, string] => e[1] !== undefined && e[0] !== "VITE_DEV_SERVER_URL"),
   );
   const app = await electron.launch({
     args: [APP_DIR, `--user-data-dir=${profile}`],
-    env: { ...env, H12_NO_REAL_MIDI: fake === "real" ? "0" : "1", E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1" },
+    env: { ...env, H12_NO_REAL_MIDI: fake === "real" ? "0" : "1", E2E_HIDDEN: process.env.E2E_SHOW === "1" ? "0" : "1",
+      H12_DOWNLOAD_DIR: downloads },
   });
   const page = await app.firstWindow();
   if (fake !== "real") {

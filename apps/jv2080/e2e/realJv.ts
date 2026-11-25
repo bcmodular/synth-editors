@@ -30,6 +30,7 @@ function ask(page: Page, port: string, request: number[]): Promise<number[] | nu
     const a = await navigator.requestMIDIAccess({ sysex: true });
     const input = [...a.inputs.values()].find((p) => p.name === port)!;
     const output = [...a.outputs.values()].find((p) => p.name === port)!;
+    await input.open(); // a listener added with addEventListener doesn't open the port the way onmidimessage does
     const addr = r.slice(5, 9).join();
     return new Promise<number[] | null>((resolve) => {
       const done = (reply: number[] | null) => {

@@ -29,6 +29,7 @@ export function useController(link: JvLink, learn: CcLearn, patchNow: () => Patc
     });
     const onMessage = (e: Event) => handle((e as MIDIMessageEvent).data ?? []);
     input.addEventListener("midimessage", onMessage);
+    void input.open(); // addEventListener, unlike onmidimessage, doesn't open the port by itself
     return () => input.removeEventListener("midimessage", onMessage);
   }, [input]);
 }

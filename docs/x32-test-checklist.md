@@ -54,8 +54,8 @@ The OSC side is checked (25 Nov): the filters are writable, and save, load and d
 - [ ] Mute ch 9 in X32-Edit. Chat: "I can't hear the S-1 on the sampler". It should name the mute (and any send at
       -∞). Unmute.
 - [ ] Play the TB-3. Chat: "trace the TB-3 to the reverb, it's playing". It reports where the signal reaches.
-      The meter banks stream as expected (checked 25 Nov), but **the indices for outputs are partly inferred:** if it
-      says XLR or aux outs are silent while you can hear them, tell me.
+      Channel, bus and XLR out meters are confirmed (25 Nov); **the aux outs and the main mix aren't**: if the trace
+      says they're silent while you can hear them, tell me. (Raising the TB-3's faders and main fader first helps.)
 - [ ] Chat: "is everything still set up the way the rig file says?" It lists what differs (the Sampler name, if you
       didn't apply it).
 

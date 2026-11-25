@@ -419,7 +419,8 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
    `trace.ts`, the chat's `trace_signal`; against the fake): it subscribes to the meter banks along the path, keeps the
    peaks for 1-8 s while the source plays, and names the first silent stage (below -60 dBFS), with the settings check's
    reasons. Tests 7-8 (no level at the channel; a silent bus). Checked 25 Nov: the banks stream as expected (70, 49, 82
-   values). Not yet checked with a signal playing: bank 4's indices for outputs and aux outs, partly inferred. The desk tests are in `docs/x32-test-checklist.md`.
+   values), and with the TB-3 playing into the Sampler the channel (pre-fader), bus and XLR out positions are right.
+   Not yet checked: the aux outs (bank 4 [72+], inferred) and the main mix (bank 2 [22]). The desk tests are in `docs/x32-test-checklist.md`.
 8. **Scenes and snippets (built 24 Nov, against the fake):** `show.ts` and the chat's `recall` and `save_snippet`.
    Recall a scene or snippet by name; save the routing (sends, output patches, names; optionally inserts and FX) as a
    snippet, by setting its filters (`/-show/showfile/snippet/NNN/eventtyp` and the strip bitmaps) and then

@@ -9,14 +9,15 @@ export const bankAddress = (bank: number) => `/meters/${bank}`;
 
 // Where a strip, output or the main mix is in the banks the trace uses. Checked on the desk 25 Nov with the TB-3
 // playing into the Sampler: ch 7-8 at bank 0 [6-7] (pre-fader: they read with the fader at -inf), bus 11-12 at bank 0
-// [58-59], XLR out 1-2 at bank 4 [40-41]. The aux outs and the main mix aren't checked yet.
+// [58-59], XLR out 1-2 at bank 4 [40-41], and (switched to the P-6) aux out 1-2 at bank 4 [72-73]. The main mix isn't
+// checked yet.
 export const METER_AT = {
   ch: (n: number) => ({ bank: 0, index: n - 1 }),
   auxin: (n: number) => ({ bank: 0, index: 32 + n - 1 }),
   fxrtn: (n: number) => ({ bank: 0, index: 40 + n - 1 }),
   bus: (n: number) => ({ bank: 0, index: 48 + n - 1 }),
   output: (n: number) => ({ bank: 4, index: 40 + n - 1 }), // Outputs 1-16 (the Rack's XLR outs are 1-8)
-  auxOut: (n: number) => ({ bank: 4, index: 72 + n - 1 }), // inferred: "6 aux sends" after the P16 outputs
+  auxOut: (n: number) => ({ bank: 4, index: 72 + n - 1 }), // the "6 aux sends" after the P16 outputs (checked 25 Nov)
   mainL: () => ({ bank: 2, index: 22 }),
 };
 

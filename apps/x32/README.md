@@ -205,7 +205,9 @@ Checked on an X32 Rack, firmware 4.15, in November 2026:
   count then floats, with 70 values in bank 0, 49 in bank 2 and 82 in bank 4, as Maillot lists. In bank 2, values
   25-48 (gain reduction) read 1.0 when nothing is compressed. With the TB-3 sent to the Sampler: ch 7-8 at bank 0
   [6-7], **pre-fader** (they read with ch 7's fader at -∞), bus 11-12 at bank 0 [58-59] and bank 2 [10-11], and XLR
-  out 1-2 at bank 4 [40-41], as the trace expects. The aux outs (bank 4 [72+], inferred) aren't checked yet.
+  out 1-2 at bank 4 [40-41], as the trace expects. Switched to the P-6, aux out 1-2 read at bank 4 [72-73]. The
+  switch itself (XLR out 1-2 off, aux out 1-2 on bus 11-12, both buses renamed "P-6") read back in full, and so did
+  switching back.
 - Every address the app reads (3,194 of them, the new ones included) answers. Once, the very first packets of a
   freshly launched app were refused by macOS's Local Network check; the next launches connected straight away.
 

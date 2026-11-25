@@ -197,4 +197,14 @@ Checked on an X32 Rack, firmware 4.15, in November 2026:
   - Checked by loading library 027 into FX 8, which read back as the preset's type straight away.
   - The desk's library order isn't the catalogue's, so presets are matched by name.
 
+- **Snippets** (checked 25 Nov, in slot 99, deleted afterwards): the filters (`/-show/showfile/snippet/NNN/eventtyp`,
+  `channels`, `auxbuses`, `maingrps`) are writable and read back as written; `/save ,sis snippet 99 <name>` answers
+  `/save ,si snippet 1` and the name and `hasdata` read back; `/load ,si snippet 99` answers `/load ,si snippet 1`;
+  `/delete ,si snippet 99` empties the slot and clears its filters.
+- **Meters** (checked 25 Nov): `/meters ,s /meters/N` streams `/meters/N ,b` every 50 ms; the blob is a little-endian
+  count then floats, with 70 values in bank 0, 49 in bank 2 and 82 in bank 4, as Maillot lists. In bank 2, values
+  25-48 (gain reduction) read 1.0 when nothing is compressed.
+- Every address the app reads (3,194 of them, the new ones included) answers. Once, the very first packets of a
+  freshly launched app were refused by macOS's Local Network check; the next launches connected straight away.
+
 More in the spec's "Day-one answers".

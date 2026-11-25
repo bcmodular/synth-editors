@@ -418,13 +418,14 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
    model offers the fixes its tools can make. Addendum test 6. `traceSignal` **built 24 Nov** too (`meters.ts`,
    `trace.ts`, the chat's `trace_signal`; against the fake): it subscribes to the meter banks along the path, keeps the
    peaks for 1-8 s while the source plays, and names the first silent stage (below -60 dBFS), with the settings check's
-   reasons. Tests 7-8 (no level at the channel; a silent bus). Not yet checked on the desk: bank 4's indices for
-   outputs and aux outs, partly inferred. The desk tests are in `docs/x32-test-checklist.md`.
+   reasons. Tests 7-8 (no level at the channel; a silent bus). Checked 25 Nov: the banks stream as expected (70, 49, 82
+   values). Not yet checked with a signal playing: bank 4's indices for outputs and aux outs, partly inferred. The desk tests are in `docs/x32-test-checklist.md`.
 8. **Scenes and snippets (built 24 Nov, against the fake):** `show.ts` and the chat's `recall` and `save_snippet`.
    Recall a scene or snippet by name; save the routing (sends, output patches, names; optionally inserts and FX) as a
    snippet, by setting its filters (`/-show/showfile/snippet/NNN/eventtyp` and the strip bitmaps) and then
    `/save ,sis snippet <n> <name>`. Loads wait for Apply; none of these are undoable; the desk is re-read after a
-   load. Not yet checked on the desk: whether the filters are writable over OSC (the desk was off on 24 Nov).
+   load. Checked on the desk 25 Nov (slot 99, deleted afterwards): the filters are writable and read back, and save,
+   load and delete all answer 1.
 9. **UI from the log (after a few weeks of use):** in Claude Code, read the logs, group the requests by intent, and
    build controls for the common ones, such as a sampler matrix (sources × SP-404 / Koala / P-6, one click per send)
    or one-click inserts. They call the same planner and applier as the chat, so the guards, confirmation and undo

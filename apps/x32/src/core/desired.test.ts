@@ -14,8 +14,8 @@ describe("desiredTargets for the studio rig", () => {
     expect(value("/config/routing/IN/25-32")).toBe(23);
     expect(value("/config/userrout/in/03")).toBe(165); // TD-3-MO on aux in 5
     expect(value("/config/userrout/in/11")).toBe(161); // P-6 on aux in 1
-    expect(value("/config/userrout/in/21")).toBe(129); // Ableton 1 on card in 1
-    expect(value("/config/userrout/in/32")).toBe(140); // Ableton 12 on card in 12
+    expect(value("/config/userrout/in/21")).toBe(129); // DAW 1 on card in 1
+    expect(value("/config/userrout/in/32")).toBe(140); // DAW 11-12's right side on card in 12
     expect(value("/config/userrout/in/04")).toBe(166); // King Rat on aux in 6
   });
 
@@ -23,6 +23,8 @@ describe("desiredTargets for the studio rig", () => {
     expect(value("/ch/11/config/name")).toBe("P-6");
     expect(value("/ch/12/config/name")).toBe("P-6");
     expect(value("/config/chlink/11-12")).toBe(1);
+    expect([value("/config/chlink/21-22"), value("/config/chlink/23-24"), value("/config/chlink/25-26")]).toEqual([0, 0, 1]); // DAW: 4 mono, then pairs
+    expect([value("/ch/24/config/name"), value("/ch/31/config/name"), value("/ch/32/config/name")]).toEqual(["DAW 4", "DAW 11-12", "DAW 11-12"]);
     expect(value("/config/chlink/3-4")).toBe(0); // TD-3 and King Rat are both mono
     expect(value("/ch/04/config/color")).toBe(4); // BL
     expect(value("/ch/01/config/color")).toBe(2); // GN, a synth

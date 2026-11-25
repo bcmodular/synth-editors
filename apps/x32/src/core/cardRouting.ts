@@ -1,4 +1,4 @@
-// What reaches Ableton on each USB card output. A card output can only take a logical output (Outputs 1-16, P16 1-16,
+// What reaches the DAW (Reaper) on each USB card output. A card output can only take a logical output (Outputs 1-16, P16 1-16,
 // aux outs 1-6), each of which taps a source such as a channel's direct out. So card 1-16 go through P16 1-16, and
 // card 17-32 through user-out slots 17-32, each pointing at a logical output the rig file doesn't already use for a
 // bus (docs/x32-spec.md, open questions).

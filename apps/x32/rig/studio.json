@@ -1,5 +1,5 @@
 {
-  "about": "An example rig: the desired setup of one studio's X32 Rack. FX buses first (1-8 feed FX 1-4), one Sampler bus switched between three samplers, the most played sources on ch 1-16 through user routing, and 12 Ableton returns from ch 21. The app's Setup panel checks the desk against this file and applies the difference (docs/x32-spec.md, 'Set up from the rig file'). Anything not listed here is left alone.",
+  "about": "An example rig: the desired setup of one studio's X32 Rack. FX buses first (1-8 feed FX 1-4), one Sampler bus switched between three samplers, the most played sources on ch 1-16 through user routing, and 12 DAW returns from ch 21 (Reaper: 4 mono, then 4 stereo pairs). The app's Setup panel checks the desk against this file and applies the difference (docs/x32-spec.md, 'Set up from the rig file'). Anything not listed here is left alone.",
   "sources": [
     {
       "strip": "ch 1",
@@ -124,87 +124,59 @@
     },
     {
       "strip": "ch 21",
-      "name": "Ableton 1",
+      "name": "DAW 1",
       "colour": "YE",
       "icon": "Computer",
       "socket": "card 1"
     },
     {
       "strip": "ch 22",
-      "name": "Ableton 2",
+      "name": "DAW 2",
       "colour": "YE",
       "icon": "Computer",
       "socket": "card 2"
     },
     {
       "strip": "ch 23",
-      "name": "Ableton 3",
+      "name": "DAW 3",
       "colour": "YE",
       "icon": "Computer",
       "socket": "card 3"
     },
     {
       "strip": "ch 24",
-      "name": "Ableton 4",
+      "name": "DAW 4",
       "colour": "YE",
       "icon": "Computer",
       "socket": "card 4"
     },
     {
-      "strip": "ch 25",
-      "name": "Ableton 5",
+      "strip": "ch 25-26",
+      "name": "DAW 5-6",
       "colour": "YE",
       "icon": "Computer",
-      "socket": "card 5"
+      "socket": "card 5-6"
     },
     {
-      "strip": "ch 26",
-      "name": "Ableton 6",
+      "strip": "ch 27-28",
+      "name": "DAW 7-8",
       "colour": "YE",
       "icon": "Computer",
-      "socket": "card 6"
+      "socket": "card 7-8"
     },
     {
-      "strip": "ch 27",
-      "name": "Ableton 7",
+      "strip": "ch 29-30",
+      "name": "DAW 9-10",
       "colour": "YE",
       "icon": "Computer",
-      "socket": "card 7"
+      "socket": "card 9-10"
     },
     {
-      "strip": "ch 28",
-      "name": "Ableton 8",
+      "strip": "ch 31-32",
+      "name": "DAW 11-12",
       "colour": "YE",
       "icon": "Computer",
-      "socket": "card 8"
-    },
-    {
-      "strip": "ch 29",
-      "name": "Ableton 9",
-      "colour": "YE",
-      "icon": "Computer",
-      "socket": "card 9"
-    },
-    {
-      "strip": "ch 30",
-      "name": "Ableton 10",
-      "colour": "YE",
-      "icon": "Computer",
-      "socket": "card 10"
-    },
-    {
-      "strip": "ch 31",
-      "name": "Ableton 11",
-      "colour": "YE",
-      "icon": "Computer",
-      "socket": "card 11"
-    },
-    {
-      "strip": "ch 32",
-      "name": "Ableton 12",
-      "colour": "YE",
-      "icon": "Computer",
-      "socket": "card 12"
+      "socket": "card 11-12"
     }
   ],
   "unused": {
@@ -217,7 +189,7 @@
     "notes": "Unnamed and white. The aux strips are also muted: their sockets now feed channels through user routing, or those sources would be heard twice. The buses are spare (a mono King Rat bus leaves bus 10 over)."
   },
   "spare": {
-    "XLR 15-16": "no channel: ch 21-32 are the Ableton returns",
+    "XLR 15-16": "no channel: ch 21-32 are the DAW returns",
     "bus 10": null,
     "bus 13-16": null
   },
@@ -328,12 +300,12 @@
         "tap": "post"
       }
     ],
-    "notes": "Each source records to Ableton as you hear it (post-fader), the effect returns in stereo, and the main mix as a reference. Card outs 21-22 are free."
+    "notes": "Each source records to the DAW (Reaper) as you hear it (post-fader), the effect returns in stereo, and the main mix as a reference. Card outs 21-22 are free."
   },
   "manual": [
     "Set each line-level synth's preamp gain low, and save it in the scenes (the app never sets gain).",
     "Turn input monitoring off on the SP-404, in Koala and on the P-6.",
-    "In Ableton, keep track monitoring off, listen through the X32, and match the X32's sample rate.",
+    "In Reaper, keep track monitoring off, listen through the X32, and match the X32's sample rate.",
     "Use scene safes to keep preamp gains and the monitor level out of scene changes."
   ]
 }

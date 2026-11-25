@@ -382,7 +382,7 @@ Each phase leaves the app runnable and ends with its tests passing, like the H12
    - The applier never puts two steps in one batch, so a type change is read back before its parameters are written
      (the desk resets them), and effect parameters read back within 0.02 (the desk rounds them).
    - Spare-channel user routing isn't needed: every source is on a channel since the 22 Nov layout, and ch 21-32
-     are the Ableton returns, so there are no spare channels.
+     are the DAW returns, so there are no spare channels.
    - Parameter tables since added: 3TAP and 4TAP (22 Nov), and the reverbs AMBI, RPLT, ROOM, CHAM, VREV, VRM, GATE and
      RVRS (24 Nov), so the studio's Vintage Room can be tuned. Not yet: the modulation and dynamics types, and FX types
      in the rig file.
@@ -524,11 +524,12 @@ From the addendum (set up from rig file and trace signal):
 ## Open questions for later
 
 - **Channel layout (decided 22 Nov, in the rig file):** the most played sources, the P-6, S-1, TD-3 and King Rat
-  return included, are on ch 1-16 through user routing; Koala, Mic and Guitar on ch 17-20; Ableton 1-12 on ch 21-32
+  return included, are on ch 1-16 through user routing; Koala, Mic and Guitar on ch 17-20; the DAW returns on ch 21-32 (Reaper since 25 Nov: "DAW 1"-"DAW 4" mono on
+  ch 21-24, then "DAW 5-6" … "DAW 11-12" as stereo pairs on ch 25-32)
   (12 returns; XLR 15-16 have no channel). The aux strips are muted and unnamed, so
   nothing is heard twice. On channels, these sources get inserts and post-fader direct outs, which settles the TD-3
   insert and the card outputs (ch 1-20, FX returns 1-8 and the main mix: 30 of the 31 free internal outputs).
 - **Buses (changed 22 Nov):** buses 1-8 feed FX 1-4 (Reverb, Delay, FX 3, FX 4), bus 9 the King Rat, bus 11-12 the
-  Sampler; bus 10 and 13-16 are spare, unnamed and white like the aux strips. Synths are green, Ableton yellow.
+  Sampler; bus 10 and 13-16 are spare, unnamed and white like the aux strips. Synths are green, the DAW yellow.
 - **Decided 24 Nov:** the chat creates snippets as well as recalling them (phase 8); a delay can opt out of the tempo
   bridge (phase 6); no Launchpad Pro pads for scene recall.

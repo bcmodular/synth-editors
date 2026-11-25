@@ -6,8 +6,8 @@
 import { useCallback, useState } from "react";
 import { mapperFormatProblem } from "../core/status";
 import {
-  currentTarget, DEFAULT_PEDAL_CC, mappersWithoutInit, parseTargets, SWITCH_SETTINGS, targetSettings, type Choice,
-  type Target,
+  currentTarget, DEFAULT_PEDAL_CC, isOff, mappersWithoutInit, OFF_SETTINGS, parseTargets, pedalCcIn, SWITCH_SETTINGS,
+  targetSettings, type Choice, type Target,
 } from "../core/targets";
 import list from "../targets.json";
 import type { HubState } from "../hub/useHub";
@@ -35,17 +35,21 @@ const pedalWording = (cc: number): Wording => ({ doing: `Setting the pedal to CC
   done: `Set the pedal to CC ${cc}`, stopped: `Stopped setting the pedal to CC ${cc}`,
   unchanged: `The pedal already sends CC ${cc}` });
 
+const OFF_WORDING: Wording = { doing: "Turning the keys and the pedal off", done: "Turned the keys and the pedal off",
+  stopped: "Stopped turning the keys and the pedal off", unchanged: "The keys and the pedal are already off" };
+
 const nameOf = (c: Pick<Choice, "target" | "channel">) =>
   (c.target.channels ? `${c.target.name} ch ${c.channel}` : c.target.name);
 
 type Apply = ReturnType<typeof useWriter>["apply"];
 
 // What the panel can do: switch target (keeping the pedal CC and the copy to the Mac as they are), change the pedal
-// CC, turn the copy on or off. With no target set, a new pedal CC waits for the next switch.
-function useActions(apply: Apply, active: Choice | undefined) {
-  const [chosenCc, setChosenCc] = useState(DEFAULT_PEDAL_CC);
+// CC, turn the copy on or off, or turn the keys and the pedal off. With no target set, the pedal CC is the one chosen
+// here, or else mapper 23's, and waits for the next switch.
+function useActions(apply: Apply, active: Choice | undefined, mapperCc: number | undefined) {
+  const [chosenCc, setChosenCc] = useState<number>();
   const monitor = active?.monitor ?? false;
-  const pedalCc = active?.pedalCc ?? chosenCc;
+  const pedalCc = active?.pedalCc ?? chosenCc ?? mapperCc ?? DEFAULT_PEDAL_CC;
   const switchTo = useCallback((target: Target, channel = target.channel) =>
     apply(switchWording(nameOf({ target, channel })), () => targetSettings(target, { channel, pedalCc, monitor })),
   [apply, pedalCc, monitor]);
@@ -56,14 +60,16 @@ function useActions(apply: Apply, active: Choice | undefined) {
     setChosenCc(cc);
     if (active) void apply(pedalWording(cc), () => targetSettings(active.target, { ...active, pedalCc: cc }));
   }, [apply, active]);
-  return { pedalCc, switchTo, setMonitor, setPedalCc };
+  const switchOff = useCallback(() => apply(OFF_WORDING, () => OFF_SETTINGS), [apply]);
+  return { pedalCc, switchTo, setMonitor, setPedalCc, switchOff };
 }
 
 export function useTargets(hub: HubState, note: (text: string) => void = () => undefined) {
   const { current, apply, ...writer } = useWriter(hub, SPEC, note);
-  const read = current ? { active: currentTarget(TARGETS, current), withoutInit: mappersWithoutInit(current) }
-    : { active: undefined, withoutInit: [] };
-  const actions = useActions(apply, read.active);
+  const read = current
+    ? { active: currentTarget(TARGETS, current), off: isOff(current), withoutInit: mappersWithoutInit(current) }
+    : { active: undefined, off: false, withoutInit: [] };
+  const actions = useActions(apply, read.active, current && pedalCcIn(current));
   return { targets: TARGETS, listProblems: LIST_PROBLEMS, ...read, ...writer, ...actions };
 }
 

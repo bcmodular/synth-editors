@@ -35,6 +35,18 @@ function TargetButton({ target, t }: { target: Target; t: Targets }) {
   );
 }
 
+// Off: the keys and the pedal reach no synth, for when an app on the Mac takes the Launchkey's own USB port.
+function OffButton({ t }: { t: Targets }) {
+  return (
+    <div className={`target${t.off ? " on" : ""}`}>
+      <button aria-pressed={t.off} disabled={!t.ready || !!t.busy} onClick={() => void t.switchOff()}>
+        <span className="name">Off</span>
+        <span className="where">no synth: REAPER etc. over USB</span>
+      </button>
+    </div>
+  );
+}
+
 function Now({ t }: { t: Targets }) {
   if (t.readProblem) return <p className="bad" role="alert">{t.readProblem}</p>;
   if (!t.ready) return <p className="note">Waiting for the H12…</p>;
@@ -44,6 +56,7 @@ function Now({ t }: { t: Targets }) {
     const name = target.channels ? `${target.name} on channel ${channel}` : target.name;
     return <p className="note">The keys and the pedal play <strong>{name}</strong>.</p>;
   }
+  if (t.off) return <p className="note">The keys and the pedal are <strong>off</strong>: they play no synth.</p>;
   return <p className="note">The H12's settings don't match any target yet.</p>;
 }
 
@@ -82,7 +95,7 @@ export function TargetsPanel({ t }: { t: Targets }) {
       )}
       <InitWarning t={t} />
       <Now t={t} />
-      <div className="target-grid">{t.targets.map((target) => <TargetButton key={target.name} target={target} t={t} />)}</div>
+      <div className="target-grid">{t.targets.map((target) => <TargetButton key={target.name} target={target} t={t} />)}<OffButton t={t} /></div>
       <PedalCc t={t} />
       <MonitorSwitch t={t} />
       <Result outcome={t.outcome} />

@@ -22,7 +22,9 @@ SysEx, so when no port answers the app asks again every 2 seconds, up to 5 times
 
 ## Target switching
 
-One button per target in [src/targets.json](src/targets.json) (output port index, channel 1–16).
+One button per target in [src/targets.json](src/targets.json) (output port index, channel 1–16), and **Off**: the
+keys and the pedal reach nothing, for when REAPER or another app plays from the Launchkey's own USB port. Off writes
+only the two inputs' routing (to nothing) and leaves the mappers as they are, so the next target keeps the pedal CC.
 A target can list `channels` to choose from, as the JV-2080 does for its parts 6–10: small channel buttons under it.
 The lit one is the target the H12 is set to now, worked out by reading its settings back. Clicking another:
 

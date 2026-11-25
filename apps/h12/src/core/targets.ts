@@ -89,10 +89,13 @@ const pedalMapper = (cc: number, channel: number): SettingValue =>
     follow1: false, follow2: true, midiIn: PEDAL_MIDI_IN,
   }));
 
-// The CC mapper 23 sends now (value 1 of its output, word 1 bits 31–24), if the H12 has it.
-const pedalCcIn = (current: ReadonlyMap<string, number[]>): number | undefined => {
+// The CC mapper 23 sends now (value 1 of its output, word 1 bits 31–24), if it's the app's pedal mapper: the same
+// input match, options and inputs as one the app writes (not the factory mapper or a manual one).
+export const pedalCcIn = (current: ReadonlyMap<string, number[]>): number | undefined => {
   const words = current.get(`${Setting.mapper}:${PEDAL_MAPPER}`);
-  return words ? (words[1]! >>> 24) & 0x7f : undefined;
+  const ours = pedalMapper(0, 0).words;
+  const same = words && [0, 3, 4, 5].every((i) => words[i] === ours[i]);
+  return same ? (words[1]! >>> 24) & 0x7f : undefined;
 };
 
 // The settings that make a target: both inputs routed to its output only (and to the Mac when monitoring), and the
@@ -109,6 +112,13 @@ export function targetSettings(t: Target, opts: SwitchOptions = {}): SettingValu
     pedalMapper(opts.pedalCc ?? DEFAULT_PEDAL_CC, channel),
   ];
 }
+
+// Off: the keys and the pedal reach nothing, e.g. while REAPER plays a plugin from the Launchkey's own USB port. Only
+// the two inputs' routing is written; the mappers stay as they are, ready for the next target.
+export const OFF_SETTINGS: SettingValue[] = [
+  value({ setting: Setting.routing, index: PEDAL_IN }, [0]),
+  value({ setting: Setting.routing, index: LAUNCHKEY_IN }, [0]),
+];
 
 export const settingKey = (s: { setting: number; index: number }): string => `${s.setting}:${s.index}`;
 
@@ -127,6 +137,9 @@ export const mappersWithoutInit = (current: ReadonlyMap<string, number[]>): stri
   SWITCH_SETTINGS.filter((s) => s.setting === Setting.mapper)
     .filter((s) => { const w = current.get(settingKey(s)); return !!w && !hasInit(w); })
     .map((s) => s.label);
+
+// Whether the H12 is set to Off: neither input routed anywhere.
+export const isOff = (current: ReadonlyMap<string, number[]>): boolean => matches(current, OFF_SETTINGS);
 
 // The target, channel, pedal CC and monitoring the H12 is set to now, if its settings match one exactly.
 export function currentTarget(targets: readonly Target[], current: ReadonlyMap<string, number[]>): Choice | undefined {

@@ -55,6 +55,12 @@ Writes the output message filters, only their sync bits. The **Sync** panel read
 - [ ] TD-3-MO → Volca Bass → TD-3-MO. Each switch shows an **App** row "Switched to …", and the keys follow
       (ch 5, ch 8, ch 5). If one fails: screenshot the Target panel's message and the monitor.
 
+## 4b. Off
+
+- [ ] **Off**: "The keys and the pedal are off"; no synth plays from the keys. REAPER, with the Launchkey's own USB
+      port as a track input, plays a plugin.
+- [ ] Click a target again: the keys play it, with the same pedal CC.
+
 ## 5. Targets not yet working or not yet tried
 
 | Target | Ch | Check |

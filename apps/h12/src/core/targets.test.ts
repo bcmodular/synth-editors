@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import list from "../targets.json";
 import { hasInit } from "./mapper";
 import { Setting } from "./sysex";
-import { currentTarget, mappersWithoutInit, parseTargets, settingKey, targetSettings, type Target } from "./targets";
+import {
+  currentTarget, isOff, mappersWithoutInit, OFF_SETTINGS, parseTargets, pedalCcIn, settingKey, targetSettings, type Target,
+} from "./targets";
 
 const TB3: Target = { name: "TB-3", output: 0, channel: 2 };
 const JV: Target = { name: "JV-2080", output: 1, channel: 6 };
@@ -67,9 +69,29 @@ describe("currentTarget", () => {
     expect(currentTarget([TB3, JV], current)).toMatchObject({ target: TB3, pedalCc: 74 });
   });
 
+  it("reads no pedal CC from a mapper 23 the app didn't write", () => {
+    const current = new Map([["3:23", [0x7f007f00, 0x7f007f00, 0x00f00f0f, 0x5a000187, 0, 0]]]); // factory
+    expect(pedalCcIn(current)).toBeUndefined();
+    expect(pedalCcIn(new Map(targetSettings(TB3, { pedalCc: 74 }).map((v) => [settingKey(v), v.words])))).toBe(74);
+  });
+
   it("finds nothing when a setting differs", () => {
     const current = read(TB3);
     current.set(settingKey({ setting: Setting.routing, index: 26 }), [3]);
+    expect(currentTarget([TB3], current)).toBeUndefined();
+  });
+});
+
+describe("off", () => {
+  it("routes both inputs nowhere and leaves the mappers alone", () => {
+    expect(OFF_SETTINGS.map((v) => [settingKey(v), v.words])).toEqual([["0:25", [0]], ["0:26", [0]]]);
+  });
+
+  it("is recognised whatever the mappers hold, and is no target", () => {
+    const current = new Map(targetSettings(TB3).map((v) => [settingKey(v), v.words]));
+    expect(isOff(current)).toBe(false);
+    for (const v of OFF_SETTINGS) current.set(settingKey(v), v.words);
+    expect(isOff(current)).toBe(true);
     expect(currentTarget([TB3], current)).toBeUndefined();
   });
 });

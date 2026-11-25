@@ -40,6 +40,22 @@ test("sets one pedal CC for every target, and keeps it when switching", async ()
   await expect(cc).toHaveValue("74");
 });
 
+test("turns the keys and the pedal off, and back on with the same pedal CC", async () => {
+  const r = (running = await start({ settings: BEFORE }));
+  await switchTo(r.page, "TB-3");
+  await r.page.getByLabel("Pedal CC").fill("74");
+  await r.page.getByRole("button", { name: "Set" }).click();
+  await expect(r.page.getByRole("status")).toContainText("Set the pedal to CC 74");
+  const before = (await settingWrites(r.page)).length;
+  await switchTo(r.page, "Off");
+  await expect(r.page.getByText("The keys and the pedal are off")).toBeVisible();
+  expect((await settingWrites(r.page)).slice(before)).toEqual(["0:25", "0:26"]);
+  expect(await fakeSetting(r.page, "0:26")).toEqual([0]);
+  await switchTo(r.page, "TB-3");
+  await expect(r.page.getByRole("status")).toHaveText("Switched to TB-3: wrote 2 settings, 6 already matched.");
+  await expect(r.page.getByLabel("Pedal CC")).toHaveValue("74");
+});
+
 test("writes nothing when the target is already set", async () => {
   const r = (running = await start({ settings: BEFORE }));
   await switchTo(r.page, "TB-3");

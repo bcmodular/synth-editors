@@ -41,6 +41,7 @@ Other routes, filters and mappers must not be changed.
 | Thru5 synths: TD-3-MO | 24 (MIDI Out 1) | 5 |
 | Thru5 synths: Volca Bass | 24 (MIDI Out 1) | 8 |
 | Thru5 synths: Volca Kick | 24 (MIDI Out 1) | 9 |
+| Thru5: iPad | 24 (MIDI Out 1) | 1 |
 | S-1 | 26 (MIDI Out 3) | 3 |
 | SP-404 Mk2, chromatic | 28 (MIDI Out 5) | 16 |
 | SP-404 Mk2, pads (MIDI mode B) | 28 (MIDI Out 5) | 1 |

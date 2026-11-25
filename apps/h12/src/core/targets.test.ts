@@ -135,7 +135,7 @@ describe("monitor", () => {
 describe("parseTargets", () => {
   it("accepts the bundled list", () => {
     const parsed = parseTargets(list);
-    expect("targets" in parsed && parsed.targets).toHaveLength(14);
+    expect("targets" in parsed && parsed.targets).toHaveLength(15);
   });
 
   it("lists every problem", () => {

@@ -66,6 +66,7 @@ Writes the output message filters, only their sync bits. The **Sync** panel read
 | Target | Ch | Check |
 |---|---|---|
 | Volca Kick | 9 | |
+| iPad | 1 | behind the Thru5: the app on the iPad listens on ch 1 |
 | P-6 auto | 15 | replaces P-6 granular |
 | SP-404 chromatic | 16 | |
 | SP-404 pads ch 1 / ch 2 | 1 / 2 | SP-404 in MIDI mode B |

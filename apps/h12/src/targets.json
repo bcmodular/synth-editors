@@ -6,6 +6,7 @@
   { "name": "TD-3-MO", "output": 24, "channel": 5 },
   { "name": "Volca Bass", "output": 24, "channel": 8 },
   { "name": "Volca Kick", "output": 24, "channel": 9 },
+  { "name": "iPad", "output": 24, "channel": 1 },
   { "name": "S-1", "output": 26, "channel": 3 },
   { "name": "SP-404 chromatic", "output": 28, "channel": 16 },
   { "name": "SP-404 pads ch 1", "output": 28, "channel": 1 },
